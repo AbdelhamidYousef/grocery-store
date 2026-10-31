@@ -188,11 +188,6 @@ export function ProductForm({
           {...register('attributes.material')}
         />
         <Input
-          label="Brand"
-          error={errors.attributes?.brand?.message}
-          {...register('attributes.brand')}
-        />
-        <Input
           label="Size"
           error={errors.attributes?.size?.message}
           {...register('attributes.size')}

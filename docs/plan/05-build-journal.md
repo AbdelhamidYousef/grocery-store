@@ -497,3 +497,9 @@ Learn: a cached rejected promise turns a blip into a permanent failure, so a ret
 1. The health banner shows nothing while its first request is slow but appears when it fails. Why is that distinction deliberate on a free-tier host, and which two pacing values does it use?
 2. A signed-in shopper's cookie disappears and they click Orders. Walk through what the client does with the 401, why the cart is still there after signing in again, and why a 401 from the login form must not trigger the same path.
 3. Stripe.js is blocked by an extension. What does the shopper see, what is already saved on the server, and what would go wrong if "Try again" only re-rendered the form without `resetStripe()`?
+
+## Phase 14 — Catalogue depth
+
+### 14.1 — schema: brands, collections, tags, variant fields
+New tables: `brands`, `collections` + `collection_products` (ordered many-to-many through a `position` column), `tags` + `product_tags`, and `trial_redemptions`. `products` gains `brand_id` (nullable, `ON DELETE SET NULL`), `is_eco`, `is_bestseller_override` and `badge_new_until`; variants gain `net_amount`/`net_unit` (grams or ml, integers), `is_trial` and `swatch_hex`. Constraints carry the rules: a unique slug on each public thing, a collection window must end after it starts, a net amount needs a unit and vice versa, and swatches must match `#RRGGBB`. The migration also copies the old `attributes.brand` text into `brands` rows and `brand_id`, then removes the jsonb key, and a test re-runs that data step on a product that still has the old shape. The trial table's unique index is partial (live rows only), so a cancelled order can release a slot without deleting history.
+Learn: put facts you filter, count or give a page to in real tables with foreign keys; keep jsonb for loose, niche attributes. A partial unique index enforces "at most one live row" in the database, which no service-level check can guarantee under concurrent requests.

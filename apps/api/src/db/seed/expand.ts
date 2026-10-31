@@ -93,6 +93,7 @@ const PET_SKU: Record<Pet, string> = {
   bird: 'BIRD',
   fish: 'FISH',
   small: 'SMALL',
+  reptile: 'REPT',
 };
 
 /** Cartesian product of the option axes, in axis order (first axis varies slowest). */

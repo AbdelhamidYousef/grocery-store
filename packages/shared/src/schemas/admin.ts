@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { PetSchema } from '../pets.ts';
+
 import { OrderSchema, OrderStatusSchema, PaymentStatusSchema } from './checkout.ts';
 import { DataSchema, PaginatedSchema, PaginationQuerySchema } from './common.ts';
 
@@ -138,9 +140,8 @@ export const AdminVariantResponseSchema = DataSchema(AdminVariantSchema);
 // become facets).
 export const AdminAttributesSchema = z
   .object({
-    pet: z.enum(['dog', 'cat', 'bird', 'fish', 'small']),
+    pet: PetSchema,
     material: z.string().trim().min(1).max(60),
-    brand: z.string().trim().min(1).max(60),
     ageStage: z.enum(['puppy', 'kitten', 'adult', 'senior', 'all']),
     size: z.string().trim().min(1).max(60),
     optionKeys: z.array(z.string().trim().min(1).max(40)).max(6),

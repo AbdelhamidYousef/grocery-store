@@ -92,7 +92,6 @@ export async function runSeed() {
             attributes: {
               pet: p.pet,
               material: p.material,
-              brand: 'Pawsome',
               ageStage: p.ageStage,
               optionKeys: p.axes.map((a) => a.key),
             },

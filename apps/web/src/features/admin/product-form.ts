@@ -4,6 +4,7 @@ import {
   AdminInventorySetSchema,
   AdminProductCreateSchema,
   AdminVariantInputSchema,
+  PET_VALUES,
   ProductStatusSchema,
   type AdminImageInput,
   type AdminProduct,
@@ -201,7 +202,7 @@ export const emptyImageForm: ImageFormInput = {
 
 // ---------- product ----------
 
-const PETS = ['dog', 'cat', 'bird', 'fish', 'small'] as const;
+const PETS = PET_VALUES;
 const AGE_STAGES = ['puppy', 'kitten', 'adult', 'senior', 'all'] as const;
 export const PET_OPTIONS = PETS;
 export const AGE_STAGE_OPTIONS = AGE_STAGES;
@@ -210,7 +211,6 @@ const AttributesTextSchema = z.object({
   pet: z.string(),
   ageStage: z.string(),
   material: z.string().trim(),
-  brand: z.string().trim(),
   size: z.string().trim(),
   optionKeys: z.string().trim(),
 });
@@ -228,7 +228,6 @@ const AttributesFormSchema = AttributesTextSchema.transform((a) => {
     ...(a.pet && { pet: a.pet }),
     ...(a.ageStage && { ageStage: a.ageStage }),
     ...(a.material && { material: a.material }),
-    ...(a.brand && { brand: a.brand }),
     ...(a.size && { size: a.size }),
     ...(keys.length > 0 && { optionKeys: keys }),
   };
@@ -266,7 +265,6 @@ export function productDefaults(product?: AdminProduct): ProductFormInput {
       pet: text('pet'),
       ageStage: text('ageStage'),
       material: text('material'),
-      brand: text('brand'),
       size: text('size'),
       optionKeys: keys.join(', '),
     },

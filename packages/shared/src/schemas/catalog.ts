@@ -4,7 +4,7 @@ import { PaginatedSchema, PaginationQuerySchema, DataSchema } from './common.ts'
 
 // Attribute keys the shop filters and builds facets on. A constant, not "whatever is in the
 // jsonb", so the filter UI is predictable and the facet query stays cheap.
-export const FACET_KEYS = ['pet', 'material', 'brand', 'ageStage'] as const;
+export const FACET_KEYS = ['pet', 'material', 'ageStage'] as const;
 export type FacetKey = (typeof FACET_KEYS)[number];
 
 // ---------- shared pieces ----------

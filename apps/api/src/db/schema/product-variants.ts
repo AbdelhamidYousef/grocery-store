@@ -5,6 +5,7 @@ import {
   check,
   integer,
   jsonb,
+  pgEnum,
   pgTable,
   text,
   uniqueIndex,
@@ -13,6 +14,9 @@ import {
 
 import { createdAt, id, updatedAt } from './columns.ts';
 import { productStatus, products } from './products.ts';
+
+// Net contents unit: grams or millilitres, the base small unit, so amounts are integers.
+export const netUnit = pgEnum('net_unit', ['g', 'ml']);
 
 export const productVariants = pgTable(
   'product_variants',
@@ -30,6 +34,14 @@ export const productVariants = pgTable(
     compareAtPriceCents: integer('compare_at_price_cents'),
     currency: char('currency', { length: 3 }).notNull().default('EUR'),
     weightGrams: integer('weight_grams').notNull(),
+    // What is inside, in grams or ml; null for items with no meaningful net amount (a toy).
+    // Drives the unit price (per kg / per L) computed in packages/shared.
+    netAmount: integer('net_amount'),
+    netUnit: netUnit('net_unit'),
+    // A sample size; at most one unit per customer, ever (trial_redemptions).
+    isTrial: boolean('is_trial').notNull().default(false),
+    // Colour dot shown on the product card, #RRGGBB.
+    swatchHex: text('swatch_hex'),
     isDefault: boolean('is_default').notNull().default(false),
     status: productStatus('status').notNull().default('active'),
     createdAt: createdAt(),
@@ -37,6 +49,16 @@ export const productVariants = pgTable(
   },
   (t) => [
     check('product_variants_price_cents_check', sql`${t.priceCents} >= 0`),
+    check('product_variants_net_amount_check', sql`${t.netAmount} is null or ${t.netAmount} > 0`),
+    // An amount without a unit (or the reverse) is meaningless.
+    check(
+      'product_variants_net_pair_check',
+      sql`(${t.netAmount} is null) = (${t.netUnit} is null)`,
+    ),
+    check(
+      'product_variants_swatch_hex_check',
+      sql`${t.swatchHex} is null or ${t.swatchHex} ~ '^#[0-9a-fA-F]{6}$'`,
+    ),
     // Also serves as the index on product_id (it is the leading column).
     uniqueIndex('product_variants_product_options_idx').on(t.productId, t.options),
     uniqueIndex('product_variants_one_default_idx')

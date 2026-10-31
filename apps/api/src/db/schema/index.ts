@@ -1,7 +1,9 @@
 export * from './addresses.ts';
+export * from './brands.ts';
 export * from './cart-items.ts';
 export * from './carts.ts';
 export * from './categories.ts';
+export * from './collections.ts';
 export * from './email-outbox.ts';
 export * from './inventory-adjustments.ts';
 export * from './inventory.ts';
@@ -14,5 +16,7 @@ export * from './product-variants.ts';
 export * from './products.ts';
 export * from './sessions.ts';
 export * from './shipping-methods.ts';
+export * from './tags.ts';
+export * from './trial-redemptions.ts';
 export * from './users.ts';
 export * from './webhook-events.ts';

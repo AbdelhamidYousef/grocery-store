@@ -3,7 +3,6 @@ import { FACET_KEYS, formatMoney, type FacetKey, type ProductSort } from '@store
 export const FACET_LABELS: Record<FacetKey, string> = {
   pet: 'Pet',
   material: 'Material',
-  brand: 'Brand',
   ageStage: 'Age stage',
 };
 
@@ -15,6 +14,7 @@ const PET_LABELS: Record<string, string> = {
   bird: 'Birds',
   fish: 'Fish',
   small: 'Small pets',
+  reptile: 'Reptiles',
 };
 
 // Facet values are raw data ("small", "all", "baked meat and oat treats"); this makes them

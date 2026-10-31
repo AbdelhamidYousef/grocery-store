@@ -13,9 +13,9 @@ export async function setup(): Promise<void> {
   const sql = postgres(url, { max: 1 });
   try {
     const [row] = await sql<{ name: string }[]>`select current_database() as name`;
-    if (!row?.name.endsWith('_test')) {
+    if (!/_test(_[a-z0-9]+)?$/.test(row?.name ?? '')) {
       throw new Error(
-        `refusing to migrate "${row?.name}": the test database name must end in _test`,
+        `refusing to migrate "${row?.name}": the test database name must end in _test or _test_<lane>`,
       );
     }
     await migrate(drizzle(sql), {

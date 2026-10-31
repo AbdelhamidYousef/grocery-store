@@ -25,7 +25,6 @@ describe('GET /api/v1/products/:slug', () => {
       attributes: {
         pet: 'dog',
         material: 'cotton',
-        brand: 'Pawsome',
         optionKeys: ['color', 'size'],
       },
       variants: [
@@ -56,7 +55,7 @@ describe('GET /api/v1/products/:slug', () => {
         { slug: 'dogs', name: 'Dogs' },
         { slug: 'dog-toys', name: 'Toys' },
       ],
-      attributes: { pet: 'dog', material: 'cotton', brand: 'Pawsome' },
+      attributes: { pet: 'dog', material: 'cotton' },
       optionKeys: ['color', 'size'],
       price: { minCents: 500, maxCents: 900, currency: 'EUR' },
       inStock: true,

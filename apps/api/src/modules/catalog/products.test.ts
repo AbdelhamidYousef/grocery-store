@@ -415,21 +415,21 @@ describe('GET /api/v1/products — facets', () => {
       name: 'Plush dog toy',
       description: 'squeaky',
       categoryId: dogs.id,
-      attributes: { pet: 'dog', material: 'plush', brand: 'Pawsome' },
+      attributes: { pet: 'dog', material: 'plush' },
       variants: [{ priceCents: 500 }, { options: { v: '2' }, priceCents: 900 }],
     });
     await createProduct({
       name: 'Rubber dog toy',
       description: 'squeaky',
       categoryId: dogs.id,
-      attributes: { pet: 'dog', material: 'rubber', brand: 'Pawsome' },
+      attributes: { pet: 'dog', material: 'rubber' },
       variants: [{ priceCents: 1500 }],
     });
     await createProduct({
       name: 'Plush cat toy',
       description: 'catnip',
       categoryId: cats.id,
-      attributes: { pet: 'cat', material: 'plush', brand: 'Pawsome' },
+      attributes: { pet: 'cat', material: 'plush' },
       variants: [{ priceCents: 300 }],
     });
     await createProduct({ name: 'Draft toy', status: 'draft', attributes: { pet: 'dog' } });
@@ -437,7 +437,7 @@ describe('GET /api/v1/products — facets', () => {
 
   it('returns every facet key, empty when there is no data, and a null price range', async () => {
     const f = await facets();
-    expect(f.attributes).toEqual({ pet: [], material: [], brand: [], ageStage: [] });
+    expect(f.attributes).toEqual({ pet: [], material: [], ageStage: [] });
     expect(f.price).toBeNull();
   });
 
@@ -452,7 +452,6 @@ describe('GET /api/v1/products — facets', () => {
       { value: 'plush', count: 2 },
       { value: 'rubber', count: 1 },
     ]);
-    expect(f.attributes.brand).toEqual([{ value: 'Pawsome', count: 3 }]);
     expect(f.attributes.ageStage).toEqual([]);
   });
 
@@ -487,7 +486,6 @@ describe('GET /api/v1/products — facets', () => {
     await createProduct({ attributes: { pet: 'dog', size: 'L' } });
     expect(Object.keys((await facets()).attributes).sort()).toEqual([
       'ageStage',
-      'brand',
       'material',
       'pet',
     ]);
