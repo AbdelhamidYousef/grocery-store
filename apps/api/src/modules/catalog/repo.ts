@@ -1,4 +1,17 @@
-import { and, asc, count, desc, eq, inArray, or, sql, type SQL } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  exists,
+  gte,
+  inArray,
+  lte,
+  or,
+  sql,
+  type SQL,
+} from 'drizzle-orm';
 
 import { db } from '../../db/client.ts';
 import {
@@ -53,7 +66,18 @@ export async function getCategoryBySlug(slug: string): Promise<CategoryRow[]> {
 
 export type SortKey = 'relevance' | 'price_asc' | 'price_desc' | 'newest' | 'name';
 
+export interface ProductFilters {
+  /** Category slug; its child categories are included. */
+  category?: string;
+  minPriceCents?: number;
+  maxPriceCents?: number;
+  inStock?: boolean;
+  /** key -> accepted values: OR within a key, AND across keys. */
+  attr: Record<string, string[]>;
+}
+
 export interface ProductListParams {
+  filters: ProductFilters;
   sort: SortKey;
   limit: number;
   offset: number;
@@ -119,11 +143,75 @@ function orderBy(sort: SortKey, v: ReturnType<typeof variantSummary>): SQL[] {
   }
 }
 
+// All filters as SQL fragments, composed with and(). Kept separate from the query so the count
+// query (and the facet queries in step 3.6) apply exactly the same conditions as the list.
+function filterConditions(
+  f: ProductFilters,
+  v: ReturnType<typeof variantSummary>,
+  opts: { skipAttrs?: boolean } = {},
+): SQL[] {
+  const conds: SQL[] = [eq(products.status, 'active')];
+
+  if (f.category) {
+    // The category itself or any direct child (the tree is one level deep). An unknown slug
+    // matches nothing, which correctly yields an empty list.
+    const parent = db
+      .select({ id: categories.id })
+      .from(categories)
+      .where(eq(categories.slug, f.category));
+    conds.push(
+      inArray(
+        products.categoryId,
+        db
+          .select({ id: categories.id })
+          .from(categories)
+          .where(or(eq(categories.slug, f.category), eq(categories.parentId, sql`(${parent})`))),
+      ),
+    );
+  }
+
+  if (f.minPriceCents !== undefined || f.maxPriceCents !== undefined) {
+    // "Has a variant in the price range", not "min/max of the product overlap the range": a
+    // shopper filtering 10-20 EUR expects something they can actually buy in that band.
+    const inRange = [
+      eq(productVariants.productId, products.id),
+      eq(productVariants.status, 'active'),
+      ...(f.minPriceCents !== undefined ? [gte(productVariants.priceCents, f.minPriceCents)] : []),
+      ...(f.maxPriceCents !== undefined ? [lte(productVariants.priceCents, f.maxPriceCents)] : []),
+    ];
+    conds.push(
+      exists(
+        db
+          .select({ one: sql`1` })
+          .from(productVariants)
+          .where(and(...inRange)),
+      ),
+    );
+  }
+
+  if (f.inStock) conds.push(eq(v.inStock, true));
+
+  if (!opts.skipAttrs) {
+    for (const [key, values] of Object.entries(f.attr)) {
+      // `@>` (containment) is what the GIN index on `attributes` accelerates, unlike
+      // `attributes->>key = ...`. Values are bound as jsonb parameters, never string-built.
+      conds.push(
+        or(
+          ...values.map(
+            (value) => sql`${products.attributes} @> ${JSON.stringify({ [key]: value })}::jsonb`,
+          ),
+        ) ?? sql`false`,
+      );
+    }
+  }
+  return conds;
+}
+
 export async function listProducts(
   params: ProductListParams,
 ): Promise<{ rows: ProductCardRow[]; total: number }> {
   const v = variantSummary();
-  const where = and(eq(products.status, 'active'));
+  const where = and(...filterConditions(params.filters, v));
 
   const rows = await db
     .select({

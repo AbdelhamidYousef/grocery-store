@@ -3,7 +3,7 @@ import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 
 import { makeTestApp } from '../../test/app.ts';
-import { createProduct } from '../../test/factories.ts';
+import { createCategory, createProduct } from '../../test/factories.ts';
 import { bodyOf, errorOf } from '../../test/http.ts';
 
 const app = makeTestApp();
@@ -178,4 +178,114 @@ describe('GET /api/v1/products — pagination', () => {
       expect(errorOf(res).code).toBe('VALIDATION_ERROR');
     },
   );
+});
+
+describe('GET /api/v1/products — filters', () => {
+  it('filters by category and includes child categories', async () => {
+    const dogs = await createCategory({ slug: 'dogs', name: 'Dogs' });
+    const toys = await createCategory({ slug: 'dog-toys', name: 'Toys', parentId: dogs.id });
+    const cats = await createCategory({ slug: 'cats', name: 'Cats' });
+    await createProduct({ name: 'Direct', categoryId: dogs.id });
+    await createProduct({ name: 'Child', categoryId: toys.id });
+    await createProduct({ name: 'Other', categoryId: cats.id });
+
+    expect(names((await list('?category=dogs')).body).sort()).toEqual(['Child', 'Direct']);
+    expect(names((await list('?category=dog-toys')).body)).toEqual(['Child']);
+    expect(names((await list('?category=cats')).body)).toEqual(['Other']);
+  });
+
+  it('returns an empty list for an unknown category', async () => {
+    await createProduct();
+    const { res, body } = await list('?category=nope');
+    expect(res.status).toBe(200);
+    expect(body.data).toEqual([]);
+  });
+
+  it('filters by price on variant prices (a product matches if any variant is in range)', async () => {
+    await createProduct({
+      name: 'Mixed',
+      variants: [{ priceCents: 500 }, { options: { v: '2' }, priceCents: 2500 }],
+    });
+    await createProduct({ name: 'Cheap', variants: [{ priceCents: 200 }] });
+    await createProduct({ name: 'Dear', variants: [{ priceCents: 5000 }] });
+
+    expect(names((await list('?minPrice=2000&maxPrice=3000')).body)).toEqual(['Mixed']);
+    expect(names((await list('?maxPrice=300')).body)).toEqual(['Cheap']);
+    expect(names((await list('?minPrice=4000')).body)).toEqual(['Dear']);
+    expect(names((await list('?minPrice=500&maxPrice=500')).body)).toEqual(['Mixed']);
+  });
+
+  it('rejects minPrice above maxPrice with 400', async () => {
+    const { res } = await list('?minPrice=900&maxPrice=100');
+    expect(res.status).toBe(400);
+  });
+
+  it('filters by inStock, counting reserved units as unavailable', async () => {
+    await createProduct({ name: 'Plenty', variants: [{ stock: 10 }] });
+    await createProduct({ name: 'Gone', variants: [{ stock: 0 }] });
+    await createProduct({ name: 'Held', variants: [{ stock: 2, reserved: 2 }] });
+    await createProduct({
+      name: 'OneSizeLeft',
+      variants: [{ stock: 0 }, { options: { v: '2' }, stock: 1 }],
+    });
+
+    expect(names((await list('?inStock=true')).body).sort()).toEqual(['OneSizeLeft', 'Plenty']);
+    expect((await list('?inStock=false')).body.meta.total).toBe(4);
+  });
+
+  it('filters by attribute: OR within a key, AND across keys', async () => {
+    await createProduct({ name: 'Plush dog', attributes: { pet: 'dog', material: 'plush' } });
+    await createProduct({ name: 'Rubber dog', attributes: { pet: 'dog', material: 'rubber' } });
+    await createProduct({ name: 'Plush cat', attributes: { pet: 'cat', material: 'plush' } });
+    await createProduct({ name: 'Wood cat', attributes: { pet: 'cat', material: 'wood' } });
+
+    expect(names((await list('?attr.material=plush,rubber')).body).sort()).toEqual([
+      'Plush cat',
+      'Plush dog',
+      'Rubber dog',
+    ]);
+    expect(names((await list('?attr.pet=dog&attr.material=plush,rubber')).body).sort()).toEqual([
+      'Plush dog',
+      'Rubber dog',
+    ]);
+    expect(names((await list('?attr.pet=cat&attr.material=rubber')).body)).toEqual([]);
+  });
+
+  it('treats attribute values as data, not SQL', async () => {
+    await createProduct({ attributes: { material: 'plush' } });
+    const { res, body } = await list(`?attr.material=${encodeURIComponent(`x'} OR 1=1 --`)}`);
+    expect(res.status).toBe(200);
+    expect(body.data).toEqual([]);
+  });
+
+  it('combines category, price, stock, attribute, sort and pagination', async () => {
+    const dogs = await createCategory({ slug: 'dogs', name: 'Dogs' });
+    for (const [name, price, stock] of [
+      ['A', 900, 5],
+      ['B', 400, 5],
+      ['C', 600, 0],
+      ['D', 700, 5],
+    ] as const) {
+      await createProduct({
+        name,
+        categoryId: dogs.id,
+        attributes: { pet: 'dog' },
+        variants: [{ priceCents: price, stock }],
+      });
+    }
+    await createProduct({ name: 'Cat thing', attributes: { pet: 'cat' } });
+
+    const { body } = await list(
+      '?category=dogs&attr.pet=dog&inStock=true&minPrice=500&sort=price_asc&limit=1&page=2',
+    );
+    expect(names(body)).toEqual(['A']);
+    expect(body.meta).toMatchObject({ total: 2, totalPages: 2, page: 2 });
+  });
+
+  it('keeps meta.total consistent with the filters', async () => {
+    await createProduct({ attributes: { pet: 'dog' } });
+    await createProduct({ attributes: { pet: 'dog' } });
+    await createProduct({ attributes: { pet: 'cat' } });
+    expect((await list('?attr.pet=dog')).body.meta.total).toBe(2);
+  });
 });
