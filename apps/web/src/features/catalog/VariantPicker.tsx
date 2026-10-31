@@ -132,6 +132,8 @@ export function VariantPicker({ optionKeys, variants, selected, onSelect }: Vari
           <fieldset key={key} className="min-w-0">
             <legend className="mb-2 font-display text-lg font-bold">
               {optionKeyLabel(key)}
+              {/* Without this the group's name reads "ColourYellow". */}
+              <span className="sr-only">: </span>
               <span className="ml-2 font-sans text-base font-normal text-muted">
                 {optionValueLabel(key, current)}
               </span>

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 
 import { Button } from '../../components/ui/Button';
 import { cn } from '../../lib/cn';
@@ -27,6 +27,17 @@ export function StepCard({
   children: ReactNode;
   id: string;
 }) {
+  // The button that moved the shopper here has just unmounted with its step, which would drop
+  // keyboard focus onto <body>. Moving focus to the newly active step's heading keeps the place
+  // (and makes a screen reader read the step name). Not on first render: the page must not grab
+  // focus on load.
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const previous = useRef(state);
+  useEffect(() => {
+    if (state === 'active' && previous.current !== 'active') headingRef.current?.focus();
+    previous.current = state;
+  }, [state]);
+
   return (
     <section
       aria-labelledby={`${id}-heading`}
@@ -52,7 +63,12 @@ export function StepCard({
           {state === 'done' ? '✓' : number}
         </span>
         <div className="min-w-0 flex-1">
-          <h2 id={`${id}-heading`} className="font-display text-xl font-bold">
+          <h2
+            id={`${id}-heading`}
+            ref={headingRef}
+            tabIndex={-1}
+            className="font-display text-xl font-bold focus-visible:outline-none"
+          >
             {title}
           </h2>
           {state === 'done' && summary && (

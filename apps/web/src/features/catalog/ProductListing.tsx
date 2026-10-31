@@ -165,6 +165,8 @@ export function ProductListing({ listId, category, q }: ProductListingProps) {
           />
         ) : (
           <div aria-busy={isFetching} className={isFetching ? 'opacity-60 transition-opacity' : ''}>
+            {/* h1 -> h3 (the cards) skipped a level whenever the Filters sidebar is hidden. */}
+            <h2 className="sr-only">Products</h2>
             <ProductGrid products={data.data} listId={listId} eagerCount={4} />
             <Pagination page={meta.page} totalPages={meta.totalPages} hrefFor={hrefFor} />
           </div>
