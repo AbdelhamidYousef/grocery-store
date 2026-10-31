@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 
+import { HELP_TOPICS } from '@store/shared';
 import { inArray, sql } from 'drizzle-orm';
 import matter from 'gray-matter';
 import { z } from 'zod';
@@ -13,7 +14,6 @@ import {
   guides,
   helpArticles,
   testimonials,
-  HELP_TOPICS,
 } from '../schema/index.ts';
 
 import { testimonialSeeds } from './testimonials.ts';

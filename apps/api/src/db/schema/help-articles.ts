@@ -1,3 +1,4 @@
+import type { HelpTopic } from '@store/shared';
 import { sql } from 'drizzle-orm';
 import { customType, index, integer, pgTable, text } from 'drizzle-orm/pg-core';
 
@@ -11,9 +12,6 @@ const tsvector = customType<{ data: string }>({
     return 'tsvector';
   },
 });
-
-export const HELP_TOPICS = ['shipping', 'returns', 'payments', 'accounts'] as const;
-export type HelpTopic = (typeof HELP_TOPICS)[number];
 
 export const helpArticles = pgTable(
   'help_articles',

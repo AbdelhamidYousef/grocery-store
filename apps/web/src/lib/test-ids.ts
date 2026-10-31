@@ -110,6 +110,14 @@ export const TEST_IDS = {
   guideProducts: 'guide-products',
   guideRelated: 'guide-related',
 
+  pageHelp: 'page-help',
+  helpSearch: 'help-search',
+  helpTopic: 'help-topic',
+  helpList: 'help-list',
+  helpItem: 'help-item',
+  helpSnippet: 'help-snippet',
+  helpNoResults: 'help-no-results',
+
   pageAdmin: 'page-admin',
   adminNav: 'admin-nav',
   adminStat: 'admin-stat',

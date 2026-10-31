@@ -8,4 +8,5 @@ export * from './checkout.ts';
 export * from './common.ts';
 export * from './merchandising.ts';
 export * from './guides.ts';
+export * from './help.ts';
 export * from './shipping.ts';
