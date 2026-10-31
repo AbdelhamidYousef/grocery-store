@@ -2,6 +2,7 @@ import type {
   Address,
   CategoryNode,
   Facets,
+  Order,
   ShippingQuote,
   ProductCard,
   ProductDetail,
@@ -227,6 +228,51 @@ export function makeQuote(overrides: Partial<ShippingQuote> = {}): ShippingQuote
     currency: 'EUR',
     etaDaysMin: 3,
     etaDaysMax: 5,
+    ...overrides,
+  };
+}
+
+export function makeOrder(overrides: Partial<Order> = {}): Order {
+  return {
+    number: 'PW-2026-000123',
+    status: 'paid',
+    paymentStatus: 'succeeded',
+    email: 'sam@example.test',
+    totals: {
+      currency: 'EUR',
+      subtotalCents: 2199,
+      shippingCents: 490,
+      discountCents: 0,
+      taxCents: 0,
+      totalCents: 2689,
+    },
+    shippingMethod: { code: 'standard', name: 'Standard shipping' },
+    shippingAddress: {
+      fullName: 'Sam Rivers',
+      line1: '1 Bone Street',
+      line2: null,
+      city: 'Berlin',
+      region: null,
+      postalCode: '10115',
+      country: 'DE',
+      phone: null,
+    },
+    billingAddress: null,
+    notes: null,
+    items: [
+      {
+        id: 'oi1',
+        productName: 'Rope Tug',
+        variantName: 'Small',
+        sku: 'PW-ROPE-S',
+        imageUrl: '/products/dog-toys/rope-tug-1.webp',
+        unitPriceCents: 1099,
+        quantity: 2,
+        lineTotalCents: 2198,
+      },
+    ],
+    placedAt: '2026-10-31T10:00:00.000Z',
+    createdAt: '2026-10-31T09:59:00.000Z',
     ...overrides,
   };
 }

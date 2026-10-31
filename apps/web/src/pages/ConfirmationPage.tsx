@@ -1,14 +1,9 @@
 import { useParams } from 'react-router-dom';
 
-import { PagePlaceholder } from './PagePlaceholder';
+import { Confirmation } from '../features/checkout/Confirmation';
 
 export default function ConfirmationPage() {
-  const { number } = useParams();
-  return (
-    <PagePlaceholder
-      title="Thank you for your order"
-      note={`Order ${number ?? ''}: the confirmation page arrives in phase 8.`}
-      testId="page-confirmation"
-    />
-  );
+  const { number = '' } = useParams();
+  // Keyed by the number so a different order never inherits the previous one's polling clock.
+  return <Confirmation key={number} number={number} />;
 }

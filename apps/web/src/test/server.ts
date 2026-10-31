@@ -7,6 +7,7 @@ import {
   makeCart,
   makeCategory,
   makeList,
+  makeOrder,
   makeQuote,
   makeProduct,
   makeUser,
@@ -32,6 +33,15 @@ export const server = setupServer(
         makeQuote(),
         makeQuote({ code: 'express', name: 'Express', priceCents: 1190, freeOverCents: null }),
       ],
+    }),
+  ),
+  // A freshly placed order waits for its webhook unless a test says otherwise.
+  http.get(`${API}/checkout/orders/:number/status`, () =>
+    HttpResponse.json({ data: { status: 'pending_payment', paymentStatus: 'processing' } }),
+  ),
+  http.get(`${API}/checkout/orders/:number`, () =>
+    HttpResponse.json({
+      data: makeOrder({ status: 'pending_payment', paymentStatus: 'processing' }),
     }),
   ),
   http.get(`${API}/categories`, () =>

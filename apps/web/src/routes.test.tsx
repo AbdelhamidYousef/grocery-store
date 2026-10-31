@@ -31,7 +31,7 @@ describe('routes', () => {
 
   it.each([
     ['/checkout', 'Checkout'],
-    ['/checkout/confirmation/PAW-1001', 'Thank you for your order'],
+    ['/checkout/confirmation/PW-2026-000001', 'Confirming your payment…'],
     ['/account', 'My account'],
     ['/account/orders/12', 'My account'],
     ['/admin', 'Admin'],
