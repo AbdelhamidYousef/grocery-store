@@ -11,15 +11,35 @@
     "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
     "typecheck": "tsc -b",
-    "lint": "echo 'lint: not configured yet (step 0.6)'",
-    "format": "echo 'format: not configured yet (step 0.6)'",
-    "format:check": "echo 'format:check: not configured yet (step 0.6)'",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "pnpm -r --if-present test",
     "e2e": "echo 'e2e: added in phase 11'",
     "db:migrate": "pnpm --filter @store/api db:migrate",
-    "db:seed": "pnpm --filter @store/api db:seed"
+    "db:seed": "pnpm --filter @store/api db:seed",
+    "prepare": "simple-git-hooks"
   },
   "devDependencies": {
-    "typescript": "~6.0.3"
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.10",
+    "simple-git-hooks": "^2.14.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.1"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js}": [
+      "prettier --write",
+      "eslint --max-warnings 0 --no-warn-ignored"
+    ],
+    "*.{json,css,yml,yaml,html}": "prettier --write --ignore-unknown"
   }
 }
