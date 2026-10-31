@@ -1,21 +1,11 @@
 import { http, HttpResponse } from 'msw';
-import { setupServer } from 'msw/node';
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+import { server } from '../test/server';
 
 import { fetchProduct, fetchProducts, toListSearch } from './catalog';
 import { ApiError } from './client';
 import { fetchHealth } from './health';
-
-const server = setupServer();
-beforeAll(() => {
-  server.listen();
-});
-afterEach(() => {
-  server.resetHandlers();
-});
-afterAll(() => {
-  server.close();
-});
 
 const BASE = 'http://api.test/api/v1';
 

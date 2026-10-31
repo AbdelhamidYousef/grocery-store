@@ -185,3 +185,5 @@ Format: date · decision · why · alternatives rejected · revisit when.
 2026-10-31 · REVIEW · Seo is an own `useEffect` helper (no react-helmet-async), as the plan prefers; it restores or removes the tags it added on unmount.
 2026-10-31 · REVIEW · Playwright lives at the repo root (`playwright.config.ts` + `e2e/`), starts the API and web dev servers itself (reusing running ones) and needs a seeded dev DB; `pnpm e2e` now runs it instead of the phase-0 echo.
 2026-10-31 · REVIEW · Focus moves to `<main>` on pathname change only (not on search-param change), so PLP filtering keeps focus on the control in use.
+2026-10-31 · REVIEW · The header nav, mobile nav, footer and home tiles keep reading the typed `PETS` constant (instant paint, icons and accents live in code); category pages, breadcrumbs and product counts use API data. Admin-editable top-level categories would need the nav to read the API too; not needed for this demo.
+2026-10-31 · REVIEW · One msw server for the whole web test suite (`test/server.ts`, started in `test-setup.ts`) with typed fixtures in `test/fixtures.ts`; page tests render through the real router and query layer instead of mocking hooks.

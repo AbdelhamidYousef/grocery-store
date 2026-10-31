@@ -1,25 +1,20 @@
-import { render, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { createMemoryRouter, RouterProvider, type RouteObject } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AppLayout } from './components/layout/AppLayout';
 import RouteErrorPage from './pages/RouteErrorPage';
-import { routes } from './routes';
+import { renderApp } from './test/render';
 
 afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function renderAt(path: string, table: RouteObject[] = routes) {
-  const router = createMemoryRouter(table, { initialEntries: [path] });
-  render(<RouterProvider router={router} />);
-  return router;
-}
+const renderAt = renderApp;
 
 describe('routes', () => {
   it.each([
-    ['/', 'Welcome to Pawsome'],
+    ['/', 'Happy tails start here'],
     ['/c/dogs', 'Dogs'],
     ['/products/rope-tug', 'rope-tug'],
     ['/search', 'Search'],

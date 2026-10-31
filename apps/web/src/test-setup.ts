@@ -1,10 +1,24 @@
 // Adds DOM matchers such as toBeInTheDocument() to Vitest's expect.
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
-import { afterEach } from 'vitest';
+import { afterAll, afterEach, beforeAll } from 'vitest';
+
+import { server } from './test/server';
 
 // Vitest globals are off, so Testing Library cannot register its own cleanup; do it here.
 afterEach(cleanup);
+
+// One msw server for the whole suite: components fetch through the real api/ layer and the
+// network is answered by test/server.ts.
+beforeAll(() => {
+  server.listen();
+});
+afterEach(() => {
+  server.resetHandlers();
+});
+afterAll(() => {
+  server.close();
+});
 
 // jsdom has no <dialog> methods. This minimal stand-in mirrors the parts the Dialog primitive
 // relies on (open attribute, `close` event) so its behaviour can be tested; real focus trapping

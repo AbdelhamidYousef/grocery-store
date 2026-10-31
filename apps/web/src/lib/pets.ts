@@ -14,3 +14,21 @@ export const PETS = [
 export type Pet = (typeof PETS)[number];
 export type PetAccent = Pet['accent'];
 export type PetIcon = Pet['icon'];
+
+// Product attributes say `pet: 'small'`, but the theme (and the PETS slug) is `small-pet` /
+// `small-pets`. One lookup keeps that mismatch out of the components.
+const ATTRIBUTE_TO_ACCENT: Record<string, PetAccent> = {
+  dog: 'dog',
+  cat: 'cat',
+  bird: 'bird',
+  fish: 'fish',
+  small: 'small-pet',
+};
+
+export function accentForPetAttribute(pet: string | undefined): PetAccent | undefined {
+  return pet ? ATTRIBUTE_TO_ACCENT[pet] : undefined;
+}
+
+export function petBySlug(slug: string | undefined): Pet | undefined {
+  return PETS.find((p) => p.slug === slug);
+}

@@ -193,3 +193,8 @@ Learn: a fixed lock order (guest, then user) prevents deadlocks; marking the sou
 1. Why does `apiFetch` parse every response with a Zod schema when the TypeScript types already say what the API returns?
 2. What is a query key, and what happens when two components use the same key, or two different keys for the same data?
 3. Why does the layout move focus to `<main>` on navigation, and why only when the pathname changes?
+
+## Phase 5 — Catalog UI
+
+### 5.1 — Home
+The home page has a hero (original copy, plus a collage of three real new-arrival photos so no extra image asset is needed), five "shop by pet" tiles in the category accents, eight new arrivals from `GET /products?sort=newest&limit=8`, and a three-card "Why Pawsome" block. It calls `track('view_home')` and sets `<Seo>`. Query hooks live in `features/catalog/queries.ts`, and from here on every test renders the real pages against an msw server (`test/server.ts`) with typed fixtures. Learn: the tiles read names, colours and links from the typed PETS constant so they paint instantly, and only the product counts come from the API, so a slow API never leaves the page blank.
