@@ -1,14 +1,15 @@
 import type {
   Address,
+  AdminStats,
   CategoryNode,
-  Facets,
   CustomerOrder,
+  Facets,
   Order,
   OrderSummary,
-  ShippingQuote,
   ProductCard,
   ProductDetail,
   ProductListResponse,
+  ShippingQuote,
   User,
   Variant,
 } from '@store/shared';
@@ -300,6 +301,16 @@ export function makeCustomerOrder(overrides: Partial<CustomerOrder> = {}): Custo
       { status: 'pending_payment', at: '2026-10-31T09:59:00.000Z' },
       { status: 'paid', at: '2026-10-31T10:00:00.000Z' },
     ],
+    ...overrides,
+  };
+}
+
+export function makeAdminStats(overrides: Partial<AdminStats> = {}): AdminStats {
+  return {
+    ordersToday: 3,
+    revenue30dCents: 123_456,
+    currency: 'EUR',
+    lowStockCount: 2,
     ...overrides,
   };
 }

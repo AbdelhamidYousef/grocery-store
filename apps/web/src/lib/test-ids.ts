@@ -85,6 +85,10 @@ export const TEST_IDS = {
   orderTimeline: 'order-timeline',
   orderTimelineStep: 'order-timeline-step',
   pageOrderDetail: 'page-order-detail',
+
+  pageAdmin: 'page-admin',
+  adminNav: 'admin-nav',
+  adminStat: 'admin-stat',
 } as const;
 
 export type TestId = (typeof TEST_IDS)[keyof typeof TEST_IDS];

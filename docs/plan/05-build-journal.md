@@ -372,3 +372,9 @@ Learn: a list is a set of URLs, not component state, so paging survives Back, re
 1. Why is the order list's page number kept in the URL instead of component state, and what does the page do with `?page=abc`?
 2. The detail page for an order that belongs to another customer answers like one that does not exist. What does the shopper see, and which attack does the identical answer prevent?
 3. Which component do the confirmation page and the order detail share, and what would go wrong if each had its own copy of the markup?
+
+## Phase 10 (web) — Admin
+
+### 10.4 — admin shell and dashboard
+`/admin` is one lazy chunk with its own small route table, like the account area, wrapped by the `RequireAdmin` guard that already existed: a guest is sent to the login page with a way back, a customer sees a no-access page and no admin request is ever made. Inside it, `AdminLayout` draws a wrapping row of menu pills on a phone and a narrow sidebar from the `md` breakpoint, and marks every page `noindex`. The dashboard reads `GET /admin/stats` through a query hook and shows three tiles (orders today, 30-day revenue, low-stock variants) with a skeleton while it loads and a retry button when it fails. Admin queries are never treated as fresh, because a back office has to show what the database says now.
+Learn: a client-side guard only decides what is shown, and the API's own 401/403 is what protects the data; a menu that wraps instead of scrolling can never make the page wider than the screen.

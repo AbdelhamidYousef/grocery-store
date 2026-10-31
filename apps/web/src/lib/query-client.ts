@@ -48,6 +48,12 @@ export const keys = {
     orderList: (page: number) => ['account', 'orders', 'list', page] as const,
     order: (number: string) => ['account', 'orders', 'detail', number] as const,
   },
+  // Back office data. Its own root so logging out can drop it in one call, and so the storefront
+  // caches are never touched by an admin edit by accident.
+  admin: {
+    all: ['admin'] as const,
+    stats: ['admin', 'stats'] as const,
+  },
   categories: {
     all: ['categories'] as const,
     detail: (slug: string) => ['categories', slug] as const,

@@ -33,6 +33,7 @@ export function useLogout() {
       queryClient.setQueryData(keys.me, null);
       // Another person may sit down at this browser: drop everything that belonged to the account.
       queryClient.removeQueries({ queryKey: keys.account.all });
+      queryClient.removeQueries({ queryKey: keys.admin.all });
       queryClient.removeQueries({ queryKey: keys.cartNotices });
       return queryClient.invalidateQueries({ queryKey: keys.cart });
     },
