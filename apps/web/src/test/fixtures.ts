@@ -2,6 +2,7 @@ import type {
   Address,
   CategoryNode,
   Facets,
+  ShippingQuote,
   ProductCard,
   ProductDetail,
   ProductListResponse,
@@ -213,5 +214,19 @@ export function makeCart(items: WebCartItem[] = [], warnings: WebCart['warnings'
     itemCount: buyable.reduce((n, i) => n + i.quantity, 0),
     weightGrams: 0,
     warnings,
+  };
+}
+
+export function makeQuote(overrides: Partial<ShippingQuote> = {}): ShippingQuote {
+  return {
+    code: 'standard',
+    name: 'Standard shipping',
+    priceCents: 490,
+    free: false,
+    freeOverCents: 4900,
+    currency: 'EUR',
+    etaDaysMin: 3,
+    etaDaysMax: 5,
+    ...overrides,
   };
 }

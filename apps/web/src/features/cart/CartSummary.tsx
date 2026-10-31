@@ -7,6 +7,7 @@ import { buttonClasses, Button } from '../../components/ui/Button';
 import { cn } from '../../lib/cn';
 import { freeShippingProgress } from '../../lib/shipping';
 import { TEST_IDS } from '../../lib/test-ids';
+import { useFreeShippingThreshold } from '../checkout/queries';
 
 // Subtotal, the free-shipping hint and the way to checkout. Checkout is blocked while a sold-out
 // line is in the cart, with a reason the button points at (aria-describedby), because a silently
@@ -24,7 +25,8 @@ export function CartSummary({
 }) {
   const noteId = useId();
   const blocked = cart.items.some((item) => item.available === 0);
-  const { remainingCents, percent } = freeShippingProgress(cart.subtotalCents);
+  const threshold = useFreeShippingThreshold();
+  const progress = threshold === null ? null : freeShippingProgress(cart.subtotalCents, threshold);
   const money = (cents: number) => formatMoney(cents, cart.currency);
 
   return (
@@ -36,23 +38,28 @@ export function CartSummary({
         </span>
       </div>
 
-      <div data-testid={TEST_IDS.cartShippingHint}>
-        <p className="text-sm">
-          {remainingCents === 0
-            ? 'You get free standard shipping.'
-            : `Add ${money(remainingCents)} more for free standard shipping.`}
-        </p>
-        <div
-          role="progressbar"
-          aria-label="Progress to free shipping"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={percent}
-          className="mt-1 h-2 overflow-hidden rounded-full bg-line"
-        >
-          <div className="h-full rounded-full bg-success" style={{ width: `${percent}%` }} />
+      {progress && (
+        <div data-testid={TEST_IDS.cartShippingHint}>
+          <p className="text-sm">
+            {progress.remainingCents === 0
+              ? 'You get free standard shipping.'
+              : `Add ${money(progress.remainingCents)} more for free standard shipping.`}
+          </p>
+          <div
+            role="progressbar"
+            aria-label="Progress to free shipping"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progress.percent}
+            className="mt-1 h-2 overflow-hidden rounded-full bg-line"
+          >
+            <div
+              className="h-full rounded-full bg-success"
+              style={{ width: `${progress.percent}%` }}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {!compact && (
         <p className="text-sm text-muted">Shipping and taxes are worked out at checkout.</p>

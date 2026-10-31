@@ -39,6 +39,9 @@ export const ShippingQuoteSchema = z.object({
   // Already includes the free-shipping rule: 0 when the subtotal qualifies.
   priceCents: z.number().int().min(0),
   free: z.boolean(),
+  // The subtotal from which this method is free, or null when it never is. Lets the cart show
+  // "add X more for free shipping" from the API's own rule instead of a copy of the number.
+  freeOverCents: z.number().int().min(0).nullable(),
   currency: z.string().length(3),
   etaDaysMin: z.number().int().min(0),
   etaDaysMax: z.number().int().min(0),

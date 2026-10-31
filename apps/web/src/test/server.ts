@@ -2,7 +2,15 @@ import type { User } from '@store/shared';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 
-import { makeCard, makeCart, makeCategory, makeList, makeProduct, makeUser } from './fixtures';
+import {
+  makeCard,
+  makeCart,
+  makeCategory,
+  makeList,
+  makeQuote,
+  makeProduct,
+  makeUser,
+} from './fixtures';
 
 export const API = 'http://api.test/api/v1';
 
@@ -17,6 +25,15 @@ export const server = setupServer(
   ),
   // An empty cart unless a test says otherwise.
   http.get(`${API}/cart`, () => HttpResponse.json({ data: makeCart() })),
+  // Standard shipping is free from 49 EUR, like the seeded method.
+  http.get(`${API}/checkout/shipping-methods`, () =>
+    HttpResponse.json({
+      data: [
+        makeQuote(),
+        makeQuote({ code: 'express', name: 'Express', priceCents: 1190, freeOverCents: null }),
+      ],
+    }),
+  ),
   http.get(`${API}/categories`, () =>
     HttpResponse.json({
       data: [

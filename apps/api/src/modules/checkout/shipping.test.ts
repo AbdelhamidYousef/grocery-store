@@ -60,6 +60,14 @@ describe('quote', () => {
     expect(result[0]).toMatchObject({ currency: 'EUR', etaDaysMin: 3, etaDaysMax: 5 });
   });
 
+  it('passes each method threshold along so the cart can show a free-shipping hint', () => {
+    const quotes = quote([standard, express], { country: 'DE', weightGrams: 0, subtotalCents: 0 });
+    expect(quotes.map((q) => [q.code, q.freeOverCents])).toEqual([
+      ['standard', 4900],
+      ['express', null],
+    ]);
+  });
+
   it('orders equal prices by code so the list is stable', () => {
     const a: ShippingRule = { ...express, code: 'b-method' };
     const b: ShippingRule = { ...express, code: 'a-method' };

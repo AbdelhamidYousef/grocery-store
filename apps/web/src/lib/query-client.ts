@@ -33,6 +33,13 @@ export const keys = {
   cart: ['cart'] as const,
   // Warnings the cart reported, kept until dismissed (see features/cart/queries.ts).
   cartNotices: ['cart-notices'] as const,
+  // Quotes depend on the cart's subtotal and weight as well as the country.
+  shipping: (country: string, subtotalCents: number, weightGrams: number) =>
+    ['shipping', country, subtotalCents, weightGrams] as const,
+  order: {
+    status: (number: string) => ['order', number, 'status'] as const,
+    detail: (number: string) => ['order', number] as const,
+  },
   account: {
     all: ['account'] as const,
     addresses: ['account', 'addresses'] as const,

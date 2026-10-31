@@ -43,6 +43,7 @@ export function quote(rules: ShippingRule[], ctx: ShippingContext): ShippingQuot
         name: rule.name,
         priceCents,
         free: priceCents === 0,
+        freeOverCents: rule.freeOverCents,
         currency: ctx.currency ?? 'EUR',
         etaDaysMin: rule.etaDaysMin,
         etaDaysMax: rule.etaDaysMax,

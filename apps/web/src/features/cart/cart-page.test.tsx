@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { WebCart } from '../../api/cart';
 import * as tracking from '../../lib/track';
-import { makeCart, makeCartItem } from '../../test/fixtures';
+import { makeCart, makeCartItem, makeQuote } from '../../test/fixtures';
 import { renderApp } from '../../test/render';
 import { API, server } from '../../test/server';
 
@@ -46,10 +46,33 @@ describe('cart page', () => {
     );
     expect(within(lines[1]!).getByTestId('cart-line-total')).toHaveTextContent('€10.00');
     expect(screen.getByTestId('cart-subtotal')).toHaveTextContent('€20.99');
-    expect(screen.getByTestId('cart-shipping-hint')).toHaveTextContent(
+    expect(await screen.findByTestId('cart-shipping-hint')).toHaveTextContent(
       'Add €28.01 more for free standard shipping.',
     );
     expect(screen.getByTestId('cart-checkout')).toHaveAttribute('href', '/checkout');
+  });
+
+  it('reads the free-shipping threshold from the shipping quotes, not a constant', async () => {
+    serveCart(makeCart([tug, ball]));
+    server.use(
+      http.get(`${API}/checkout/shipping-methods`, () =>
+        HttpResponse.json({ data: [makeQuote({ freeOverCents: 3000 })] }),
+      ),
+    );
+    renderApp('/cart');
+    expect(await screen.findByText('Add €9.01 more for free standard shipping.')).toBeVisible();
+  });
+
+  it('hides the hint when no shipping method is ever free', async () => {
+    serveCart(makeCart([tug, ball]));
+    server.use(
+      http.get(`${API}/checkout/shipping-methods`, () =>
+        HttpResponse.json({ data: [makeQuote({ freeOverCents: null })] }),
+      ),
+    );
+    renderApp('/cart');
+    await screen.findAllByTestId('cart-line');
+    expect(screen.queryByTestId('cart-shipping-hint')).not.toBeInTheDocument();
   });
 
   it('shows an empty state with a way back to the shop', async () => {

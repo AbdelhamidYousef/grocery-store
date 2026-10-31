@@ -13,12 +13,7 @@ import { ApiError, apiFetch } from './client';
 // The web is deployed on its own schedule, so a newer API may send a warning code this build has
 // never heard of. The shared schema's code is a closed enum, which would turn the whole cart into
 // a BAD_RESPONSE; here the code is a plain string and the page falls back to the warning's text.
-// The price-change fields are optional extras of PRICE_CHANGED.
-const WarningSchema = CartWarningSchema.extend({
-  code: z.string(),
-  previousUnitPriceCents: z.number().int().min(0).optional(),
-  unitPriceCents: z.number().int().min(0).optional(),
-});
+const WarningSchema = CartWarningSchema.extend({ code: z.string() });
 export type CartWarning = z.infer<typeof WarningSchema>;
 
 const WebCartSchema = CartSchema.extend({ warnings: z.array(WarningSchema) });
