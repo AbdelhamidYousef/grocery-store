@@ -6,6 +6,7 @@ import type { Logger } from 'pino';
 import { pinoHttp } from 'pino-http';
 
 import { createHealthRouter } from './lib/health.ts';
+import type { PaymentGateway } from './lib/stripe.ts';
 import { createCsrfCheck } from './middleware/csrf.ts';
 import { createErrorHandler, notFoundHandler } from './middleware/error.ts';
 import { createRateLimiter, type RateLimitOptions } from './middleware/rate-limit.ts';
@@ -25,13 +26,15 @@ export interface AppDeps {
   logger: Logger;
   /** Resolves when the database answers; injected so health can be tested with an outage. */
   pingDb: () => Promise<void>;
+  /** Stripe (or a fake in tests); injected like `pingDb` so no test ever needs the network. */
+  payments: PaymentGateway;
   // Required (no defaults) so nobody can build a production app with test-grade security by omission.
   config: AppConfig;
 }
 
 // The app is built by a function, not at import time, so tests can create as many isolated
 // instances as they like and Supertest can drive one without opening a real port.
-export function createApp({ logger, pingDb, config }: AppDeps): Express {
+export function createApp({ logger, pingDb, payments, config }: AppDeps): Express {
   const app = express();
 
   app.disable('x-powered-by');
@@ -61,7 +64,7 @@ export function createApp({ logger, pingDb, config }: AppDeps): Express {
   app.use(createCsrfCheck({ webOrigin: config.webOrigin }));
 
   app.use('/api/v1', createHealthRouter({ pingDb }));
-  app.use('/api/v1', createModulesRouter({ authRateLimit: config.authRateLimit }));
+  app.use('/api/v1', createModulesRouter({ authRateLimit: config.authRateLimit, payments }));
 
   // Order matters: unknown routes first, then the error handler that catches everything above.
   app.use(notFoundHandler);

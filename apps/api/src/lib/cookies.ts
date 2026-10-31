@@ -63,3 +63,26 @@ export function readGuestCartId(req: Request): string | null {
   const value = (req.signedCookies as Record<string, unknown> | undefined)?.[CART_COOKIE];
   return typeof value === 'string' && UUID.test(value) ? value : null;
 }
+
+// ---------- last order (guest access to their own order) ----------
+
+export const LAST_ORDER_COOKIE = 'last_order';
+// Long enough to pay, wait for the webhook and revisit the confirmation page; short because a guest
+// has no account to fall back on and the cookie is the whole proof of "this is my order".
+const LAST_ORDER_MAX_AGE_MS = 2 * 3600 * 1000;
+
+// Remembers which order this browser just placed (signed, like `cart_id`, so it cannot be edited
+// to point at someone else's). It carries only the order number; the guest gets no access to
+// anything else.
+export function setLastOrderCookie(res: Response, orderNumber: string): void {
+  res.cookie(LAST_ORDER_COOKIE, orderNumber, {
+    ...baseOptions(res),
+    signed: true,
+    maxAge: LAST_ORDER_MAX_AGE_MS,
+  });
+}
+
+export function readLastOrder(req: Request): string | null {
+  const value = (req.signedCookies as Record<string, unknown> | undefined)?.[LAST_ORDER_COOKIE];
+  return typeof value === 'string' && value.length > 0 ? value : null;
+}

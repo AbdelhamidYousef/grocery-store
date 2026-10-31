@@ -9,6 +9,7 @@ import {
   productImages,
   productVariants,
   products,
+  shippingMethods,
   users,
 } from '../db/schema/index.ts';
 import type { ProductAttributes } from '../db/schema/products.ts';
@@ -190,4 +191,31 @@ export async function createCart(
     );
   }
   return { cart, items };
+}
+
+// The two seeded methods (standard, free over 49.00; express) under their real codes and prices, so
+// tests can assert real totals.
+export async function createShippingMethods() {
+  return db
+    .insert(shippingMethods)
+    .values([
+      {
+        code: 'standard',
+        name: 'Standard',
+        baseCents: 490,
+        perKgCents: 100,
+        freeOverCents: 4900,
+        etaDaysMin: 3,
+        etaDaysMax: 5,
+      },
+      {
+        code: 'express',
+        name: 'Express',
+        baseCents: 990,
+        perKgCents: 200,
+        etaDaysMin: 1,
+        etaDaysMax: 2,
+      },
+    ])
+    .returning();
 }

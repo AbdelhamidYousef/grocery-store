@@ -5,6 +5,7 @@ import { env } from './config/env.ts';
 import { closeDb, db } from './db/client.ts';
 import { createLogger } from './lib/logger.ts';
 import { createShutdown } from './lib/shutdown.ts';
+import { createStripeGateway, createUnconfiguredGateway } from './lib/stripe.ts';
 
 // Bootstrap only: read config, build the app, listen. Anything testable lives in createApp().
 const logger = createLogger({ level: env.LOG_LEVEL, pretty: env.NODE_ENV === 'development' });
@@ -13,6 +14,14 @@ const app = createApp({
   pingDb: async () => {
     await db.execute(sql`select 1`);
   },
+  // Without a key the server still boots (catalog, cart, account all work) and any payment call
+  // answers 502 "not configured"; production refuses to boot without one (see config/env.ts).
+  payments: env.STRIPE_SECRET_KEY
+    ? createStripeGateway({
+        secretKey: env.STRIPE_SECRET_KEY,
+        webhookSecret: env.STRIPE_WEBHOOK_SECRET,
+      })
+    : createUnconfiguredGateway(),
   config: {
     nodeEnv: env.NODE_ENV,
     webOrigin: env.WEB_ORIGIN,

@@ -3,6 +3,9 @@ import { pino, type Logger } from 'pino';
 
 import { createApp, type AppConfig } from '../app.ts';
 import { db } from '../db/client.ts';
+import type { PaymentGateway } from '../lib/stripe.ts';
+
+import { FakeStripe } from './fake-stripe.ts';
 
 export const TEST_ORIGIN = 'http://localhost:5173';
 
@@ -13,6 +16,8 @@ export function makeTestApp(
     logger?: Logger;
     config?: Partial<AppConfig>;
     pingDb?: () => Promise<void>;
+    /** Defaults to a fresh FakeStripe; pass your own to inspect or script it. */
+    payments?: PaymentGateway;
   } = {},
 ) {
   return createApp({
@@ -23,6 +28,7 @@ export function makeTestApp(
       (async () => {
         await db.execute(sql`select 1`);
       }),
+    payments: opts.payments ?? new FakeStripe(),
     config: {
       nodeEnv: 'test',
       webOrigin: TEST_ORIGIN,
