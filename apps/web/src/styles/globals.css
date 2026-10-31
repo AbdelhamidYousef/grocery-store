@@ -70,3 +70,8 @@
     }
   }
 }
+
+/* Tailwind opacity modifiers don't work on var() colours, so the one translucent surface lives here. */
+dialog::backdrop {
+  background: rgb(31 27 46 / 60%);
+}
