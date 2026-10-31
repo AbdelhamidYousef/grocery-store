@@ -2,6 +2,7 @@ import { birdProducts } from './products-bird.ts';
 import { catProducts } from './products-cat.ts';
 import { dogProducts } from './products-dog.ts';
 import { fishProducts } from './products-fish.ts';
+import { reptileProducts } from './products-reptile.ts';
 import { smallProducts } from './products-small.ts';
 
 // Plain data on purpose: the catalog reads like a spreadsheet, and the variant matrix, SKUs,
@@ -13,4 +14,5 @@ export const products = [
   ...birdProducts,
   ...fishProducts,
   ...smallProducts,
+  ...reptileProducts,
 ];

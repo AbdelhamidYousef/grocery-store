@@ -31,7 +31,7 @@ describe('seed', () => {
     expect(await counts()).toEqual(first);
     expect(first).toMatchObject({
       categories: 31,
-      products: 40,
+      products: 125,
       brands: 6,
       tags: 6,
       collections: 5,

@@ -21,7 +21,8 @@ import {
 import { HOUSE_BRAND, brands } from './brands.ts';
 import { categories } from './categories.ts';
 import { collections, windowDates } from './collections.ts';
-import { expandVariants, imageRows, stockLevels } from './expand.ts';
+import { expandVariants, stockLevels } from './expand.ts';
+import { imageRowsFor } from './images.ts';
 import { products } from './products.ts';
 import { validateSeed } from './schema.ts';
 import { shippingMethods } from './shipping.ts';
@@ -261,7 +262,7 @@ export async function runSeed(now = new Date()) {
       products.flatMap((p) => {
         const id = productId.get(p.slug);
         if (!id) throw new Error(`product ${p.slug} was not inserted`);
-        return imageRows(p).map((img) => ({
+        return imageRowsFor(p).map((img) => ({
           productId: id,
           url: img.url,
           alt: img.alt,

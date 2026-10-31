@@ -125,4 +125,61 @@ export const fishProducts: ProductSeed[] = [
     baseWeightGrams: 180,
     axes: [],
   },
+  {
+    slug: 'freeze-dried-bloodworms',
+    name: 'Freeze-Dried Bloodworms',
+    code: 'BLDW',
+    categorySlug: 'fish-food',
+    pet: 'fish',
+    material: 'freeze-dried larvae',
+    ageStage: 'adult',
+    description:
+      'A protein-rich treat fish go wild for, free of parasites thanks to freeze-drying. Feed a pinch once or twice a week.',
+    look: 'A small tub of freeze-dried red worms with a few cubes in front',
+    basePriceCents: 599,
+    baseWeightGrams: 30,
+    axes: [
+      packs({ value: '15g', label: '15 g' }, { value: '50g', label: '50 g' }, 600, 3, {
+        trial: { amount: 5, priceCents: 99 },
+      }),
+    ],
+    brand: 'tidepool',
+  },
+  {
+    slug: 'algae-wafers',
+    name: 'Algae Wafers',
+    code: 'WAFR',
+    categorySlug: 'fish-food',
+    pet: 'fish',
+    material: 'spirulina and vegetable wafers',
+    ageStage: 'adult',
+    description:
+      'Sinking wafers for bottom-feeders and plecos, with spirulina to support healthy gut and colour. They stay firm in the water.',
+    look: 'A handful of green disc-shaped algae wafers beside a tub',
+    basePriceCents: 549,
+    baseWeightGrams: 100,
+    axes: [packs({ value: '100g', label: '100 g' }, { value: '300g', label: '300 g' }, 700, 3)],
+    brand: 'tidepool',
+    tags: ['sensitive-tummy'],
+  },
+  {
+    slug: 'betta-micro-pellets',
+    name: 'Betta Micro Pellets',
+    code: 'BETA',
+    categorySlug: 'fish-food',
+    pet: 'fish',
+    material: 'fish meal and shrimp',
+    ageStage: 'adult',
+    description:
+      'Tiny floating pellets sized for the small mouths of bettas and other labyrinth fish. Brings out natural colour.',
+    look: 'A pile of tiny orange pellets in the lid of a small tub',
+    basePriceCents: 449,
+    baseWeightGrams: 40,
+    axes: [
+      packs({ value: '25g', label: '25 g' }, { value: '80g', label: '80 g' }, 500, 3, {
+        trial: { amount: 10, priceCents: 99 },
+      }),
+    ],
+    brand: 'tidepool',
+  },
 ];

@@ -73,3 +73,10 @@ reproduced or replaced. Files live in `<category-slug>/<product-slug>-<n>.webp` 
 | small-housing/cosy-hideaway-house-2.webp | Gemini | 2026-10-31 | Generate an image: a close-up detail shot of exactly this same product, filling the frame, showing its untreated pine texture and finish, same pastel fresh lime green background, square 1:1, no text, no animals. |
 | small-bowls/ceramic-nibble-bowl-1.webp | Gemini | 2026-10-31 | Generate an image: A small round lime-green glazed ceramic bowl with a thick rim, filled with pellets. Square 1:1 e-commerce product photo, the product alone centred, soft studio lighting, seamless pastel fresh lime green background, gentle shadow, crisp detail, playful but premium look. No people, no animals, no text, no logos, no watermark. |
 | small-bowls/bottle-water-dispenser-1.webp | Gemini | 2026-10-31 | Generate an image: A clear water bottle with a lime-green cap and a steel drinking spout, attached to a metal bracket. Square 1:1 e-commerce product photo, the product alone centred, soft studio lighting, seamless pastel fresh lime green background, gentle shadow, crisp detail, playful but premium look. No people, no animals, no text, no logos, no watermark. |
+
+## Placeholders
+
+`placeholders/<pet>.svg` (six files) are original vector illustrations (a paw print on the pet's
+accent colour) drawn for this project, with no third-party source. A product without a processed
+photo shows its pet's placeholder until the real image is generated, processed and the seed re-run.
+New products' photos are generated from `docs/images-brief.csv`.
