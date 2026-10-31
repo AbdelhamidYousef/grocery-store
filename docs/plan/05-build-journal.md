@@ -395,3 +395,22 @@ Learn: when the UI offers only what the server says is allowed, a refusal become
 ### 10.7 — admin e2e
 `e2e/admin.spec.ts` covers the guard (a guest is sent to sign in and back, a customer sees the no-access page and a 403), stock set to 0 showing "Sold out" on the storefront, a stock cut below the reserved units refused with the server's sentence, creating a product with a second variant and an image and finding it in both searches, the paid, processing, shipped path with the customer's order page and the shipped email in Mailpit, a confirmed cancel of a paid order, and a 390 px check that no admin page widens the document. Each test creates its own product or order through the API so nothing depends on seed stock, and storefront checks use a fresh browser context and poll, because the public catalog is cached for a minute. QA with a 40-variant product also fixed three small things: a page number past the end, the category select on the edit page, and the variant order.
 Learn: a test should own its data and poll for the cache window instead of sleeping or switching the cache off; and a QA pass on repeated parts (long names, 40 rows, the last page) finds what a happy-path test cannot.
+
+## Phase 12 (code) — Deployment preparation
+
+### 12.1 — production configuration
+The API now builds into a single file with esbuild: it inlines the shared package (plain `node` cannot read TypeScript) and leaves the other libraries to be installed on the host. The production behaviours were already in place from earlier phases (JSON logs, a generic 500 body, one trusted proxy hop, Secure and SameSite=Lax cookies), so this step added a boot check that `WEB_ORIGIN` is an https URL and tests for every "refuses to boot" rule. `apps/web/vercel.json` forwards `/api/*` to Render and falls back to `index.html`, so the browser only ever sees one origin. I proved it locally: built API on port 3400 with `NODE_ENV=production` answered health and products, and the built web served through `vite preview` proxied to it.
+Learn: bundling is choosing what to inline and what to leave to `node_modules`; native modules and anything with its own install step stay outside.
+
+### 12.2 — Render blueprint
+`render.yaml` describes the free API service: build and start commands, the health check, and every environment variable, with secrets marked `sync: false` so Render asks for them in the dashboard. The build installs devDependencies on purpose because Render sets `NODE_ENV=production` and the build tool is a dev dependency.
+Learn: a config file in git makes a deployment repeatable; the dashboard stays available for the same values.
+
+### 12.3 — deployment guide
+`docs/DEPLOYMENT.md` is the click-through in dependency order: GitHub, Neon (direct URL for migrate and seed, pooled for the API), Stripe test keys, Render, Vercel (edit the rewrite target first), the Stripe webhook with its four events, Resend, then the smoke checklist and the free-tier caveats.
+Learn: each service produces a value the next one needs, so the order of the steps is the real content of a deployment guide.
+
+### Phase 12 (code) quiz
+1. Why does `node dist/index.js` fail if the API is compiled with plain `tsc`, and how does the esbuild build avoid it without bundling argon2?
+2. A visitor on the Vercel site signs in and the cookie is `Secure; SameSite=Lax`. Why does it work although the API lives on another host, and what would break if `/api` were called directly on the Render URL?
+3. Migrations are run from your laptop with the Neon direct URL, while Render uses the pooled one. Why not the other way round, and what would you change if the API logged "prepared statement does not exist"?
