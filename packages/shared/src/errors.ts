@@ -9,6 +9,7 @@ export const ErrorCode = {
   OUT_OF_STOCK: 'OUT_OF_STOCK',
   CART_CHANGED: 'CART_CHANGED',
   RATE_LIMITED: 'RATE_LIMITED',
+  PAYMENT_PROVIDER_ERROR: 'PAYMENT_PROVIDER_ERROR',
   INTERNAL: 'INTERNAL',
 } as const;
 
@@ -23,5 +24,7 @@ export const errorStatus: Record<ErrorCode, number> = {
   OUT_OF_STOCK: 409,
   CART_CHANGED: 409,
   RATE_LIMITED: 429,
+  // The payment provider (Stripe) failed or is not configured; nothing is charged. Retryable.
+  PAYMENT_PROVIDER_ERROR: 502,
   INTERNAL: 500,
 };

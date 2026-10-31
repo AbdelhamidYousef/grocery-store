@@ -38,3 +38,15 @@ export const conflict = (
 
 export const rateLimited = (message = 'Too many requests') =>
   new AppError(ErrorCode.RATE_LIMITED, message);
+
+// The payment provider failed (network, API error, not configured). 502 because the fault is the
+// upstream's, and distinct from INTERNAL so the web can say "payment service unavailable, try
+// again" instead of a generic crash. `cause` keeps the original error for the logs.
+export const paymentProvider = (
+  message = 'The payment service is unavailable',
+  cause?: unknown,
+) => {
+  const err = new AppError(ErrorCode.PAYMENT_PROVIDER_ERROR, message);
+  if (cause !== undefined) err.cause = cause;
+  return err;
+};
