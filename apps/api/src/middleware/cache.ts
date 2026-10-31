@@ -11,3 +11,10 @@ export const publicCache: RequestHandler = (req, res, next) => {
   if (req.method === 'GET') res.setHeader('Cache-Control', PUBLIC_CATALOG_CACHE);
   next();
 };
+
+// Personal data (account, cart, session) must never sit in a shared cache or the back/forward cache
+// of a browser on a shared computer.
+export const noStore: RequestHandler = (_req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store');
+  next();
+};
