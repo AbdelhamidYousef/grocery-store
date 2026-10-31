@@ -44,7 +44,9 @@ export function Gallery({ images, selectedId, onSelect, soldOut = false }: Galle
           height={selected.height}
           alt={selected.alt}
           loading="eager"
-          fetchPriority="high"
+          // React 18 does not know `fetchPriority` (React 19 does) and warns; the lowercase
+          // attribute is what the browser reads, so it is passed through a spread.
+          {...{ fetchpriority: 'high' }}
           decoding="async"
           className={`h-full w-full object-cover ${soldOut ? 'opacity-70' : ''}`}
         />

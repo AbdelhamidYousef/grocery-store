@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 
 import { Checkbox } from '../../components/ui/Checkbox';
 import { Input } from '../../components/ui/Input';
+import { cn } from '../../lib/cn';
 import { TEST_IDS } from '../../lib/test-ids';
 
 import {
@@ -88,7 +89,10 @@ function FacetGroup({
     // checkbox labels can be just the value.
     <fieldset data-testid={TEST_IDS.filterGroup} className="min-w-0">
       <legend className="mb-1 font-display text-lg font-bold">{label}</legend>
-      <div className="flex flex-col">
+      {/* Expanded, a 38-value list would be ~1700px of checkboxes and push every other group out
+          of reach, so it scrolls inside its own box (the checkboxes inside are focusable, so it
+          is keyboard-scrollable too). */}
+      <div className={cn('flex flex-col', expanded && 'max-h-80 overflow-y-auto pr-1')}>
         {shown.map(({ value, count }) => (
           <Checkbox
             key={value}

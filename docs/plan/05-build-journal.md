@@ -219,3 +219,11 @@ The picker is built from `optionKeys` and the variant list, so nothing in it ass
 
 ### 5.8 — PDP: quantity and add to cart (button only)
 A quantity stepper (labelled number box plus 44 px minus and plus buttons, clamped 1 to 10), a low-stock hint ("Only a few left", from the selected variant's `lowStock`) and an "Add to cart" button that is disabled with a visible, `aria-describedby`-linked explanation until phase 7. A sold-out variant disables the stepper and turns the button into "Sold out". `AddToCart` takes an optional `onAdd`; phase 7 passes it, and that handler is where `track('add_to_cart')` fires (the event is already in the typed union). Learn: the API deliberately hides the stock number, so the web cannot know the real limit; it caps the stepper at a sensible 10 and the server remains the authority when the cart arrives.
+
+### 5.9 — e2e
+Playwright now covers the catalog: home, the Dogs tile, a material filter (URL gets `attr.material=...`, a chip appears, one product remains), the product page, choosing the Large size (URL gets `?variant=<sku>`, price changes, and reloading the link keeps the choice), plus search with the query kept in the box, a sold-out product with a disabled button, and an unknown product. The QA pass measured document width on 21 routes at 390 and 1280 px (no horizontal scroll anywhere), forced very long product names and a nine-digit price into the cards (names clamp at two lines, nothing overflows), and found two things worth fixing: React 18 warned about `fetchPriority` on the gallery image (now passed as the lowercase attribute the browser reads), and an expanded material list on search results (about 40 values) was 2600 px tall, so it now scrolls inside a 20 rem box. Learn: an e2e test for the URL-as-state design is the cheapest proof that sharing a link really restores the view.
+
+### Phase 5 quiz (answer in your own words)
+1. Why does the product list keep its filters, sort and page in the URL instead of in React state, and what does `applyListPatch` do to the page number when a filter changes?
+2. The variant picker is made of native radio inputs inside fieldsets. What does the browser give you for free, and which options are disabled?
+3. The API returns `available` and `lowStock` but never the stock count. Why, and how does that shape the quantity stepper?
