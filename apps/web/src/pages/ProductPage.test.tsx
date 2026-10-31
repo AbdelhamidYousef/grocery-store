@@ -50,7 +50,7 @@ describe('product page', () => {
       ),
     );
     renderApp('/products/rope-tug');
-    expect(await screen.findByText('Sold out')).toBeInTheDocument();
+    expect((await screen.findAllByText('Sold out')).length).toBeGreaterThan(0);
   });
 
   it('shows the not-found page for an unknown product', async () => {

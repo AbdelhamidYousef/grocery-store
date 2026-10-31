@@ -1,6 +1,6 @@
 import type { ProductDetail } from '@store/shared';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 
 import { ApiError } from '../api/client';
 import { Breadcrumbs, type Crumb } from '../components/layout/Breadcrumbs';
@@ -13,7 +13,8 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { formatFacetValue } from '../features/catalog/filters';
 import { Gallery } from '../features/catalog/Gallery';
 import { useProduct } from '../features/catalog/queries';
-import { defaultVariant } from '../features/catalog/resolve-variant';
+import { variantFromSku } from '../features/catalog/resolve-variant';
+import { VariantPicker } from '../features/catalog/VariantPicker';
 import { accentForPetAttribute, petBySlug } from '../lib/pets';
 import { TEST_IDS } from '../lib/test-ids';
 import { track } from '../lib/track';
@@ -49,8 +50,19 @@ export default function ProductPage() {
 }
 
 function ProductView({ product }: { product: ProductDetail }) {
-  const variant = defaultVariant(product.variants);
-  const [imageId, setImageId] = useState(product.images[0]?.id);
+  // The chosen variant lives in the URL (`?variant=<sku>`), so a link is precise: it opens the
+  // exact colour and size that was shared. No parameter means the default variant.
+  const [params, setParams] = useSearchParams();
+  const variant = variantFromSku(product.variants, params.get('variant'));
+  // Which photo is shown is derived, not synced with an effect: a thumbnail the shopper picked
+  // wins for the variant it was picked on; otherwise a variant with its own photo shows it; else
+  // the first image. Changing variant therefore swaps the photo with no extra render.
+  const [picked, setPicked] = useState<{ imageId: string; variantId: string | undefined }>();
+  const variantId = variant?.id;
+  const imageId =
+    picked && picked.variantId === variantId
+      ? picked.imageId
+      : (product.images.find((i) => i.variantId === variantId) ?? product.images[0])?.id;
 
   useEffect(() => {
     track({
@@ -86,7 +98,7 @@ function ProductView({ product }: { product: ProductDetail }) {
           <Gallery
             images={product.images}
             selectedId={imageId}
-            onSelect={setImageId}
+            onSelect={(id) => setPicked({ imageId: id, variantId })}
             soldOut={!product.inStock}
           />
 
@@ -116,6 +128,39 @@ function ProductView({ product }: { product: ProductDetail }) {
                 currency={product.price.currency}
                 className="text-3xl text-pet-strong"
               />
+            )}
+
+            {variant && product.optionKeys.length > 0 && (
+              <VariantPicker
+                optionKeys={product.optionKeys}
+                variants={product.variants}
+                selected={variant}
+                onSelect={(next) =>
+                  // replace: choosing colours is exploring, not navigating, so Back should leave
+                  // the product rather than step through every swatch.
+                  setParams(
+                    (current) => {
+                      const nextParams = new URLSearchParams(current);
+                      nextParams.set('variant', next.sku);
+                      return nextParams;
+                    },
+                    { replace: true, preventScrollReset: true },
+                  )
+                }
+              />
+            )}
+
+            {variant && (
+              <p className="text-sm text-muted" data-testid="variant-sku">
+                SKU {variant.sku} ·{' '}
+                <span
+                  className={
+                    variant.available ? 'font-semibold text-success' : 'font-semibold text-danger'
+                  }
+                >
+                  {variant.available ? 'In stock' : 'Sold out'}
+                </span>
+              </p>
             )}
 
             <p className="max-w-prose text-lg">{product.description}</p>
