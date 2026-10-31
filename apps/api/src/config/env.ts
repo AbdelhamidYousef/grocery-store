@@ -56,6 +56,29 @@ export const envSchema = z
     ),
     // Read by the web build, not the API; validated here too so one typo'd `.env` fails in one place.
     STRIPE_PUBLISHABLE_KEY: testKey('pk_test_', 'test-mode publishable key only'),
+    // Email. Development: Mailpit (smtp://127.0.0.1:1025, see docker-compose.yml) when SMTP_URL is
+    // empty. Production: RESEND_API_KEY (sent over Resend's SMTP endpoint) or any SMTP_URL; with
+    // neither, emails are logged and skipped and the API still boots.
+    SMTP_URL: z
+      .string()
+      .trim()
+      .optional()
+      .transform((v) => (v === '' ? undefined : v))
+      .pipe(
+        z
+          .string()
+          .regex(/^smtps?:\/\//, 'must start with smtp:// or smtps://')
+          .optional(),
+      ),
+    RESEND_API_KEY: z
+      .string()
+      .trim()
+      .optional()
+      .transform((v) => (v === '' ? undefined : v))
+      .pipe(z.string().startsWith('re_', 'Resend API keys start with re_').optional()),
+    // Resend without a verified domain only accepts `onboarding@resend.dev` as sender, and only
+    // delivers to the account owner's address.
+    MAIL_FROM: z.string().trim().min(3).default('Pawsome <orders@pawsome.test>'),
     // Background jobs inside the API process (the stale-reservation sweeper). Tests call the job
     // functions directly, so this only matters for a running server.
     ENABLE_JOBS: z

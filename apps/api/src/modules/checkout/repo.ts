@@ -109,6 +109,11 @@ export async function lockOrder(tx: Tx, orderId: string): Promise<OrderRow | und
   return row;
 }
 
+export async function findOrderById(run: Db, orderId: string): Promise<OrderRow | undefined> {
+  const [row] = await run.select().from(orders).where(eq(orders.id, orderId));
+  return row;
+}
+
 export async function findOrderByNumber(
   number: string,
   run: Db = db,
