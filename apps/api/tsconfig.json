@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": true,
+    // Relative imports are written with their real `.ts` extension. Node ESM needs explicit
+    // extensions at runtime, and tsconfig.build.json rewrites them to `.js` in the emitted files.
+    "allowImportingTsExtensions": true,
+    "types": ["node"]
+  },
+  "include": ["src"]
+}

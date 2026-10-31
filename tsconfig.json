@@ -1,5 +1,5 @@
 {
   // Solution file: `tsc -b` follows these references. Each workspace adds itself in its own step.
   "files": [],
-  "references": [{ "path": "packages/shared" }]
+  "references": [{ "path": "packages/shared" }, { "path": "apps/api" }]
 }
