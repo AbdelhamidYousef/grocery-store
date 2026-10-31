@@ -1,13 +1,11 @@
-// All HTTP calls live in src/api so components never fetch directly; that keeps a later SSR or
-// prerender step possible and makes components trivial to test.
-export interface HealthResponse {
-  status: string;
-}
+import { z } from 'zod';
 
-export async function fetchHealth(): Promise<HealthResponse> {
-  const res = await fetch('/api/v1/health');
-  if (!res.ok) {
-    throw new Error(`health check failed with status ${res.status}`);
-  }
-  return (await res.json()) as HealthResponse;
+import { apiFetch } from './client';
+
+// /health is the one endpoint without the { data } envelope (load balancers read it as-is).
+export const HealthSchema = z.object({ status: z.string(), db: z.string(), version: z.string() });
+export type Health = z.infer<typeof HealthSchema>;
+
+export function fetchHealth(): Promise<Health> {
+  return apiFetch('/health', { schema: HealthSchema });
 }

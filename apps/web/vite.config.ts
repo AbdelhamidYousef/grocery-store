@@ -14,5 +14,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test-setup.ts'],
+    // Node's fetch needs absolute URLs; this is the origin the msw handlers answer for.
+    env: { VITE_API_URL: 'http://api.test' },
   },
 });
