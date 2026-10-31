@@ -43,6 +43,9 @@ export interface ListPatch {
   minPrice?: number | undefined;
   maxPrice?: number | undefined;
   inStock?: boolean | undefined;
+  /** Selected brand / health-need slugs; an empty array removes the filter. */
+  brand?: string[] | undefined;
+  tag?: string[] | undefined;
   /** key -> selected values; an empty array removes the filter. */
   attr?: Record<string, string[]> | undefined;
 }
@@ -60,6 +63,12 @@ export function applyListPatch(current: URLSearchParams, patch: ListPatch): URLS
     const value = patch[key];
     if (value === undefined || value === false || (key === 'page' && value === 1)) next.delete(key);
     else next.set(key, String(value));
+  }
+  for (const key of ['brand', 'tag'] as const) {
+    const values = patch[key];
+    if (values === undefined) continue;
+    if (values.length === 0) next.delete(key);
+    else next.set(key, values.join(','));
   }
   for (const [key, values] of Object.entries(patch.attr ?? {})) {
     if (values.length === 0) next.delete(`${ATTR_PREFIX}${key}`);
@@ -81,6 +90,8 @@ export function hasActiveFilters(query: ProductListQuery): boolean {
     query.minPrice !== undefined ||
     query.maxPrice !== undefined ||
     query.inStock === true ||
+    (query.brand?.length ?? 0) > 0 ||
+    (query.tag?.length ?? 0) > 0 ||
     Object.keys(query.attr).length > 0
   );
 }

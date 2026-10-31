@@ -72,3 +72,25 @@ describe('filters', () => {
     expect(hasActiveFilters(parseListParams(sp('attr.pet=dog')))).toBe(true);
   });
 });
+
+describe('brand and tag parameters', () => {
+  it('parses them as slug lists and applies and clears patches', () => {
+    const query = parseListParams(new URLSearchParams('brand=a,b&tag=joints'));
+    expect(query.brand).toEqual(['a', 'b']);
+    expect(query.tag).toEqual(['joints']);
+
+    const added = applyListPatch(new URLSearchParams('page=3'), { brand: ['a'], tag: ['joints'] });
+    expect(added.toString()).toBe('brand=a&tag=joints');
+    const cleared = applyListPatch(added, { brand: [] });
+    expect(cleared.toString()).toBe('tag=joints');
+  });
+
+  it('counts them as active filters', () => {
+    expect(hasActiveFilters(parseListParams(new URLSearchParams('brand=a')))).toBe(true);
+    expect(hasActiveFilters(parseListParams(new URLSearchParams('tag=x')))).toBe(true);
+  });
+
+  it('drops an invalid badge instead of failing the page', () => {
+    expect(parseListParams(new URLSearchParams('badge=shiny&brand=a')).brand).toEqual(['a']);
+  });
+});

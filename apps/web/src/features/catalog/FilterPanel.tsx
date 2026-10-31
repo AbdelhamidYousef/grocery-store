@@ -46,6 +46,29 @@ export function FilterPanel({
 
       <PriceFilter facets={facets} query={query} currency={currency} update={update} />
 
+      {/* Brand and health need come from their own tables (slug + display name), not from the
+          attributes jsonb, so they are separate groups with their own URL parameters. */}
+      {(facets.brand.length >= 2 || (query.brand?.length ?? 0) > 0) && (
+        <FacetGroup
+          facetKey="brand"
+          label="Brand"
+          testId={TEST_IDS.filterBrand}
+          values={facets.brand}
+          selected={query.brand ?? []}
+          onChange={(next) => update({ brand: next })}
+        />
+      )}
+      {(facets.tag.length >= 1 || (query.tag?.length ?? 0) > 0) && (
+        <FacetGroup
+          facetKey="tag"
+          label="Shop by health need"
+          testId={TEST_IDS.filterHealth}
+          values={facets.tag}
+          selected={query.tag ?? []}
+          onChange={(next) => update({ tag: next })}
+        />
+      )}
+
       {FACET_ORDER.map((key) => {
         const values = facets.attributes[key] ?? [];
         const selected = query.attr[key] ?? [];
@@ -68,17 +91,20 @@ export function FilterPanel({
 
 function FacetGroup({
   facetKey,
+  label = facetLabel(facetKey),
+  testId = TEST_IDS.filterGroup,
   values,
   selected,
   onChange,
 }: {
   facetKey: string;
-  values: { value: string; count: number }[];
+  label?: string;
+  testId?: string;
+  values: { value: string; count: number; label?: string }[];
   selected: string[];
   onChange: (next: string[]) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const label = facetLabel(facetKey);
   const shown = expanded
     ? values
     : values.filter((v, i) => i < VISIBLE_VALUES || selected.includes(v.value));
@@ -87,16 +113,16 @@ function FacetGroup({
   return (
     // fieldset + legend: a screen reader announces "Material, group" before each option, so the
     // checkbox labels can be just the value.
-    <fieldset data-testid={TEST_IDS.filterGroup} className="min-w-0">
+    <fieldset data-testid={testId} className="min-w-0">
       <legend className="mb-1 font-display text-lg font-bold">{label}</legend>
       {/* Expanded, a 38-value list would be ~1700px of checkboxes and push every other group out
           of reach, so it scrolls inside its own box (the checkboxes inside are focusable, so it
           is keyboard-scrollable too). */}
       <div className={cn('flex flex-col', expanded && 'max-h-80 overflow-y-auto pr-1')}>
-        {shown.map(({ value, count }) => (
+        {shown.map(({ value, count, label: valueLabel }) => (
           <Checkbox
             key={value}
-            label={`${formatFacetValue(facetKey, value)} (${count})`}
+            label={`${valueLabel ?? formatFacetValue(facetKey, value)} (${count})`}
             checked={selected.includes(value)}
             data-testid={TEST_IDS.filterOption}
             onChange={(e) =>

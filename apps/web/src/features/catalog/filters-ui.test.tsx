@@ -118,3 +118,79 @@ describe('filters and sort', () => {
     expect(screen.getByTestId('result-count')).toHaveAttribute('role', 'status');
   });
 });
+
+describe('brand and health-need filters, unit price sort', () => {
+  const facets = makeFacets({
+    brand: [
+      { value: 'burrow-and-biscuit', label: 'Burrow & Biscuit', count: 3 },
+      { value: 'pawsome', label: 'Pawsome', count: 2 },
+    ],
+    tag: [{ value: 'joints', label: 'Joints & mobility', count: 2 }],
+  });
+  const serve = () =>
+    server.use(
+      http.get(`${API}/products`, () => HttpResponse.json(makeList([makeCard()], { facets }))),
+    );
+
+  it('shows brand and "Shop by health need" groups with display names', async () => {
+    serve();
+    await open('/c/dogs');
+    expect(sidebar().getByRole('group', { name: 'Brand' })).toBeInTheDocument();
+    expect(sidebar().getByRole('group', { name: 'Shop by health need' })).toBeInTheDocument();
+    expect(sidebar().getByRole('checkbox', { name: 'Burrow & Biscuit (3)' })).toBeInTheDocument();
+    expect(sidebar().getByRole('checkbox', { name: 'Joints & mobility (2)' })).toBeInTheDocument();
+  });
+
+  it('writes brand and tag to the url, shows named chips and removes them', async () => {
+    serve();
+    const router = await open('/c/dogs');
+    await userEvent.click(sidebar().getByRole('checkbox', { name: 'Burrow & Biscuit (3)' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?brand=burrow-and-biscuit'));
+    await userEvent.click(sidebar().getByRole('checkbox', { name: 'Joints & mobility (2)' }));
+    await waitFor(() =>
+      expect(router.state.location.search).toBe('?brand=burrow-and-biscuit&tag=joints'),
+    );
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Remove filter Health need: Joints & mobility' }),
+    );
+    await waitFor(() => expect(router.state.location.search).toBe('?brand=burrow-and-biscuit'));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Remove filter Brand: Burrow & Biscuit' }),
+    );
+    await waitFor(() => expect(router.state.location.search).toBe(''));
+  });
+
+  it('reads the filters from the url and sends them to the api', async () => {
+    let seen = '';
+    server.use(
+      http.get(`${API}/products`, ({ request }) => {
+        seen = new URL(request.url).search;
+        return HttpResponse.json(makeList([makeCard()], { facets }));
+      }),
+    );
+    await open('/c/dogs?brand=pawsome&tag=joints');
+    expect(seen).toContain('brand=pawsome');
+    expect(seen).toContain('tag=joints');
+    expect(sidebar().getByRole('checkbox', { name: 'Pawsome (2)' })).toBeChecked();
+  });
+
+  it('offers "Lowest unit price" and keeps it in the url', async () => {
+    const router = await open('/c/dogs');
+    const select = screen.getByRole('combobox', { name: 'Sort by' });
+    await userEvent.selectOptions(select, 'unit_price_asc');
+    await waitFor(() => expect(router.state.location.search).toBe('?sort=unit_price_asc'));
+    expect(select).toHaveValue('unit_price_asc');
+  });
+
+  it('explains unit prices once when any card has one', async () => {
+    server.use(
+      http.get(`${API}/products`, () =>
+        HttpResponse.json(
+          makeList([makeCard({ unitPrice: { cents: 420, per: 'kg' } })], { facets }),
+        ),
+      ),
+    );
+    await open('/c/dogs');
+    expect(screen.getAllByText(/Unit prices are per kg or litre/)).toHaveLength(1);
+  });
+});

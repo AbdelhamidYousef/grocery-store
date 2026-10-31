@@ -68,3 +68,79 @@ describe('product page', () => {
     ).toBeInTheDocument();
   });
 });
+
+describe('product page: unit price, badges and trial size', () => {
+  const serve = (product: ReturnType<typeof makeProduct>) =>
+    server.use(http.get(`${API}/products/rope-tug`, () => HttpResponse.json({ data: product })));
+
+  it('shows the unit price of the selected variant and the rounding note', async () => {
+    serve(
+      makeProduct({
+        badges: ['New', 'Eco'],
+        variants: [
+          makeVariant({
+            id: 'v1',
+            sku: 'A',
+            isDefault: true,
+            options: { color: 'red', size: 'S' },
+            unitPrice: { cents: 420, per: 'kg' },
+          }),
+        ],
+      }),
+    );
+    renderApp('/products/rope-tug');
+    expect(await screen.findByTestId('unit-price')).toHaveTextContent('€4.20/kg');
+    expect(screen.getByText(/rounded to the nearest cent/)).toBeInTheDocument();
+    expect(screen.getAllByTestId('product-badge').map((b) => b.textContent)).toEqual([
+      'New',
+      'Eco',
+    ]);
+    expect(screen.queryByTestId('trial-pill')).not.toBeInTheDocument();
+  });
+
+  it('marks a trial size with a pill and the one-per-customer note', async () => {
+    serve(
+      makeProduct({
+        variants: [
+          makeVariant({
+            id: 'v1',
+            sku: 'T',
+            isDefault: true,
+            options: { color: 'red', size: 'S' },
+            isTrial: true,
+          }),
+        ],
+      }),
+    );
+    renderApp('/products/rope-tug');
+    expect(await screen.findByTestId('trial-pill')).toHaveTextContent('Trial size');
+    expect(screen.getByTestId('trial-note')).toHaveTextContent('one per customer');
+  });
+
+  it('shows the server message when a second trial is refused (409 TRIAL_LIMIT)', async () => {
+    serve(
+      makeProduct({
+        variants: [
+          makeVariant({
+            id: 'v1',
+            sku: 'T',
+            isDefault: true,
+            options: { color: 'red', size: 'S' },
+            isTrial: true,
+          }),
+        ],
+      }),
+    );
+    server.use(
+      http.post(`${API}/cart/items`, () =>
+        HttpResponse.json(
+          { error: { code: 'TRIAL_LIMIT', message: 'You have already had this trial size' } },
+          { status: 409 },
+        ),
+      ),
+    );
+    renderApp('/products/rope-tug');
+    await userEvent.click(await screen.findByRole('button', { name: 'Add to cart' }));
+    expect(await screen.findByText('You have already had this trial size')).toBeInTheDocument();
+  });
+});

@@ -7,6 +7,7 @@ import { Button } from '../../components/ui/Button';
 import { Dialog } from '../../components/ui/Dialog';
 import { Select } from '../../components/ui/Select';
 import { Skeleton } from '../../components/ui/Skeleton';
+import { UnitPriceNote } from '../../components/ui/UnitPrice';
 import { PETS } from '../../lib/pets';
 import { TEST_IDS } from '../../lib/test-ids';
 
@@ -25,18 +26,20 @@ interface ProductListingProps {
   category?: string;
   /** Set on the search page. */
   q?: string;
+  /** Set on collection pages. */
+  collection?: string;
 }
 
 // The listing shared by /c/:slug and /search: reads the URL, asks the API, and renders the
 // states (loading, error, empty, results, page out of range). Filters and sort controls attach
 // here: a sidebar on desktop, a drawer on phones, both built from the API's `facets`.
-export function ProductListing({ listId, category, q }: ProductListingProps) {
+export function ProductListing({ listId, category, q, collection }: ProductListingProps) {
   const { query, search, update, clear } = useProductListParams();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   // The route decides category and query; a stray `?category=` or `?limit=` in the URL must not
   // override it, so those are set last.
-  const params: ProductListParams = { ...query, category, q, limit: PAGE_SIZE };
+  const params: ProductListParams = { ...query, category, q, collection, limit: PAGE_SIZE };
   const { data, isPending, isError, isFetching, refetch } = useProducts(params, {
     keepPrevious: true,
   });
@@ -92,6 +95,8 @@ export function ProductListing({ listId, category, q }: ProductListingProps) {
   const activeCount =
     (query.inStock ? 1 : 0) +
     (query.minPrice !== undefined || query.maxPrice !== undefined ? 1 : 0) +
+    (query.brand?.length ?? 0) +
+    (query.tag?.length ?? 0) +
     Object.values(query.attr).reduce((n, v) => n + v.length, 0);
 
   return (
@@ -153,7 +158,13 @@ export function ProductListing({ listId, category, q }: ProductListingProps) {
           </div>
         </div>
 
-        <AppliedFilters query={query} currency={currency} update={update} onClear={clear} />
+        <AppliedFilters
+          query={query}
+          facets={data.facets}
+          currency={currency}
+          update={update}
+          onClear={clear}
+        />
 
         {data.data.length === 0 ? (
           <EmptyState
@@ -168,6 +179,7 @@ export function ProductListing({ listId, category, q }: ProductListingProps) {
             {/* h1 -> h3 (the cards) skipped a level whenever the Filters sidebar is hidden. */}
             <h2 className="sr-only">Products</h2>
             <ProductGrid products={data.data} listId={listId} eagerCount={4} />
+            {data.data.some((p) => p.unitPrice) && <UnitPriceNote className="mt-4" />}
             <Pagination page={meta.page} totalPages={meta.totalPages} hrefFor={hrefFor} />
           </div>
         )}

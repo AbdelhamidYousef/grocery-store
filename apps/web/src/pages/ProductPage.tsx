@@ -9,7 +9,9 @@ import { Seo } from '../components/Seo';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Price } from '../components/ui/Price';
+import { ProductBadges } from '../components/ui/ProductBadges';
 import { Skeleton } from '../components/ui/Skeleton';
+import { UnitPrice, UnitPriceNote } from '../components/ui/UnitPrice';
 import { useAddToCartAction } from '../features/cart/queries';
 import { AddToCart } from '../features/catalog/AddToCart';
 import { formatFacetValue } from '../features/catalog/filters';
@@ -110,11 +112,14 @@ function ProductView({ product }: { product: ProductDetail }) {
               <h1 className="break-words font-display text-3xl font-bold sm:text-4xl">
                 {product.name}
               </h1>
-              {!product.inStock && (
-                <Badge tone="neutral" className="mt-2 border-ink bg-surface text-ink">
-                  Sold out
-                </Badge>
-              )}
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {!product.inStock && (
+                  <Badge tone="neutral" className="border-ink bg-surface text-ink">
+                    Sold out
+                  </Badge>
+                )}
+                <ProductBadges badges={product.badges} />
+              </div>
             </div>
 
             {variant ? (
@@ -131,6 +136,24 @@ function ProductView({ product }: { product: ProductDetail }) {
                 currency={product.price.currency}
                 className="text-3xl text-pet-strong"
               />
+            )}
+
+            {variant && (
+              <div className="-mt-3 flex flex-col gap-1">
+                <UnitPrice unitPrice={variant.unitPrice} currency={variant.currency} />
+                {variant.unitPrice && <UnitPriceNote />}
+                {variant.isTrial && (
+                  <div className="mt-1 flex flex-col gap-1">
+                    <Badge tone="pet" data-testid={TEST_IDS.trialPill} className="w-fit">
+                      Trial size
+                    </Badge>
+                    <p data-testid={TEST_IDS.trialNote} className="text-sm text-muted">
+                      A sample to try before you commit: one per customer. The full size has no
+                      limit.
+                    </p>
+                  </div>
+                )}
+              </div>
             )}
 
             {variant && product.optionKeys.length > 0 && (
@@ -187,6 +210,14 @@ function ProductView({ product }: { product: ProductDetail }) {
                   <dd className="min-w-0 break-words">{value}</dd>
                 </div>
               ))}
+              {product.tags.length > 0 && (
+                <div className="contents">
+                  <dt className="font-semibold text-pet-strong">Good for</dt>
+                  <dd className="min-w-0 break-words">
+                    {product.tags.map((t) => t.name).join(', ')}
+                  </dd>
+                </div>
+              )}
             </dl>
           </div>
         </div>

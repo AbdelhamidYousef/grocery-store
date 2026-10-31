@@ -44,8 +44,8 @@ export const SORT_LABELS: Record<ProductSort, string> = {
 
 export function sortOptions(hasSearch: boolean): ProductSort[] {
   return hasSearch
-    ? ['relevance', 'newest', 'price_asc', 'price_desc', 'name']
-    : ['newest', 'price_asc', 'price_desc', 'name'];
+    ? ['relevance', 'newest', 'price_asc', 'price_desc', 'unit_price_asc', 'name']
+    : ['newest', 'price_asc', 'price_desc', 'unit_price_asc', 'name'];
 }
 
 export function defaultSort(hasSearch: boolean): ProductSort {

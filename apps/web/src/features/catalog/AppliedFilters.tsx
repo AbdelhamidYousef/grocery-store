@@ -1,4 +1,4 @@
-import type { ProductListQuery } from '@store/shared';
+import type { Facets, ProductListQuery } from '@store/shared';
 
 import { TEST_IDS } from '../../lib/test-ids';
 
@@ -7,12 +7,14 @@ import type { ListPatch } from './list-params';
 
 interface AppliedFiltersProps {
   query: ProductListQuery;
+  /** Used to show a brand or health need by name instead of its slug. */
+  facets?: Facets | undefined;
   currency: string;
   update: (patch: ListPatch) => void;
   onClear: () => void;
 }
 
-export function AppliedFilters({ query, currency, update, onClear }: AppliedFiltersProps) {
+export function AppliedFilters({ query, facets, currency, update, onClear }: AppliedFiltersProps) {
   const chips: { id: string; label: string; remove: () => void }[] = [];
 
   if (query.inStock)
@@ -22,6 +24,22 @@ export function AppliedFilters({ query, currency, update, onClear }: AppliedFilt
       id: 'price',
       label: priceChipLabel(query.minPrice, query.maxPrice, currency),
       remove: () => update({ minPrice: undefined, maxPrice: undefined }),
+    });
+  }
+  const named = (list: Facets['brand'] | undefined, slug: string) =>
+    list?.find((f) => f.value === slug)?.label ?? slug;
+  for (const slug of query.brand ?? []) {
+    chips.push({
+      id: `brand:${slug}`,
+      label: `Brand: ${named(facets?.brand, slug)}`,
+      remove: () => update({ brand: (query.brand ?? []).filter((v) => v !== slug) }),
+    });
+  }
+  for (const slug of query.tag ?? []) {
+    chips.push({
+      id: `tag:${slug}`,
+      label: `Health need: ${named(facets?.tag, slug)}`,
+      remove: () => update({ tag: (query.tag ?? []).filter((v) => v !== slug) }),
     });
   }
   for (const [key, values] of Object.entries(query.attr)) {
