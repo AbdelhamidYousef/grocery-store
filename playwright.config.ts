@@ -49,6 +49,9 @@ export default defineConfig({
         // Checkout fills the cart and pays more than the 300/min default allows when specs run
         // in parallel.
         RATE_LIMIT_MAX: '5000',
+        // Sign-ins are limited per address and email (10 / 15 min by default); the admin spec
+        // signs the one demo admin in for almost every test.
+        RATE_LIMIT_AUTH_MAX: '1000',
       },
       url: `http://localhost:${API_PORT}/api/v1/health`,
       reuseExistingServer: true,
