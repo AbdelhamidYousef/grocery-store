@@ -11,3 +11,4 @@ export * from './guides.ts';
 export * from './help.ts';
 export * from './shipping.ts';
 export * from './tracking.ts';
+export * from './withdrawals.ts';

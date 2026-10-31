@@ -5,6 +5,7 @@ import { MiniCart } from '../../features/cart/MiniCart';
 import { useCart } from '../../features/cart/queries';
 
 import { ApiStatusBanner } from './ApiStatusBanner';
+import { CookieBanner } from './CookieBanner';
 import { Footer } from './Footer';
 import { Header } from './Header';
 import { SkipLink } from './SkipLink';
@@ -55,6 +56,7 @@ export function AppLayout() {
         <Outlet />
       </main>
       <Footer />
+      <CookieBanner />
       {/* Restores scroll per history entry (back returns to where you were) and resets to the
           top on a new navigation; needs the data router. */}
       <ScrollRestoration />

@@ -1,5 +1,14 @@
 import { sql } from 'drizzle-orm';
-import { index, integer, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import {
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core';
 
 import { createdAt, id, updatedAt } from './columns.ts';
 import { orders } from './orders.ts';
@@ -12,14 +21,17 @@ export const emailOutbox = pgTable(
   'email_outbox',
   {
     id: id(),
-    // Which template: 'order_confirmation' | 'order_shipped' (text, so a new email needs no migration).
+    // Which template: 'order_confirmation', 'order_shipped', 'withdrawal_ack', 'contact_ack', ...
+    // (text, so a new email needs no migration).
     kind: text('kind').notNull(),
-    orderId: uuid('order_id')
-      .notNull()
-      .references(() => orders.id, { onDelete: 'cascade' }),
+    // Null for emails that are not about an order (contact form, safety notices).
+    orderId: uuid('order_id').references(() => orders.id, { onDelete: 'cascade' }),
+    // What the template needs besides the order (a withdrawal's timestamp, a notice's text).
+    // Stored as data, never as rendered HTML, so a template fix still reaches queued emails.
+    payload: jsonb('payload').$type<Record<string, unknown>>(),
     // Copied at enqueue time: the address the order was placed with, even if the account changes.
     toEmail: text('to_email').notNull(),
-    // `<kind>:<orderId>`. Unique, so replaying a transition (a retried webhook) can never queue a
+    // `<kind>:<orderId>` for order emails, or `<kind>:<reference>` for the rest. Unique, so replaying a transition (a retried webhook) can never queue a
     // second copy of the same email.
     dedupeKey: text('dedupe_key').notNull(),
     attempts: integer('attempts').notNull().default(0),

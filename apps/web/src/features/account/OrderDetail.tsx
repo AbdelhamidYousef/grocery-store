@@ -78,6 +78,15 @@ export function OrderDetail() {
       <p className="mt-1 text-muted">
         Placed {formatDate(order.placedAt ?? order.createdAt, true)}
       </p>
+      <p className="mt-1">
+        <Link
+          to={`/withdraw?number=${encodeURIComponent(order.number)}`}
+          className="font-semibold text-primary-strong underline"
+          data-testid="withdraw-link"
+        >
+          Withdraw from contract
+        </Link>
+      </p>
 
       {order.timeline.length > 0 && (
         <ol

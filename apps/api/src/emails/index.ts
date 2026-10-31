@@ -2,13 +2,49 @@ import type { Order } from '@store/shared';
 
 import { orderConfirmation } from './order-confirmation.ts';
 import { orderShipped } from './order-shipped.ts';
+import { withdrawalAck } from './withdrawal-ack.ts';
 
 export type { Email } from './layout.ts';
 
-// Which emails exist. The outbox stores only the kind and the order id; the content is rendered
-// from the order when the email is sent, so a template fix reaches emails still waiting to go out.
-export const EMAIL_KINDS = ['order_confirmation', 'order_shipped'] as const;
+// Which emails exist. The outbox stores the kind, the order id (when there is one) and a small
+// JSON payload; the content is rendered from those when the email is sent, so a template fix
+// reaches emails still waiting to go out.
+export const ORDER_EMAIL_KINDS = ['order_confirmation', 'order_shipped', 'withdrawal_ack'] as const;
+export type OrderEmailKind = (typeof ORDER_EMAIL_KINDS)[number];
+
+export const EMAIL_KINDS = [...ORDER_EMAIL_KINDS] as const;
 export type EmailKind = (typeof EMAIL_KINDS)[number];
 
-export const renderEmail = (kind: EmailKind, order: Order) =>
-  kind === 'order_confirmation' ? orderConfirmation(order) : orderShipped(order);
+export type EmailPayload = Record<string, unknown>;
+
+export function renderEmail(
+  kind: OrderEmailKind,
+  order: Order,
+  payload: EmailPayload | null = null,
+) {
+  switch (kind) {
+    case 'order_confirmation':
+      return orderConfirmation(order);
+    case 'order_shipped':
+      return orderShipped(order);
+    case 'withdrawal_ack':
+      return withdrawalAck(order, payload);
+  }
+}
+
+export const isOrderEmailKind = (kind: string): kind is OrderEmailKind =>
+  (ORDER_EMAIL_KINDS as readonly string[]).includes(kind);
+
+// Entry point for the outbox: an order email needs its order, the others (added by later steps)
+// need only their payload.
+export function renderQueuedEmail(
+  kind: EmailKind,
+  order: Order | null,
+  payload: EmailPayload | null,
+) {
+  if (isOrderEmailKind(kind)) {
+    if (!order) throw new Error(`email "${kind}" needs an order`);
+    return renderEmail(kind, order, payload);
+  }
+  throw new Error(`unknown email kind "${String(kind)}"`);
+}

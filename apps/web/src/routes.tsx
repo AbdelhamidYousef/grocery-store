@@ -2,6 +2,8 @@ import { createBrowserRouter, type RouteObject } from 'react-router-dom';
 
 import { AppLayout } from './components/layout/AppLayout';
 import { RequireAdmin, RequireAuth } from './features/auth/guards';
+import { LegalPage } from './features/legal/LegalPage';
+import { LEGAL_PAGES } from './features/legal/pages';
 import BrandPage from './pages/BrandPage';
 import BrandsPage from './pages/BrandsPage';
 import CartPage from './pages/CartPage';
@@ -19,6 +21,7 @@ import RouteErrorPage from './pages/RouteErrorPage';
 import RouteFallback from './pages/RouteFallback';
 import SearchPage from './pages/SearchPage';
 import TrackOrderPage from './pages/TrackOrderPage';
+import WithdrawPage from './pages/WithdrawPage';
 
 // Every route lives here, in one file (the plan's SSR guard-rail: a prerender step can read this
 // same table later). Shoppers hit the storefront routes first, so those are in the main bundle.
@@ -45,6 +48,12 @@ export const routes: RouteObject[] = [
           { path: 'brands/:slug', element: <BrandPage /> },
           { path: 'collections/:slug', element: <CollectionPage /> },
           { path: 'search', element: <SearchPage /> },
+          { path: 'withdraw', element: <WithdrawPage /> },
+          // Static pages: one component, one route per Markdown file.
+          ...LEGAL_PAGES.map((page) => ({
+            path: page.path,
+            element: <LegalPage page={page} />,
+          })),
           { path: 'track-order', element: <TrackOrderPage /> },
           { path: 'help', element: <HelpPage /> },
           { path: 'guides', element: <GuidesPage /> },

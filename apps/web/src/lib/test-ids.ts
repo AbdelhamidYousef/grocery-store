@@ -127,6 +127,12 @@ export const TEST_IDS = {
   trackTimeline: 'track-timeline',
   trackTimelineStep: 'track-timeline-step',
 
+  pageLegal: 'page-legal',
+  demoNotice: 'demo-notice',
+  pageWithdraw: 'page-withdraw',
+  withdrawForm: 'withdraw-form',
+  withdrawSuccess: 'withdraw-success',
+
   pageAdmin: 'page-admin',
   adminNav: 'admin-nav',
   adminStat: 'admin-stat',

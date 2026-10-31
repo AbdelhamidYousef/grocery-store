@@ -18,6 +18,7 @@ import type { Outbox } from './mail/outbox.ts';
 import { merchandisingRouter } from './merchandising/router.ts';
 import { createTrackingRouter } from './tracking/router.ts';
 import { registerTrialSubscribers } from './trials/service.ts';
+import { createWithdrawalsRouter } from './withdrawals/router.ts';
 
 // Every feature module is `router.ts` (http only) -> `service.ts` (rules, transactions) ->
 // `repo.ts` (Drizzle). This file is the one place that knows which modules exist; each mounts at
@@ -58,6 +59,7 @@ export function createModulesRouter(opts: {
   router.use(createAccountRouter(opts));
   router.use(cartRouter);
   router.use(createTrackingRouter(opts));
+  router.use(createWithdrawalsRouter(opts));
   router.use(createCheckoutRouter({ payments: opts.payments }));
   router.use(createAdminRouter({ payments: opts.payments, outbox: opts.outbox }));
   return router;

@@ -25,3 +25,4 @@ export * from './testimonials.ts';
 export * from './trial-redemptions.ts';
 export * from './users.ts';
 export * from './webhook-events.ts';
+export * from './withdrawal-requests.ts';

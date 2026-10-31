@@ -3,7 +3,12 @@ import type { Logger } from 'pino';
 
 import { db, type Tx } from '../../db/client.ts';
 import { emailOutbox } from '../../db/schema/index.ts';
-import { EMAIL_KINDS, renderEmail, type EmailKind } from '../../emails/index.ts';
+import {
+  EMAIL_KINDS,
+  renderQueuedEmail,
+  type EmailKind,
+  type EmailPayload,
+} from '../../emails/index.ts';
 import type { MailTransport } from '../../lib/mailer.ts';
 import * as checkoutRepo from '../checkout/repo.ts';
 import { toOrderDto } from '../orders/view.ts';
@@ -33,19 +38,30 @@ const MAX_BACKOFF_MS = 60 * 60_000;
 export const backoffMs = (attempts: number): number =>
   Math.min(BASE_BACKOFF_MS * 2 ** (attempts - 1), MAX_BACKOFF_MS);
 
-// Called from inside the status-change transaction. `ON CONFLICT DO NOTHING` on the dedupe key
-// makes it idempotent: replaying a transition cannot queue a second copy.
+// Called from inside the transaction that causes the email. `ON CONFLICT DO NOTHING` on the dedupe
+// key makes it idempotent: replaying a transition cannot queue a second copy. An order email
+// defaults to one per kind and order; anything else (or an order email that can legitimately
+// repeat, like a second withdrawal) passes its own `dedupeKey`.
 export async function enqueueEmail(
   tx: Tx,
-  email: { kind: EmailKind; orderId: string; to: string },
+  email: {
+    kind: EmailKind;
+    to: string;
+    orderId?: string;
+    payload?: EmailPayload;
+    dedupeKey?: string;
+  },
 ): Promise<void> {
+  const dedupeKey = email.dedupeKey ?? (email.orderId && `${email.kind}:${email.orderId}`);
+  if (!dedupeKey) throw new Error(`email "${email.kind}" needs an orderId or a dedupeKey`);
   await tx
     .insert(emailOutbox)
     .values({
       kind: email.kind,
-      orderId: email.orderId,
+      orderId: email.orderId ?? null,
+      payload: email.payload ?? null,
       toEmail: email.to,
-      dedupeKey: `${email.kind}:${email.orderId}`,
+      dedupeKey,
     })
     .onConflictDoNothing({ target: emailOutbox.dedupeKey });
 }
@@ -119,13 +135,16 @@ export function createOutbox(opts: { transport: MailTransport; log: Logger }): O
         try {
           if (!isEmailKind(row.kind)) throw new Error(`unknown email kind "${row.kind}"`);
           // A plain read, not FOR UPDATE: the order lock must not be held while SMTP is slow.
-          const order = await checkoutRepo.findOrderById(tx, row.orderId);
-          if (!order) throw new Error('order no longer exists');
-          const [items, payment] = await Promise.all([
-            checkoutRepo.listOrderItems(tx, order.id),
-            checkoutRepo.findPaymentByOrder(tx, order.id),
-          ]);
-          const email = renderEmail(row.kind, toOrderDto(order, items, payment));
+          const order = row.orderId ? await checkoutRepo.findOrderById(tx, row.orderId) : undefined;
+          if (row.orderId && !order) throw new Error('order no longer exists');
+          const dto = order
+            ? toOrderDto(
+                order,
+                await checkoutRepo.listOrderItems(tx, order.id),
+                await checkoutRepo.findPaymentByOrder(tx, order.id),
+              )
+            : null;
+          const email = renderQueuedEmail(row.kind, dto, row.payload);
           await transport.send({
             to: row.toEmail,
             ...email,
