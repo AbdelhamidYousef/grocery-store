@@ -8,6 +8,11 @@ interface SeoProps {
   /** Absolute or root-relative URL of the preferred version of this page. */
   canonical?: string;
   noindex?: boolean;
+  /** `article` adds the Open Graph article tags (guides); everything else stays a plain page. */
+  type?: 'website' | 'article';
+  /** ISO date; only meaningful for `article`. */
+  publishedAt?: string;
+  image?: string;
 }
 
 // Sets <title>, meta description, canonical link and robots through the DOM in an effect: a
@@ -22,7 +27,15 @@ function upsert(selector: string, create: () => HTMLElement): HTMLElement {
   return el;
 }
 
-export function Seo({ title, description, canonical, noindex }: SeoProps) {
+export function Seo({
+  title,
+  description,
+  canonical,
+  noindex,
+  type = 'website',
+  publishedAt,
+  image,
+}: SeoProps) {
   useEffect(() => {
     const previousTitle = document.title;
     document.title = title === SITE ? SITE : `${title} | ${SITE}`;
@@ -67,6 +80,29 @@ export function Seo({ title, description, canonical, noindex }: SeoProps) {
     meta.setAttribute('content', 'noindex');
     return () => meta.remove();
   }, [noindex]);
+
+  // Open Graph tags (what a link preview reads) only for articles: other pages keep the minimal
+  // set above until a later SEO project decides what every page should carry.
+  useEffect(() => {
+    if (type !== 'article') return;
+    const tags: [string, string | undefined][] = [
+      ['og:type', 'article'],
+      ['og:title', title],
+      ['og:description', description],
+      ['og:image', image],
+      ['article:published_time', publishedAt],
+    ];
+    const added: HTMLElement[] = [];
+    for (const [property, content] of tags) {
+      if (!content) continue;
+      const meta = document.createElement('meta');
+      meta.setAttribute('property', property);
+      meta.setAttribute('content', content);
+      document.head.appendChild(meta);
+      added.push(meta);
+    }
+    return () => added.forEach((el) => el.remove());
+  }, [type, title, description, image, publishedAt]);
 
   return null;
 }

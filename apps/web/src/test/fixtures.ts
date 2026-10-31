@@ -12,6 +12,8 @@ import type {
   Collection,
   CustomerOrder,
   Facets,
+  GuideCard,
+  GuideDetail,
   Order,
   OrderSummary,
   ProductCard,
@@ -536,6 +538,19 @@ export function makeBrand(overrides: Partial<Brand> = {}): Brand {
   };
 }
 
+export function makeGuideCard(overrides: Partial<GuideCard> = {}): GuideCard {
+  return {
+    slug: 'choosing-a-dog-toy',
+    title: 'How to choose a dog toy',
+    summary: 'Tug, fetch or chew.',
+    coverUrl: null,
+    category: { slug: 'dogs', name: 'Dogs' },
+    publishedAt: '2026-03-04T00:00:00.000Z',
+    readingMinutes: 3,
+    ...overrides,
+  };
+}
+
 export function makeCollection(overrides: Partial<Collection> = {}): Collection {
   return {
     id: 'col1',
@@ -561,6 +576,16 @@ export function makeAdminCollection(overrides: Partial<AdminCollection> = {}): A
       { id: 'p1', name: 'Pumpkin Ball', slug: 'pumpkin-ball' },
       { id: 'p2', name: 'Bat Teaser', slug: 'bat-teaser' },
     ],
+    ...overrides,
+  };
+}
+
+export function makeGuideDetail(overrides: Partial<GuideDetail> = {}): GuideDetail {
+  return {
+    ...makeGuideCard(),
+    bodyMd: 'Dogs play in **different** ways.\n\n## What to look for\n\n- Start small',
+    products: [makeCard()],
+    related: [makeGuideCard({ slug: 'first-week-with-a-puppy', title: 'First week' })],
     ...overrides,
   };
 }

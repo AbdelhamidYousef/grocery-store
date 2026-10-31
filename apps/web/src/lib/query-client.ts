@@ -91,6 +91,13 @@ export const keys = {
     orderList: (params: AdminOrderListParams) => ['admin', 'orders', 'list', params] as const,
     order: (number: string) => ['admin', 'orders', 'detail', number] as const,
   },
+  guides: {
+    all: ['guides'] as const,
+    categories: ['guides', 'categories'] as const,
+    list: (params: { category?: string | undefined; page?: number | undefined }) =>
+      ['guides', 'list', params] as const,
+    detail: (slug: string) => ['guides', 'detail', slug] as const,
+  },
   categories: {
     all: ['categories'] as const,
     detail: (slug: string) => ['categories', slug] as const,

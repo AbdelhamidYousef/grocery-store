@@ -16,6 +16,7 @@ export type AnalyticsEvent =
   | { name: 'view_collection'; slug: string }
   | { name: 'view_item_list'; listId: string; items: TrackItem[] }
   | { name: 'view_item'; item: TrackItem }
+  | { name: 'view_guide'; slug: string; category: string }
   | { name: 'add_to_cart'; item: TrackItem; quantity: number }
   | { name: 'remove_from_cart'; item: TrackItem; quantity: number }
   // Money fields are integer cents like everywhere else; a provider adapter converts if it must.

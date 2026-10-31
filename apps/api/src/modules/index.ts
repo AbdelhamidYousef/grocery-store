@@ -12,6 +12,7 @@ import { cartRouter } from './cart/router.ts';
 import { catalogRouter } from './catalog/router.ts';
 import { createCheckoutRouter } from './checkout/router.ts';
 import { createTestRouter } from './checkout/test-router.ts';
+import { guidesRouter } from './guides/router.ts';
 import type { Outbox } from './mail/outbox.ts';
 import { merchandisingRouter } from './merchandising/router.ts';
 import { registerTrialSubscribers } from './trials/service.ts';
@@ -32,6 +33,7 @@ export function createModulesRouter(opts: {
   registerTrialSubscribers();
   router.use(catalogRouter);
   router.use(merchandisingRouter);
+  router.use(guidesRouter);
   // Exists only under NODE_ENV=test with a TEST_HOOK_SECRET (see test-router.ts): no way to fake a
   // payment anywhere else.
   if (opts.nodeEnv === 'test' && opts.testHooks) {

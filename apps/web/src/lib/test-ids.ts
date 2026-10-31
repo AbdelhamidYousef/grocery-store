@@ -102,6 +102,14 @@ export const TEST_IDS = {
   orderTimelineStep: 'order-timeline-step',
   pageOrderDetail: 'page-order-detail',
 
+  pageGuides: 'page-guides',
+  pageGuide: 'page-guide',
+  guideCard: 'guide-card',
+  guideCategoryTab: 'guide-category-tab',
+  guideBody: 'guide-body',
+  guideProducts: 'guide-products',
+  guideRelated: 'guide-related',
+
   pageAdmin: 'page-admin',
   adminNav: 'admin-nav',
   adminStat: 'admin-stat',

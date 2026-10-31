@@ -9,7 +9,7 @@ import { PETS } from '../lib/pets';
 export default function NotFoundPage({
   what = 'page',
 }: {
-  what?: 'page' | 'product' | 'category' | 'brand' | 'collection';
+  what?: 'page' | 'product' | 'category' | 'brand' | 'collection' | 'guide';
 }) {
   return (
     <Container className="py-16 text-center" data-testid="page-not-found">

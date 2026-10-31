@@ -100,11 +100,16 @@ export interface ProductFilters {
   collection?: string;
   /** key -> accepted values: OR within a key, AND across keys. */
   attr: Record<string, string[]>;
+  /** Only these products (used by guides to show the products they recommend). */
+  ids?: string[];
 }
 
 // Postgres full-text needs a few letters to mean anything (and the english config drops stop
 // words), so one or two characters fall back to a plain substring match on the name.
 const SHORT_QUERY_MAX = 2;
+
+// `IN ()` is a syntax error, so an empty id list matches this id, which no row has.
+const NO_ID = '00000000-0000-0000-0000-000000000000';
 
 const tsQuery = (q: string) => sql`websearch_to_tsquery('english', ${q})`;
 
@@ -226,6 +231,8 @@ export function liveCollection(): SQL {
 // category that match the search. Facets are computed over exactly this scope.
 function scopeConditions(f: ProductFilters): SQL[] {
   const conds: SQL[] = [eq(products.status, 'active')];
+
+  if (f.ids) conds.push(inArray(products.id, f.ids.length > 0 ? f.ids : [NO_ID]));
 
   if (f.category) {
     // The category itself or any direct child (the tree is one level deep). An unknown slug

@@ -152,21 +152,12 @@ async function getFacets(query: ProductListQuery, index: BadgeIndex): Promise<Fa
   };
 }
 
-export async function listProducts(query: ProductListQuery): Promise<ProductListResponse> {
-  // `relevance` only means something with a search term; without one it would be an arbitrary
-  // order, so it quietly becomes the default.
-  // Inside a collection the editor's order is the default, otherwise newest first.
-  const sort = query.sort ?? (query.q ? 'relevance' : query.collection ? 'collection' : 'newest');
-  const index = await getBadgeIndex();
-  const [{ rows, total }, facets] = await Promise.all([
-    repo.listProducts({
-      filters: toFilters(query, index),
-      sort,
-      limit: query.limit,
-      offset: (query.page - 1) * query.limit,
-    }),
-    getFacets(query, index),
-  ]);
+// Cards with their first image, swatches and badges: one place, so the list and other modules
+// (guides) show the same card.
+async function buildCards(
+  rows: repo.ProductCardRow[],
+  index: Awaited<ReturnType<typeof getBadgeIndex>>,
+): Promise<ProductCard[]> {
   const ids = rows.map((r) => r.id);
   const [images, swatchRows] = await Promise.all([
     repo.listPrimaryImages(ids),
@@ -194,15 +185,33 @@ export async function listProducts(query: ProductListQuery): Promise<ProductList
     swatchesByProduct.set(s.productId, list);
   }
 
-  return {
-    data: rows.map((row) =>
-      toCard(
-        row,
-        imageByProduct.get(row.id),
-        index.get(row.id) ?? [],
-        swatchesByProduct.get(row.id) ?? [],
-      ),
+  return rows.map((row) =>
+    toCard(
+      row,
+      imageByProduct.get(row.id),
+      index.get(row.id) ?? [],
+      swatchesByProduct.get(row.id) ?? [],
     ),
+  );
+}
+
+export async function listProducts(query: ProductListQuery): Promise<ProductListResponse> {
+  // `relevance` only means something with a search term; without one it would be an arbitrary
+  // order, so it quietly becomes the default.
+  // Inside a collection the editor's order is the default, otherwise newest first.
+  const sort = query.sort ?? (query.q ? 'relevance' : query.collection ? 'collection' : 'newest');
+  const index = await getBadgeIndex();
+  const [{ rows, total }, facets] = await Promise.all([
+    repo.listProducts({
+      filters: toFilters(query, index),
+      sort,
+      limit: query.limit,
+      offset: (query.page - 1) * query.limit,
+    }),
+    getFacets(query, index),
+  ]);
+  return {
+    data: await buildCards(rows, index),
     meta: {
       page: query.page,
       limit: query.limit,
@@ -211,6 +220,20 @@ export async function listProducts(query: ProductListQuery): Promise<ProductList
     },
     facets,
   };
+}
+
+// The same cards the list shows (price range, stock, first image) for a given set of products, so
+// other modules (guides) never rebuild them. Inactive or unbuyable products are left out, exactly
+// as in the list.
+export async function listCardsByIds(ids: string[]): Promise<ProductCard[]> {
+  if (ids.length === 0) return [];
+  const { rows } = await repo.listProducts({
+    filters: { attr: {}, ids },
+    sort: 'name',
+    limit: ids.length,
+    offset: 0,
+  });
+  return buildCards(rows, await getBadgeIndex());
 }
 
 // ---------- product detail ----------

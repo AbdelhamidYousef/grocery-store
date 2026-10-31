@@ -7,6 +7,8 @@ import BrandsPage from './pages/BrandsPage';
 import CartPage from './pages/CartPage';
 import CategoryPage from './pages/CategoryPage';
 import CollectionPage from './pages/CollectionPage';
+import GuidePage from './pages/GuidePage';
+import GuidesPage from './pages/GuidesPage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -41,6 +43,8 @@ export const routes: RouteObject[] = [
           { path: 'brands/:slug', element: <BrandPage /> },
           { path: 'collections/:slug', element: <CollectionPage /> },
           { path: 'search', element: <SearchPage /> },
+          { path: 'guides', element: <GuidesPage /> },
+          { path: 'guides/:slug', element: <GuidePage /> },
           { path: 'cart', element: <CartPage /> },
           { path: 'login', element: <LoginPage /> },
           { path: 'register', element: <RegisterPage /> },
