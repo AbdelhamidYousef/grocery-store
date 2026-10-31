@@ -68,6 +68,16 @@ describe('routes', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Cats' })).toBeInTheDocument();
   });
 
+  it('moves focus to main after a client-side navigation', async () => {
+    renderAt('/');
+    await screen.findByRole('heading', { level: 1 });
+    await userEvent.click(
+      within(screen.getByTestId('main-nav')).getByRole('link', { name: 'Cats' }),
+    );
+    await screen.findByRole('heading', { level: 1, name: 'Cats' });
+    expect(screen.getByTestId('main')).toHaveFocus();
+  });
+
   it('keeps the layout and shows the error page when a route throws', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     function Boom(): never {

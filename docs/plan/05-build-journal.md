@@ -185,3 +185,11 @@ Learn: a fixed lock order (guest, then user) prevents deadlocks; marking the sou
 
 ### 4.6 — guard-rails for later projects
 `components/Seo.tsx` sets the title, meta description, canonical link and robots tag from an effect (about 50 lines, so no `react-helmet-async` dependency) and cleans up on unmount so one page's tags never leak into the next. `lib/track.ts` is a typed `track(event)` that logs in dev and does nothing in production; `lib/test-ids.ts` holds the `data-testid` constants with the naming convention written at the top. Learn: a typed event union means a later analytics provider is one file to change and a wrong payload is a compile error; test ids name what an element is, so restyling or rewording copy never breaks the e2e suite.
+
+### 4.7 — app shell pages and Playwright
+`NotFound`, the route error page and the loading fallback already existed from 4.4, so this step finished the shell: placeholder pages now set their `<Seo>` (noindex), the layout moves focus to `<main>` after every client-side navigation (keyed on the path only, so filter changes later do not steal focus), `.env.example` documents `VITE_API_URL`, and Playwright is installed at the repo root with `playwright.config.ts` (starts the API and the Vite dev server unless they are running) and `e2e/smoke.spec.ts`. Learn: the smoke test caught a real bug in my first focus code: StrictMode runs effects twice on mount, so a "first render" flag was spent by the first run and focus jumped to `<main>` on load, which made the first Tab skip the skip link. Comparing with the last path instead fixed it.
+
+### Phase 4 quiz (answer in your own words)
+1. Why does `apiFetch` parse every response with a Zod schema when the TypeScript types already say what the API returns?
+2. What is a query key, and what happens when two components use the same key, or two different keys for the same data?
+3. Why does the layout move focus to `<main>` on navigation, and why only when the pathname changes?

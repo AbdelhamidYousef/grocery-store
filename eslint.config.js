@@ -53,6 +53,10 @@ export default tseslint.config(
     rules: reactHooks.configs.recommended.rules,
   },
   {
+    files: ['e2e/**/*.ts', 'playwright.config.ts'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
+  },
+  {
     files: ['apps/api/**/*.ts', 'packages/**/*.ts'],
     languageOptions: { globals: globals.node },
   },
