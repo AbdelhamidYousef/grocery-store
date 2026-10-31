@@ -16,8 +16,10 @@ export const server = setupServer(
     }),
   ),
   http.get(`${API}/categories/:slug`, ({ params }) =>
-    params.slug === 'dogs'
-      ? HttpResponse.json({ data: makeCategory() })
+    params.slug === 'dogs' || params.slug === 'cats'
+      ? HttpResponse.json({
+          data: makeCategory({ slug: params.slug, name: params.slug === 'dogs' ? 'Dogs' : 'Cats' }),
+        })
       : HttpResponse.json(
           { error: { code: 'NOT_FOUND', message: 'Category not found' } },
           { status: 404 },

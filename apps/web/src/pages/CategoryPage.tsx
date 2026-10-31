@@ -1,20 +1,96 @@
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
-import { PETS } from '../lib/pets';
+import { ApiError } from '../api/client';
+import { Breadcrumbs, type Crumb } from '../components/layout/Breadcrumbs';
+import { Container } from '../components/layout/Container';
+import { Seo } from '../components/Seo';
+import { Button } from '../components/ui/Button';
+import { Spinner } from '../components/ui/Spinner';
+import { hasActiveFilters, useProductListParams } from '../features/catalog/list-params';
+import { ProductListing } from '../features/catalog/ProductListing';
+import { useCategories, useCategory } from '../features/catalog/queries';
+import { petBySlug } from '../lib/pets';
+import { TEST_IDS } from '../lib/test-ids';
 
-import { PagePlaceholder } from './PagePlaceholder';
+import NotFoundPage from './NotFoundPage';
 
 export default function CategoryPage() {
   const { slug } = useParams();
-  const pet = PETS.find((p) => p.slug === slug);
+  const { data: category, error, isPending, refetch } = useCategory(slug);
+  const { data: tree } = useCategories();
+  const { query } = useProductListParams();
+
+  if (error instanceof ApiError && error.status === 404) return <NotFoundPage />;
+  if (error) {
+    return (
+      <Container className="py-12 text-center" data-testid={TEST_IDS.pageCategory}>
+        <Seo title="Something went wrong" noindex />
+        <h1 className="text-3xl font-bold">We could not load this category</h1>
+        <Button className="mt-4" onClick={() => void refetch()}>
+          Try again
+        </Button>
+      </Container>
+    );
+  }
+  if (isPending) {
+    return (
+      <Container className="flex justify-center py-16" data-testid={TEST_IDS.pageCategory}>
+        <Spinner label="Loading category" className="h-8 w-8 text-primary-strong" />
+      </Container>
+    );
+  }
+
+  // A subcategory (Dogs > Toys) takes its parent's colour and shows the parent in the trail.
+  const parent = category.parentId ? tree?.find((n) => n.id === category.parentId) : undefined;
+  const pet = petBySlug(parent?.slug ?? category.slug);
+  const crumbs: Crumb[] = [
+    { label: 'Home', to: '/' },
+    ...(parent ? [{ label: parent.name, to: `/c/${parent.slug}` }] : []),
+    { label: category.name },
+  ];
+
+  // Page 2+ is its own page for search engines; filtered or sorted views are not worth indexing
+  // (endless combinations of the same products), so they point back at the plain category.
+  const variant = hasActiveFilters(query) || query.sort !== undefined;
+  const canonical = `/c/${category.slug}${!variant && query.page > 1 ? `?page=${query.page}` : ''}`;
+
   return (
-    // data-pet here is what the real category page (phase 5.3) will do to theme itself.
-    <div data-pet={pet?.accent}>
-      <PagePlaceholder
-        title={pet?.name ?? slug ?? 'Category'}
-        note="The product listing arrives in phase 5.3."
-        testId="page-category"
+    <div data-pet={pet?.accent} data-testid={TEST_IDS.pageCategory}>
+      <Seo
+        title={category.name}
+        {...(category.description && { description: category.description })}
+        canonical={canonical}
+        noindex={variant}
       />
+      <Container className="py-6">
+        <Breadcrumbs items={crumbs} />
+        <div className="mt-4 rounded-card bg-pet-soft p-6 text-pet-strong sm:p-8">
+          <h1 className="font-display text-3xl font-bold sm:text-4xl">{category.name}</h1>
+          {category.description && (
+            <p className="mt-2 max-w-prose text-ink">{category.description}</p>
+          )}
+          {category.children.length > 0 && (
+            <ul className="mt-4 flex flex-wrap gap-2" aria-label="Subcategories">
+              {category.children.map((child) => (
+                <li key={child.id}>
+                  <Link
+                    to={`/c/${child.slug}`}
+                    className="inline-flex min-h-11 items-center rounded-full bg-surface px-4 font-display font-semibold hover:bg-pet-accent"
+                  >
+                    {child.name}
+                    <span className="ml-2 text-sm font-normal text-muted">
+                      {child.productCount}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="mt-6">
+          <ProductListing listId={category.slug} category={category.slug} />
+        </div>
+      </Container>
     </div>
   );
 }

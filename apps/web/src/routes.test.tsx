@@ -42,8 +42,9 @@ describe('routes', () => {
 
   it('themes the category page with the pet accent', async () => {
     renderAt('/c/cats');
-    const page = await screen.findByTestId('page-category');
-    expect(page.parentElement).toHaveAttribute('data-pet', 'cat');
+    await screen.findByRole('heading', { level: 1, name: 'Cats' });
+    const page = screen.getByTestId('page-category');
+    expect(page).toHaveAttribute('data-pet', 'cat');
   });
 
   it('shows the not-found page for unknown urls, still inside the layout', async () => {
