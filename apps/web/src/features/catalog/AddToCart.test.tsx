@@ -22,11 +22,11 @@ describe('AddToCart', () => {
     expect(plus).toBeDisabled();
   });
 
-  it('shows a disabled add-to-cart with a reason until the cart is wired', () => {
+  it('shows a disabled add-to-cart with a reason when no handler is wired', () => {
     render(<AddToCart variant={makeVariant()} />);
     const button = screen.getByRole('button', { name: 'Add to cart' });
     expect(button).toBeDisabled();
-    expect(button).toHaveAccessibleDescription(/cart opens soon/);
+    expect(button).toHaveAccessibleDescription(/not available here/);
   });
 
   it('calls onAdd with the quantity once wired', async () => {

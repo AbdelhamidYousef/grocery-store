@@ -31,6 +31,8 @@ export const keys = {
   // Signed-in user (or null). Written directly on login/logout, so it never needs a refetch.
   me: ['me'] as const,
   cart: ['cart'] as const,
+  // Warnings the cart reported, kept until dismissed (see features/cart/queries.ts).
+  cartNotices: ['cart-notices'] as const,
   account: {
     all: ['account'] as const,
     addresses: ['account', 'addresses'] as const,

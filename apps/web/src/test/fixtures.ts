@@ -9,6 +9,8 @@ import type {
   Variant,
 } from '@store/shared';
 
+import type { WebCart, WebCartItem } from '../api/cart';
+
 // Valid-by-construction API payloads for tests. Every factory takes overrides so a test states
 // only what it cares about.
 
@@ -178,5 +180,38 @@ export function makeAddress(overrides: Partial<Address> = {}): Address {
     isDefaultShipping: true,
     isDefaultBilling: true,
     ...overrides,
+  };
+}
+
+export function makeCartItem(overrides: Partial<WebCartItem> = {}): WebCartItem {
+  return {
+    id: 'l1',
+    variantId: 'v1',
+    productId: 'p1',
+    productName: 'Rope Tug',
+    productSlug: 'rope-tug',
+    variantName: 'Small',
+    sku: 'PW-ROPE-S',
+    imageUrl: '/products/dog-toys/rope-tug-1.webp',
+    imageAlt: 'A braided rope tug toy',
+    unitPriceCents: 1099,
+    quantity: 1,
+    lineTotalCents: 1099,
+    available: 10,
+    maxQty: 10,
+    ...overrides,
+  };
+}
+
+// Totals follow the items, like the real API (sold-out lines excluded).
+export function makeCart(items: WebCartItem[] = [], warnings: WebCart['warnings'] = []): WebCart {
+  const buyable = items.filter((i) => i.available > 0);
+  return {
+    items,
+    currency: 'EUR',
+    subtotalCents: buyable.reduce((n, i) => n + i.lineTotalCents, 0),
+    itemCount: buyable.reduce((n, i) => n + i.quantity, 0),
+    weightGrams: 0,
+    warnings,
   };
 }

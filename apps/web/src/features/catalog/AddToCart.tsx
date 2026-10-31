@@ -13,11 +13,13 @@ export const MAX_QUANTITY = 10;
 
 interface AddToCartProps {
   variant: Variant;
-  /** Wired in phase 7. Until then the button is deliberately disabled. */
+  /** Without it the button is disabled with an explanation (how the catalog tests render it). */
   onAdd?: (quantity: number) => void;
+  /** True while the request is in flight: the button shows a spinner and cannot be pressed twice. */
+  pending?: boolean;
 }
 
-export function AddToCart({ variant, onAdd }: AddToCartProps) {
+export function AddToCart({ variant, onAdd, pending = false }: AddToCartProps) {
   const [quantity, setQuantity] = useState(1);
   const noteId = useId();
   const soldOut = !variant.available;
@@ -43,6 +45,7 @@ export function AddToCart({ variant, onAdd }: AddToCartProps) {
         <Button
           size="lg"
           data-testid={TEST_IDS.addToCart}
+          loading={pending}
           disabled={soldOut || !wired}
           aria-describedby={!soldOut && !wired ? noteId : undefined}
           onClick={() => onAdd?.(quantity)}
@@ -53,7 +56,7 @@ export function AddToCart({ variant, onAdd }: AddToCartProps) {
       </div>
       {!soldOut && !wired && (
         <p id={noteId} className="text-sm text-muted">
-          The cart opens soon. Browsing and picking your variant already works.
+          Adding to the cart is not available here.
         </p>
       )}
     </div>

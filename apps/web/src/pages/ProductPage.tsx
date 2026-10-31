@@ -10,6 +10,7 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Price } from '../components/ui/Price';
 import { Skeleton } from '../components/ui/Skeleton';
+import { useAddToCartAction } from '../features/cart/queries';
 import { AddToCart } from '../features/catalog/AddToCart';
 import { formatFacetValue } from '../features/catalog/filters';
 import { Gallery } from '../features/catalog/Gallery';
@@ -55,6 +56,7 @@ function ProductView({ product }: { product: ProductDetail }) {
   // exact colour and size that was shared. No parameter means the default variant.
   const [params, setParams] = useSearchParams();
   const variant = variantFromSku(product.variants, params.get('variant'));
+  const cart = useAddToCartAction(product);
   // Which photo is shown is derived, not synced with an effect: a thumbnail the shopper picked
   // wins for the variant it was picked on; otherwise a variant with its own photo shows it; else
   // the first image. Changing variant therefore swaps the photo with no extra render.
@@ -164,7 +166,14 @@ function ProductView({ product }: { product: ProductDetail }) {
               </p>
             )}
 
-            {variant && <AddToCart key={variant.id} variant={variant} />}
+            {variant && (
+              <AddToCart
+                key={variant.id}
+                variant={variant}
+                pending={cart.pending}
+                onAdd={(quantity) => cart.add(variant, quantity)}
+              />
+            )}
 
             <p className="max-w-prose text-lg">{product.description}</p>
 

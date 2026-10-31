@@ -12,14 +12,23 @@ import { cn } from '../../lib/cn';
 
 export type ToastTone = 'info' | 'success' | 'error';
 
+// An optional button inside the toast ("View cart"). It is a callback, not a link, because the
+// provider sits above the router and cannot render a <Link>; the caller (inside the router) passes
+// a function that navigates.
+export interface ToastAction {
+  label: string;
+  onAction: () => void;
+}
+
 interface ToastItem {
   id: number;
   message: string;
   tone: ToastTone;
+  action?: ToastAction | undefined;
 }
 
 interface ToastApi {
-  show: (message: string, tone?: ToastTone) => void;
+  show: (message: string, tone?: ToastTone, action?: ToastAction) => void;
 }
 
 const ToastContext = createContext<ToastApi | null>(null);
@@ -54,7 +63,20 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: num
         toneClasses[toast.tone],
       )}
     >
-      <p className="flex-1 font-semibold">{toast.message}</p>
+      <p className="min-w-0 flex-1 break-words font-semibold">{toast.message}</p>
+      {toast.action && (
+        <button
+          type="button"
+          data-testid="toast-action"
+          onClick={() => {
+            toast.action?.onAction();
+            onDismiss(toast.id);
+          }}
+          className="-my-1 min-h-11 shrink-0 rounded-control px-3 font-display font-bold underline"
+        >
+          {toast.action.label}
+        </button>
+      )}
       <button
         type="button"
         aria-label="Dismiss notification"
@@ -84,8 +106,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((current) => current.filter((t) => t.id !== id));
   }, []);
 
-  const show = useCallback((message: string, tone: ToastTone = 'info') => {
-    setToasts((current) => [...current, { id: nextId++, message, tone }]);
+  const show = useCallback((message: string, tone: ToastTone = 'info', action?: ToastAction) => {
+    setToasts((current) => [...current, { id: nextId++, message, tone, action }]);
   }, []);
 
   const api = useMemo(() => ({ show }), [show]);

@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
 
+import { useCart } from '../../features/cart/queries';
+
 import { Footer } from './Footer';
 import { Header } from './Header';
 import { SkipLink } from './SkipLink';
@@ -10,6 +12,7 @@ import { SkipLink } from './SkipLink';
 // focus to <main> without making it a tab stop.
 export function AppLayout() {
   const { pathname } = useLocation();
+  const { data: cart } = useCart();
   const mainRef = useRef<HTMLElement>(null);
   const lastPath = useRef(pathname);
 
@@ -29,7 +32,7 @@ export function AppLayout() {
   return (
     <div className="flex min-h-screen flex-col">
       <SkipLink />
-      <Header cartCount={0} />
+      <Header cartCount={cart?.itemCount ?? 0} />
       <main
         ref={mainRef}
         id="main"

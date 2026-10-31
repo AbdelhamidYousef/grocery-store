@@ -2,7 +2,7 @@ import type { User } from '@store/shared';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 
-import { makeCard, makeCategory, makeList, makeProduct, makeUser } from './fixtures';
+import { makeCard, makeCart, makeCategory, makeList, makeProduct, makeUser } from './fixtures';
 
 export const API = 'http://api.test/api/v1';
 
@@ -15,6 +15,8 @@ export const server = setupServer(
       { status: 401 },
     ),
   ),
+  // An empty cart unless a test says otherwise.
+  http.get(`${API}/cart`, () => HttpResponse.json({ data: makeCart() })),
   http.get(`${API}/categories`, () =>
     HttpResponse.json({
       data: [

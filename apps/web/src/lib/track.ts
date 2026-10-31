@@ -13,7 +13,8 @@ export type AnalyticsEvent =
   | { name: 'view_home' }
   | { name: 'view_item_list'; listId: string; items: TrackItem[] }
   | { name: 'view_item'; item: TrackItem }
-  | { name: 'add_to_cart'; item: TrackItem; quantity: number };
+  | { name: 'add_to_cart'; item: TrackItem; quantity: number }
+  | { name: 'remove_from_cart'; item: TrackItem; quantity: number };
 
 export function track(event: AnalyticsEvent): void {
   if (import.meta.env.DEV) {

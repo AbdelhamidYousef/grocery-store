@@ -281,3 +281,9 @@ Learn: a server field error and a client rule should look identical to the user;
 1. The header shows "Sign in" for a visitor, yet `GET /auth/me` answers 401 on every first visit. Why is that not treated as an error, and why can the page not just read the session cookie itself?
 2. `?next=` decides where login sends you. What attack does `safeNext` prevent, give one value it rejects, and why is hiding the admin link not a security measure?
 3. The current password is wrong on the change-password form. Which status code and shape does the API use, how does the web show it, and what would have gone wrong with a 401?
+
+## Phase 7 (web) — Cart
+
+### 7.5 — cart state and add to cart
+`useCart()` reads `GET /cart` into the `['cart']` query and feeds the header badge. Quantity changes and removals are optimistic, as the plan says: before the request goes out the cache is rewritten with the expected cart (recomputed in integer cents), if the server refuses the cache is put back and refetched, and when it answers the whole real cart replaces the guess. All cart writes share one mutation scope so they run one after another; otherwise three quick taps on "+" make three requests whose answers can arrive in the wrong order. The PDP button now posts the variant, shows a spinner while it waits, tracks `add_to_cart`, and shows a toast with a "View cart" button; a 409 `OUT_OF_STOCK` becomes a sentence with the real numbers ("Only 3 available, and you have 2 in your cart."). The API reports a warning only once, so the web parks every warning it receives until the shopper dismisses it, and it reads warning codes as plain strings so a code from a newer API cannot break the cart.
+Learn: `onMutate` snapshots and writes the guess, `onError` restores, and the server's answer is the final truth; optimistic UI is only safe when the rollback path exists and the writes are ordered.
