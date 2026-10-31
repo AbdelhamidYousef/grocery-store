@@ -18,3 +18,7 @@ export const db = drizzle(sql, { schema });
 export async function closeDb(): Promise<void> {
   await sql.end({ timeout: 5 });
 }
+
+// The handle a `db.transaction(async (tx) => ...)` callback receives. Repo functions take a `Tx`
+// when they must run inside the caller's transaction (row locks only mean something there).
+export type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];

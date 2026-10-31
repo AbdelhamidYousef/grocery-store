@@ -4,6 +4,7 @@ import { attachUser } from '../middleware/auth.ts';
 import { noStore } from '../middleware/cache.ts';
 import type { RateLimitOptions } from '../middleware/rate-limit.ts';
 
+import { createAccountRouter } from './account/router.ts';
 import { adminRouter } from './admin/router.ts';
 import { createAuthRouter } from './auth/router.ts';
 import { cartRouter } from './cart/router.ts';
@@ -22,6 +23,7 @@ export function createModulesRouter(opts: { authRateLimit: RateLimitOptions }): 
   router.use(attachUser);
   router.use(noStore);
   router.use(createAuthRouter(opts));
+  router.use(createAccountRouter(opts));
   router.use(cartRouter);
   router.use(checkoutRouter);
   router.use(adminRouter);

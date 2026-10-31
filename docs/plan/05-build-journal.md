@@ -148,3 +148,12 @@ Learn: HttpOnly hides the cookie from XSS, SameSite=Lax withholds it from cross-
 ### 6.3 — register / login / logout / me
 Shared `RegisterSchema`, `LoginSchema`, `UserSchema` (strict, so a stray hash fails in dev/test) and `UserResponseSchema` are the single contract for API and web. Register inserts with `ON CONFLICT DO NOTHING` (409 when nothing came back); login verifies against the real hash or a dummy one so an unknown email costs the same as a wrong password, answers with one generic message, and always destroys the session cookie that arrived before issuing a new id. The credential limiter (10 per 15 min, keyed by IP + normalised email) sits before validation, and `onLogin` is an empty hook where phase 7.4 plugs in the cart merge.
 Learn: NIST asks for length and a block-list instead of composition rules; registration may reveal that an email exists but login must not; the fixation fix is "never reuse a session id across a privilege change".
+
+### 6.4 — account and address endpoints
+`/account` (names), `/account/password`, address CRUD and the empty-for-now order list live in `modules/account`, all behind `requireUser` and all scoped by `req.user.id`, never by an id from the request. The password change verifies the current password, rehashes, and deletes every other session; a wrong current password is a field error (400) so the web does not mistake it for an expired session. Address writes run in a transaction that first locks the user row, demotes the previous default and then writes (the partial unique index would reject the other order), and a foreign id fails inside the transaction so even the demotion rolls back.
+Learn: IDOR means trusting an id from the URL, fixed by putting the owner in the WHERE clause and answering 404 for both "missing" and "not yours"; `SELECT ... FOR UPDATE` turns a race into a queue; revoking other sessions is what makes a password change actually evict an attacker.
+
+### Phase 6 (API) quiz
+1. A login request arrives carrying a `sid` cookie. What happens to the session behind it, why, and what attack does that prevent?
+2. The database stores `sha256(token)` while the cookie holds `token`. What does a leaked `sessions` table give an attacker, and why is a fast hash acceptable here when it would not be for passwords?
+3. User B sends `PATCH /account/addresses/<A's id>`. Which part of the query stops it, what status do they get, and why not 403?
