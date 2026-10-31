@@ -4,19 +4,28 @@ import { inArray, sql } from 'drizzle-orm';
 
 import { closeDb, db } from '../client.ts';
 import {
+  brands as brandsTable,
   categories as categoriesTable,
+  collectionProducts,
+  collections as collectionsTable,
   inventory,
   productImages,
+  productTags,
   productVariants,
   products as productsTable,
   shippingMethods as shippingTable,
+  tags as tagsTable,
   users,
 } from '../schema/index.ts';
 
+import { HOUSE_BRAND, brands } from './brands.ts';
 import { categories } from './categories.ts';
+import { collections, windowDates } from './collections.ts';
 import { expandVariants, imageRows, stockLevels } from './expand.ts';
 import { products } from './products.ts';
+import { validateSeed } from './schema.ts';
 import { shippingMethods } from './shipping.ts';
+import { tags } from './tags.ts';
 import { DEMO_PASSWORD, demoUsers, hashDemoPassword } from './users.ts';
 
 // `excluded` is the row that failed to insert; `ON CONFLICT DO UPDATE` copies its values over the
@@ -24,7 +33,11 @@ import { DEMO_PASSWORD, demoUsers, hashDemoPassword } from './users.ts';
 // instead of duplicated.
 const excluded = (column: string) => sql.raw(`excluded."${column}"`);
 
-export async function runSeed() {
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export async function runSeed(now = new Date()) {
+  // A typo in any seed file fails here, naming the product, before the database is touched.
+  validateSeed(products);
   const passwordHash = await hashDemoPassword();
 
   await db.transaction(async (tx) => {
@@ -76,14 +89,45 @@ export async function runSeed() {
       .returning({ id: categoriesTable.id, slug: categoriesTable.slug });
     const categoryId = new Map(childRows.map((r) => [r.slug, r.id]));
 
+    // ---- brands and tags (products reference them) ----
+    const brandRows = await tx
+      .insert(brandsTable)
+      .values(brands)
+      .onConflictDoUpdate({
+        target: brandsTable.slug,
+        set: {
+          name: excluded('name'),
+          tagline: excluded('tagline'),
+          story: excluded('story'),
+          accentColor: excluded('accent_color'),
+        },
+      })
+      .returning({ id: brandsTable.id, slug: brandsTable.slug });
+    const brandId = new Map(brandRows.map((r) => [r.slug, r.id]));
+
+    const tagRows = await tx
+      .insert(tagsTable)
+      .values(tags)
+      .onConflictDoUpdate({ target: tagsTable.slug, set: { name: excluded('name') } })
+      .returning({ id: tagsTable.id, slug: tagsTable.slug });
+    const tagId = new Map(tagRows.map((r) => [r.slug, r.id]));
+
     // ---- products ----
     const productRows = await tx
       .insert(productsTable)
       .values(
-        products.map((p) => {
+        products.map((p, i) => {
           const id = categoryId.get(p.categorySlug);
           if (!id) throw new Error(`unknown category ${p.categorySlug} on ${p.slug}`);
           return {
+            brandId: brandId.get(p.brand ?? HOUSE_BRAND) ?? null,
+            isEco: p.eco ?? false,
+            isBestsellerOverride: p.bestseller ?? false,
+            // Spread over the past year so the derived "New" badge shows on a handful of
+            // products, not all of them. Not in the conflict set: a re-seed keeps the dates.
+            createdAt: new Date(
+              now.getTime() - (p.isNew ? 3 + (i % 20) : 45 + ((i * 7) % 300)) * DAY_MS,
+            ),
             slug: p.slug,
             name: p.name,
             description: p.description,
@@ -106,6 +150,9 @@ export async function runSeed() {
           categoryId: excluded('category_id'),
           status: excluded('status'),
           attributes: excluded('attributes'),
+          brandId: excluded('brand_id'),
+          isEco: excluded('is_eco'),
+          isBestsellerOverride: excluded('is_bestseller_override'),
         },
       })
       .returning({ id: productsTable.id, slug: productsTable.slug });
@@ -129,6 +176,10 @@ export async function runSeed() {
           priceCents: excluded('price_cents'),
           compareAtPriceCents: excluded('compare_at_price_cents'),
           weightGrams: excluded('weight_grams'),
+          netAmount: excluded('net_amount'),
+          netUnit: excluded('net_unit'),
+          isTrial: excluded('is_trial'),
+          swatchHex: excluded('swatch_hex'),
           isDefault: excluded('is_default'),
           status: excluded('status'),
         },
@@ -148,6 +199,61 @@ export async function runSeed() {
         }),
       )
       .onConflictDoNothing();
+
+    // ---- product tags and collections: join rows, replaced wholesale for the seeded products ----
+    await tx.delete(productTags).where(inArray(productTags.productId, [...productId.values()]));
+    const tagValues = products.flatMap((p) =>
+      (p.tags ?? []).map((slug) => ({
+        productId: productId.get(p.slug) ?? '',
+        tagId: tagId.get(slug) ?? '',
+      })),
+    );
+    if (tagValues.length > 0) await tx.insert(productTags).values(tagValues);
+
+    // Window dates are recomputed on every seed so the demo always has the current season live.
+    const collectionRows = await tx
+      .insert(collectionsTable)
+      .values(
+        collections.map((c, i) => ({
+          slug: c.slug,
+          name: c.name,
+          description: c.description,
+          accentColor: c.accentColor,
+          sortOrder: i,
+          ...(c.window ? windowDates(c.window, now) : { startsAt: null, endsAt: null }),
+        })),
+      )
+      .onConflictDoUpdate({
+        target: collectionsTable.slug,
+        set: {
+          name: excluded('name'),
+          description: excluded('description'),
+          accentColor: excluded('accent_color'),
+          sortOrder: excluded('sort_order'),
+          startsAt: excluded('starts_at'),
+          endsAt: excluded('ends_at'),
+        },
+      })
+      .returning({ id: collectionsTable.id, slug: collectionsTable.slug });
+    const collectionId = new Map(collectionRows.map((r) => [r.slug, r.id]));
+    await tx
+      .delete(collectionProducts)
+      .where(inArray(collectionProducts.collectionId, [...collectionId.values()]));
+    const members = collections.flatMap((c) =>
+      products
+        .filter((p) => {
+          if (c.membership === 'eco') return p.eco === true;
+          if (c.membership === 'under-10')
+            return expandVariants(p).some((v) => !v.isTrial && v.priceCents < 1000);
+          return p.collections?.includes(c.slug) ?? false;
+        })
+        .map((p, position) => ({
+          collectionId: collectionId.get(c.slug) ?? '',
+          productId: productId.get(p.slug) ?? '',
+          position,
+        })),
+    );
+    if (members.length > 0) await tx.insert(collectionProducts).values(members);
 
     // ---- images: rows have no natural unique key, so replace the seeded products' rows ----
     await tx.delete(productImages).where(inArray(productImages.productId, [...productId.values()]));

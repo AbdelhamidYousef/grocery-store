@@ -102,4 +102,37 @@ export const categories: CategorySeed[] = [
       { slug: 'small-bowls', name: 'Bowls & Feeders', description: 'Bowls and water bottles.' },
     ],
   },
+  {
+    slug: 'reptiles',
+    name: 'Reptiles',
+    description: 'Terrariums, heat, light and food for lizards, snakes and tortoises.',
+    attributes: { accentColor: '#16A34A', icon: 'turtle' },
+    children: [
+      {
+        slug: 'reptile-terrariums',
+        name: 'Terrariums',
+        description: 'Glass and mesh homes in every size.',
+      },
+      {
+        slug: 'reptile-heat',
+        name: 'Heat & Lighting',
+        description: 'Lamps, mats and thermometers for a steady climate.',
+      },
+      {
+        slug: 'reptile-feeders',
+        name: 'Feeders & Bowls',
+        description: 'Water dishes, feeding tongs and dispensers.',
+      },
+      {
+        slug: 'reptile-decor',
+        name: 'Decor & Hides',
+        description: 'Caves, branches and plants to explore.',
+      },
+      {
+        slug: 'reptile-food',
+        name: 'Food',
+        description: 'Pellets, supplements and treats.',
+      },
+    ],
+  },
 ];

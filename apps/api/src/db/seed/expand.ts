@@ -1,8 +1,10 @@
+import type { NetUnit, Pet } from '@store/shared';
+
 import type { ProductAttributes } from '../schema/products.ts';
 
 // Pure functions only (no database), so the shape of the catalog can be unit-tested quickly.
 
-export type Pet = NonNullable<ProductAttributes['pet']>;
+export type { Pet };
 
 export type OptionValue = {
   value: string;
@@ -10,6 +12,11 @@ export type OptionValue = {
   priceDeltaCents?: number;
   // Multiplies the product's base weight, e.g. a large size is heavier than a small one.
   weightFactor?: number;
+  // What this value contains, in the product's base small unit (g or ml). Feeds the unit price.
+  netAmount?: number;
+  // A sample size: priced absolutely (not as a delta) and limited to one per customer.
+  isTrial?: boolean;
+  absolutePriceCents?: number;
 };
 
 export type OptionAxis = { key: string; values: OptionValue[] };
@@ -31,6 +38,21 @@ export type ProductSeed = {
   axes: OptionAxis[];
   // Shows a strike-through price on every variant.
   onSale?: boolean;
+  // Slug from brands.ts; the house brand when left out.
+  brand?: string;
+  // Health-need tag slugs from tags.ts.
+  tags?: string[];
+  // Slugs of manual/seasonal collections the product belongs to (order = order in the file).
+  collections?: string[];
+  eco?: boolean;
+  // Editorial "Bestseller" override (the badge is otherwise derived from sales).
+  bestseller?: boolean;
+  // Created within the last month, so the derived "New" badge shows on a few products.
+  isNew?: boolean;
+  // Unit of the net amounts on the option values; grams unless the product is a liquid.
+  netUnit?: NetUnit;
+  // Net contents for a product with no pack axis (a 100 g bag sold in one size).
+  net?: number;
 };
 
 export type VariantSeed = {
@@ -41,11 +63,50 @@ export type VariantSeed = {
   compareAtPriceCents: number | null;
   weightGrams: number;
   isDefault: boolean;
+  netAmount: number | null;
+  netUnit: NetUnit | null;
+  isTrial: boolean;
+  swatchHex: string | null;
 };
 
 const titleCase = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 // ---- Option axis builders, so product data stays short and readable ----
+
+// Swatch dots on the product card. A colour without an entry here fails the seed test, so a new
+// colour name cannot ship without a visible dot.
+export const COLOR_HEX: Record<string, string> = {
+  orange: '#F97316',
+  blue: '#3B82F6',
+  green: '#22C55E',
+  grey: '#9CA3AF',
+  cream: '#FEF3C7',
+  yellow: '#FACC15',
+  pink: '#F472B6',
+  teal: '#14B8A6',
+  sand: '#D6C3A1',
+  slate: '#64748B',
+  sage: '#9CAF88',
+  red: '#EF4444',
+  purple: '#8B5CF6',
+  black: '#1F2937',
+  white: '#F9FAFB',
+  brown: '#92400E',
+  navy: '#1E3A8A',
+  mint: '#6EE7B7',
+  coral: '#FB7185',
+  lavender: '#C4B5FD',
+  terracotta: '#C2623F',
+  olive: '#7C8B3A',
+  blush: '#FBCFE8',
+  clear: '#E0F2FE',
+  lilac: '#D8B4FE',
+  lime: '#A3E635',
+  mustard: '#CA8A04',
+  natural: '#E7D9B8',
+  plum: '#7E22CE',
+  sky: '#7DD3FC',
+};
 
 export const colors = (values: string[]): OptionAxis => ({
   key: 'color',
@@ -71,19 +132,47 @@ export const choice = (key: string, values: string[]): OptionAxis => ({
   values: values.map((v) => ({ value: v, label: titleCase(v) })),
 });
 
+// Net grams from a pack value such as "150g" or "2kg"; null when the value is a count ("4x").
+function netFromValue(value: string): number | undefined {
+  const m = /^(\d+)(g|kg)$/.exec(value);
+  return m ? Number(m[1]) * (m[2] === 'kg' ? 1000 : 1) : undefined;
+}
+
 // Two pack sizes: the bigger one costs `extraCents` more and weighs `weightFactor` times as much.
+// Net amounts come from the value ("150g") unless `nets` gives them (counted packs). `trial` adds
+// a third, sample-sized value at an absolute price.
 export const packs = (
   small: { value: string; label: string },
   large: { value: string; label: string },
   extraCents: number,
   weightFactor: number,
-): OptionAxis => ({
-  key: 'pack',
-  values: [
-    { ...small, priceDeltaCents: 0, weightFactor: 1 },
-    { ...large, priceDeltaCents: extraCents, weightFactor },
-  ],
-});
+  opts: {
+    nets?: [number, number];
+    trial?: { amount: number; priceCents: number };
+  } = {},
+): OptionAxis => {
+  const smallNet = opts.nets?.[0] ?? netFromValue(small.value);
+  const largeNet = opts.nets?.[1] ?? netFromValue(large.value);
+  const values: OptionValue[] = [
+    { ...small, priceDeltaCents: 0, weightFactor: 1, ...(smallNet && { netAmount: smallNet }) },
+    {
+      ...large,
+      priceDeltaCents: extraCents,
+      weightFactor,
+      ...(largeNet && { netAmount: largeNet }),
+    },
+  ];
+  if (opts.trial) {
+    values.push({
+      value: 'trial',
+      label: `${opts.trial.amount} g sample`,
+      isTrial: true,
+      absolutePriceCents: opts.trial.priceCents,
+      netAmount: opts.trial.amount,
+    });
+  }
+  return { key: 'pack', values };
+};
 
 // ---- Expansion ----
 
@@ -104,9 +193,15 @@ export function expandVariants(product: ProductSeed): VariantSeed[] {
   }
 
   return combos.map((combo, index) => {
+    const trialValue = combo.find((v) => v.isTrial);
     const priceCents =
+      trialValue?.absolutePriceCents ??
       product.basePriceCents + combo.reduce((sum, v) => sum + (v.priceDeltaCents ?? 0), 0);
     const factor = combo.reduce((acc, v) => acc * (v.weightFactor ?? 1), 1);
+    const netAmount =
+      combo.find((v) => v.netAmount !== undefined)?.netAmount ?? product.net ?? null;
+    const colour = product.axes.findIndex((a) => a.key === 'color');
+    const colourName = colour >= 0 ? combo[colour]?.value : undefined;
     const options = Object.fromEntries(
       product.axes.map((axis, i) => [axis.key, combo[i]?.value ?? '']),
     );
@@ -121,9 +216,18 @@ export function expandVariants(product: ProductSeed): VariantSeed[] {
       options,
       priceCents,
       // Integer math throughout: +25% rounded to the nearest 10 cents, no floating-point prices.
-      compareAtPriceCents: product.onSale ? Math.round((priceCents * 125) / 1000) * 10 : null,
-      weightGrams: Math.round(product.baseWeightGrams * factor),
+      // A sample is never "on sale": it is already the cheap way in.
+      compareAtPriceCents:
+        product.onSale && !trialValue ? Math.round((priceCents * 125) / 1000) * 10 : null,
+      // A sample weighs its contents plus a little packaging.
+      weightGrams: trialValue?.netAmount
+        ? trialValue.netAmount + 10
+        : Math.round(product.baseWeightGrams * factor),
       isDefault: index === 0,
+      netAmount,
+      netUnit: netAmount === null ? null : (product.netUnit ?? 'g'),
+      isTrial: trialValue !== undefined,
+      swatchHex: colourName ? (COLOR_HEX[colourName] ?? null) : null,
     };
   });
 }
