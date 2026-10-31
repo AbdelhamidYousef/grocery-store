@@ -18,6 +18,8 @@
     "e2e": "echo 'e2e: added in phase 11'",
     "db:migrate": "pnpm --filter @store/api db:migrate",
     "db:seed": "pnpm --filter @store/api db:seed",
+    "db:reset": "pnpm --filter @store/api db:reset",
+    "images:process": "pnpm --filter @store/api images:process",
     "prepare": "simple-git-hooks"
   },
   "devDependencies": {
