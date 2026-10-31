@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+import { BADGES, BADGE_SLUGS } from '../badges.ts';
+import { NetUnitSchema } from '../pets.ts';
+
 import { PaginatedSchema, PaginationQuerySchema, DataSchema } from './common.ts';
 
 // Attribute keys the shop filters and builds facets on. A constant, not "whatever is in the
@@ -52,6 +55,26 @@ export const CategoryResponseSchema = DataSchema(CategoryNodeSchema);
 
 // ---------- product cards (lists) ----------
 
+export const BadgeSchema = z.enum(BADGES);
+
+// Derived on the server (packages/shared/src/badges.ts); never raw stock numbers.
+export const UnitPriceSchema = z.object({
+  cents: z.number().int().min(0),
+  per: z.enum(['kg', 'L']),
+});
+export type UnitPriceDto = z.infer<typeof UnitPriceSchema>;
+
+export const BrandRefSchema = z.object({ slug: z.string(), name: z.string() });
+export type BrandRef = z.infer<typeof BrandRefSchema>;
+
+// One dot per colour on a card. `image` is that colour's own picture when there is one.
+export const SwatchSchema = z.object({
+  color: z.string(),
+  hex: z.string(),
+  image: ImageSchema.nullable(),
+});
+export type Swatch = z.infer<typeof SwatchSchema>;
+
 export const CardAttributesSchema = z.object({
   pet: z.string().optional(),
   material: z.string().optional(),
@@ -68,15 +91,29 @@ export const ProductCardSchema = z.object({
   price: PriceRangeSchema,
   inStock: z.boolean(),
   attributes: CardAttributesSchema,
+  brand: BrandRefSchema.nullable(),
+  badges: z.array(BadgeSchema),
+  // Of the default variant; null when it has no net amount (a toy).
+  unitPrice: UnitPriceSchema.nullable(),
+  swatches: z.array(SwatchSchema),
 });
 export type ProductCard = z.infer<typeof ProductCardSchema>;
 
 // ---------- facets ----------
 
-export const FacetValueSchema = z.object({ value: z.string(), count: z.number().int().min(0) });
+export const FacetValueSchema = z.object({
+  value: z.string(),
+  count: z.number().int().min(0),
+  // Display text when the value is a slug (brand, tag).
+  label: z.string().optional(),
+});
 
 export const FacetsSchema = z.object({
   attributes: z.record(z.string(), z.array(FacetValueSchema)),
+  // Normalised relations and derived badges, counted over the same scope as the attributes.
+  brand: z.array(FacetValueSchema),
+  tag: z.array(FacetValueSchema),
+  badge: z.array(FacetValueSchema),
   // Null when the current result set is empty.
   price: z.object({ min: z.number().int(), max: z.number().int() }).nullable(),
 });
@@ -101,6 +138,11 @@ export const VariantSchema = z.object({
   // Never the raw stock count: that is business information a competitor could scrape.
   available: z.boolean(),
   lowStock: z.boolean(),
+  netAmount: z.number().int().positive().nullable(),
+  netUnit: NetUnitSchema.nullable(),
+  unitPrice: UnitPriceSchema.nullable(),
+  isTrial: z.boolean(),
+  swatchHex: z.string().nullable(),
 });
 export type Variant = z.infer<typeof VariantSchema>;
 
@@ -121,6 +163,9 @@ export const ProductDetailSchema = z.object({
     ageStage: z.string().optional(),
     size: z.string().optional(),
   }),
+  brand: BrandRefSchema.nullable(),
+  tags: z.array(z.object({ slug: z.string(), name: z.string() })),
+  badges: z.array(BadgeSchema),
   // Ordered option axes the picker is built from, e.g. ["color", "size"].
   optionKeys: z.array(z.string()),
   price: PriceRangeSchema,
@@ -133,7 +178,14 @@ export const ProductDetailResponseSchema = DataSchema(ProductDetailSchema);
 
 // ---------- list query ----------
 
-export const PRODUCT_SORTS = ['relevance', 'price_asc', 'price_desc', 'newest', 'name'] as const;
+export const PRODUCT_SORTS = [
+  'relevance',
+  'price_asc',
+  'price_desc',
+  'unit_price_asc',
+  'newest',
+  'name',
+] as const;
 export const ProductSortSchema = z.enum(PRODUCT_SORTS);
 export type ProductSort = z.infer<typeof ProductSortSchema>;
 
@@ -160,6 +212,12 @@ const AttrValuesSchema = z
   .transform((v) => (Array.isArray(v) ? v : [v]).flatMap((s) => s.split(',')))
   .pipe(z.array(z.string().trim().min(1).max(60)).min(1).max(20));
 
+// A comma list or repeated parameter of slugs ("a,b" or ?x=a&x=b) -> ['a', 'b'].
+const SlugListSchema = z
+  .union([z.string(), z.array(z.string())])
+  .transform((v) => (Array.isArray(v) ? v : [v]).flatMap((s) => s.split(',')))
+  .pipe(z.array(z.string().trim().min(1).max(60)).min(1).max(20));
+
 const BooleanFlagSchema = z.enum(['true', 'false']).transform((v) => v === 'true');
 
 export const ProductListQuerySchema = z.preprocess(
@@ -173,6 +231,16 @@ export const ProductListQuerySchema = z.preprocess(
     minPrice: z.coerce.number().int().min(0).optional(),
     maxPrice: z.coerce.number().int().min(0).optional(),
     inStock: BooleanFlagSchema.optional(),
+    // OR within one filter, AND across filters (same rule as `attr`).
+    brand: SlugListSchema.optional(),
+    tag: SlugListSchema.optional(),
+    badge: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : [v]).flatMap((s) => s.split(',')))
+      .pipe(z.array(z.enum(BADGE_SLUGS)).min(1).max(5))
+      .optional(),
+    // Browse one collection; only a collection that is live right now matches anything.
+    collection: z.string().trim().min(1).max(100).optional(),
     attr: z
       .record(
         z.string().regex(/^[A-Za-z][A-Za-z0-9_]{0,31}$/, 'invalid attribute key'),

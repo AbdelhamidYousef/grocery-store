@@ -1,5 +1,9 @@
 import {
   FACET_KEYS,
+  badgeFromSlug,
+  badgeSlug,
+  unitPriceCents,
+  type Badge,
   type Category,
   type CategoryNode,
   type Facets,
@@ -11,6 +15,7 @@ import {
 
 import { notFound } from '../../lib/errors.ts';
 
+import { getBadgeIndex, type BadgeIndex } from './badge-index.ts';
 import * as repo from './repo.ts';
 
 function toCategory(row: repo.CategoryRow, productCount = row.productCount): Category {
@@ -58,13 +63,20 @@ export async function getCategory(slug: string): Promise<CategoryNode> {
 
 // ---------- product list ----------
 
-function toCard(row: repo.ProductCardRow, image: repo.ProductImageRow | undefined): ProductCard {
+function toCard(
+  row: repo.ProductCardRow,
+  image: repo.ProductImageRow | undefined,
+  badges: Badge[],
+  swatches: ProductCard['swatches'],
+): ProductCard {
   // Only the facet keys leave the API on a card: the jsonb may hold internal keys (optionKeys).
   const attributes: ProductCard['attributes'] = {};
   for (const key of FACET_KEYS) {
     const value = row.attributes[key];
     if (value !== undefined) attributes[key] = value;
   }
+  // The brand name lives in its own table now; the card keeps showing it as an attribute.
+  if (row.brandName) attributes.brand = row.brandName;
   return {
     id: row.id,
     slug: row.slug,
@@ -83,46 +95,114 @@ function toCard(row: repo.ProductCardRow, image: repo.ProductImageRow | undefine
     price: { minCents: row.minCents, maxCents: row.maxCents, currency: row.currency },
     inStock: row.inStock,
     attributes,
+    brand: row.brandSlug && row.brandName ? { slug: row.brandSlug, name: row.brandName } : null,
+    badges,
+    unitPrice:
+      row.unitCents !== null && row.unitPer !== null
+        ? { cents: row.unitCents, per: row.unitPer === 'g' ? 'kg' : 'L' }
+        : null,
+    swatches,
   };
 }
 
-function toFilters(query: ProductListQuery): repo.ProductFilters {
+// The badge filter needs ids, and badges are derived in code (one source of truth), so the filter
+// is resolved against the cached index first and handed to SQL as a list of product ids.
+function badgeProductIds(query: ProductListQuery, index: BadgeIndex): string[] | undefined {
+  if (!query.badge) return undefined;
+  const wanted = new Set(query.badge.map(badgeFromSlug));
+  return [...index].filter(([, badges]) => badges.some((b) => wanted.has(b))).map(([id]) => id);
+}
+
+function toFilters(query: ProductListQuery, index: BadgeIndex): repo.ProductFilters {
+  const badgeIds = badgeProductIds(query, index);
   return {
     ...(query.q !== undefined && { q: query.q }),
     ...(query.category !== undefined && { category: query.category }),
     ...(query.minPrice !== undefined && { minPriceCents: query.minPrice }),
     ...(query.maxPrice !== undefined && { maxPriceCents: query.maxPrice }),
     ...(query.inStock !== undefined && { inStock: query.inStock }),
+    ...(query.brand !== undefined && { brand: query.brand }),
+    ...(query.tag !== undefined && { tag: query.tag }),
+    ...(query.collection !== undefined && { collection: query.collection }),
+    ...(badgeIds !== undefined && { badgeProductIds: badgeIds }),
     attr: query.attr,
   };
 }
 
-async function getFacets(query: ProductListQuery): Promise<Facets> {
-  const rows = await repo.getFacets(toFilters(query), FACET_KEYS);
+async function getFacets(query: ProductListQuery, index: BadgeIndex): Promise<Facets> {
+  const rows = await repo.getFacets(toFilters(query, index), FACET_KEYS);
   // Every facet key is present (possibly empty) so the filter UI never has to guess.
   const attributes: Facets['attributes'] = Object.fromEntries(FACET_KEYS.map((key) => [key, []]));
   for (const { key, value, count } of rows.attributes) attributes[key]?.push({ value, count });
-  return { attributes, price: rows.price };
+
+  // Badge counts: how many products in the scope carry each badge, from the same index.
+  const badgeCounts = new Map<Badge, number>();
+  for (const id of rows.scopeProductIds)
+    for (const badge of index.get(id) ?? [])
+      badgeCounts.set(badge, (badgeCounts.get(badge) ?? 0) + 1);
+
+  return {
+    attributes,
+    brand: rows.brand.map((b) => ({ value: b.slug, label: b.name, count: b.count })),
+    tag: rows.tag.map((t) => ({ value: t.slug, label: t.name, count: t.count })),
+    badge: [...badgeCounts]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([badge, count]) => ({ value: badgeSlug(badge), label: badge, count })),
+    price: rows.price,
+  };
 }
 
 export async function listProducts(query: ProductListQuery): Promise<ProductListResponse> {
   // `relevance` only means something with a search term; without one it would be an arbitrary
   // order, so it quietly becomes the default.
-  const sort = query.sort ?? (query.q ? 'relevance' : 'newest');
+  // Inside a collection the editor's order is the default, otherwise newest first.
+  const sort = query.sort ?? (query.q ? 'relevance' : query.collection ? 'collection' : 'newest');
+  const index = await getBadgeIndex();
   const [{ rows, total }, facets] = await Promise.all([
     repo.listProducts({
-      filters: toFilters(query),
+      filters: toFilters(query, index),
       sort,
       limit: query.limit,
       offset: (query.page - 1) * query.limit,
     }),
-    getFacets(query),
+    getFacets(query, index),
   ]);
-  const images = await repo.listPrimaryImages(rows.map((r) => r.id));
+  const ids = rows.map((r) => r.id);
+  const [images, swatchRows] = await Promise.all([
+    repo.listPrimaryImages(ids),
+    repo.listSwatches(ids),
+  ]);
   const imageByProduct = new Map(images.map((i) => [i.productId, i]));
+  const swatchesByProduct = new Map<string, ProductCard['swatches']>();
+  for (const s of swatchRows) {
+    const list = swatchesByProduct.get(s.productId) ?? [];
+    list.push({
+      color: s.color,
+      hex: s.hex,
+      image:
+        s.imageId && s.imageUrl
+          ? {
+              id: s.imageId,
+              url: s.imageUrl,
+              alt: s.imageAlt ?? '',
+              width: s.imageWidth ?? 1200,
+              height: s.imageHeight ?? 1200,
+              variantId: s.imageVariantId,
+            }
+          : null,
+    });
+    swatchesByProduct.set(s.productId, list);
+  }
 
   return {
-    data: rows.map((row) => toCard(row, imageByProduct.get(row.id))),
+    data: rows.map((row) =>
+      toCard(
+        row,
+        imageByProduct.get(row.id),
+        index.get(row.id) ?? [],
+        swatchesByProduct.get(row.id) ?? [],
+      ),
+    ),
     meta: {
       page: query.page,
       limit: query.limit,
@@ -155,10 +235,19 @@ export async function getProduct(slug: string): Promise<ProductDetail> {
       // Booleans only: the exact stock level is not for the public.
       available: availableUnits > 0,
       lowStock: availableUnits > 0 && availableUnits <= v.lowStockThreshold,
+      netAmount: v.netAmount,
+      netUnit: v.netUnit,
+      unitPrice: unitPriceCents(v.priceCents, v.netAmount, v.netUnit),
+      isTrial: v.isTrial,
+      swatchHex: v.swatchHex,
     };
   });
-  const prices = variants.map((v) => v.priceCents);
+  // A sample size must not set the "from" price of the product.
+  const sellable = variants.filter((v) => !v.isTrial);
+  const prices = (sellable.length > 0 ? sellable : variants).map((v) => v.priceCents);
   const { optionKeys = [], ...publicAttributes } = rows.product.attributes;
+  const attributes = { ...publicAttributes, ...(rows.brand && { brand: rows.brand.name }) };
+  const badges = (await getBadgeIndex()).get(rows.product.id) ?? [];
 
   return {
     id: rows.product.id,
@@ -167,7 +256,10 @@ export async function getProduct(slug: string): Promise<ProductDetail> {
     description: rows.product.description,
     category: rows.category,
     breadcrumb: rows.parent ? [rows.parent, rows.category] : [rows.category],
-    attributes: publicAttributes,
+    attributes,
+    brand: rows.brand,
+    tags: rows.tags,
+    badges,
     optionKeys,
     price: {
       minCents: Math.min(...prices),

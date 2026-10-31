@@ -2,9 +2,14 @@ import { eq } from 'drizzle-orm';
 
 import { db } from '../db/client.ts';
 import {
+  brands,
   cartItems,
   carts,
   categories,
+  collectionProducts,
+  collections,
+  productTags,
+  tags,
   inventory,
   productImages,
   productVariants,
@@ -65,6 +70,10 @@ export type VariantInput = {
   stock?: number;
   reserved?: number;
   lowStockThreshold?: number;
+  netAmount?: number;
+  netUnit?: 'g' | 'ml';
+  isTrial?: boolean;
+  swatchHex?: string;
 };
 
 export type ImageInput = { url?: string; alt?: string; variantIndex?: number; sortOrder?: number };
@@ -78,6 +87,10 @@ export async function createProduct(
     /** Put the product in this category instead of a fresh one. */
     categoryId?: string;
     attributes?: ProductAttributes;
+    brandId?: string;
+    isEco?: boolean;
+    isBestsellerOverride?: boolean;
+    badgeNewUntil?: Date;
     createdAt?: Date;
     variants?: VariantInput[];
     images?: ImageInput[];
@@ -101,7 +114,15 @@ export async function createProduct(
         categoryId: category.id,
         status: input.status ?? 'active',
         attributes: input.attributes ?? {},
-        ...(input.createdAt && { createdAt: input.createdAt }),
+        ...(input.brandId && { brandId: input.brandId }),
+        ...(input.isEco !== undefined && { isEco: input.isEco }),
+        ...(input.isBestsellerOverride !== undefined && {
+          isBestsellerOverride: input.isBestsellerOverride,
+        }),
+        ...(input.badgeNewUntil && { badgeNewUntil: input.badgeNewUntil }),
+        // An old date by default: a fresh row would carry the derived "New" badge, which would
+        // leak into every test that is not about badges.
+        createdAt: input.createdAt ?? new Date(Date.now() - 365 * 24 * 3600 * 1000 + n),
       })
       .returning(),
     'product',
@@ -122,6 +143,10 @@ export async function createProduct(
         status: v.status ?? 'active',
         weightGrams: v.weightGrams ?? 200,
         isDefault: i === 0,
+        ...(v.netAmount !== undefined && { netAmount: v.netAmount }),
+        ...(v.netUnit && { netUnit: v.netUnit }),
+        ...(v.isTrial !== undefined && { isTrial: v.isTrial }),
+        ...(v.swatchHex && { swatchHex: v.swatchHex }),
       })),
     )
     .returning();
@@ -218,4 +243,55 @@ export async function createShippingMethods() {
       },
     ])
     .returning();
+}
+
+export async function createBrand(overrides: Partial<typeof brands.$inferInsert> = {}) {
+  const n = next();
+  return first(
+    await db
+      .insert(brands)
+      .values({ slug: `brand-${n}`, name: `Brand ${n}`, ...overrides })
+      .returning(),
+    'brand',
+  );
+}
+
+export async function createTag(overrides: Partial<typeof tags.$inferInsert> = {}) {
+  const n = next();
+  return first(
+    await db
+      .insert(tags)
+      .values({ slug: `tag-${n}`, name: `Tag ${n}`, ...overrides })
+      .returning(),
+    'tag',
+  );
+}
+
+export async function tagProduct(productId: string, tagId: string) {
+  await db.insert(productTags).values({ productId, tagId });
+}
+
+/** A collection live right now unless the overrides say otherwise; `productIds` are in order. */
+export async function createCollection(
+  overrides: Partial<typeof collections.$inferInsert> = {},
+  productIds: string[] = [],
+) {
+  const n = next();
+  const collection = first(
+    await db
+      .insert(collections)
+      .values({ slug: `collection-${n}`, name: `Collection ${n}`, ...overrides })
+      .returning(),
+    'collection',
+  );
+  if (productIds.length > 0) {
+    await db.insert(collectionProducts).values(
+      productIds.map((productId, position) => ({
+        collectionId: collection.id,
+        productId,
+        position,
+      })),
+    );
+  }
+  return collection;
 }

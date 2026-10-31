@@ -41,6 +41,10 @@ export function makeCard(overrides: Partial<ProductCard> = {}): ProductCard {
     price: { minCents: 1099, maxCents: 1899, currency: 'EUR' },
     inStock: true,
     attributes: { pet: 'dog', material: 'cotton rope', ageStage: 'all' },
+    brand: null,
+    badges: [],
+    unitPrice: null,
+    swatches: [],
     ...overrides,
   };
 }
@@ -55,6 +59,9 @@ export function makeFacets(overrides: Partial<Facets> = {}): Facets {
       ],
       ageStage: [{ value: 'all', count: 2 }],
     },
+    brand: [],
+    tag: [],
+    badge: [],
     price: { min: 799, max: 1899 },
     ...overrides,
   };
@@ -106,6 +113,11 @@ export function makeVariant(overrides: Partial<Variant> = {}): Variant {
     isDefault: false,
     available: true,
     lowStock: false,
+    netAmount: null,
+    netUnit: null,
+    unitPrice: null,
+    isTrial: false,
+    swatchHex: null,
     ...overrides,
   };
 }
@@ -137,6 +149,9 @@ export function makeProduct(overrides: Partial<ProductDetail> = {}): ProductDeta
       { slug: 'dog-toys', name: 'Toys' },
     ],
     attributes: { pet: 'dog', material: 'cotton rope', ageStage: 'all' },
+    brand: null,
+    tags: [],
+    badges: [],
     optionKeys: ['color', 'size'],
     price: { minCents: 1099, maxCents: 1899, currency: 'EUR' },
     inStock: true,

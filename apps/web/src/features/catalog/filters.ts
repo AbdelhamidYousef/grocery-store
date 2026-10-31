@@ -38,6 +38,7 @@ export const SORT_LABELS: Record<ProductSort, string> = {
   newest: 'Newest',
   price_asc: 'Price: low to high',
   price_desc: 'Price: high to low',
+  unit_price_asc: 'Lowest unit price',
   name: 'Name: A to Z',
 };
 

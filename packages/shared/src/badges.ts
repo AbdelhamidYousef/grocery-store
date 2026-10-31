@@ -4,6 +4,13 @@
 export const BADGES = ['Bestseller', 'New', 'Sale', 'Eco', 'Low stock'] as const;
 export type Badge = (typeof BADGES)[number];
 
+// URL-safe keys for the `badge` filter and its facet ("Low stock" -> "low-stock").
+export const BADGE_SLUGS = ['bestseller', 'new', 'sale', 'eco', 'low-stock'] as const;
+export type BadgeSlug = (typeof BADGE_SLUGS)[number];
+export const badgeSlug = (badge: Badge): BadgeSlug =>
+  BADGE_SLUGS[BADGES.indexOf(badge)] as BadgeSlug;
+export const badgeFromSlug = (slug: BadgeSlug): Badge => BADGES[BADGE_SLUGS.indexOf(slug)] as Badge;
+
 export const NEW_BADGE_DAYS = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
 

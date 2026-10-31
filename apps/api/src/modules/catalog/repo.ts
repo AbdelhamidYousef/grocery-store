@@ -16,11 +16,18 @@ import {
 
 import { db } from '../../db/client.ts';
 import {
+  brands,
   categories,
+  collectionProducts,
+  collections,
   inventory,
+  orderItems,
+  orders,
   productImages,
+  productTags,
   productVariants,
   products,
+  tags,
 } from '../../db/schema/index.ts';
 import type { ProductAttributes } from '../../db/schema/products.ts';
 
@@ -65,7 +72,15 @@ export async function getCategoryBySlug(slug: string): Promise<CategoryRow[]> {
 
 // ---------- product list ----------
 
-export type SortKey = 'relevance' | 'price_asc' | 'price_desc' | 'newest' | 'name';
+export type SortKey =
+  | 'relevance'
+  | 'price_asc'
+  | 'price_desc'
+  | 'unit_price_asc'
+  // Internal: the editor's order inside the collection being browsed (the default there).
+  | 'collection'
+  | 'newest'
+  | 'name';
 
 export interface ProductFilters {
   /** Free-text search term, already trimmed (1-100 characters). */
@@ -75,6 +90,14 @@ export interface ProductFilters {
   minPriceCents?: number;
   maxPriceCents?: number;
   inStock?: boolean;
+  /** Brand slugs (OR). */
+  brand?: string[];
+  /** Health-need tag slugs (OR). */
+  tag?: string[];
+  /** Product ids that carry any of the requested badges, resolved by the service. */
+  badgeProductIds?: string[];
+  /** Collection slug; matches nothing unless that collection is live right now. */
+  collection?: string;
   /** key -> accepted values: OR within a key, AND across keys. */
   attr: Record<string, string[]>;
 }
@@ -95,7 +118,8 @@ export interface ProductListParams {
   offset: number;
 }
 
-// Per-product facts about its *active* variants, computed once and joined: cheapest and dearest
+// Per-product facts about its *active, non-trial* variants (a 50 g sample at 0.99 must not turn
+// every card's "from" price into 0.99), computed once and joined: cheapest and dearest
 // price for the "from" line, and whether any variant has stock left. Products with no active
 // variant have no row here, so an inner join also hides products nobody could buy.
 function variantSummary() {
@@ -105,6 +129,19 @@ function variantSummary() {
       minCents: sql<number>`min(${productVariants.priceCents})`.as('min_cents'),
       maxCents: sql<number>`max(${productVariants.priceCents})`.as('max_cents'),
       currency: sql<string>`min(${productVariants.currency})`.as('currency'),
+      // Unit price of the default variant, integer cents per kg/L, in SQL so it can be sorted on.
+      // Same rule as unitPriceCents() in packages/shared: round half up, bigint so price * 1000
+      // cannot overflow a 32-bit integer. Null when the default variant has no net amount.
+      unitCents: sql<
+        number | null
+      >`max(case when ${productVariants.isDefault} and ${productVariants.netAmount} is not null then ((2 * ${productVariants.priceCents}::bigint * 1000 + ${productVariants.netAmount}) / (2 * ${productVariants.netAmount}))::int end)`.as(
+        'unit_cents',
+      ),
+      unitPer: sql<
+        string | null
+      >`max(case when ${productVariants.isDefault} and ${productVariants.netUnit} is not null then ${productVariants.netUnit}::text end)`.as(
+        'unit_per',
+      ),
       inStock:
         sql<boolean>`coalesce(bool_or(${inventory.quantity} - ${inventory.reserved} > 0), false)`.as(
           'in_stock',
@@ -112,7 +149,7 @@ function variantSummary() {
     })
     .from(productVariants)
     .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
-    .where(eq(productVariants.status, 'active'))
+    .where(and(eq(productVariants.status, 'active'), eq(productVariants.isTrial, false)))
     .groupBy(productVariants.productId)
     .as('variant_summary');
 }
@@ -127,6 +164,10 @@ export interface ProductCardRow {
   maxCents: number;
   currency: string;
   inStock: boolean;
+  unitCents: number | null;
+  unitPer: string | null;
+  brandSlug: string | null;
+  brandName: string | null;
 }
 
 export interface ProductImageRow {
@@ -141,12 +182,25 @@ export interface ProductImageRow {
 
 // Every ordering ends in `products.id`: without a unique last key, rows that tie on the sort
 // column may swap places between pages and a shopper would see duplicates or gaps.
-function orderBy(sort: SortKey, v: ReturnType<typeof variantSummary>, q?: string): SQL[] {
+function orderBy(
+  sort: SortKey,
+  v: ReturnType<typeof variantSummary>,
+  q?: string,
+  collection?: string,
+): SQL[] {
   switch (sort) {
+    case 'collection':
+      return [
+        sql`(select cp.position from ${collectionProducts} cp join ${collections} c on c.id = cp.collection_id where cp.product_id = ${products.id} and c.slug = ${collection ?? ''}) asc nulls last`,
+        asc(products.id),
+      ];
     case 'price_asc':
       return [asc(v.minCents), asc(products.id)];
     case 'price_desc':
       return [desc(v.minCents), asc(products.id)];
+    case 'unit_price_asc':
+      // Products without a unit price (toys, beds) go last instead of first.
+      return [sql`${v.unitCents} asc nulls last`, asc(v.minCents), asc(products.id)];
     case 'name':
       return [asc(sql`lower(${products.name})`), asc(products.id)];
     case 'relevance': {
@@ -162,6 +216,10 @@ function orderBy(sort: SortKey, v: ReturnType<typeof variantSummary>, q?: string
     case 'newest':
       return [desc(products.createdAt), asc(products.id)];
   }
+}
+
+export function liveCollection(): SQL {
+  return sql`(${collections.isActive} and (${collections.startsAt} is null or ${collections.startsAt} <= now()) and (${collections.endsAt} is null or ${collections.endsAt} > now()))`;
 }
 
 // The part of the filters that defines "what the shopper is browsing": active products in the
@@ -183,6 +241,26 @@ function scopeConditions(f: ProductFilters): SQL[] {
           .select({ id: categories.id })
           .from(categories)
           .where(or(eq(categories.slug, f.category), eq(categories.parentId, sql`(${parent})`))),
+      ),
+    );
+  }
+
+  if (f.collection) {
+    // Live = switched on and inside its window (open-ended windows allowed). The same rule the
+    // public collection endpoint uses, so a filter never reveals a hidden collection's products.
+    conds.push(
+      exists(
+        db
+          .select({ one: sql`1` })
+          .from(collectionProducts)
+          .innerJoin(collections, eq(collections.id, collectionProducts.collectionId))
+          .where(
+            and(
+              eq(collectionProducts.productId, products.id),
+              eq(collections.slug, f.collection),
+              liveCollection(),
+            ),
+          ),
       ),
     );
   }
@@ -212,6 +290,7 @@ function filterConditions(f: ProductFilters, v: ReturnType<typeof variantSummary
     const inRange = [
       eq(productVariants.productId, products.id),
       eq(productVariants.status, 'active'),
+      eq(productVariants.isTrial, false),
       ...(f.minPriceCents !== undefined ? [gte(productVariants.priceCents, f.minPriceCents)] : []),
       ...(f.maxPriceCents !== undefined ? [lte(productVariants.priceCents, f.maxPriceCents)] : []),
     ];
@@ -226,6 +305,29 @@ function filterConditions(f: ProductFilters, v: ReturnType<typeof variantSummary
   }
 
   if (f.inStock) conds.push(eq(v.inStock, true));
+
+  if (f.brand) {
+    conds.push(
+      inArray(
+        products.brandId,
+        db.select({ id: brands.id }).from(brands).where(inArray(brands.slug, f.brand)),
+      ),
+    );
+  }
+  if (f.tag) {
+    conds.push(
+      exists(
+        db
+          .select({ one: sql`1` })
+          .from(productTags)
+          .innerJoin(tags, eq(tags.id, productTags.tagId))
+          .where(and(eq(productTags.productId, products.id), inArray(tags.slug, f.tag))),
+      ),
+    );
+  }
+  if (f.badgeProductIds) {
+    conds.push(f.badgeProductIds.length > 0 ? inArray(products.id, f.badgeProductIds) : sql`false`);
+  }
 
   for (const [key, values] of Object.entries(f.attr)) {
     // `@>` (containment) is what the GIN index on `attributes` accelerates, unlike
@@ -258,12 +360,17 @@ export async function listProducts(
       maxCents: v.maxCents,
       currency: v.currency,
       inStock: v.inStock,
+      unitCents: v.unitCents,
+      unitPer: v.unitPer,
+      brandSlug: brands.slug,
+      brandName: brands.name,
     })
     .from(products)
     .innerJoin(v, eq(v.productId, products.id))
     .innerJoin(categories, eq(categories.id, products.categoryId))
+    .leftJoin(brands, eq(brands.id, products.brandId))
     .where(where)
-    .orderBy(...orderBy(params.sort, v, params.filters.q))
+    .orderBy(...orderBy(params.sort, v, params.filters.q, params.filters.collection))
     .limit(params.limit)
     .offset(params.offset);
 
@@ -304,6 +411,10 @@ export async function listPrimaryImages(productIds: string[]): Promise<ProductIm
 
 export interface FacetRows {
   attributes: { key: string; value: string; count: number }[];
+  brand: { slug: string; name: string; count: number }[];
+  tag: { slug: string; name: string; count: number }[];
+  /** Every product id in the scope, so the service can count derived badges over it. */
+  scopeProductIds: string[];
   price: { min: number; max: number } | null;
 }
 
@@ -317,7 +428,7 @@ export async function getFacets(
   const v = variantSummary();
   const where = and(...scopeConditions(filters));
 
-  const [attributes, [price]] = await Promise.all([
+  const [attributes, [price], brandRows, tagRows, scopeRows] = await Promise.all([
     db
       .select({ key: sql<string>`kv.key`, value: sql<string>`kv.value`, count: count() })
       .from(products)
@@ -336,10 +447,35 @@ export async function getFacets(
       .from(products)
       .innerJoin(v, eq(v.productId, products.id))
       .where(where),
+    db
+      .select({ slug: brands.slug, name: brands.name, count: count() })
+      .from(products)
+      .innerJoin(v, eq(v.productId, products.id))
+      .innerJoin(brands, eq(brands.id, products.brandId))
+      .where(where)
+      .groupBy(brands.slug, brands.name)
+      .orderBy(desc(count()), asc(brands.name)),
+    db
+      .select({ slug: tags.slug, name: tags.name, count: count() })
+      .from(products)
+      .innerJoin(v, eq(v.productId, products.id))
+      .innerJoin(productTags, eq(productTags.productId, products.id))
+      .innerJoin(tags, eq(tags.id, productTags.tagId))
+      .where(where)
+      .groupBy(tags.slug, tags.name)
+      .orderBy(desc(count()), asc(tags.name)),
+    db
+      .select({ id: products.id })
+      .from(products)
+      .innerJoin(v, eq(v.productId, products.id))
+      .where(where),
   ]);
 
   return {
     attributes,
+    brand: brandRows,
+    tag: tagRows,
+    scopeProductIds: scopeRows.map((r) => r.id),
     price:
       price && price.min !== null && price.max !== null ? { min: price.min, max: price.max } : null,
   };
@@ -360,6 +496,10 @@ export interface VariantRow {
   quantity: number;
   reserved: number;
   lowStockThreshold: number;
+  netAmount: number | null;
+  netUnit: 'g' | 'ml' | null;
+  isTrial: boolean;
+  swatchHex: string | null;
 }
 
 export interface ProductDetailRows {
@@ -369,7 +509,13 @@ export interface ProductDetailRows {
     name: string;
     description: string;
     attributes: ProductAttributes;
+    isEco: boolean;
+    isBestsellerOverride: boolean;
+    badgeNewUntil: Date | null;
+    createdAt: Date;
   };
+  brand: { slug: string; name: string } | null;
+  tags: { slug: string; name: string }[];
   category: { slug: string; name: string };
   parent: { slug: string; name: string } | null;
   variants: VariantRow[];
@@ -387,16 +533,22 @@ export async function getProductBySlug(slug: string): Promise<ProductDetailRows 
         name: products.name,
         description: products.description,
         attributes: products.attributes,
+        isEco: products.isEco,
+        isBestsellerOverride: products.isBestsellerOverride,
+        badgeNewUntil: products.badgeNewUntil,
+        createdAt: products.createdAt,
       },
+      brand: { slug: brands.slug, name: brands.name },
       category: { id: categories.id, slug: categories.slug, name: categories.name },
       parentId: categories.parentId,
     })
     .from(products)
     .innerJoin(categories, eq(categories.id, products.categoryId))
+    .leftJoin(brands, eq(brands.id, products.brandId))
     .where(and(eq(products.slug, slug), eq(products.status, 'active')));
   if (!head) return undefined;
 
-  const [parentRows, variants, images] = await Promise.all([
+  const [parentRows, variants, images, tagRows] = await Promise.all([
     head.parentId
       ? db
           .select({ slug: categories.slug, name: categories.name })
@@ -413,6 +565,10 @@ export async function getProductBySlug(slug: string): Promise<ProductDetailRows 
         compareAtPriceCents: productVariants.compareAtPriceCents,
         currency: productVariants.currency,
         isDefault: productVariants.isDefault,
+        netAmount: productVariants.netAmount,
+        netUnit: productVariants.netUnit,
+        isTrial: productVariants.isTrial,
+        swatchHex: productVariants.swatchHex,
         // A variant row without an inventory row is treated as zero stock.
         quantity: sql<number>`coalesce(${inventory.quantity}, 0)`,
         reserved: sql<number>`coalesce(${inventory.reserved}, 0)`,
@@ -438,13 +594,153 @@ export async function getProductBySlug(slug: string): Promise<ProductDetailRows 
       .from(productImages)
       .where(eq(productImages.productId, head.product.id))
       .orderBy(asc(productImages.sortOrder), asc(productImages.id)),
+    db
+      .select({ slug: tags.slug, name: tags.name })
+      .from(productTags)
+      .innerJoin(tags, eq(tags.id, productTags.tagId))
+      .where(eq(productTags.productId, head.product.id))
+      .orderBy(asc(tags.name)),
   ]);
 
   return {
     product: head.product,
+    // The left join gives a row of nulls, not no row, for a product without a brand.
+    brand: head.brand && head.brand.slug ? head.brand : null,
+    tags: tagRows,
     category: { slug: head.category.slug, name: head.category.name },
     parent: parentRows[0] ?? null,
     variants,
     images,
   };
+}
+
+// ---------- swatches ----------
+
+export interface SwatchRow {
+  productId: string;
+  color: string;
+  hex: string;
+  imageUrl: string | null;
+  imageAlt: string | null;
+  imageId: string | null;
+  imageWidth: number | null;
+  imageHeight: number | null;
+  imageVariantId: string | null;
+}
+
+// One dot per colour per product (a colour exists once per size, so DISTINCT ON), with that
+// colour's own picture when one is attached to any of its variants.
+export async function listSwatches(productIds: string[]): Promise<SwatchRow[]> {
+  if (productIds.length === 0) return [];
+  return db
+    .selectDistinctOn([productVariants.productId, sql`${productVariants.options}->>'color'`], {
+      productId: productVariants.productId,
+      color: sql<string>`${productVariants.options}->>'color'`,
+      hex: sql<string>`${productVariants.swatchHex}`,
+      imageId: sql<string | null>`img.id`,
+      imageUrl: sql<string | null>`img.url`,
+      imageAlt: sql<string | null>`img.alt`,
+      imageWidth: sql<number | null>`img.width`,
+      imageHeight: sql<number | null>`img.height`,
+      imageVariantId: sql<string | null>`img.variant_id`,
+    })
+    .from(productVariants)
+    .leftJoinLateral(
+      sql`(select i.id, i.url, i.alt, i.width, i.height, i.variant_id from ${productImages} i where i.variant_id = ${productVariants.id} order by i.sort_order, i.id limit 1) as img`,
+      sql`true`,
+    )
+    .where(
+      and(
+        inArray(productVariants.productId, productIds),
+        eq(productVariants.status, 'active'),
+        sql`${productVariants.swatchHex} is not null`,
+      ),
+    )
+    .orderBy(
+      productVariants.productId,
+      sql`${productVariants.options}->>'color'`,
+      // Prefer the colour's variant that has a picture, then the cheapest, for stable output.
+      sql`img.id is null`,
+      productVariants.priceCents,
+      productVariants.id,
+    );
+}
+
+// ---------- badge facts ----------
+
+export interface BadgeFactRow {
+  id: string;
+  createdAt: Date;
+  badgeNewUntil: Date | null;
+  isEco: boolean;
+  isBestsellerOverride: boolean;
+  variants: {
+    priceCents: number;
+    compareAtPriceCents: number | null;
+    isDefault: boolean;
+    availableUnits: number;
+    lowStockThreshold: number;
+  }[];
+}
+
+// Everything deriveBadges() needs for every active product, in two queries (products, then their
+// active variants with stock), stitched together here.
+export async function listBadgeFacts(): Promise<BadgeFactRow[]> {
+  const [productRows, variantRows] = await Promise.all([
+    db
+      .select({
+        id: products.id,
+        createdAt: products.createdAt,
+        badgeNewUntil: products.badgeNewUntil,
+        isEco: products.isEco,
+        isBestsellerOverride: products.isBestsellerOverride,
+      })
+      .from(products)
+      .where(eq(products.status, 'active')),
+    db
+      .select({
+        productId: productVariants.productId,
+        priceCents: productVariants.priceCents,
+        compareAtPriceCents: productVariants.compareAtPriceCents,
+        isDefault: productVariants.isDefault,
+        availableUnits: sql<number>`coalesce(${inventory.quantity} - ${inventory.reserved}, 0)`,
+        lowStockThreshold: sql<number>`coalesce(${inventory.lowStockThreshold}, 0)`,
+      })
+      .from(productVariants)
+      .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
+      .where(eq(productVariants.status, 'active')),
+  ]);
+  const byProduct = new Map<string, BadgeFactRow['variants']>();
+  for (const { productId, ...variant } of variantRows) {
+    const list = byProduct.get(productId) ?? [];
+    list.push(variant);
+    byProduct.set(productId, list);
+  }
+  return productRows.map((p) => ({ ...p, variants: byProduct.get(p.id) ?? [] }));
+}
+
+/**
+ * Units sold per product since `since`, from orders in the given (paid-or-later) statuses. The
+ * status list comes from the shared isPaidOrLater rule, so the SQL cannot disagree with it.
+ */
+export async function unitsSoldSince(
+  since: Date,
+  statuses: readonly (typeof orders.$inferSelect.status)[],
+): Promise<Map<string, number>> {
+  const rows = await db
+    .select({
+      productId: productVariants.productId,
+      units: sql<number>`sum(${orderItems.quantity})::int`,
+    })
+    .from(orderItems)
+    .innerJoin(orders, eq(orders.id, orderItems.orderId))
+    .innerJoin(productVariants, eq(productVariants.id, orderItems.variantId))
+    .where(
+      and(
+        inArray(orders.status, [...statuses]),
+        sql`coalesce(${orders.placedAt}, ${orders.createdAt}) >= ${since.toISOString()}::timestamptz`,
+      ),
+    )
+    .groupBy(productVariants.productId);
+  return new Map(rows.map((r) => [r.productId, r.units]));
 }

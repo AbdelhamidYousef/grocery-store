@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
 
 import { closeDb, db } from '../db/client.ts';
+import { clearBadgeCache } from '../modules/catalog/badge-index.ts';
 
 import { settlePending } from './pending.ts';
 
@@ -29,6 +30,8 @@ beforeAll(async () => {
 beforeEach(async () => {
   await db.execute(sql.raw(`truncate table ${tables.join(', ')} restart identity cascade`));
   await db.execute(sql`alter sequence order_number_seq restart with 1`);
+  // The badge index is cached for a minute in production; a new test must not see the last one's.
+  clearBadgeCache();
 });
 
 // Before the next test's truncate, not after it: see pending.ts.
