@@ -44,3 +44,29 @@ account was created, nothing is deployed.
 - Gemini output is 1024 px, upscaled to the 1200 px size the seed declares.
 - A leftover `tsx watch` dev API from a builder may still hold port 3000; the build session was not
   allowed to kill it. Stop it before `pnpm dev` if the port is busy (a reboot also clears it).
+
+## Expansion build status (phases 14–24, as of 2026-11-01)
+
+The expansion session stopped mid-run on 2026-10-31 (~21:20). Nothing from phases 14–24 is merged
+into `main` yet; each phase lives on its own branch in a sibling worktree, all committed, none dirty.
+
+| Phase | Branch / worktree | Steps done | Still to do |
+|---|---|---|---|
+| 14 Catalogue depth | `feat/phase-14` · `../ecommerce-p14` | 14.1–14.10 (10 commits) | merge into `main` (wave 1, first) |
+| 20 Content & trust | `feat/phase-20` · `../ecommerce-p20` | 20.1–20.6, 20.8 (7 commits) | 20.7 richer homepage, 20.9 e2e; rebase on 14 after it merges |
+| 18 Promotions | `feat/phase-18` · `../ecommerce-p18` | 18.1–18.2 (pure pricing engine in `packages/shared`) | 18.3–18.10 (schema, API, checkout, flash sales, member prices, admin, UI, e2e) |
+| 15–17, 19, 21–24 | — | not started | follow the wave order above |
+
+Each lane has its own DB (`ecommerce_pNN`, `ecommerce_pNN_test`) and ports (API 31N0, e2e 32N0/52N3) in
+its `.env`.
+
+Checks on 2026-11-01: typecheck, lint and format pass on all three branches. Unit/integration tests
+and e2e were **not** re-run. The last runs from the stopped session were unclear: one run of
+`pnpm test` failed in `apps/api` (probably phase 18), and one e2e run had 3 failures in
+`cart.spec.ts` / `catalog.spec.ts` (lane unknown, possibly 14's bigger catalogue changing seed
+assumptions). Re-run `pnpm test` and `pnpm e2e` in each worktree before merging.
+
+Remote viewing: the screenshot tour of the current `main` (phases 0–13) is a private page at
+https://claude.ai/artifact/GPjeWpRVGZNQeZVcmnvdz1. For the live dev site on your tailnet, run
+`tailscale serve --bg 5173` yourself (the session was not allowed to run it); if Vite blocks the
+`.ts.net` host, add it to `server.allowedHosts` in `apps/web/vite.config.ts`.
