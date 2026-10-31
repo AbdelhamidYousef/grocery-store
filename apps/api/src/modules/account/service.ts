@@ -1,5 +1,6 @@
 import type {
   Address,
+  CustomerOrder,
   AddressInputSchema,
   AddressUpdateSchema,
   ChangePasswordSchema,
@@ -14,6 +15,8 @@ import { notFound, validation } from '../../lib/errors.ts';
 import { hash, verify } from '../auth/password.ts';
 import * as authRepo from '../auth/repo.ts';
 import { deleteOtherSessions } from '../auth/sessions.ts';
+import * as checkoutRepo from '../checkout/repo.ts';
+import { toOrderDto } from '../orders/view.ts';
 
 import * as repo from './repo.ts';
 
@@ -127,13 +130,38 @@ export async function deleteAddress(userId: string, id: string): Promise<void> {
 
 export async function listOrders(userId: string, page: number, limit: number) {
   const { rows, total } = await repo.listOrders(userId, page, limit);
-  const data: OrderSummary[] = rows.map((o) => ({
-    number: o.number,
-    status: o.status,
-    totalCents: o.totalCents,
-    currency: o.currency,
-    placedAt: o.placedAt?.toISOString() ?? null,
-    createdAt: o.createdAt.toISOString(),
-  }));
+  const items = await repo.listItemsForOrders(rows.map((o) => o.id));
+  const data: OrderSummary[] = rows.map((o) => {
+    const lines = items.filter((i) => i.orderId === o.id);
+    return {
+      number: o.number,
+      status: o.status,
+      totalCents: o.totalCents,
+      currency: o.currency,
+      itemCount: lines.reduce((sum, l) => sum + l.quantity, 0),
+      thumbnails: lines.flatMap((l) => (l.imageUrl ? [l.imageUrl] : [])).slice(0, 4),
+      placedAt: o.placedAt?.toISOString() ?? null,
+      createdAt: o.createdAt.toISOString(),
+    };
+  });
   return { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
+}
+
+// The signed-in customer's own order with a timeline. History rows that did not change the status
+// (an amount-mismatch or late-payment note is recorded as from == to) are internal alarms and are
+// left out, as are actors and notes.
+export async function getOrder(userId: string, number: string): Promise<CustomerOrder> {
+  const order = await repo.findOwnOrder(userId, number);
+  if (!order) throw notFound('Order not found');
+  const [items, payment, history] = await Promise.all([
+    checkoutRepo.listOrderItems(db, order.id),
+    checkoutRepo.findPaymentByOrder(db, order.id),
+    repo.listStatusHistory(order.id),
+  ]);
+  return {
+    ...toOrderDto(order, items, payment),
+    timeline: history
+      .filter((h) => h.fromStatus !== h.toStatus)
+      .map((h) => ({ status: h.toStatus, at: h.createdAt.toISOString() })),
+  };
 }

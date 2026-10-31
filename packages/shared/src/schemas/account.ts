@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { NewPasswordSchema, UserSchema } from './auth.ts';
-import { OrderStatusSchema } from './checkout.ts';
+import { OrderSchema, OrderStatusSchema } from './checkout.ts';
 import { DataSchema, optionalText, PaginatedSchema, requiredText } from './common.ts';
 
 // ---------- profile and password ----------
@@ -78,16 +78,36 @@ export const AddressListResponseSchema = DataSchema(z.array(AddressSchema));
 
 export const IdParamsSchema = z.object({ id: z.uuid() });
 
-// ---------- order history (placeholder until phase 9) ----------
+// ---------- order history ----------
 
 export const OrderSummarySchema = z.object({
   number: z.string(),
   status: OrderStatusSchema,
   totalCents: z.number().int().min(0),
   currency: z.string().length(3),
+  // Units across all lines, for "3 items" in the list.
+  itemCount: z.number().int().min(0),
+  // Up to four product image URLs for the thumbnail strip (lines without an image are skipped).
+  thumbnails: z.array(z.string()).max(4),
   placedAt: z.string().nullable(),
   createdAt: z.string(),
 });
 export type OrderSummary = z.infer<typeof OrderSummarySchema>;
 
 export const OrderListResponseSchema = PaginatedSchema(OrderSummarySchema);
+
+// One step of the customer-visible timeline: WHAT happened and WHEN. The audit log's actor and
+// note stay internal (they hold admin emails and free text), so they are not part of this shape.
+export const OrderTimelineEntrySchema = z.object({
+  status: OrderStatusSchema,
+  at: z.string(),
+});
+export type OrderTimelineEntry = z.infer<typeof OrderTimelineEntrySchema>;
+
+// The order page of a signed-in customer: the full order plus its timeline, oldest first.
+export const CustomerOrderSchema = OrderSchema.extend({
+  timeline: z.array(OrderTimelineEntrySchema),
+});
+export type CustomerOrder = z.infer<typeof CustomerOrderSchema>;
+
+export const CustomerOrderResponseSchema = DataSchema(CustomerOrderSchema);

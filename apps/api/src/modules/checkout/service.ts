@@ -15,6 +15,7 @@ import type { PaymentGateway } from '../../lib/stripe.ts';
 import type { AuthUser } from '../auth/sessions.ts';
 import * as cartRepo from '../cart/repo.ts';
 import { getCart, loadCart } from '../cart/service.ts';
+import { toOrderDto, totalsOf } from '../orders/view.ts';
 
 import { cancelPendingOrder, releaseReservations } from './orders.ts';
 import * as repo from './repo.ts';
@@ -37,15 +38,6 @@ export interface PlacedOrder {
   clientSecret: string;
   totals: OrderTotals;
 }
-
-export const totalsOf = (order: repo.OrderRow): OrderTotals => ({
-  currency: order.currency,
-  subtotalCents: order.subtotalCents,
-  shippingCents: order.shippingCents,
-  discountCents: order.discountCents,
-  taxCents: order.taxCents,
-  totalCents: order.totalCents,
-});
 
 const fieldError = (field: string, message: string) =>
   validation({ formErrors: [], fieldErrors: { [field]: [message] } });
@@ -296,28 +288,5 @@ export async function getOrderStatus(
 
 export async function getOrder(number: string, viewer: OrderViewer): Promise<Order> {
   const { order, payment } = await findViewableOrder(number, viewer);
-  const items = await repo.listOrderItems(db, order.id);
-  return {
-    number: order.number,
-    status: order.status,
-    paymentStatus: payment?.status ?? null,
-    email: order.email,
-    totals: totalsOf(order),
-    shippingMethod: { code: order.shippingMethodCode, name: order.shippingMethodName },
-    shippingAddress: order.shippingAddress,
-    billingAddress: order.billingAddress,
-    notes: order.notes,
-    items: items.map((i) => ({
-      id: i.id,
-      productName: i.productName,
-      variantName: i.variantName,
-      sku: i.sku,
-      imageUrl: i.imageUrl,
-      unitPriceCents: i.unitPriceCents,
-      quantity: i.quantity,
-      lineTotalCents: i.lineTotalCents,
-    })),
-    placedAt: order.placedAt?.toISOString() ?? null,
-    createdAt: order.createdAt.toISOString(),
-  };
+  return toOrderDto(order, await repo.listOrderItems(db, order.id), payment);
 }

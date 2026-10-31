@@ -1,7 +1,7 @@
-import { and, count, desc, eq, ne } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray, ne } from 'drizzle-orm';
 
 import { db, type Tx } from '../../db/client.ts';
-import { addresses, orders, users } from '../../db/schema/index.ts';
+import { addresses, orderItems, orderStatusHistory, orders, users } from '../../db/schema/index.ts';
 
 export type AddressRow = typeof addresses.$inferSelect;
 type AddressValues = Omit<typeof addresses.$inferInsert, 'id' | 'userId'>;
@@ -106,7 +106,7 @@ export async function deleteAddress(userId: string, id: string): Promise<boolean
   return rows.length > 0;
 }
 
-// ---------- orders (placeholder until phase 9) ----------
+// ---------- orders ----------
 
 export async function listOrders(userId: string, page: number, limit: number) {
   // A `pending_payment` order is an abandoned or in-flight checkout, not something the customer
@@ -123,4 +123,37 @@ export async function listOrders(userId: string, page: number, limit: number) {
     db.select({ n: count() }).from(orders).where(where),
   ]);
   return { rows, total: totals[0]?.n ?? 0 };
+}
+
+// Items of several orders in one query (the list shows counts and thumbnails; N queries would be
+// the classic N+1). Lines keep their display order.
+export async function listItemsForOrders(orderIds: string[]) {
+  if (orderIds.length === 0) return [];
+  return db
+    .select({
+      orderId: orderItems.orderId,
+      quantity: orderItems.quantity,
+      imageUrl: orderItems.imageUrl,
+    })
+    .from(orderItems)
+    .where(inArray(orderItems.orderId, orderIds))
+    .orderBy(asc(orderItems.createdAt), asc(orderItems.id));
+}
+
+// The owner goes into the WHERE clause, not into a check after the fetch: someone else's order is
+// then indistinguishable from a missing one (404 for both), so numbers cannot be probed.
+export async function findOwnOrder(userId: string, number: string) {
+  const [row] = await db
+    .select()
+    .from(orders)
+    .where(and(eq(orders.number, number), eq(orders.userId, userId)));
+  return row;
+}
+
+export async function listStatusHistory(orderId: string) {
+  return db
+    .select()
+    .from(orderStatusHistory)
+    .where(eq(orderStatusHistory.orderId, orderId))
+    .orderBy(asc(orderStatusHistory.createdAt), asc(orderStatusHistory.id));
 }

@@ -4,8 +4,10 @@ import {
   AddressResponseSchema,
   AddressUpdateSchema,
   ChangePasswordSchema,
+  CustomerOrderResponseSchema,
   IdParamsSchema,
   OrderListResponseSchema,
+  OrderNumberParamsSchema,
   PaginationQuerySchema,
   ProfileResponseSchema,
   UpdateProfileSchema,
@@ -80,7 +82,6 @@ export function createAccountRouter(opts: { authRateLimit: RateLimitOptions }): 
     res.status(204).end();
   });
 
-  // Placeholder: phase 9 creates orders, so for now this is an empty (but real, paginated) list.
   const list = { query: PaginationQuerySchema };
   router.get('/account/orders', validate(list), async (req, res) => {
     const { query } = valid(req, list);
@@ -89,6 +90,17 @@ export function createAccountRouter(opts: { authRateLimit: RateLimitOptions }): 
       OrderListResponseSchema,
       await service.listOrders(userId(req), query.page, query.limit),
     );
+  });
+
+  // Own orders only (the service puts the user id in the query). A guest's way back to an order is
+  // the signed `last_order` cookie on the checkout endpoints; there is deliberately no
+  // "email + number" lookup, which would let anyone enumerate orders by guessing numbers.
+  const byNumber = { params: OrderNumberParamsSchema };
+  router.get('/account/orders/:number', validate(byNumber), async (req, res) => {
+    const { params } = valid(req, byNumber);
+    respond(res, CustomerOrderResponseSchema, {
+      data: await service.getOrder(userId(req), params.number),
+    });
   });
 
   return router;
