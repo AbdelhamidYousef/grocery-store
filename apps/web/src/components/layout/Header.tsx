@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 
 import { PETS } from '../../lib/pets';
+import { TEST_IDS } from '../../lib/test-ids';
 import { CartIcon, MenuIcon, PawIcon, PetGlyph } from '../icons';
 
 import { AccountMenu } from './AccountMenu';
@@ -9,10 +10,31 @@ import { Container } from './Container';
 import { MobileNav } from './MobileNav';
 import { SearchBox } from './SearchBox';
 
-// `cartCount` is a prop because components never fetch: the cart feature (phase 7) owns the
-// number and passes it down through AppLayout.
-export function Header({ cartCount = 0 }: { cartCount?: number }) {
+// `cartCount` is a prop because components never fetch: the cart feature owns the number and
+// AppLayout passes it down. With `onOpenCart` the icon opens the mini cart drawer; without it
+// (or on the cart and checkout pages, where a drawer would only repeat the page) it is a link.
+export function Header({
+  cartCount = 0,
+  onOpenCart,
+}: {
+  cartCount?: number;
+  onOpenCart?: (() => void) | undefined;
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const cartIcon = (
+    <>
+      <CartIcon />
+      {cartCount > 0 && (
+        <span
+          aria-hidden="true"
+          data-testid="cart-count"
+          className="absolute right-0 top-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-bold text-surface"
+        >
+          {cartCount > 99 ? '99+' : cartCount}
+        </span>
+      )}
+    </>
+  );
   const cartLabel = `Cart, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`;
 
   return (
@@ -48,23 +70,27 @@ export function Header({ cartCount = 0 }: { cartCount?: number }) {
 
         <div className="flex items-center gap-1 lg:ml-auto">
           <AccountMenu />
-          <Link
-            to="/cart"
-            aria-label={cartLabel}
-            data-testid="cart-link"
-            className="relative flex min-h-11 min-w-11 items-center justify-center rounded-control hover:bg-pet-soft"
-          >
-            <CartIcon />
-            {cartCount > 0 && (
-              <span
-                aria-hidden="true"
-                data-testid="cart-count"
-                className="absolute right-0 top-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-bold text-surface"
-              >
-                {cartCount > 99 ? '99+' : cartCount}
-              </span>
-            )}
-          </Link>
+          {onOpenCart ? (
+            <button
+              type="button"
+              aria-label={cartLabel}
+              aria-haspopup="dialog"
+              data-testid={TEST_IDS.miniCartButton}
+              onClick={onOpenCart}
+              className="relative flex min-h-11 min-w-11 items-center justify-center rounded-control hover:bg-pet-soft"
+            >
+              {cartIcon}
+            </button>
+          ) : (
+            <Link
+              to="/cart"
+              aria-label={cartLabel}
+              data-testid="cart-link"
+              className="relative flex min-h-11 min-w-11 items-center justify-center rounded-control hover:bg-pet-soft"
+            >
+              {cartIcon}
+            </Link>
+          )}
         </div>
       </Container>
 

@@ -98,6 +98,6 @@ describe('header cart badge', () => {
     );
     renderApp('/');
     expect(await screen.findByTestId('cart-count')).toHaveTextContent('3');
-    expect(screen.getByRole('link', { name: 'Cart, 3 items' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cart, 3 items' })).toBeInTheDocument();
   });
 });

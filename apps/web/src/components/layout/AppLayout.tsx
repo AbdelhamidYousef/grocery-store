@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
 
+import { MiniCart } from '../../features/cart/MiniCart';
 import { useCart } from '../../features/cart/queries';
 
 import { Footer } from './Footer';
@@ -13,6 +14,7 @@ import { SkipLink } from './SkipLink';
 export function AppLayout() {
   const { pathname } = useLocation();
   const { data: cart } = useCart();
+  const [miniCartOpen, setMiniCartOpen] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
   const lastPath = useRef(pathname);
 
@@ -26,13 +28,21 @@ export function AppLayout() {
     // on mount, and a flag would be spent by the first run and steal focus on the second.
     if (lastPath.current === pathname) return;
     lastPath.current = pathname;
+    setMiniCartOpen(false);
     mainRef.current?.focus({ preventScroll: true });
   }, [pathname]);
 
   return (
     <div className="flex min-h-screen flex-col">
       <SkipLink />
-      <Header cartCount={cart?.itemCount ?? 0} />
+      <Header
+        cartCount={cart?.itemCount ?? 0}
+        // On the cart and checkout pages the page itself is the cart, so the icon just links.
+        {...(pathname === '/cart' || pathname.startsWith('/checkout')
+          ? {}
+          : { onOpenCart: () => setMiniCartOpen(true) })}
+      />
+      <MiniCart open={miniCartOpen} onClose={() => setMiniCartOpen(false)} />
       <main
         ref={mainRef}
         id="main"

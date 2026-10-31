@@ -27,6 +27,17 @@ const sizes: Record<ButtonSize, string> = {
   lg: 'min-h-12 px-7 text-lg',
 };
 
+// The look of a button without the element, for links that navigate: a link is the right element
+// when the action is "go to a page" (it can be opened in a new tab, shows its URL on hover).
+export function buttonClasses(variant: ButtonVariant = 'primary', size: ButtonSize = 'md') {
+  return cn(
+    'inline-flex items-center justify-center gap-2 rounded-control font-display font-semibold',
+    'transition-colors',
+    variants[variant],
+    sizes[size],
+  );
+}
+
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   { variant = 'primary', size = 'md', loading = false, disabled, className, children, ...rest },
   ref,
@@ -41,10 +52,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-control font-display font-semibold',
-        'transition-colors disabled:cursor-not-allowed disabled:opacity-60',
-        variants[variant],
-        sizes[size],
+        buttonClasses(variant, size),
+        'disabled:cursor-not-allowed disabled:opacity-60',
         className,
       )}
     >

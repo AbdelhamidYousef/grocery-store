@@ -80,7 +80,9 @@ export function cartErrorMessage(error: unknown): string {
     if (stock.inCart >= stock.maxQty) {
       return `You already have all ${stock.maxQty} we can offer in your cart.`;
     }
-    return `Only ${stock.maxQty} available, and you have ${stock.inCart} in your cart.`;
+    return stock.inCart === 0
+      ? `Only ${stock.maxQty} available.`
+      : `Only ${stock.maxQty} available, and you have ${stock.inCart} in your cart.`;
   }
   return formErrorMessage(error);
 }

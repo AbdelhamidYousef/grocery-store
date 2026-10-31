@@ -8,8 +8,8 @@ interface DialogProps {
   onClose: () => void;
   title: string;
   children: ReactNode;
-  /** `left` turns the dialog into a full-height side drawer (used by the mobile nav). */
-  placement?: 'center' | 'left';
+  /** `left` / `right` turn the dialog into a full-height side drawer (mobile nav / mini cart). */
+  placement?: 'center' | 'left' | 'right';
   className?: string;
 }
 
@@ -58,9 +58,11 @@ export function Dialog({
       }}
       className={cn(
         'bg-surface p-0 text-ink shadow-card',
-        placement === 'center'
-          ? 'm-auto w-[calc(100%-2rem)] max-w-lg rounded-card'
-          : 'my-0 ml-0 mr-auto h-full max-h-none w-[min(20rem,88vw)] rounded-r-card',
+        placement === 'center' && 'm-auto w-[calc(100%-2rem)] max-w-lg rounded-card',
+        placement === 'left' &&
+          'my-0 ml-0 mr-auto h-full max-h-none w-[min(20rem,88vw)] rounded-r-card',
+        placement === 'right' &&
+          'my-0 ml-auto mr-0 h-full max-h-none w-[min(26rem,94vw)] rounded-l-card',
         className,
       )}
     >
