@@ -37,7 +37,8 @@ export const envSchema = z
       .url()
       .default('http://localhost:5173')
       .transform((value) => new URL(value).origin),
-    COOKIE_SECRET: z.string().min(32).optional(),
+    // Empty counts as unset: a copied `.env.example` carries `COOKIE_SECRET=` and must boot in dev.
+    COOKIE_SECRET: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(32).optional()),
     // General limit per IP; the stricter auth limit is applied per route by the auth module.
     RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
     RATE_LIMIT_MAX: z.coerce.number().int().positive().default(300),

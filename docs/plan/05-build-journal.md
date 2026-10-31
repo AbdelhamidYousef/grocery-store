@@ -463,3 +463,9 @@ Learn: a seq scan is not a bug, it is the planner choosing the cheapest plan for
 1. Why is a sequential scan on `products` fine here, and at what point would you revisit it?
 2. The request takes about 40 ms but the query 0.76 ms. Where does the rest go?
 3. Why was autocannon run through `pnpm dlx` instead of added as a dependency?
+
+## Phase 13 (README)
+
+### 13.4 — README as a case study
+`README.md` now follows the plan's section list (what it is, screenshots, architecture, stack and why, data model, checkout sequence, engineering notes, testing, what I would do differently, local setup, deployment, licence), with three Mermaid diagrams, `LICENSE` (MIT) and a short `CONTRIBUTING.md`. The data model diagram was checked against `apps/api/src/db/schema`, the testing counts come from a full local run (shared 73, web 359, API 611 with 2 skipped, e2e 28 passed with 1 skipped), and the nine screenshots under `docs/screenshots/` were captured fresh with Playwright. Following the README in a fresh clone against a new database took 13 s to install (warm pnpm store), 2 s to migrate and seed and 4 s until `/api/v1/health` answered, about a minute with typing; the first attempt failed because an empty `COOKIE_SECRET` from `.env.example` was rejected, which is fixed in `env.ts` with a test. A stale `tsx watch` API from an earlier session was holding port 3100 without the test-mode switches and made three admin e2e tests fail with 404 on the simulator; stopping it made the suite pass.
+Learn: the fastest way to find out whether setup instructions are true is to follow them literally in a clean checkout; a "reuse existing server" convenience in a test config can silently test the wrong server.

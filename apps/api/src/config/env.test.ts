@@ -59,6 +59,14 @@ describe('Stripe configuration', () => {
   });
 });
 
+describe('development defaults', () => {
+  it('treats an empty COOKIE_SECRET (a copied .env.example) as unset', () => {
+    expect(
+      problems({ DATABASE_URL: 'postgres://u:p@localhost:5432/db', COOKIE_SECRET: '' }),
+    ).toEqual([]);
+  });
+});
+
 describe('production safety', () => {
   const complete = {
     ...prod,
