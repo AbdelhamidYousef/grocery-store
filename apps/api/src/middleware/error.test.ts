@@ -5,8 +5,8 @@ import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
-import { createApp } from '../app.ts';
 import { conflict, forbidden, notFound, unauthenticated, validation } from '../lib/errors.ts';
+import { makeTestApp, TEST_ORIGIN } from '../test/app.ts';
 import { bodyOf, errorOf } from '../test/http.ts';
 
 import { createErrorHandler, notFoundHandler } from './error.ts';
@@ -83,11 +83,12 @@ describe('error middleware', () => {
 });
 
 describe('error handling in the real app', () => {
-  const app = createApp({ logger: pino({ level: 'silent' }), nodeEnv: 'test' });
+  const app = makeTestApp();
 
   it('answers a malformed JSON body with 400 and VALIDATION_ERROR', async () => {
     const res = await request(app)
       .post('/api/v1/anything')
+      .set('Origin', TEST_ORIGIN)
       .set('Content-Type', 'application/json')
       .send('{"broken":');
     expect(res.status).toBe(400);
