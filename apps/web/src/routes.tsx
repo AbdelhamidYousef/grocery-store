@@ -1,6 +1,7 @@
 import { createBrowserRouter, type RouteObject } from 'react-router-dom';
 
 import { AppLayout } from './components/layout/AppLayout';
+import { RequireAdmin, RequireAuth } from './features/auth/guards';
 import CartPage from './pages/CartPage';
 import CategoryPage from './pages/CategoryPage';
 import HomePage from './pages/HomePage';
@@ -45,13 +46,24 @@ export const routes: RouteObject[] = [
             path: 'checkout/confirmation/:number',
             lazy: async () => ({ Component: (await import('./pages/ConfirmationPage')).default }),
           },
+          // Guards are pathless layout routes: they render the matched child via <Outlet />.
           {
-            path: 'account/*',
-            lazy: async () => ({ Component: (await import('./pages/AccountPage')).default }),
+            element: <RequireAuth />,
+            children: [
+              {
+                path: 'account/*',
+                lazy: async () => ({ Component: (await import('./pages/AccountPage')).default }),
+              },
+            ],
           },
           {
-            path: 'admin/*',
-            lazy: async () => ({ Component: (await import('./pages/AdminPage')).default }),
+            element: <RequireAdmin />,
+            children: [
+              {
+                path: 'admin/*',
+                lazy: async () => ({ Component: (await import('./pages/AdminPage')).default }),
+              },
+            ],
           },
           { path: '*', element: <NotFoundPage /> },
         ],

@@ -47,7 +47,9 @@ describe('filters and sort', () => {
 
     await userEvent.type(sidebar().getByRole('textbox', { name: 'Maximum price' }), 'abc');
     await userEvent.tab();
-    expect(await screen.findByRole('alert')).toHaveTextContent('Enter a price like 12.50');
+    expect(await within(screen.getByRole('main')).findByRole('alert')).toHaveTextContent(
+      'Enter a price like 12.50',
+    );
     expect(router.state.location.search).toBe('?minPrice=550');
   });
 
@@ -55,7 +57,9 @@ describe('filters and sort', () => {
     const router = await open('/c/dogs');
     await userEvent.type(sidebar().getByRole('textbox', { name: 'Minimum price' }), '20');
     await userEvent.type(sidebar().getByRole('textbox', { name: 'Maximum price' }), '10{Enter}');
-    expect(await screen.findByRole('alert')).toHaveTextContent('minimum is higher');
+    expect(await within(screen.getByRole('main')).findByRole('alert')).toHaveTextContent(
+      'minimum is higher',
+    );
     // Leaving the minimum box already applied it (blur); the bad pair is not written.
     expect(router.state.location.search).toBe('?minPrice=2000');
   });

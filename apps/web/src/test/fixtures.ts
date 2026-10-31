@@ -4,6 +4,7 @@ import type {
   ProductCard,
   ProductDetail,
   ProductListResponse,
+  User,
   Variant,
 } from '@store/shared';
 
@@ -146,6 +147,17 @@ export function makeProduct(overrides: Partial<ProductDetail> = {}): ProductDeta
         variantId: null,
       },
     ],
+    ...overrides,
+  };
+}
+
+export function makeUser(overrides: Partial<User> = {}): User {
+  return {
+    id: 'u1',
+    email: 'sam@example.com',
+    firstName: 'Sam',
+    lastName: 'Rivers',
+    role: 'customer',
     ...overrides,
   };
 }

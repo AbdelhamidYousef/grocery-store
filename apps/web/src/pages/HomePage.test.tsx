@@ -25,7 +25,9 @@ describe('home page', () => {
   it('keeps the page usable when new arrivals fail to load', async () => {
     server.use(http.get(`${API}/products`, () => HttpResponse.json({}, { status: 500 })));
     renderApp('/');
-    expect(await screen.findByRole('alert')).toHaveTextContent('could not load new arrivals');
+    expect(await within(screen.getByRole('main')).findByRole('alert')).toHaveTextContent(
+      'could not load new arrivals',
+    );
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
   });
 });

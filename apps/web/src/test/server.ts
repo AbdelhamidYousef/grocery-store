@@ -1,12 +1,20 @@
+import type { User } from '@store/shared';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 
-import { makeCard, makeCategory, makeList, makeProduct } from './fixtures';
+import { makeCard, makeCategory, makeList, makeProduct, makeUser } from './fixtures';
 
 export const API = 'http://api.test/api/v1';
 
 // Default answers every test gets; a test overrides one with `server.use(...)`.
 export const server = setupServer(
+  // Nobody is signed in unless a test says so (`server.use(signedInAs(...))`).
+  http.get(`${API}/auth/me`, () =>
+    HttpResponse.json(
+      { error: { code: 'UNAUTHENTICATED', message: 'Sign in required' } },
+      { status: 401 },
+    ),
+  ),
   http.get(`${API}/categories`, () =>
     HttpResponse.json({
       data: [
@@ -37,3 +45,9 @@ export const server = setupServer(
         ),
   ),
 );
+
+export function signedInAs(overrides: Partial<User> = {}) {
+  return http.get(`${API}/auth/me`, () =>
+    HttpResponse.json({ data: { user: makeUser(overrides) } }),
+  );
+}

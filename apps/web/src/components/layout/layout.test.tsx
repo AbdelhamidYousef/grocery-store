@@ -4,6 +4,7 @@ import { createMemoryRouter, MemoryRouter, RouterProvider, useLocation } from 'r
 import { describe, expect, it } from 'vitest';
 
 import { PETS } from '../../lib/pets';
+import { renderWithProviders } from '../../test/render';
 
 import { AppLayout } from './AppLayout';
 import { Breadcrumbs } from './Breadcrumbs';
@@ -20,7 +21,7 @@ function renderShell(initial = '/') {
     [{ element: <AppLayout />, children: [{ path: '*', element: <Where /> }] }],
     { initialEntries: [initial] },
   );
-  return render(<RouterProvider router={router} />);
+  return renderWithProviders(<RouterProvider router={router} />);
 }
 
 describe('AppLayout', () => {
@@ -82,7 +83,7 @@ describe('Header', () => {
   });
 
   it('announces the cart count in the link name and shows a badge', () => {
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <Header cartCount={3} />
       </MemoryRouter>,
@@ -92,14 +93,14 @@ describe('Header', () => {
   });
 
   it('uses the singular for one item and hides the badge at zero', () => {
-    const { unmount } = render(
+    const { unmount } = renderWithProviders(
       <MemoryRouter>
         <Header cartCount={1} />
       </MemoryRouter>,
     );
     expect(screen.getByRole('link', { name: 'Cart, 1 item' })).toBeInTheDocument();
     unmount();
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <Header />
       </MemoryRouter>,

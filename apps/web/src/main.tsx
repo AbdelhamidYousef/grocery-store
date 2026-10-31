@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 
 import { ToastProvider } from './components/ui/Toast';
+import { AuthProvider } from './features/auth/AuthProvider';
 import { createQueryClient } from './lib/query-client';
 import { createAppRouter } from './routes';
 import './styles/globals.css';
@@ -18,7 +19,9 @@ createRoot(root).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <RouterProvider router={router} />
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
       </ToastProvider>
     </QueryClientProvider>
   </StrictMode>,

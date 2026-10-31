@@ -74,7 +74,9 @@ describe('category page', () => {
   it('shows an error with a retry when the list fails', async () => {
     server.use(http.get(`${API}/products`, () => HttpResponse.json({}, { status: 500 })));
     renderApp('/c/dogs');
-    expect(await screen.findByRole('alert')).toHaveTextContent('could not load the products');
+    expect(await within(screen.getByRole('main')).findByRole('alert')).toHaveTextContent(
+      'could not load the products',
+    );
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
   });
 

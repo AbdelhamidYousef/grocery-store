@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AppLayout } from './components/layout/AppLayout';
 import RouteErrorPage from './pages/RouteErrorPage';
 import { renderApp } from './test/render';
+import { server, signedInAs } from './test/server';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -36,6 +37,8 @@ describe('routes', () => {
     ['/admin', 'Admin'],
     ['/admin/products', 'Admin'],
   ])('lazy-loads %s', async (path, heading) => {
+    // The account and admin areas are behind guards; an admin passes both.
+    server.use(signedInAs({ role: 'admin' }));
     renderAt(path);
     expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument();
   });
@@ -93,7 +96,7 @@ describe('routes', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Something went wrong' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('alert')).toHaveTextContent('try again');
+    expect(within(screen.getByRole('main')).getByRole('alert')).toHaveTextContent('try again');
     expect(screen.getByRole('banner')).toBeInTheDocument();
   });
 });

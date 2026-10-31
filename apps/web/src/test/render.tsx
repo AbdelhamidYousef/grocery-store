@@ -1,21 +1,34 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render } from '@testing-library/react';
+import { render, type RenderResult } from '@testing-library/react';
+import type { ReactElement, ReactNode } from 'react';
 import { createMemoryRouter, RouterProvider, type RouteObject } from 'react-router-dom';
 
+import { ToastProvider } from '../components/ui/Toast';
+import { AuthProvider } from '../features/auth/AuthProvider';
 import { routes } from '../routes';
 
-// A fresh QueryClient per render so no test sees another's cache; retries off so an error test
-// does not wait through backoff.
+// The same provider stack as main.tsx. A fresh QueryClient per render so no test sees another's
+// cache; retries off so an error test does not wait through backoff.
+export function TestProviders({ children, client }: { children: ReactNode; client?: QueryClient }) {
+  const queryClient = client ?? new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
+        <AuthProvider>{children}</AuthProvider>
+      </ToastProvider>
+    </QueryClientProvider>
+  );
+}
+
+export function renderWithProviders(ui: ReactElement): RenderResult {
+  return render(<TestProviders>{ui}</TestProviders>);
+}
+
 export function renderApp(
   path: string,
   table: RouteObject[] = routes,
 ): ReturnType<typeof createMemoryRouter> {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const router = createMemoryRouter(table, { initialEntries: [path] });
-  render(
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>,
-  );
+  renderWithProviders(<RouterProvider router={router} />);
   return router;
 }

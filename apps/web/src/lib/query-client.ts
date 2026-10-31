@@ -28,6 +28,14 @@ export function createQueryClient(): QueryClient {
 // one cache entry, and invalidating a prefix (['products']) refreshes everything below it.
 // Defined once here so no component spells a key by hand and typos cannot create a second cache.
 export const keys = {
+  // Signed-in user (or null). Written directly on login/logout, so it never needs a refetch.
+  me: ['me'] as const,
+  cart: ['cart'] as const,
+  account: {
+    all: ['account'] as const,
+    addresses: ['account', 'addresses'] as const,
+    orders: ['account', 'orders'] as const,
+  },
   categories: {
     all: ['categories'] as const,
     detail: (slug: string) => ['categories', slug] as const,

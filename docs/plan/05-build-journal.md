@@ -262,3 +262,9 @@ Learn: webhooks are best-effort, so something must reconcile with the provider's
 1. Walk through two shoppers pressing "pay" at the same instant for the last unit. Which statements make exactly one win, why are the inventory rows locked in variant-id order, and what do the checks in the table itself add?
 2. The browser says the card was charged, but no webhook has arrived yet. What state is the order in, who is allowed to change it to `paid`, which two things check the amount, and what rescues an order whose webhook is lost for good?
 3. Why does the webhook route sit before `express.json()` and the rate limiter, why does a failed handler answer 500 while a duplicate answers 200, and why is the Stripe call made after the database transaction commits rather than inside it?
+
+## Phase 6 (web) — Sign-in and account
+
+### 6.5 — auth state and route guards
+On boot the web asks `GET /auth/me` once, because the session lives in an httpOnly cookie the page cannot read. A 401 is the normal answer for a visitor, so `fetchMe` turns it into `null` and `useAuth()` reports `loading`, `authenticated` or `anonymous`. Login and logout write the `['me']` cache directly, which flips the header menu (name, My account, Sign out) and the guards with no extra request. `RequireAuth` and `RequireAdmin` are layout routes that send an anonymous visitor to `/login?next=<where they were going>`; `next` must be a same-site path, otherwise the login page would be an open redirect. The guards only decide what is shown: the API checks the session and the role again on every request.
+Learn: a 401 on the "who am I" call is data, not a failure; a guard is a courtesy to the user, never the security boundary.
