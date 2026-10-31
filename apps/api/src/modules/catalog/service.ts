@@ -3,6 +3,7 @@ import {
   type Category,
   type CategoryNode,
   type Facets,
+  type ProductDetail,
   type ProductCard,
   type ProductListQuery,
   type ProductListResponse,
@@ -129,5 +130,59 @@ export async function listProducts(query: ProductListQuery): Promise<ProductList
       totalPages: Math.ceil(total / query.limit),
     },
     facets,
+  };
+}
+
+// ---------- product detail ----------
+
+export async function getProduct(slug: string): Promise<ProductDetail> {
+  const rows = await repo.getProductBySlug(slug);
+  // A product with no active variant cannot be bought, so it is as good as missing (the list
+  // hides it for the same reason).
+  if (!rows || rows.variants.length === 0) throw notFound('Product not found');
+
+  const variants = rows.variants.map((v) => {
+    const availableUnits = v.quantity - v.reserved;
+    return {
+      id: v.id,
+      sku: v.sku,
+      name: v.name,
+      options: v.options,
+      priceCents: v.priceCents,
+      compareAtPriceCents: v.compareAtPriceCents,
+      currency: v.currency,
+      isDefault: v.isDefault,
+      // Booleans only: the exact stock level is not for the public.
+      available: availableUnits > 0,
+      lowStock: availableUnits > 0 && availableUnits <= v.lowStockThreshold,
+    };
+  });
+  const prices = variants.map((v) => v.priceCents);
+  const { optionKeys = [], ...publicAttributes } = rows.product.attributes;
+
+  return {
+    id: rows.product.id,
+    slug: rows.product.slug,
+    name: rows.product.name,
+    description: rows.product.description,
+    category: rows.category,
+    breadcrumb: rows.parent ? [rows.parent, rows.category] : [rows.category],
+    attributes: publicAttributes,
+    optionKeys,
+    price: {
+      minCents: Math.min(...prices),
+      maxCents: Math.max(...prices),
+      currency: variants[0]?.currency ?? 'EUR',
+    },
+    inStock: variants.some((v) => v.available),
+    variants,
+    images: rows.images.map((i) => ({
+      id: i.id,
+      url: i.url,
+      alt: i.alt,
+      width: i.width,
+      height: i.height,
+      variantId: i.variantId,
+    })),
   };
 }

@@ -1,6 +1,7 @@
 import {
   CategoryResponseSchema,
   CategoryTreeResponseSchema,
+  ProductDetailResponseSchema,
   ProductListQuerySchema,
   ProductListResponseSchema,
   SlugParamsSchema,
@@ -27,4 +28,9 @@ const listProducts = { query: ProductListQuerySchema };
 catalogRouter.get('/products', validate(listProducts), async (req, res) => {
   const { query } = valid(req, listProducts);
   respond(res, ProductListResponseSchema, await service.listProducts(query));
+});
+
+catalogRouter.get('/products/:slug', validate(bySlug), async (req, res) => {
+  const { params } = valid(req, bySlug);
+  respond(res, ProductDetailResponseSchema, { data: await service.getProduct(params.slug) });
 });

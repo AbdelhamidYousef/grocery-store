@@ -344,3 +344,107 @@ export async function getFacets(
       price && price.min !== null && price.max !== null ? { min: price.min, max: price.max } : null,
   };
 }
+
+// ---------- product detail ----------
+
+export interface VariantRow {
+  id: string;
+  sku: string;
+  name: string;
+  options: Record<string, string>;
+  priceCents: number;
+  compareAtPriceCents: number | null;
+  currency: string;
+  isDefault: boolean;
+  // Raw stock numbers stay inside the API; the service turns them into booleans.
+  quantity: number;
+  reserved: number;
+  lowStockThreshold: number;
+}
+
+export interface ProductDetailRows {
+  product: {
+    id: string;
+    slug: string;
+    name: string;
+    description: string;
+    attributes: ProductAttributes;
+  };
+  category: { slug: string; name: string };
+  parent: { slug: string; name: string } | null;
+  variants: VariantRow[];
+  images: ProductImageRow[];
+}
+
+// Only `active` products exist for the public: a draft or archived slug is indistinguishable from
+// a missing one (admin preview arrives with phase 6).
+export async function getProductBySlug(slug: string): Promise<ProductDetailRows | undefined> {
+  const [head] = await db
+    .select({
+      product: {
+        id: products.id,
+        slug: products.slug,
+        name: products.name,
+        description: products.description,
+        attributes: products.attributes,
+      },
+      category: { id: categories.id, slug: categories.slug, name: categories.name },
+      parentId: categories.parentId,
+    })
+    .from(products)
+    .innerJoin(categories, eq(categories.id, products.categoryId))
+    .where(and(eq(products.slug, slug), eq(products.status, 'active')));
+  if (!head) return undefined;
+
+  const [parentRows, variants, images] = await Promise.all([
+    head.parentId
+      ? db
+          .select({ slug: categories.slug, name: categories.name })
+          .from(categories)
+          .where(eq(categories.id, head.parentId))
+      : Promise.resolve([]),
+    db
+      .select({
+        id: productVariants.id,
+        sku: productVariants.sku,
+        name: productVariants.name,
+        options: productVariants.options,
+        priceCents: productVariants.priceCents,
+        compareAtPriceCents: productVariants.compareAtPriceCents,
+        currency: productVariants.currency,
+        isDefault: productVariants.isDefault,
+        // A variant row without an inventory row is treated as zero stock.
+        quantity: sql<number>`coalesce(${inventory.quantity}, 0)`,
+        reserved: sql<number>`coalesce(${inventory.reserved}, 0)`,
+        lowStockThreshold: sql<number>`coalesce(${inventory.lowStockThreshold}, 0)`,
+      })
+      .from(productVariants)
+      .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
+      .where(
+        and(eq(productVariants.productId, head.product.id), eq(productVariants.status, 'active')),
+      )
+      // Cheapest first so the picker's order is stable; default variant is flagged, not sorted.
+      .orderBy(asc(productVariants.priceCents), asc(productVariants.name), asc(productVariants.id)),
+    db
+      .select({
+        id: productImages.id,
+        productId: productImages.productId,
+        variantId: productImages.variantId,
+        url: productImages.url,
+        alt: productImages.alt,
+        width: productImages.width,
+        height: productImages.height,
+      })
+      .from(productImages)
+      .where(eq(productImages.productId, head.product.id))
+      .orderBy(asc(productImages.sortOrder), asc(productImages.id)),
+  ]);
+
+  return {
+    product: head.product,
+    category: { slug: head.category.slug, name: head.category.name },
+    parent: parentRows[0] ?? null,
+    variants,
+    images,
+  };
+}
