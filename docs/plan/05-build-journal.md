@@ -314,3 +314,12 @@ Learn: writing "an email is owed" in the same transaction as the change is what 
 ### 9.5 — emails hooked into status changes
 `applyTransition` queues the confirmation when an order becomes `paid` and the shipped email when it becomes `shipped`, inside the same transaction as the status change, with a unique key per kind and order so a replayed webhook queues nothing new. After the commit the webhook, the test simulator and the sweeper kick the drain in the background, and a 30-second timer picks up anything left over. A mail failure therefore never fails a webhook.
 Learn: an outbox moves "send the email" from the request path to a retryable background step; the unique key makes enqueue idempotent, so the webhook's own idempotency carries over to email.
+
+### 9.6 — inventory invariants test
+`inventory-invariants.test.ts` runs seeded random sequences of checkouts, payments, intent cancellations, admin moves, dashboard refunds and stale sweeps, some raced in pairs, over variants with only a few units. After every step it asserts that stock is never negative, `reserved` never exceeds `quantity`, `reserved` equals the units in pending orders, and `quantity` equals the starting stock minus the units of orders that really took stock. The expectation is derived from order rows, not from the code's counters, and a failure message names the seed and step.
+Learn: a property test states what must always be true and lets random sequences hunt for the counterexample; seeding the generator makes a failure replayable; checking against independently derived totals is what separates a test from a restatement of the code.
+
+### Phase 9 (API) quiz
+1. A paid, not yet shipped order is cancelled by an admin. List, in order, what happens at Stripe, in `inventory`, in `payments`, in the history and in the email outbox, and say why the Stripe call comes before the database transaction.
+2. The webhook commits "order paid" and the process dies before any email is sent. What is on disk, who sends the email and when, and in which single crash window could the customer get it twice?
+3. Why is a shipped-then-refunded order not restocked automatically, while a paid-then-refunded one is, and which two places in the code encode that rule?
