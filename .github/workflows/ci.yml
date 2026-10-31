@@ -64,5 +64,5 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # Migrations arrive in phase 1; add `pnpm db:migrate` here once that script exists.
+      - run: pnpm db:migrate
       - run: pnpm test

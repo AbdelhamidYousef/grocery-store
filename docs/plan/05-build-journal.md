@@ -35,3 +35,8 @@ The README is a deliberately small stub: a working title, one line on what the p
 1. Why does `createApp()` exist separately from the code that calls `listen`, and what does that buy the tests?
 2. In dev the browser calls `/api/...` on port 5173, not 3000. What makes that work, and why does it spare you CORS and cookie problems locally?
 3. Why are prices stored and summed as integer cents, and which helper turns them into text for the user?
+
+## Phase 1 — Database
+
+### 1.1 — Drizzle setup
+The API now has a Drizzle client (`postgres` pool with `max` 10 and an idle timeout), a Zod-validated `DATABASE_URL`, a `drizzle.config.ts` and a migrator script behind `pnpm db:migrate`. Migration 0000 is hand-written SQL: the `citext` extension and the `set_updated_at()` trigger function that every table will attach. Migrations are the source of truth because they are the exact, reviewed, replayable history that production runs; `drizzle-kit generate` writes that history as SQL files, while `push` diffs the schema against a live database and mutates it with no record, so it is for throwaway experiments only. The env is validated at boot so a missing or malformed variable stops the process with a clear message, instead of surfacing as a confusing failure on the first query.

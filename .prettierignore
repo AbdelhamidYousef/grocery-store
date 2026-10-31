@@ -8,3 +8,4 @@ pnpm-lock.yaml
 # Tracked prose: prettier would reflow the plan's tables and wrapping
 docs
 *.md
+apps/api/src/db/migrations/

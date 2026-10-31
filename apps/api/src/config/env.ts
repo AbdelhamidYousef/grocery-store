@@ -10,6 +10,9 @@ dotenv.config({ path: fileURLToPath(new URL('../../../../.env', import.meta.url)
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
+  DATABASE_URL: z.url(),
+  // Only the test harness needs it; optional so the dev server boots without it.
+  DATABASE_URL_TEST: z.url().optional(),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
 });
 
