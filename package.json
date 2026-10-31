@@ -1,0 +1,25 @@
+{
+  "name": "pawsome",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "packageManager": "pnpm@12.16.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "typecheck": "tsc -b",
+    "lint": "echo 'lint: not configured yet (step 0.6)'",
+    "format": "echo 'format: not configured yet (step 0.6)'",
+    "format:check": "echo 'format:check: not configured yet (step 0.6)'",
+    "test": "pnpm -r --if-present test",
+    "e2e": "echo 'e2e: added in phase 11'",
+    "db:migrate": "pnpm --filter @store/api db:migrate",
+    "db:seed": "pnpm --filter @store/api db:seed"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.3"
+  }
+}
