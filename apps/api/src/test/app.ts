@@ -28,6 +28,7 @@ export function makeTestApp(
       webOrigin: TEST_ORIGIN,
       cookieSecret: 'test-cookie-secret-test-cookie-secret',
       rateLimit: { windowMs: 60_000, limit: 100_000 },
+      authRateLimit: { windowMs: 60_000, limit: 100_000 },
       ...opts.config,
     },
   });

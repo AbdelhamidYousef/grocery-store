@@ -17,6 +17,8 @@ export interface AppConfig {
   webOrigin: string;
   cookieSecret: string;
   rateLimit: RateLimitOptions;
+  /** Stricter limit for credential endpoints (login, register, password change). */
+  authRateLimit: RateLimitOptions;
 }
 
 export interface AppDeps {
@@ -59,7 +61,7 @@ export function createApp({ logger, pingDb, config }: AppDeps): Express {
   app.use(createCsrfCheck({ webOrigin: config.webOrigin }));
 
   app.use('/api/v1', createHealthRouter({ pingDb }));
-  app.use('/api/v1', createModulesRouter());
+  app.use('/api/v1', createModulesRouter({ authRateLimit: config.authRateLimit }));
 
   // Order matters: unknown routes first, then the error handler that catches everything above.
   app.use(notFoundHandler);

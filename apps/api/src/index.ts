@@ -18,6 +18,7 @@ const app = createApp({
     webOrigin: env.WEB_ORIGIN,
     cookieSecret: env.COOKIE_SECRET,
     rateLimit: { windowMs: env.RATE_LIMIT_WINDOW_MS, limit: env.RATE_LIMIT_MAX },
+    authRateLimit: { windowMs: env.RATE_LIMIT_AUTH_WINDOW_MS, limit: env.RATE_LIMIT_AUTH_MAX },
   },
 });
 
