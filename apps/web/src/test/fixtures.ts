@@ -179,6 +179,7 @@ export function makeProduct(overrides: Partial<ProductDetail> = {}): ProductDeta
         variantId: null,
       },
     ],
+    safetyNotices: [],
     ...overrides,
   };
 }

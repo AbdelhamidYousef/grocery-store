@@ -85,6 +85,13 @@
       "when": 1794067082248,
       "tag": "0011_contact_messages",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794067095357,
+      "tag": "0012_safety_notices",
+      "breakpoints": true
     }
   ]
 }

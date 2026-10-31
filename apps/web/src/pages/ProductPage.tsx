@@ -19,6 +19,7 @@ import { Gallery } from '../features/catalog/Gallery';
 import { useProduct } from '../features/catalog/queries';
 import { variantFromSku } from '../features/catalog/resolve-variant';
 import { VariantPicker } from '../features/catalog/VariantPicker';
+import { SafetyNoticeBox } from '../features/safety/SafetyNoticeBox';
 import { accentForPetAttribute, petBySlug } from '../lib/pets';
 import { TEST_IDS } from '../lib/test-ids';
 import { track } from '../lib/track';
@@ -121,6 +122,10 @@ function ProductView({ product }: { product: ProductDetail }) {
                 <ProductBadges badges={product.badges} />
               </div>
             </div>
+
+            {product.safetyNotices.map((notice) => (
+              <SafetyNoticeBox key={notice.id} notice={notice} />
+            ))}
 
             {variant ? (
               <Price

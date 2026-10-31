@@ -4,6 +4,7 @@ import { BADGES, BADGE_SLUGS } from '../badges.ts';
 import { NetUnitSchema } from '../pets.ts';
 
 import { PaginatedSchema, PaginationQuerySchema, DataSchema } from './common.ts';
+import { SafetyNoticeSchema } from './safety.ts';
 
 // Attribute keys the shop filters and builds facets on. A constant, not "whatever is in the
 // jsonb", so the filter UI is predictable and the facet query stays cheap.
@@ -172,6 +173,8 @@ export const ProductDetailSchema = z.object({
   inStock: z.boolean(),
   variants: z.array(VariantSchema),
   images: z.array(ImageSchema),
+  // Active safety notices (recalls, warnings) that touch any variant of this product.
+  safetyNotices: z.array(SafetyNoticeSchema),
 });
 export type ProductDetail = z.infer<typeof ProductDetailSchema>;
 export const ProductDetailResponseSchema = DataSchema(ProductDetailSchema);

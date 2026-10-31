@@ -91,6 +91,7 @@ export const keys = {
     orderList: (params: AdminOrderListParams) => ['admin', 'orders', 'list', params] as const,
     order: (number: string) => ['admin', 'orders', 'detail', number] as const,
   },
+  safety: { active: ['safety', 'active'] as const },
   help: {
     all: ['help'] as const,
     search: (params: { q?: string | undefined; topic?: string | undefined }) =>

@@ -6,6 +6,7 @@ import { Seo } from '../components/Seo';
 import { PetTiles } from '../features/catalog/PetTiles';
 import { ProductGrid, ProductGridSkeleton } from '../features/catalog/ProductGrid';
 import { useProducts } from '../features/catalog/queries';
+import { SafetyBanner } from '../features/safety/SafetyBanner';
 import { image600 } from '../lib/images';
 import { TEST_IDS } from '../lib/test-ids';
 import { track } from '../lib/track';
@@ -42,6 +43,8 @@ export default function HomePage() {
         title="Pawsome"
         description="Colourful, tough and tail-wag-approved supplies for dogs, cats, birds, fish and small pets."
       />
+
+      <SafetyBanner />
 
       <section className="bg-primary-soft">
         <Container className="grid grid-cols-1 items-center gap-8 py-10 md:grid-cols-2 md:py-16">

@@ -46,6 +46,8 @@ export const server = setupServer(
       data: makeOrder({ status: 'pending_payment', paymentStatus: 'processing' }),
     }),
   ),
+  // No safety notices unless a test says so.
+  http.get(`${API}/safety-notices/active`, () => HttpResponse.json({ data: [] })),
   http.get(`${API}/categories`, () =>
     HttpResponse.json({
       data: [

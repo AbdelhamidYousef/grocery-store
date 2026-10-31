@@ -14,6 +14,7 @@ import {
 } from '@store/shared';
 
 import { notFound } from '../../lib/errors.ts';
+import { noticesForVariants } from '../safety/service.ts';
 
 import { getBadgeIndex, type BadgeIndex } from './badge-index.ts';
 import * as repo from './repo.ts';
@@ -299,5 +300,8 @@ export async function getProduct(slug: string): Promise<ProductDetail> {
       height: i.height,
       variantId: i.variantId,
     })),
+    // Notices are looked up by variant: a recall is often one size, and the page then warns about
+    // the product as a whole (the shopper may switch variants without a reload).
+    safetyNotices: await noticesForVariants(rows.variants.map((v) => v.id)),
   };
 }
