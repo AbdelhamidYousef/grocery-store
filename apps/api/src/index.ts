@@ -3,7 +3,7 @@ import { env } from './config/env.ts';
 import { createLogger } from './lib/logger.ts';
 
 // Bootstrap only: read config, build the app, listen. Anything testable lives in createApp().
-const logger = createLogger(env.LOG_LEVEL);
+const logger = createLogger({ level: env.LOG_LEVEL, pretty: env.NODE_ENV === 'development' });
 const app = createApp({ logger });
 
 app.listen(env.PORT, () => {
