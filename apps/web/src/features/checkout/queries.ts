@@ -1,6 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { fetchShippingQuotes } from '../../api/checkout';
+import { fetchShippingQuotes, placeOrder } from '../../api/checkout';
+import { ApiError } from '../../api/client';
 import { keys } from '../../lib/query-client';
 import { useCart } from '../cart/queries';
 
@@ -31,4 +32,22 @@ export function useFreeShippingThreshold(): number | null {
     q.freeOverCents === null ? [] : [q.freeOverCents],
   );
   return thresholds.length > 0 ? Math.min(...thresholds) : null;
+}
+
+// ---------- placing the order ----------
+
+// Creates (or updates) the cart's pending order and its payment intent. The cart is NOT touched on
+// success: the server converts it only when the payment is confirmed, so a shopper who abandons
+// the payment step still has a cart. A 409 CART_CHANGED means the server repriced something, so
+// the cart is refetched and the page shows what changed.
+export function usePlaceOrder() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: placeOrder,
+    onError: (error) => {
+      if (error instanceof ApiError && error.code === 'CART_CHANGED') {
+        void queryClient.invalidateQueries({ queryKey: keys.cart });
+      }
+    },
+  });
 }

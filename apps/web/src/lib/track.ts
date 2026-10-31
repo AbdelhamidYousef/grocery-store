@@ -14,7 +14,17 @@ export type AnalyticsEvent =
   | { name: 'view_item_list'; listId: string; items: TrackItem[] }
   | { name: 'view_item'; item: TrackItem }
   | { name: 'add_to_cart'; item: TrackItem; quantity: number }
-  | { name: 'remove_from_cart'; item: TrackItem; quantity: number };
+  | { name: 'remove_from_cart'; item: TrackItem; quantity: number }
+  // Money fields are integer cents like everywhere else; a provider adapter converts if it must.
+  | { name: 'begin_checkout'; valueCents: number; currency: string; items: TrackItem[] }
+  | { name: 'add_payment_info'; valueCents: number; currency: string; shippingMethod: string }
+  | {
+      name: 'purchase';
+      orderNumber: string;
+      valueCents: number;
+      currency: string;
+      items: TrackItem[];
+    };
 
 export function track(event: AnalyticsEvent): void {
   if (import.meta.env.DEV) {

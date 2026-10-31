@@ -3,6 +3,9 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [react()],
+  // One `.env` at the repo root for the API and the web (only VITE_-prefixed names reach the
+  // browser bundle, so the secret keys in the same file are never exposed).
+  envDir: '../..',
   server: {
     port: 5173,
     // The browser only ever talks to :5173; Vite forwards /api to the API server. That keeps

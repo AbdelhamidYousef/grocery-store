@@ -342,3 +342,9 @@ Learn: when the UI offers only what the server says is allowed, the 409 becomes 
 1. A customer's browser calls `GET /admin/orders` and a guest's calls `POST /admin/products`. What does each get and why, and why is the guard one `router.use` on the prefix instead of a check inside each route?
 2. An admin sets stock to 2 while three units are reserved by unpaid orders. What happens, which lock makes the answer reliable against a checkout running at the same moment, and what is written to `inventory_adjustments` when the same admin sets it to 12?
 3. Why does `PATCH /admin/products/:id` replace the whole image list instead of editing single images, and why does the product page's last-edited time still change when only an image changed?
+
+## Phase 8 (web) — Checkout
+
+### 8.8 — checkout page
+`/checkout` is one page with three sections: contact and address (the shared Zod schema checks it, a signed-in shopper gets it pre-filled from their default address and a "save this address" box, a guest gets a sign-in hint), shipping method (the server's quotes for this cart and country, cheapest preselected) and payment. Only the active section is open; finished ones collapse to a summary with an Edit button. "Continue to payment" calls `POST /checkout`, and the Stripe Payment Element mounts with the returned client secret; the Pay button says "Pay €X" with the server's total, and the sidebar never adds money up itself. With no `VITE_STRIPE_PUBLISHABLE_KEY` the payment step says payments are not configured and no order is created, so a fresh clone neither crashes nor holds stock for nothing.
+Learn: the client secret is permission to confirm exactly one payment, not a secret about money; `redirect: 'if_required'` keeps plain card payments on the page and only leaves for methods like 3-D Secure; the total comes from the server because the browser can be edited by anyone.

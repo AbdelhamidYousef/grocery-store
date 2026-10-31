@@ -25,10 +25,11 @@ export function useChangePassword() {
   return useMutation({ mutationFn: changePassword });
 }
 
-export function useAddresses() {
+export function useAddresses({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: keys.account.addresses,
     queryFn: ({ signal }) => fetchAddresses(signal),
+    enabled,
   });
 }
 
