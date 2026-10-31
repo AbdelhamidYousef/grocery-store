@@ -25,6 +25,11 @@ export class FakeStripe implements PaymentGateway {
   private failures: Method[] = [];
   private counter = 0;
 
+  // Tests rely on the first intent being `pi_fake_1`. A server that boots the fake against a
+  // database that outlives it must pass a prefix that is unique per process (see lib/gateway.ts),
+  // or after a restart the counter would reissue ids that payments rows already hold.
+  constructor(private readonly idPrefix = 'pi_fake_') {}
+
   // The next call to `method` (and only that one) rejects like an unavailable provider.
   failNext(method: Method): void {
     this.failures.push(method);
@@ -64,7 +69,7 @@ export class FakeStripe implements PaymentGateway {
       this.enter('create', input);
       const existing = this.byKey.get(input.idempotencyKey);
       if (existing) return this.require(existing);
-      const id = `pi_fake_${++this.counter}`;
+      const id = `${this.idPrefix}${++this.counter}`;
       const pi: PaymentIntentInfo = {
         id,
         status: 'requires_payment_method',

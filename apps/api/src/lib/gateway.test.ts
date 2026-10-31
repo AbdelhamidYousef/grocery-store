@@ -26,6 +26,24 @@ describe('selectPaymentGateway', () => {
     );
   });
 
+  it('gives every boot its own intent ids, because the database outlives the process', async () => {
+    const input = {
+      amountCents: 100,
+      currency: 'eur',
+      orderId: 'o',
+      orderNumber: 'PW-2026-000001',
+      email: 'a@b.test',
+      idempotencyKey: 'k',
+    };
+    const first = await (
+      await selectPaymentGateway({ NODE_ENV: 'test' })
+    ).gateway.createPaymentIntent(input);
+    const second = await (
+      await selectPaymentGateway({ NODE_ENV: 'test' })
+    ).gateway.createPaymentIntent(input);
+    expect(first.id).not.toBe(second.id);
+  });
+
   it.each(['development', 'production'] as const)(
     'never gives the fake to %s: no key means "not configured"',
     async (NODE_ENV) => {

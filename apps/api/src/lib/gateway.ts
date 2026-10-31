@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import { createStripeGateway, createUnconfiguredGateway, type PaymentGateway } from './stripe.ts';
 
 export interface GatewayEnv {
@@ -31,7 +33,10 @@ export async function selectPaymentGateway(
   }
   if (env.NODE_ENV === 'test') {
     const { FakeStripe } = await import('../test/fake-stripe.ts');
-    return { kind: 'fake', gateway: new FakeStripe() };
+    // The prefix is unique per boot: this server's database outlives it (the e2e suite reuses the
+    // dev database), and `payments.provider_payment_intent_id` is unique, so a restarted counter
+    // would collide with the intents of earlier runs.
+    return { kind: 'fake', gateway: new FakeStripe(`pi_fake_${randomUUID().slice(0, 8)}_`) };
   }
   return { kind: 'unconfigured', gateway: createUnconfiguredGateway() };
 }
