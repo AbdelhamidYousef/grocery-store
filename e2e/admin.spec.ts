@@ -321,6 +321,10 @@ test.describe('orders', () => {
     await expect(page.getByRole('button', { name: 'Mark paid' })).toHaveCount(0);
     await page.getByRole('button', { name: 'Start processing' }).click();
     await expect(page.getByTestId('admin-order-status')).toContainText('Processing');
+    // The note box is cleared when the move is confirmed; wait for that before typing the next one.
+    await expect(
+      page.getByTestId('toast').filter({ hasText: 'Order is now processing' }),
+    ).toBeVisible();
     await page.getByLabel('Note (optional)').fill('Packed with a treat');
     await page.getByRole('button', { name: 'Mark shipped' }).click();
     await expect(page.getByTestId('admin-order-status')).toContainText('Shipped');
