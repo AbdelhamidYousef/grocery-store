@@ -50,6 +50,13 @@
       "when": 1793434806611,
       "tag": "0006_email_outbox",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793436498918,
+      "tag": "0007_inventory_adjustments",
+      "breakpoints": true
     }
   ]
 }

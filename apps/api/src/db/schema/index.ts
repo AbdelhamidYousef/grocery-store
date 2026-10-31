@@ -3,6 +3,7 @@ export * from './cart-items.ts';
 export * from './carts.ts';
 export * from './categories.ts';
 export * from './email-outbox.ts';
+export * from './inventory-adjustments.ts';
 export * from './inventory.ts';
 export * from './order-items.ts';
 export * from './order-status-history.ts';

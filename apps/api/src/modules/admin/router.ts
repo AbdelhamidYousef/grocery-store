@@ -3,6 +3,7 @@ import { Router as ExpressRouter, type Router } from 'express';
 import { requireAdmin } from '../../middleware/auth.ts';
 
 import { auditMutations } from './audit.ts';
+import { createProductsRouter } from './products/router.ts';
 import { createStatsRouter } from './stats/router.ts';
 
 // Everything under /admin is behind `requireAdmin` (401 for a guest, 403 for a customer) and the
@@ -15,6 +16,7 @@ export function createAdminRouter(): Router {
 
   const admin = ExpressRouter();
   admin.use(createStatsRouter());
+  admin.use(createProductsRouter());
   router.use('/admin', admin);
   return router;
 }
