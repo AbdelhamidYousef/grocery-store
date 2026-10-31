@@ -28,18 +28,27 @@ interface ProductListingProps {
   q?: string;
   /** Set on collection pages. */
   collection?: string;
+  /** Set on brand pages: the brand is the page, so it is fixed and its facet is hidden. */
+  brand?: string;
 }
 
 // The listing shared by /c/:slug and /search: reads the URL, asks the API, and renders the
 // states (loading, error, empty, results, page out of range). Filters and sort controls attach
 // here: a sidebar on desktop, a drawer on phones, both built from the API's `facets`.
-export function ProductListing({ listId, category, q, collection }: ProductListingProps) {
+export function ProductListing({ listId, category, q, collection, brand }: ProductListingProps) {
   const { query, search, update, clear } = useProductListParams();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   // The route decides category and query; a stray `?category=` or `?limit=` in the URL must not
   // override it, so those are set last.
-  const params: ProductListParams = { ...query, category, q, collection, limit: PAGE_SIZE };
+  const params: ProductListParams = {
+    ...query,
+    category,
+    q,
+    collection,
+    ...(brand && { brand: [brand] }),
+    limit: PAGE_SIZE,
+  };
   const { data, isPending, isError, isFetching, refetch } = useProducts(params, {
     keepPrevious: true,
   });
@@ -87,6 +96,8 @@ export function ProductListing({ listId, category, q, collection }: ProductListi
   }
 
   const { meta } = data;
+  // On a brand page the brand is the page itself, so offering other brands would be a trap.
+  const facets = brand ? { ...data.facets, brand: [] } : data.facets;
   const first = (meta.page - 1) * meta.limit + 1;
   const last = first + data.data.length - 1;
 
@@ -109,7 +120,7 @@ export function ProductListing({ listId, category, q, collection }: ProductListi
             the whole sidebar (the long material list already scrolls in its own small box). */}
         <div className="pr-2">
           <h2 className="mb-4 font-display text-xl font-bold">Filters</h2>
-          <FilterPanel facets={data.facets} query={query} currency={currency} update={update} />
+          <FilterPanel facets={facets} query={query} currency={currency} update={update} />
         </div>
       </aside>
 
@@ -160,7 +171,7 @@ export function ProductListing({ listId, category, q, collection }: ProductListi
 
         <AppliedFilters
           query={query}
-          facets={data.facets}
+          facets={facets}
           currency={currency}
           update={update}
           onClear={clear}
@@ -192,7 +203,7 @@ export function ProductListing({ listId, category, q, collection }: ProductListi
         placement="left"
       >
         <FilterPanel
-          facets={data.facets}
+          facets={facets}
           query={query}
           currency={currency}
           update={update}

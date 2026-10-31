@@ -119,12 +119,22 @@ const RabbitIcon = (p: IconProps) => (
   </Svg>
 );
 
+const LizardIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M3 17c3 0 4-3 6-3h6c2.500 0 3-2 3-4 0-1.500 1-2.500 2.500-2.500" />
+    <path d="M9 14l-1.500 3.500M15 14l1.500 3.500M9 14L7 11M15 14l2-3" />
+    <circle cx="20" cy="7.500" r=".7" fill="currentColor" />
+    <path d="M3 17c-.8.8-.8 2 0 2.500" />
+  </Svg>
+);
+
 const petIcons: Record<PetIcon, (p: IconProps) => React.JSX.Element> = {
   dog: DogIcon,
   cat: CatIcon,
   bird: BirdIcon,
   fish: FishIcon,
   rabbit: RabbitIcon,
+  lizard: LizardIcon,
 };
 
 export function PetGlyph({ icon, ...rest }: IconProps & { icon: PetIcon }) {

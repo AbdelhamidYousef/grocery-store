@@ -1,4 +1,4 @@
-// The five pet categories as a typed constant. `slug` matches the seeded top-level category slug
+// The six pet categories as a typed constant. `slug` matches the seeded top-level category slug
 // (so `/c/dogs` works), `accent` is the value for `data-pet` (see styles/tokens.css) and `icon`
 // picks the glyph in components/icons.
 // Phase 5 moves category pages to API data; until then the nav and footer use this list so the
@@ -9,6 +9,7 @@ export const PETS = [
   { slug: 'birds', name: 'Birds', accent: 'bird', icon: 'bird' },
   { slug: 'fish', name: 'Fish', accent: 'fish', icon: 'fish' },
   { slug: 'small-pets', name: 'Small Pets', accent: 'small-pet', icon: 'rabbit' },
+  { slug: 'reptiles', name: 'Reptiles', accent: 'reptile', icon: 'lizard' },
 ] as const;
 
 export type Pet = (typeof PETS)[number];
@@ -23,6 +24,7 @@ const ATTRIBUTE_TO_ACCENT: Record<string, PetAccent> = {
   bird: 'bird',
   fish: 'fish',
   small: 'small-pet',
+  reptile: 'reptile',
 };
 
 export function accentForPetAttribute(pet: string | undefined): PetAccent | undefined {

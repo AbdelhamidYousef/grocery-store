@@ -2,8 +2,11 @@ import { createBrowserRouter, type RouteObject } from 'react-router-dom';
 
 import { AppLayout } from './components/layout/AppLayout';
 import { RequireAdmin, RequireAuth } from './features/auth/guards';
+import BrandPage from './pages/BrandPage';
+import BrandsPage from './pages/BrandsPage';
 import CartPage from './pages/CartPage';
 import CategoryPage from './pages/CategoryPage';
+import CollectionPage from './pages/CollectionPage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -34,6 +37,9 @@ export const routes: RouteObject[] = [
           { index: true, element: <HomePage /> },
           { path: 'c/:slug', element: <CategoryPage /> },
           { path: 'products/:slug', element: <ProductPage /> },
+          { path: 'brands', element: <BrandsPage /> },
+          { path: 'brands/:slug', element: <BrandPage /> },
+          { path: 'collections/:slug', element: <CollectionPage /> },
           { path: 'search', element: <SearchPage /> },
           { path: 'cart', element: <CartPage /> },
           { path: 'login', element: <LoginPage /> },

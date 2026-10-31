@@ -11,6 +11,9 @@ export interface TrackItem {
 
 export type AnalyticsEvent =
   | { name: 'view_home' }
+  | { name: 'view_brands' }
+  | { name: 'view_brand'; slug: string }
+  | { name: 'view_collection'; slug: string }
   | { name: 'view_item_list'; listId: string; items: TrackItem[] }
   | { name: 'view_item'; item: TrackItem }
   | { name: 'add_to_cart'; item: TrackItem; quantity: number }

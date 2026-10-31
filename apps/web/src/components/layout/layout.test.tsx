@@ -37,17 +37,28 @@ describe('AppLayout', () => {
     expect(skip).toHaveAttribute('href', '#main');
   });
 
-  it('lists the five pets in the header nav, each with its accent', () => {
+  it('lists the six pets and Brands in the header nav, each pet with its accent', () => {
     renderShell();
     const items = within(screen.getByTestId('main-nav')).getAllByRole('listitem');
-    expect(items).toHaveLength(PETS.length);
+    // The pets, then the Brands link (which has no pet accent).
+    expect(items).toHaveLength(PETS.length + 1);
     expect(items.map((li) => li.getAttribute('data-pet'))).toEqual([
       'dog',
       'cat',
       'bird',
       'fish',
       'small-pet',
+      'reptile',
+      null,
     ]);
+    expect(within(items[5]!).getByRole('link', { name: 'Reptiles' })).toHaveAttribute(
+      'href',
+      '/c/reptiles',
+    );
+    expect(within(items[6]!).getByRole('link', { name: 'Brands' })).toHaveAttribute(
+      'href',
+      '/brands',
+    );
     expect(within(items[0]!).getByRole('link', { name: 'Dogs' })).toHaveAttribute(
       'href',
       '/c/dogs',

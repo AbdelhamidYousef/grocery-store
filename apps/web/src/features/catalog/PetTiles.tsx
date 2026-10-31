@@ -12,15 +12,14 @@ export function PetTiles() {
   const counts = new Map(categories?.map((c) => [c.slug, c.productCount]));
 
   return (
-    <ul className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-5" data-testid="pet-tiles">
+    <ul
+      className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-6"
+      data-testid="pet-tiles"
+    >
       {PETS.map((pet) => {
         const count = counts.get(pet.slug);
         return (
-          <li
-            key={pet.slug}
-            data-pet={pet.accent}
-            className="min-w-0 last:col-span-2 md:last:col-span-1"
-          >
+          <li key={pet.slug} data-pet={pet.accent} className="min-w-0">
             <Link
               to={`/c/${pet.slug}`}
               className="flex h-full flex-col items-center gap-3 rounded-card bg-pet-soft p-5 text-center text-pet-strong shadow-card transition-transform hover:-translate-y-0.5"

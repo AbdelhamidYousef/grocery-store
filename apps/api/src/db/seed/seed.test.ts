@@ -66,6 +66,14 @@ describe('seed', () => {
     expect(new Date(String(next?.starts_at)).toISOString()).toBe('2027-10-01T00:00:00.000Z');
   });
 
+  it('keeps every trial size well stocked', async () => {
+    await runSeed();
+    const rows = await db.execute<{ n: number }>(sql`
+      select count(*)::int as n from product_variants v join inventory i on i.variant_id = v.id
+      where v.is_trial and i.quantity < 30`);
+    expect(rows[0]?.n).toBe(0);
+  });
+
   it('does not reset stock on a second run', async () => {
     await runSeed();
     await db.execute(sql`update inventory set quantity = 777`);

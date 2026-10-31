@@ -49,7 +49,7 @@ describe('admin shell', () => {
       within(nav)
         .getAllByRole('link')
         .map((l) => l.textContent),
-    ).toEqual(['Dashboard', 'Products', 'Orders']);
+    ).toEqual(['Dashboard', 'Products', 'Orders', 'Brands', 'Collections', 'Tags']);
     expect(document.head.querySelector('meta[name="robots"]')).toHaveAttribute(
       'content',
       'noindex',

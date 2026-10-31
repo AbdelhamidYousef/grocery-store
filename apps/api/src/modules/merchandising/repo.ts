@@ -100,13 +100,14 @@ export async function deleteCollection(id: string) {
   await db.delete(collections).where(eq(collections.id, id));
 }
 
-export async function listCollectionProductIds(collectionId: string): Promise<string[]> {
-  const rows = await db
-    .select({ id: collectionProducts.productId })
+// The members with their names, in the editor's order (all statuses: an admin sees drafts too).
+export async function listCollectionMembers(collectionId: string) {
+  return db
+    .select({ id: products.id, name: products.name, slug: products.slug })
     .from(collectionProducts)
+    .innerJoin(products, eq(products.id, collectionProducts.productId))
     .where(eq(collectionProducts.collectionId, collectionId))
-    .orderBy(asc(collectionProducts.position), asc(collectionProducts.productId));
-  return rows.map((r) => r.id);
+    .orderBy(asc(collectionProducts.position), asc(products.id));
 }
 
 export async function countExistingProducts(run: Db, ids: string[]): Promise<number> {

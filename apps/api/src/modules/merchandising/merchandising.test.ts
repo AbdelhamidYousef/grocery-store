@@ -173,6 +173,7 @@ describe('admin: collections', () => {
       productIds: order,
     });
     expect(data<AdminCollection>(set).productIds).toEqual(order);
+    expect(data<AdminCollection>(set).products.map((p) => p.name)).toEqual(['C', 'A', 'B']);
     // Reordering replaces the list.
     const swapped = [b.product.id, c.product.id];
     const second = await admin.shopper.call('put', `/admin/collections/${collection.id}/products`, {

@@ -84,6 +84,9 @@ export const keys = {
     products: ['admin', 'products'] as const,
     productList: (params: AdminProductListParams) => ['admin', 'products', 'list', params] as const,
     product: (id: string) => ['admin', 'products', 'detail', id] as const,
+    brands: ['admin', 'brands'] as const,
+    collections: ['admin', 'collections'] as const,
+    tags: ['admin', 'tags'] as const,
     orders: ['admin', 'orders'] as const,
     orderList: (params: AdminOrderListParams) => ['admin', 'orders', 'list', params] as const,
     order: (number: string) => ['admin', 'orders', 'detail', number] as const,
@@ -91,6 +94,14 @@ export const keys = {
   categories: {
     all: ['categories'] as const,
     detail: (slug: string) => ['categories', slug] as const,
+  },
+  brands: {
+    all: ['brands'] as const,
+    detail: (slug: string) => ['brands', slug] as const,
+  },
+  collections: {
+    all: ['collections'] as const,
+    detail: (slug: string) => ['collections', slug] as const,
   },
   products: {
     all: ['products'] as const,

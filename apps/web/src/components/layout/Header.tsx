@@ -110,6 +110,14 @@ export function Header({
                 </NavLink>
               </li>
             ))}
+            <li>
+              <NavLink
+                to="/brands"
+                className="flex min-h-11 items-center rounded-full px-4 font-display font-semibold hover:bg-pet-soft aria-[current=page]:bg-pet-soft"
+              >
+                Brands
+              </NavLink>
+            </li>
           </ul>
         </Container>
       </nav>

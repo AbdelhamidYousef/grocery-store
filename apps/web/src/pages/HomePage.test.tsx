@@ -7,13 +7,13 @@ import { renderApp } from '../test/render';
 import { server, API } from '../test/server';
 
 describe('home page', () => {
-  it('shows the hero, five pet tiles with counts and the new arrivals', async () => {
+  it('shows the hero, six pet tiles with counts and the new arrivals', async () => {
     const spy = vi.spyOn(tracking, 'track');
     renderApp('/');
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Happy tails start here');
 
     const tiles = within(screen.getByTestId('pet-tiles'));
-    expect(tiles.getAllByRole('link')).toHaveLength(5);
+    expect(tiles.getAllByRole('link')).toHaveLength(6);
     expect(await tiles.findByText('10 products')).toBeInTheDocument();
 
     const cards = await screen.findAllByTestId('product-card');

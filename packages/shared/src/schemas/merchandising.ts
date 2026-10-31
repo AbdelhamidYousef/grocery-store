@@ -112,8 +112,9 @@ export const AdminCollectionSchema = CollectionSchema.extend({
   sortOrder: z.number().int(),
   // Switched on and inside its window right now (what the public sees).
   isLive: z.boolean(),
-  // Ordered ids, so the admin picker can show and reorder them.
+  // Ordered members (id, name, slug), so the admin picker can show and reorder them.
   productIds: z.array(z.string()),
+  products: z.array(z.object({ id: z.string(), name: z.string(), slug: z.string() })),
 });
 export type AdminCollection = z.infer<typeof AdminCollectionSchema>;
 export const AdminCollectionListResponseSchema = DataSchema(z.array(AdminCollectionSchema));

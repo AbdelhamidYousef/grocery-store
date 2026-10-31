@@ -33,6 +33,15 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
               </NavLink>
             </li>
           ))}
+          <li>
+            <NavLink
+              to="/brands"
+              onClick={onClose}
+              className="flex min-h-12 items-center rounded-control px-3 font-display text-lg font-semibold hover:bg-pet-soft aria-[current=page]:bg-pet-soft"
+            >
+              Brands
+            </NavLink>
+          </li>
         </ul>
       </nav>
     </Dialog>

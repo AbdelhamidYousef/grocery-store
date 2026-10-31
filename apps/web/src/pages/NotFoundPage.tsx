@@ -9,14 +9,11 @@ import { PETS } from '../lib/pets';
 export default function NotFoundPage({
   what = 'page',
 }: {
-  what?: 'page' | 'product' | 'category';
+  what?: 'page' | 'product' | 'category' | 'brand' | 'collection';
 }) {
   return (
     <Container className="py-16 text-center" data-testid="page-not-found">
-      <Seo
-        title={`${what === 'page' ? 'Page' : what === 'product' ? 'Product' : 'Category'} not found`}
-        noindex
-      />
+      <Seo title={`${what.charAt(0).toUpperCase()}${what.slice(1)} not found`} noindex />
       <p className="font-display text-6xl font-bold text-primary-strong" aria-hidden="true">
         404
       </p>

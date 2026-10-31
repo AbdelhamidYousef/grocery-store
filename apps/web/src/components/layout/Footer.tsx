@@ -20,7 +20,7 @@ export function Footer() {
             Pawsome
           </p>
           <p className="max-w-xs text-surface">
-            Happy-tail supplies for dogs, cats, birds, fish and small pets.
+            Happy-tail supplies for dogs, cats, birds, fish, reptiles and small pets.
           </p>
         </div>
 
@@ -31,6 +31,9 @@ export function Footer() {
               {pet.name}
             </Link>
           ))}
+          <Link to="/brands" className={linkClass}>
+            Brands
+          </Link>
         </nav>
 
         <nav aria-label="Account and help" className="flex flex-col">

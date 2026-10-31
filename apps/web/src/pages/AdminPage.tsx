@@ -2,12 +2,15 @@ import { Route, Routes } from 'react-router-dom';
 
 import { Seo } from '../components/Seo';
 import { AdminLayout } from '../features/admin/AdminLayout';
+import { BrandsAdmin } from '../features/admin/BrandsAdmin';
+import { CollectionsAdmin } from '../features/admin/CollectionsAdmin';
 import { Dashboard } from '../features/admin/Dashboard';
 import { OrderDetail } from '../features/admin/OrderDetail';
 import { OrdersList } from '../features/admin/OrdersList';
 import { ProductEdit } from '../features/admin/ProductEdit';
 import { ProductNew } from '../features/admin/ProductNew';
 import { ProductsList } from '../features/admin/ProductsList';
+import { TagsAdmin } from '../features/admin/TagsAdmin';
 
 // One lazy chunk for the whole back office, with its own small route table underneath
 // (`admin/*` in routes.tsx), like the account area. RequireAdmin wraps this route there.
@@ -21,6 +24,9 @@ export default function AdminPage() {
         <Route path="products/:id" element={<ProductEdit />} />
         <Route path="orders" element={<OrdersList />} />
         <Route path="orders/:number" element={<OrderDetail />} />
+        <Route path="brands" element={<BrandsAdmin />} />
+        <Route path="collections" element={<CollectionsAdmin />} />
+        <Route path="tags" element={<TagsAdmin />} />
         <Route path="*" element={<AdminNotFound />} />
       </Route>
     </Routes>

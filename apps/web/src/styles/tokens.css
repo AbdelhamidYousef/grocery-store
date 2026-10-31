@@ -65,6 +65,12 @@
   --pet-strong: #0369a1;
 }
 
+[data-pet='reptile'] {
+  --pet-accent: #34d399;
+  --pet-soft: #d1fae5;
+  --pet-strong: #065f46;
+}
+
 [data-pet='small-pet'] {
   --pet-accent: #a3e635;
   --pet-soft: #ecfccb;

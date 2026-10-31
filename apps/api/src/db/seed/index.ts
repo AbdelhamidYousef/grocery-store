@@ -196,7 +196,9 @@ export async function runSeed(now = new Date()) {
         variantValues.map((v, i) => {
           const id = variantId.get(v.sku);
           if (!id) throw new Error(`variant ${v.sku} was not inserted`);
-          return { variantId: id, quantity: stock[i] ?? 0 };
+          // A sample is the way in to a product, so it is never the sold-out one (the random
+          // stock levels would otherwise leave some samples at 0 or 3).
+          return { variantId: id, quantity: v.isTrial ? 50 : (stock[i] ?? 0) };
         }),
       )
       .onConflictDoNothing();

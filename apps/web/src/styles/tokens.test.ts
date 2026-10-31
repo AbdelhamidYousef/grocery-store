@@ -29,7 +29,7 @@ function readBlock(selector: string): Record<string, string> {
 }
 
 const root = readBlock(':root');
-const pets = ['dog', 'cat', 'bird', 'fish', 'small-pet'] as const;
+const pets = ['dog', 'cat', 'bird', 'fish', 'small-pet', 'reptile'] as const;
 const AA_TEXT = 4.5;
 
 describe('design tokens meet WCAG AA for text', () => {

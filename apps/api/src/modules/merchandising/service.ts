@@ -149,12 +149,14 @@ export async function deleteBrand(id: string): Promise<void> {
 async function toAdminCollection(
   r: repo.CollectionRow & { productCount: number },
 ): Promise<AdminCollection> {
+  const products = await repo.listCollectionMembers(r.id);
   return {
     ...toCollection(r),
     isActive: r.isActive,
     sortOrder: r.sortOrder,
     isLive: isLive(r),
-    productIds: await repo.listCollectionProductIds(r.id),
+    productIds: products.map((p) => p.id),
+    products,
   };
 }
 

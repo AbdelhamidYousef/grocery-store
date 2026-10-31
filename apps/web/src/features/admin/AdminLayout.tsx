@@ -8,6 +8,9 @@ const LINKS = [
   { to: '/admin', label: 'Dashboard', end: true },
   { to: '/admin/products', label: 'Products', end: false },
   { to: '/admin/orders', label: 'Orders', end: false },
+  { to: '/admin/brands', label: 'Brands', end: false },
+  { to: '/admin/collections', label: 'Collections', end: false },
+  { to: '/admin/tags', label: 'Tags', end: false },
 ] as const;
 
 // The back office frame: a compact menu above the content on phones (wrapping pills, so it can

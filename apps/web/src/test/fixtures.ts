@@ -1,12 +1,15 @@
 import type {
   Address,
+  AdminCollection,
   AdminOrderDetail,
   AdminOrderRow,
   AdminProduct,
   AdminProductRow,
   AdminStats,
   AdminVariant,
+  Brand,
   CategoryNode,
+  Collection,
   CustomerOrder,
   Facets,
   Order,
@@ -515,6 +518,49 @@ export function makeAdminOrderDetail(
       },
     ],
     allowedNext: ['processing', 'cancelled'],
+    ...overrides,
+  };
+}
+
+export function makeBrand(overrides: Partial<Brand> = {}): Brand {
+  return {
+    id: 'b1',
+    slug: 'scaleby',
+    name: 'Scaleby',
+    tagline: 'Habitat gear that gets the climate right.',
+    story: 'Scaleby builds terrariums and heat gear for keepers who care about the climate.',
+    accentColor: '#16A34A',
+    logoUrl: null,
+    productCount: 12,
+    ...overrides,
+  };
+}
+
+export function makeCollection(overrides: Partial<Collection> = {}): Collection {
+  return {
+    id: 'col1',
+    slug: 'halloween',
+    name: 'Halloween',
+    description: 'Spooky toys and pumpkin treats.',
+    accentColor: '#EA580C',
+    startsAt: '2026-10-01T00:00:00.000Z',
+    endsAt: '2026-11-03T00:00:00.000Z',
+    productCount: 4,
+    ...overrides,
+  };
+}
+
+export function makeAdminCollection(overrides: Partial<AdminCollection> = {}): AdminCollection {
+  return {
+    ...makeCollection(),
+    isActive: true,
+    sortOrder: 0,
+    isLive: true,
+    productIds: ['p1', 'p2'],
+    products: [
+      { id: 'p1', name: 'Pumpkin Ball', slug: 'pumpkin-ball' },
+      { id: 'p2', name: 'Bat Teaser', slug: 'bat-teaser' },
+    ],
     ...overrides,
   };
 }
