@@ -21,3 +21,15 @@ export const PaginationQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(24),
 });
+
+// Optional text: an empty string means "none", so forms can send what the input holds. `undefined`
+// stays undefined, which on a PATCH means "leave it alone".
+export const optionalText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .nullish()
+    .transform((v) => (v === undefined ? undefined : v === null || v === '' ? null : v));
+
+export const requiredText = (max: number) => z.string().trim().min(1, 'Required').max(max);

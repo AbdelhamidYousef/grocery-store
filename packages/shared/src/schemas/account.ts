@@ -1,7 +1,8 @@
 import { z } from 'zod';
 
 import { NewPasswordSchema, UserSchema } from './auth.ts';
-import { DataSchema, PaginatedSchema } from './common.ts';
+import { OrderStatusSchema } from './checkout.ts';
+import { DataSchema, optionalText, PaginatedSchema, requiredText } from './common.ts';
 
 // ---------- profile and password ----------
 
@@ -28,18 +29,6 @@ export type ChangePasswordInput = z.input<typeof ChangePasswordSchema>;
 export const ProfileResponseSchema = DataSchema(z.object({ user: UserSchema }));
 
 // ---------- addresses ----------
-
-// Optional text: an empty string means "none", so forms can send what the input holds. `undefined`
-// stays undefined, which on a PATCH means "leave it alone".
-const optionalText = (max: number) =>
-  z
-    .string()
-    .trim()
-    .max(max)
-    .nullish()
-    .transform((v) => (v === undefined ? undefined : v === null || v === '' ? null : v));
-
-const requiredText = (max: number) => z.string().trim().min(1, 'Required').max(max);
 
 export const AddressInputSchema = z.object({
   label: optionalText(40),
@@ -93,15 +82,7 @@ export const IdParamsSchema = z.object({ id: z.uuid() });
 
 export const OrderSummarySchema = z.object({
   number: z.string(),
-  status: z.enum([
-    'pending_payment',
-    'paid',
-    'processing',
-    'shipped',
-    'delivered',
-    'cancelled',
-    'refunded',
-  ]),
+  status: OrderStatusSchema,
   totalCents: z.number().int().min(0),
   currency: z.string().length(3),
   placedAt: z.string().nullable(),
