@@ -35,7 +35,7 @@ function parseArgs(argv: string[]): { input: string; out: string } {
     outIndex >= 0
       ? resolve(args[outIndex + 1] ?? '')
       : fileURLToPath(new URL('../../web/public/products', import.meta.url));
-  const input = args.find((a, i) => !a.startsWith('--') && i !== outIndex + 1);
+  const input = args.find((a, i) => !a.startsWith('--') && (outIndex < 0 || i !== outIndex + 1));
   if (!input) throw new Error('usage: pnpm images:process <input-dir> [--out <dir>]');
   return { input: resolve(input), out };
 }
