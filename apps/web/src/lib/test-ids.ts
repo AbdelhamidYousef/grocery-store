@@ -98,6 +98,10 @@ export const TEST_IDS = {
   adminVariantRow: 'admin-variant-row',
   adminVariantForm: 'admin-variant-form',
   adminStockForm: 'admin-stock-form',
+  adminOrderStatus: 'admin-order-status',
+  adminTransition: 'admin-transition',
+  adminTimeline: 'admin-timeline',
+  adminStripeLink: 'admin-stripe-link',
 } as const;
 
 export type TestId = (typeof TEST_IDS)[keyof typeof TEST_IDS];

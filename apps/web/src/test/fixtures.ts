@@ -1,5 +1,7 @@
 import type {
   Address,
+  AdminOrderDetail,
+  AdminOrderRow,
   AdminProduct,
   AdminProductRow,
   AdminStats,
@@ -391,6 +393,106 @@ export function makeAdminProduct(overrides: Partial<AdminProduct> = {}): AdminPr
     ],
     createdAt: '2026-10-01T10:00:00.000Z',
     updatedAt: '2026-10-30T10:00:00.000Z',
+    ...overrides,
+  };
+}
+
+export function makeAdminOrderRow(overrides: Partial<AdminOrderRow> = {}): AdminOrderRow {
+  return {
+    number: 'PW-2026-000101',
+    status: 'paid',
+    email: 'sam@example.com',
+    totalCents: 4297,
+    currency: 'EUR',
+    itemCount: 3,
+    paymentStatus: 'succeeded',
+    placedAt: '2026-10-30T09:15:00.000Z',
+    createdAt: '2026-10-30T09:10:00.000Z',
+    ...overrides,
+  };
+}
+
+export function makeAdminOrderDetail(
+  overrides: Partial<AdminOrderDetail> = {},
+  status: AdminOrderDetail['order']['status'] = 'paid',
+): AdminOrderDetail {
+  return {
+    order: {
+      number: 'PW-2026-000101',
+      status,
+      paymentStatus: 'succeeded',
+      email: 'sam@example.com',
+      totals: {
+        currency: 'EUR',
+        subtotalCents: 3798,
+        shippingCents: 499,
+        discountCents: 0,
+        taxCents: 0,
+        totalCents: 4297,
+      },
+      shippingMethod: { code: 'standard', name: 'Standard' },
+      shippingAddress: {
+        fullName: 'Sam Rivers',
+        line1: '1 Bone Street',
+        line2: null,
+        city: 'Berlin',
+        region: null,
+        postalCode: '10115',
+        country: 'DE',
+        phone: null,
+      },
+      billingAddress: null,
+      notes: null,
+      items: [
+        {
+          id: 'oi1',
+          productName: 'Rope Tug',
+          variantName: 'Red, small',
+          sku: 'TUG-RED-S',
+          imageUrl: null,
+          unitPriceCents: 1099,
+          quantity: 2,
+          lineTotalCents: 2198,
+        },
+        {
+          id: 'oi2',
+          productName: 'Squeaky Duck',
+          variantName: 'Yellow',
+          sku: 'DUCK-1',
+          imageUrl: null,
+          unitPriceCents: 1600,
+          quantity: 1,
+          lineTotalCents: 1600,
+        },
+      ],
+      placedAt: '2026-10-30T09:15:00.000Z',
+      createdAt: '2026-10-30T09:10:00.000Z',
+    },
+    payment: {
+      status: 'succeeded',
+      providerPaymentIntentId: 'pi_3Test123',
+      amountCents: 4297,
+      currency: 'EUR',
+      lastError: null,
+    },
+    customer: { id: 'u1', email: 'sam@example.com', name: 'Sam Rivers' },
+    history: [
+      {
+        fromStatus: null,
+        toStatus: 'pending_payment',
+        actor: 'system',
+        note: null,
+        at: '2026-10-30T09:10:00.000Z',
+      },
+      {
+        fromStatus: 'pending_payment',
+        toStatus: 'paid',
+        actor: 'stripe',
+        note: null,
+        at: '2026-10-30T09:15:00.000Z',
+      },
+    ],
+    allowedNext: ['processing', 'cancelled'],
     ...overrides,
   };
 }

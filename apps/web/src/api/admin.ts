@@ -1,10 +1,15 @@
 import {
   AdminInventoryResponseSchema,
+  AdminOrderDetailResponseSchema,
+  AdminOrderListResponseSchema,
   AdminProductListResponseSchema,
   AdminProductResponseSchema,
   AdminStatsResponseSchema,
   AdminVariantResponseSchema,
   type AdminInventoryResult,
+  type AdminOrderDetail,
+  type AdminTransition,
+  type OrderStatus,
   type AdminInventorySet,
   type AdminProduct,
   type AdminProductCreate,
@@ -132,6 +137,48 @@ export async function setAdminInventory(
       method: 'PATCH',
       body: input,
       schema: AdminInventoryResponseSchema,
+    })
+  ).data;
+}
+
+// ---------- orders ----------
+
+export interface AdminOrderListParams {
+  q?: string | undefined;
+  status?: OrderStatus | undefined;
+  page?: number | undefined;
+  limit?: number | undefined;
+}
+
+export function fetchAdminOrders(params: AdminOrderListParams, signal?: AbortSignal) {
+  return apiFetch(`/admin/orders${toAdminListSearch({ ...params })}`, {
+    schema: AdminOrderListResponseSchema,
+    ...(signal && { signal }),
+  });
+}
+
+export async function fetchAdminOrder(
+  number: string,
+  signal?: AbortSignal,
+): Promise<AdminOrderDetail> {
+  return (
+    await apiFetch(`/admin/orders/${encodeURIComponent(number)}`, {
+      schema: AdminOrderDetailResponseSchema,
+      ...(signal && { signal }),
+    })
+  ).data;
+}
+
+// The answer is the whole fresh detail, including the new `allowedNext`.
+export async function transitionAdminOrder(
+  number: string,
+  input: AdminTransition,
+): Promise<AdminOrderDetail> {
+  return (
+    await apiFetch(`/admin/orders/${encodeURIComponent(number)}/transition`, {
+      method: 'POST',
+      body: input,
+      schema: AdminOrderDetailResponseSchema,
     })
   ).data;
 }

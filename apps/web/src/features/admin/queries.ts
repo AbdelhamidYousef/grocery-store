@@ -1,16 +1,25 @@
-import type { AdminInventorySet, AdminVariantInput, AdminVariantUpdate } from '@store/shared';
+import type {
+  AdminInventorySet,
+  AdminTransition,
+  AdminVariantInput,
+  AdminVariantUpdate,
+} from '@store/shared';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   addAdminVariant,
   createAdminProduct,
   deleteAdminVariant,
+  fetchAdminOrder,
+  fetchAdminOrders,
   fetchAdminProduct,
   fetchAdminProducts,
   fetchAdminStats,
   setAdminInventory,
+  transitionAdminOrder,
   updateAdminProduct,
   updateAdminVariant,
+  type AdminOrderListParams,
   type AdminProductListParams,
 } from '../../api/admin';
 import { keys } from '../../lib/query-client';
@@ -101,5 +110,47 @@ export function useSetAdminInventory() {
     mutationFn: ({ variantId, input }: { variantId: string; input: AdminInventorySet }) =>
       setAdminInventory(variantId, input),
     onSuccess: refresh,
+  });
+}
+
+// ---------- orders ----------
+
+export function useAdminOrders(params: AdminOrderListParams) {
+  return useQuery({
+    queryKey: keys.admin.orderList(params),
+    queryFn: ({ signal }) => fetchAdminOrders(params, signal),
+    staleTime: ADMIN_STALE_MS,
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useAdminOrder(number: string | undefined) {
+  return useQuery({
+    queryKey: keys.admin.order(number ?? ''),
+    queryFn: ({ signal }) => fetchAdminOrder(number ?? '', signal),
+    enabled: !!number,
+    staleTime: ADMIN_STALE_MS,
+  });
+}
+
+export function useTransitionAdminOrder(number: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: AdminTransition) => transitionAdminOrder(number, input),
+    onSuccess: (detail) => {
+      // The answer IS the fresh detail (with the new allowed moves): write it straight in so the
+      // buttons change at once, then refresh what else shows this order's status or revenue.
+      queryClient.setQueryData(keys.admin.order(number), detail);
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: keys.admin.orders, exact: false }),
+        queryClient.invalidateQueries({ queryKey: keys.admin.stats }),
+        queryClient.invalidateQueries({ queryKey: keys.account.orders }),
+        // A cancel or refund restocks, which changes what the product screens show.
+        queryClient.invalidateQueries({ queryKey: keys.admin.products }),
+      ]);
+    },
+    // A 409 means the order moved under us (a webhook, another admin): re-read it, so the buttons
+    // shown next are the real ones.
+    onError: () => queryClient.invalidateQueries({ queryKey: keys.admin.order(number) }),
   });
 }

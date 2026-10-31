@@ -1,6 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 
-import type { AdminProductListParams } from '../api/admin';
+import type { AdminOrderListParams, AdminProductListParams } from '../api/admin';
 import type { ProductListParams } from '../api/catalog';
 import { ApiError } from '../api/client';
 
@@ -57,6 +57,9 @@ export const keys = {
     products: ['admin', 'products'] as const,
     productList: (params: AdminProductListParams) => ['admin', 'products', 'list', params] as const,
     product: (id: string) => ['admin', 'products', 'detail', id] as const,
+    orders: ['admin', 'orders'] as const,
+    orderList: (params: AdminOrderListParams) => ['admin', 'orders', 'list', params] as const,
+    order: (number: string) => ['admin', 'orders', 'detail', number] as const,
   },
   categories: {
     all: ['categories'] as const,
