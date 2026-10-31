@@ -26,12 +26,13 @@ export const forbidden = (message = 'Forbidden') => new AppError(ErrorCode.FORBI
 export const validation = (details?: unknown, message = 'Request validation failed') =>
   new AppError(ErrorCode.VALIDATION_ERROR, message, details);
 
-// Covers CONFLICT, OUT_OF_STOCK and CART_CHANGED: all are 409s that differ only by code.
+// Covers CONFLICT, OUT_OF_STOCK, CART_CHANGED and TRIAL_LIMIT: all are 409s that differ only by code.
 export const conflict = (
   code:
     | typeof ErrorCode.CONFLICT
     | typeof ErrorCode.OUT_OF_STOCK
-    | typeof ErrorCode.CART_CHANGED = ErrorCode.CONFLICT,
+    | typeof ErrorCode.CART_CHANGED
+    | typeof ErrorCode.TRIAL_LIMIT = ErrorCode.CONFLICT,
   message = 'Conflict',
   details?: unknown,
 ) => new AppError(code, message, details);

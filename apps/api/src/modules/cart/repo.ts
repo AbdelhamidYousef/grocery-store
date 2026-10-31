@@ -217,12 +217,13 @@ export async function findItemByVariant(
 export async function findPurchasable(
   tx: Tx,
   variantId: string,
-): Promise<{ available: number; priceCents: number } | undefined> {
+): Promise<{ available: number; priceCents: number; isTrial: boolean } | undefined> {
   const [row] = await tx
     .select({
       stock: inventory.quantity,
       reserved: inventory.reserved,
       priceCents: productVariants.priceCents,
+      isTrial: productVariants.isTrial,
     })
     .from(productVariants)
     .innerJoin(products, eq(products.id, productVariants.productId))
@@ -238,6 +239,7 @@ export async function findPurchasable(
   return {
     available: Math.max(0, (row.stock ?? 0) - (row.reserved ?? 0)),
     priceCents: row.priceCents,
+    isTrial: row.isTrial,
   };
 }
 

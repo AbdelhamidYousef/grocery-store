@@ -10,6 +10,7 @@ import {
 
 import { db, type Tx } from '../../db/client.ts';
 import { conflict, notFound } from '../../lib/errors.ts';
+import { customerKey, isRedeemed, trialLimit } from '../trials/service.ts';
 
 import { getOrCreateUserCart, guestExpiry, userExpiry } from './identity.ts';
 import * as repo from './repo.ts';
@@ -153,11 +154,14 @@ export async function getCart(cartId: string): Promise<Cart> {
 //
 // `cartId` here is always the caller's own (see `withCart`): nothing in this file accepts a cart
 // id from the request.
-async function mutate(cartId: string, change: (tx: Tx) => Promise<void>): Promise<Cart> {
+async function mutate(
+  cartId: string,
+  change: (tx: Tx, cart: repo.CartRow) => Promise<void>,
+): Promise<Cart> {
   return db.transaction(async (tx) => {
     const cart = await repo.lockCart(tx, cartId);
     if (!cart) throw notFound('Cart not found');
-    await change(tx);
+    await change(tx, cart);
     await repo.setExpiry(tx, cartId, cart.userId ? userExpiry() : guestExpiry());
     return loadCart(tx, cartId);
   });
@@ -171,14 +175,25 @@ function outOfStock(details: OutOfStockDetails) {
   return conflict(ErrorCode.OUT_OF_STOCK, message, details);
 }
 
+// The cart-level half of the trial rule: at most 1 of a trial variant in the cart, and none if the
+// signed-in customer already had it. (A guest's history is unknown until checkout asks for their
+// email, so checkout repeats the check; see checkout/service.ts.)
+async function assertTrialAddable(tx: Tx, cart: repo.CartRow, variantId: string, total: number) {
+  if (total > 1) throw trialLimit(variantId, 'A trial size is limited to one per customer');
+  if (cart.userId && (await isRedeemed(tx, customerKey(cart.userId, ''), variantId))) {
+    throw trialLimit(variantId, 'You have already had this trial size');
+  }
+}
+
 export async function addItem(cartId: string, variantId: string, quantity: number): Promise<Cart> {
-  return mutate(cartId, async (tx) => {
+  return mutate(cartId, async (tx, cart) => {
     const stock = await repo.findPurchasable(tx, variantId);
     if (!stock) throw notFound('Product variant not found');
     const maxQty = Math.min(MAX_LINE_QUANTITY, stock.available);
 
     const existing = await repo.findItemByVariant(tx, cartId, variantId);
     const inCart = existing?.quantity ?? 0;
+    if (stock.isTrial) await assertTrialAddable(tx, cart, variantId, inCart + quantity);
     // Adding is cumulative (the contract says "adds to existing qty"), and the total is what is
     // checked: 3 in the cart plus 3 more must fit in stock together.
     if (inCart + quantity > maxQty) {
@@ -192,7 +207,7 @@ export async function addItem(cartId: string, variantId: string, quantity: numbe
 
 // Sets an absolute quantity; 0 deletes the line.
 export async function updateItem(cartId: string, itemId: string, quantity: number): Promise<Cart> {
-  return mutate(cartId, async (tx) => {
+  return mutate(cartId, async (tx, cart) => {
     const item = await repo.findItemInCart(tx, cartId, itemId);
     if (!item) throw notFound('Cart item not found');
     if (quantity === 0) {
@@ -201,6 +216,7 @@ export async function updateItem(cartId: string, itemId: string, quantity: numbe
     }
     const stock = await repo.findPurchasable(tx, item.variantId);
     if (!stock) throw notFound('Product variant not found');
+    if (stock.isTrial) await assertTrialAddable(tx, cart, item.variantId, quantity);
     const maxQty = Math.min(MAX_LINE_QUANTITY, stock.available);
     if (quantity > maxQty) {
       throw outOfStock({
@@ -266,7 +282,13 @@ export async function mergeGuestCart(guestCartId: string, userId: string): Promi
 
     for (const line of await repo.listItems(tx, guest.id)) {
       const stock = await repo.findPurchasable(tx, line.variantId);
-      const maxQty = stock ? Math.min(MAX_LINE_QUANTITY, stock.available) : 0;
+      // A trial size merges as at most one unit, and not at all if the account already had it.
+      const trialCap = stock?.isTrial
+        ? (await isRedeemed(tx, customerKey(userId, ''), line.variantId))
+          ? 0
+          : 1
+        : MAX_LINE_QUANTITY;
+      const maxQty = stock ? Math.min(trialCap, stock.available) : 0;
       const existing = await repo.findItemByVariant(tx, userCart.id, line.variantId);
       const had = existing?.quantity ?? 0;
 

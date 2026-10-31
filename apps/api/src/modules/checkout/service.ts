@@ -16,6 +16,7 @@ import type { AuthUser } from '../auth/sessions.ts';
 import * as cartRepo from '../cart/repo.ts';
 import { getCart, loadCart } from '../cart/service.ts';
 import { toOrderDto, totalsOf } from '../orders/view.ts';
+import { assertTrialAllowed, customerKey } from '../trials/service.ts';
 
 import { cancelPendingOrder, releaseReservations } from './orders.ts';
 import * as repo from './repo.ts';
@@ -112,6 +113,14 @@ async function reserveAndSave(
         warnings: cart.warnings,
       });
     }
+
+    // Authoritative trial check (the cart already refuses early, but it is not the last word):
+    // quantity at most 1 and no earlier redemption by this customer.
+    await assertTrialAllowed(
+      tx,
+      customerKey(user?.id ?? null, user?.email ?? input.email),
+      cart.items,
+    );
 
     const method = await repo.findActiveShippingMethod(input.shippingMethodCode, tx);
     if (!method) throw fieldError('shippingMethodCode', 'Unknown shipping method');

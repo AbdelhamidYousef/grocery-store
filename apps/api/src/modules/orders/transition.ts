@@ -5,6 +5,7 @@ import * as cartRepo from '../cart/repo.ts';
 import * as repo from '../checkout/repo.ts';
 import { enqueueEmail } from '../mail/outbox.ts';
 
+import { emitOrderCancelled, emitOrderPaid, emitOrderRefunded } from './events.ts';
 import { assertTransition, stockEffect } from './state-machine.ts';
 
 export interface TransitionContext {
@@ -90,5 +91,17 @@ export async function applyTransition(
   // account page and Stripe already emails refund receipts.
   const kind = to === 'paid' ? 'order_confirmation' : to === 'shipped' ? 'order_shipped' : null;
   if (kind) await enqueueEmail(tx, { kind, orderId: order.id, to: order.email });
+
+  // Tell the subscribers (trial samples now; points, referrals and store stock in later phases).
+  // Inside this transaction, so a side effect and the status change commit together.
+  if (to === 'paid') await emitOrderPaid(tx, { orderId: order.id });
+  else if (to === 'cancelled') await emitOrderCancelled(tx, { orderId: order.id });
+  else if (to === 'refunded') {
+    await emitOrderRefunded(tx, {
+      orderId: order.id,
+      refundedCents: order.totalCents,
+      full: true,
+    });
+  }
   return updated;
 }

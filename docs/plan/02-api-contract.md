@@ -11,7 +11,7 @@ check middleware) — simpler than tokens for a same-site SPA, and he can explai
 with SameSite=Lax.
 
 Error codes (string enum in shared): `VALIDATION_ERROR` 400 · `UNAUTHENTICATED` 401 · `FORBIDDEN`
-403 · `NOT_FOUND` 404 · `CONFLICT` 409 · `OUT_OF_STOCK` 409 · `CART_CHANGED` 409 · `RATE_LIMITED`
+403 · `NOT_FOUND` 404 · `CONFLICT` 409 · `OUT_OF_STOCK` 409 · `CART_CHANGED` 409 · `TRIAL_LIMIT` 409 · `RATE_LIMITED`
 429 · `INTERNAL` 500.
 
 ## Health

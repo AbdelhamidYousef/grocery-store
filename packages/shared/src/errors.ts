@@ -8,6 +8,7 @@ export const ErrorCode = {
   CONFLICT: 'CONFLICT',
   OUT_OF_STOCK: 'OUT_OF_STOCK',
   CART_CHANGED: 'CART_CHANGED',
+  TRIAL_LIMIT: 'TRIAL_LIMIT',
   RATE_LIMITED: 'RATE_LIMITED',
   PAYMENT_PROVIDER_ERROR: 'PAYMENT_PROVIDER_ERROR',
   INTERNAL: 'INTERNAL',
@@ -23,6 +24,8 @@ export const errorStatus: Record<ErrorCode, number> = {
   CONFLICT: 409,
   OUT_OF_STOCK: 409,
   CART_CHANGED: 409,
+  // A trial size is limited to one per customer per variant.
+  TRIAL_LIMIT: 409,
   RATE_LIMITED: 429,
   // The payment provider (Stripe) failed or is not configured; nothing is charged. Retryable.
   PAYMENT_PROVIDER_ERROR: 502,
