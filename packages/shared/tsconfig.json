@@ -5,5 +5,5 @@
     "noEmit": true,
     "types": []
   },
-  "include": ["src"]
+  "include": ["src", "vitest.config.ts"]
 }

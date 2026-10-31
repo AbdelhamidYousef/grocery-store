@@ -414,3 +414,15 @@ Learn: each service produces a value the next one needs, so the order of the ste
 1. Why does `node dist/index.js` fail if the API is compiled with plain `tsc`, and how does the esbuild build avoid it without bundling argon2?
 2. A visitor on the Vercel site signs in and the cookie is `Secure; SameSite=Lax`. Why does it work although the API lives on another host, and what would break if `/api` were called directly on the Render URL?
 3. Migrations are run from your laptop with the Neon direct URL, while Render uses the pooled one. Why not the other way round, and what would you change if the API logged "prepared statement does not exist"?
+
+## Phase 11 — Testing hardening and CI
+
+### 11.1 — coverage review
+`pnpm coverage` runs Vitest with the v8 provider in every package (config lives next to each Vitest config; the API excludes only tests, helpers, the entry point and the migrate/seed/reset scripts, plus the Drizzle table declarations). Before: shared 90.4 % statements (functions 53 %), web 93.5 %, API 93.7 % statements with `lib/stripe.ts` at 44 %, the outbox at 80 % and the logger at 57 %. The gaps were not in services or routers (services 94.6 %, routers 97.8 % by statements, already past the plan's 90/80), but in schema refinements nobody had fed bad input, the real Stripe wrapper, the outbox's crash and timer paths, and some web error states. I wrote tests for each: schema tests for every refine and transform (shared is now 100 % on all four measures), a spy-based test of every Stripe wrapper including the two "already done" answers and the 502 translation, the outbox drainer and a crashing drain, the logger's redaction, and web tests for the failed-load and refused-mutation paths. After: shared 100 %, web 95.0 % statements, API 96.5 % statements (functions 98.8 %).
+Coverage also exposed a real flake: the webhook route kicks the email outbox fire-and-forget, and under coverage's slower timing the drain was still holding row locks when the next test truncated the tables, so Postgres aborted one with "deadlock detected". The test app now tracks every kick and a global `afterEach` awaits them (`test/pending.ts`), instead of retrying.
+Learn: coverage numbers say which code never ran, not whether it is tested well; a background task that outlives its test is a flake waiting for a slow machine.
+
+### Phase 11 quiz
+1. Services were already above 90 % before any new test. What did the coverage report show instead, and why is a high percentage still not proof of good tests?
+2. Why did the "deadlock detected" appear only under coverage, and why is awaiting the tracked drains better than retrying the failed test?
+3. The Stripe gateway tests replace the SDK with spies. Which behaviours of ours do they prove, and which one thing do they leave to the live test?

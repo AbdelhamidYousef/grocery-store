@@ -13,7 +13,8 @@
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/db/seed/index.ts",
     "db:reset": "tsx src/db/reset.ts",
-    "images:process": "tsx scripts/process-images.ts"
+    "images:process": "tsx scripts/process-images.ts",
+    "coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@store/shared": "workspace:*",

@@ -1,0 +1,163 @@
+import Stripe from 'stripe';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { createStripeGateway } from './stripe.ts';
+
+// The real gateway wraps the SDK; the SDK is replaced here by spies so every wrapper (field
+// mapping, the 502 translation, the two "already done" answers) runs without a network. The live
+// test against Stripe's test API (stripe.live.test.ts) covers the real wire format when a key
+// exists; this file covers our logic around it on every run.
+const sdk = vi.hoisted(() => {
+  class StripeError extends Error {
+    code: string | undefined;
+    constructor(message: string, code?: string) {
+      super(message);
+      this.code = code;
+    }
+  }
+  return {
+    StripeError,
+    paymentIntents: { create: vi.fn(), update: vi.fn(), retrieve: vi.fn(), cancel: vi.fn() },
+    refunds: { create: vi.fn() },
+  };
+});
+
+vi.mock('stripe', () => {
+  class FakeStripe {
+    static errors = { StripeError: sdk.StripeError };
+    static API_VERSION = '2026-10-28.endive';
+    paymentIntents = sdk.paymentIntents;
+    refunds = sdk.refunds;
+    webhooks = { constructEvent: vi.fn() };
+  }
+  return { default: FakeStripe };
+});
+
+const pi = (over: Partial<Stripe.PaymentIntent> = {}) =>
+  ({
+    id: 'pi_1',
+    status: 'requires_payment_method',
+    amount: 1234,
+    amount_received: 0,
+    currency: 'eur',
+    client_secret: 'pi_1_secret',
+    ...over,
+  }) as Stripe.PaymentIntent;
+
+const gateway = createStripeGateway({ secretKey: 'sk_test_x' });
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+describe('createPaymentIntent', () => {
+  it('sends lower-case currency, metadata and the idempotency key, and maps the answer', async () => {
+    sdk.paymentIntents.create.mockResolvedValue(pi());
+    const info = await gateway.createPaymentIntent({
+      amountCents: 1234,
+      currency: 'EUR',
+      orderId: 'o-1',
+      orderNumber: 'PAW-1',
+      email: 'ada@pawsome.test',
+      idempotencyKey: 'order-o-1',
+    });
+    expect(info).toEqual({
+      id: 'pi_1',
+      status: 'requires_payment_method',
+      amountCents: 1234,
+      amountReceivedCents: 0,
+      currency: 'eur',
+      clientSecret: 'pi_1_secret',
+    });
+    expect(sdk.paymentIntents.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        amount: 1234,
+        currency: 'eur',
+        metadata: { orderId: 'o-1', orderNumber: 'PAW-1' },
+      }),
+      { idempotencyKey: 'order-o-1' },
+    );
+  });
+
+  it('turns any SDK failure into a 502 payment provider error that keeps the cause', async () => {
+    const cause = new Error('socket hang up');
+    sdk.paymentIntents.create.mockRejectedValue(cause);
+    await expect(
+      gateway.createPaymentIntent({
+        amountCents: 1,
+        currency: 'eur',
+        orderId: 'o',
+        orderNumber: 'n',
+        email: 'e@x.test',
+        idempotencyKey: 'k',
+      }),
+    ).rejects.toMatchObject({ status: 502, code: 'PAYMENT_PROVIDER_ERROR', cause });
+  });
+});
+
+describe('update and retrieve', () => {
+  it('updates only the amount', async () => {
+    sdk.paymentIntents.update.mockResolvedValue(pi({ amount: 999 }));
+    expect((await gateway.updatePaymentIntentAmount('pi_1', 999)).amountCents).toBe(999);
+    expect(sdk.paymentIntents.update).toHaveBeenCalledWith('pi_1', { amount: 999 });
+  });
+
+  it('retrieves by id and reports a provider failure as 502', async () => {
+    sdk.paymentIntents.retrieve.mockResolvedValueOnce(pi({ status: 'succeeded' }));
+    expect((await gateway.retrievePaymentIntent('pi_1')).status).toBe('succeeded');
+    sdk.paymentIntents.retrieve.mockRejectedValueOnce(new Error('boom'));
+    await expect(gateway.retrievePaymentIntent('pi_1')).rejects.toMatchObject({ status: 502 });
+  });
+});
+
+describe('cancelPaymentIntent', () => {
+  it('cancels a fresh intent', async () => {
+    sdk.paymentIntents.cancel.mockResolvedValue(pi({ status: 'canceled' }));
+    expect((await gateway.cancelPaymentIntent('pi_1')).status).toBe('canceled');
+  });
+
+  it('answers with the real state when the intent is already in a final state', async () => {
+    sdk.paymentIntents.cancel.mockRejectedValue(
+      new sdk.StripeError('already', 'payment_intent_unexpected_state'),
+    );
+    sdk.paymentIntents.retrieve.mockResolvedValue(pi({ status: 'succeeded' }));
+    expect((await gateway.cancelPaymentIntent('pi_1')).status).toBe('succeeded');
+  });
+
+  it('still fails (502) on any other Stripe error', async () => {
+    sdk.paymentIntents.cancel.mockRejectedValue(new sdk.StripeError('nope', 'api_error'));
+    await expect(gateway.cancelPaymentIntent('pi_1')).rejects.toMatchObject({ status: 502 });
+  });
+});
+
+describe('refundPaymentIntent', () => {
+  it('refunds the whole intent with the idempotency key', async () => {
+    sdk.refunds.create.mockResolvedValue({ id: 're_1', status: 'succeeded' });
+    expect(await gateway.refundPaymentIntent('pi_1', 'refund-1')).toEqual({
+      id: 're_1',
+      status: 'succeeded',
+    });
+    expect(sdk.refunds.create).toHaveBeenCalledWith(
+      { payment_intent: 'pi_1' },
+      { idempotencyKey: 'refund-1' },
+    );
+  });
+
+  it('reports pending when Stripe leaves the status out', async () => {
+    sdk.refunds.create.mockResolvedValue({ id: 're_2', status: null });
+    expect((await gateway.refundPaymentIntent('pi_1', 'k')).status).toBe('pending');
+  });
+
+  it('treats an already refunded charge as done', async () => {
+    sdk.refunds.create.mockRejectedValue(new sdk.StripeError('done', 'charge_already_refunded'));
+    expect(await gateway.refundPaymentIntent('pi_1', 'k')).toEqual({
+      id: 'already_refunded',
+      status: 'succeeded',
+    });
+  });
+
+  it('fails (502) on any other error', async () => {
+    sdk.refunds.create.mockRejectedValue(new Error('network'));
+    await expect(gateway.refundPaymentIntent('pi_1', 'k')).rejects.toMatchObject({ status: 502 });
+  });
+});

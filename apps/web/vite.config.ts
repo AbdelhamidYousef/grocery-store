@@ -20,5 +20,11 @@ export default defineConfig({
     setupFiles: ['./src/test-setup.ts'],
     // Node's fetch needs absolute URLs; this is the origin the msw handlers answer for.
     env: { VITE_API_URL: 'http://api.test' },
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: ['src/**/*.test.{ts,tsx}', 'src/test-setup.ts', 'src/main.tsx', 'src/**/*.d.ts'],
+      reporter: ['text-summary', 'text'],
+    },
   },
 });

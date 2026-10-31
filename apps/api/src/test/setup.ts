@@ -1,7 +1,9 @@
 import { sql } from 'drizzle-orm';
-import { afterAll, beforeAll, beforeEach } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
 
 import { closeDb, db } from '../db/client.ts';
+
+import { settlePending } from './pending.ts';
 
 let tables: string[] = [];
 
@@ -28,6 +30,9 @@ beforeEach(async () => {
   await db.execute(sql.raw(`truncate table ${tables.join(', ')} restart identity cascade`));
   await db.execute(sql`alter sequence order_number_seq restart with 1`);
 });
+
+// Before the next test's truncate, not after it: see pending.ts.
+afterEach(settlePending);
 
 afterAll(async () => {
   await closeDb();

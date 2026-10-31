@@ -5,6 +5,10 @@ import { ProductListQuerySchema } from './catalog.ts';
 const parse = (query: Record<string, unknown>) => ProductListQuerySchema.parse(query);
 
 describe('ProductListQuerySchema', () => {
+  it('rejects a query that is not an object instead of crashing', () => {
+    expect(ProductListQuerySchema.safeParse('?page=2').success).toBe(false);
+  });
+
   it('applies pagination defaults', () => {
     expect(parse({})).toMatchObject({ page: 1, limit: 24, attr: {} });
   });

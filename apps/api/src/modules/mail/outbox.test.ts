@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { pino } from 'pino';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { db } from '../../db/client.ts';
 import { emailOutbox, orders, payments } from '../../db/schema/index.ts';
@@ -9,7 +9,7 @@ import { makeTestApp } from '../../test/app.ts';
 import { createShippingMethods } from '../../test/factories.ts';
 import { orderByNumber, placeOrder } from '../../test/orders.ts';
 
-import { backoffMs, createOutbox, enqueueEmail } from './outbox.ts';
+import { backoffMs, createOutbox, enqueueEmail, startOutboxDrainer } from './outbox.ts';
 
 const log = pino({ level: 'silent' });
 let transport: MemoryTransport;
@@ -142,5 +142,40 @@ describe('email outbox', () => {
   it('backs off exponentially up to an hour', () => {
     expect([1, 2, 3].map(backoffMs)).toEqual([60_000, 120_000, 240_000]);
     expect(backoffMs(20)).toBe(3_600_000);
+  });
+});
+
+describe('outbox kick and background drainer', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('kick never throws or rejects when the drain itself crashes', async () => {
+    const errors: string[] = [];
+    const spyLog = pino({ level: 'error' }, { write: (line: string) => void errors.push(line) });
+    // A transport whose `enabled` getter throws makes drainOnce reject outside its per-row catch.
+    const broken = {
+      get enabled(): boolean {
+        throw new Error('transport exploded');
+      },
+      send: () => Promise.resolve(),
+    } as unknown as MailTransport;
+    const order = await anOrder();
+    await enqueue(order.id);
+    createOutbox({ transport: broken, log: spyLog }).kick();
+    await vi.waitFor(() => expect(errors.join('')).toContain('email outbox drain crashed'));
+  });
+
+  it('kicks once after the first delay, then on every interval, until stopped', () => {
+    vi.useFakeTimers();
+    const kicks: number[] = [];
+    const outbox = { drain: () => Promise.reject(new Error('unused')), kick: () => kicks.push(1) };
+    const drainer = startOutboxDrainer({ outbox, log, intervalMs: 1000 });
+    vi.advanceTimersByTime(5_000);
+    // 1 s interval fired 5 times, plus the one-off first kick at 5 s.
+    expect(kicks).toHaveLength(6);
+    drainer.stop();
+    vi.advanceTimersByTime(10_000);
+    expect(kicks).toHaveLength(6);
   });
 });

@@ -8,6 +8,18 @@ import type { PaymentGateway } from '../lib/stripe.ts';
 import { createOutbox, type Outbox } from '../modules/mail/outbox.ts';
 
 import { FakeStripe } from './fake-stripe.ts';
+import { trackPending } from './pending.ts';
+
+// Every fire-and-forget `kick` is tracked so the test run can wait for it before the next test
+// wipes the tables (see ./pending.ts). Applies to the default outbox and to one a test passes in.
+function withTrackedKicks(real: Outbox): Outbox {
+  return {
+    drain: () => real.drain(),
+    kick: () => {
+      trackPending(real.drain());
+    },
+  };
+}
 
 export const TEST_ORIGIN = 'http://localhost:5173';
 
@@ -33,9 +45,10 @@ export function makeTestApp(
         await db.execute(sql`select 1`);
       }),
     payments: opts.payments ?? new FakeStripe(),
-    outbox:
+    outbox: withTrackedKicks(
       opts.outbox ??
-      createOutbox({ transport: new MemoryTransport(), log: pino({ level: 'silent' }) }),
+        createOutbox({ transport: new MemoryTransport(), log: pino({ level: 'silent' }) }),
+    ),
     config: {
       nodeEnv: 'test',
       webOrigin: TEST_ORIGIN,
