@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-// Needs the API on :3000 with the seeded dev database (see playwright.config.ts).
+// Needs the API (started by playwright.config.ts) with the seeded dev database (see playwright.config.ts).
 test('browse: home, category, filter by material, open a product, change variant', async ({
   page,
 }) => {

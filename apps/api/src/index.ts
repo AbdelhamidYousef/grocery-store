@@ -4,22 +4,20 @@ import { createApp } from './app.ts';
 import { env } from './config/env.ts';
 import { closeDb, db } from './db/client.ts';
 import { startReservationSweeper } from './jobs/release-stale-reservations.ts';
+import { selectPaymentGateway } from './lib/gateway.ts';
 import { createLogger } from './lib/logger.ts';
 import { createMailTransport } from './lib/mailer.ts';
 import { createShutdown } from './lib/shutdown.ts';
-import { createStripeGateway, createUnconfiguredGateway } from './lib/stripe.ts';
 import { createOutbox, startOutboxDrainer } from './modules/mail/outbox.ts';
 
 // Bootstrap only: read config, build the app, listen. Anything testable lives in createApp().
 const logger = createLogger({ level: env.LOG_LEVEL, pretty: env.NODE_ENV === 'development' });
 // Without a key the server still boots (catalog, cart, account all work) and any payment call
-// answers 502 "not configured"; production refuses to boot without one (see config/env.ts).
-const payments = env.STRIPE_SECRET_KEY
-  ? createStripeGateway({
-      secretKey: env.STRIPE_SECRET_KEY,
-      webhookSecret: env.STRIPE_WEBHOOK_SECRET,
-    })
-  : createUnconfiguredGateway();
+// answers 502 "not configured"; production refuses to boot without one (see config/env.ts). Under
+// NODE_ENV=test with no key it boots a fake gateway instead, for the e2e suite (lib/gateway.ts).
+const { kind: gatewayKind, gateway: payments } = await selectPaymentGateway(env);
+if (gatewayKind === 'fake')
+  logger.warn('using the FAKE payment gateway (NODE_ENV=test, no Stripe key)');
 
 // Emails: Mailpit in development, Resend or SMTP in production, nothing (logged and skipped) when
 // production has neither. The API boots in every case.

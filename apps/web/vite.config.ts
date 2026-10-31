@@ -11,7 +11,8 @@ export default defineConfig({
     // The browser only ever talks to :5173; Vite forwards /api to the API server. That keeps
     // requests same-origin in dev, so session cookies work without CORS or SameSite workarounds.
     proxy: {
-      '/api': 'http://localhost:3000',
+      // The e2e suite runs its own API on another port and says so here.
+      '/api': process.env.API_PROXY_TARGET ?? 'http://localhost:3000',
     },
   },
   test: {
