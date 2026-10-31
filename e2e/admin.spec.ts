@@ -429,3 +429,26 @@ test.describe('phone layout (390 px)', () => {
     await admin.context.close();
   });
 });
+
+test.describe('edges', () => {
+  test('a page past the end says so, and the edit page keeps the category and variant order', async ({
+    browser,
+  }) => {
+    const admin = await adminSession(browser);
+    const page = admin.page;
+    const product = await createProduct(page, { variants: 12 });
+
+    for (const path of ['/admin/products?page=999', '/admin/orders?page=999']) {
+      await page.goto(path);
+      await expect(page.getByTestId('admin-empty')).toContainText('There is no page 999');
+      await page.getByRole('link', { name: 'Back to the first page' }).click();
+      await expect(page).not.toHaveURL(/page=999/);
+    }
+
+    // Loaded directly (categories arrive after the form is drawn): the category is still chosen.
+    await page.goto(`/admin/products/${product.id}`);
+    await expect(page.getByLabel('Category')).not.toHaveValue('');
+    await expect(page.getByTestId('admin-variant-row').first()).toContainText('Opens first');
+    await admin.context.close();
+  });
+});

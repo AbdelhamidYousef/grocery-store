@@ -69,12 +69,28 @@ export function OrdersList() {
       {data && data.data.length === 0 && (
         <div className="mt-4" data-testid={TEST_IDS.adminEmpty}>
           <p className="text-muted">
-            {filtered ? 'No orders match this search.' : 'No orders have been placed yet.'}
+            {state.page > 1
+              ? `There is no page ${state.page}: the list is shorter than that.`
+              : filtered
+                ? 'No orders match this search.'
+                : 'No orders have been placed yet.'}
           </p>
-          {filtered && (
-            <Link to="?" className="mt-2 inline-block font-semibold text-primary-strong underline">
-              Clear search and filters
+          {state.page > 1 ? (
+            <Link
+              to={hrefFor(1)}
+              className="mt-2 inline-block font-semibold text-primary-strong underline"
+            >
+              Back to the first page
             </Link>
+          ) : (
+            filtered && (
+              <Link
+                to="?"
+                className="mt-2 inline-block font-semibold text-primary-strong underline"
+              >
+                Clear search and filters
+              </Link>
+            )
           )}
         </div>
       )}

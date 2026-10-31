@@ -83,8 +83,15 @@ export function VariantsSection({ product }: { product: AdminProduct }) {
 
   const shown = useMemo(() => {
     const needle = filter.trim().toLowerCase();
-    if (!needle) return product.variants;
-    return product.variants.filter((v) =>
+    // Variants created together share one timestamp, so the API's order among them is arbitrary:
+    // show the default first, then by SKU with numbers in numeric order (SKU-2 before SKU-10).
+    const ordered = [...product.variants].sort(
+      (a, b) =>
+        Number(b.isDefault) - Number(a.isDefault) ||
+        a.sku.localeCompare(b.sku, undefined, { numeric: true }),
+    );
+    if (!needle) return ordered;
+    return ordered.filter((v) =>
       `${v.sku} ${v.name} ${formatOptions(v.options)}`.toLowerCase().includes(needle),
     );
   }, [filter, product.variants]);

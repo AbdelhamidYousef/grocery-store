@@ -129,7 +129,14 @@ export function ProductForm({
           {...register('description')}
         />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Select label="Category" error={errors.categoryId?.message} {...register('categoryId')}>
+          {/* Keyed on the tree arriving: an uncontrolled select given its value before its options
+              exist shows the placeholder, so the edit page would look like it lost the category. */}
+          <Select
+            key={categories ? 'ready' : 'loading'}
+            label="Category"
+            error={errors.categoryId?.message}
+            {...register('categoryId')}
+          >
             <option value="">Choose a category</option>
             {currentCategory && !choices.some((c) => c.id === currentCategory.id) && (
               <option value={currentCategory.id}>{currentCategory.name}</option>
