@@ -199,6 +199,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@store/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       argon2:
         specifier: ^0.45.1
         version: 0.45.1

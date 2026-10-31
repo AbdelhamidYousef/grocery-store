@@ -20,13 +20,13 @@ function capture() {
 describe('request id', () => {
   it('generates an id and returns it in the response header', async () => {
     const { logger } = capture();
-    const res = await request(createApp({ logger })).get('/api/v1/health');
+    const res = await request(createApp({ logger, nodeEnv: 'test' })).get('/api/v1/health');
     expect(res.headers['x-request-id']).toMatch(/^[0-9a-f-]{36}$/);
   });
 
   it('reuses a well-formed incoming id', async () => {
     const { logger } = capture();
-    const res = await request(createApp({ logger }))
+    const res = await request(createApp({ logger, nodeEnv: 'test' }))
       .get('/api/v1/health')
       .set('X-Request-Id', 'web-123.abc');
     expect(res.headers['x-request-id']).toBe('web-123.abc');
@@ -34,7 +34,7 @@ describe('request id', () => {
 
   it('replaces an incoming id that is too long or has odd characters', async () => {
     const { logger } = capture();
-    const res = await request(createApp({ logger }))
+    const res = await request(createApp({ logger, nodeEnv: 'test' }))
       .get('/api/v1/health')
       .set('X-Request-Id', 'a b<script>');
     expect(res.headers['x-request-id']).not.toBe('a b<script>');
@@ -42,14 +42,16 @@ describe('request id', () => {
 
   it('logs the request id with every access-log line', async () => {
     const { logger, lines } = capture();
-    await request(createApp({ logger })).get('/api/v1/health').set('X-Request-Id', 'trace-1');
+    await request(createApp({ logger, nodeEnv: 'test' }))
+      .get('/api/v1/health')
+      .set('X-Request-Id', 'trace-1');
     const access = lines.find((l) => l.res !== undefined);
     expect((access?.req as { id: string }).id).toBe('trace-1');
   });
 
   it('redacts cookie and authorization headers in logs', async () => {
     const { logger, lines } = capture();
-    await request(createApp({ logger }))
+    await request(createApp({ logger, nodeEnv: 'test' }))
       .get('/api/v1/health')
       .set('Cookie', 'sid=secret')
       .set('Authorization', 'Bearer secret');

@@ -15,6 +15,9 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "composite": true
+    "composite": true,
+    // Shared sources are compiled by api (NodeNext, needs extensions) and web (bundler), so they
+    // write real .ts extensions; every consumer must therefore allow them.
+    "allowImportingTsExtensions": true
   }
 }

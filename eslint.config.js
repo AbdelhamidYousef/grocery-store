@@ -5,7 +5,15 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/coverage/**', '**/node_modules/**', '**/playwright-report/**'] },
+  {
+    ignores: [
+      '**/dist/**',
+      '**/coverage/**',
+      '**/node_modules/**',
+      '**/playwright-report/**',
+      '.playwright-mcp/**',
+    ],
+  },
 
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -31,6 +39,9 @@ export default tseslint.config(
       // Named exports keep imports greppable and renames safe; pages are the exception below.
       'import/no-default-export': 'error',
       '@typescript-eslint/no-explicit-any': 'error',
+      // Express recognises error middleware by its 4 parameters, so a leading underscore marks one
+      // that has to exist but is not used.
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/ban-ts-comment': 'error',
     },
   },

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { applyPercent, formatMoney, sumCents } from './money';
+import { applyPercent, formatMoney, sumCents } from './money.ts';
 
 describe('formatMoney', () => {
   it('formats cents as a currency string', () => {
