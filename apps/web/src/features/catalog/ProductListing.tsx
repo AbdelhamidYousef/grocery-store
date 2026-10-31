@@ -97,7 +97,12 @@ export function ProductListing({ listId, category, q }: ProductListingProps) {
   return (
     <div className="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8">
       <aside aria-label="Filters" className="hidden lg:block">
-        <div className="sticky top-36 max-h-[calc(100vh-10rem)] overflow-y-auto pr-2">
+        {/* Deliberately NOT sticky and NOT a scroll box. The sidebar used to be
+            `sticky max-h-[100vh-10rem] overflow-y-auto`; on a 1280x800 laptop that box ended
+            between the "Age stage" heading and its checkboxes, so the heading looked like an
+            empty group and the options sat behind an invisible inner scroll. Now the page scrolls
+            the whole sidebar (the long material list already scrolls in its own small box). */}
+        <div className="pr-2">
           <h2 className="mb-4 font-display text-xl font-bold">Filters</h2>
           <FilterPanel facets={data.facets} query={query} currency={currency} update={update} />
         </div>
