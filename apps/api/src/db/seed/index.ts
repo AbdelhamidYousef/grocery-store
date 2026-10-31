@@ -21,6 +21,7 @@ import {
 import { HOUSE_BRAND, brands } from './brands.ts';
 import { categories } from './categories.ts';
 import { collections, windowDates } from './collections.ts';
+import { loadContent, seedContent } from './content.ts';
 import { FORCED_STOCK, expandVariants, stockLevels } from './expand.ts';
 import { imageRowsFor } from './images.ts';
 import { products } from './products.ts';
@@ -40,6 +41,8 @@ export async function runSeed(now = new Date()) {
   // A typo in any seed file fails here, naming the product, before the database is touched.
   validateSeed(products);
   const passwordHash = await hashDemoPassword();
+  // Read and validated before the transaction opens: a bad Markdown file stops the seed up front.
+  const content = loadContent();
 
   await db.transaction(async (tx) => {
     // ---- categories: parents first, so children can reference their ids ----
@@ -277,6 +280,9 @@ export async function runSeed(now = new Date()) {
         }));
       }),
     );
+
+    // ---- guides, help articles, testimonials (after products: guides link to them) ----
+    await seedContent(tx, content, productId);
 
     // ---- shipping ----
     await tx

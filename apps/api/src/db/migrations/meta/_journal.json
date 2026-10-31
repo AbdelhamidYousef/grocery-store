@@ -64,6 +64,13 @@
       "when": 1793466567966,
       "tag": "0008_catalogue_depth",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794066995433,
+      "tag": "0009_content_tables",
+      "breakpoints": true
     }
   ]
 }
