@@ -28,6 +28,9 @@ One root flat `eslint.config.js` lints every workspace with typescript-eslint's 
 ### 0.8 — CI skeleton
 `.github/workflows/ci.yml` runs on every push and pull request with two parallel jobs: `check` (typecheck, lint, format check) and `test` (Postgres service container, then `pnpm test`; a comment marks where `db:migrate` joins in phase 1). It could not be run here (no `act`, no remote), so it was validated by Prettier parsing it and by repeating the same commands in a clean clone. A service container is a Docker container GitHub starts beside the job and health-checks before your steps run, so tests talk to a real Postgres on `localhost:5432` just like locally. Caching the pnpm store (keyed on the lockfile) makes installs mostly local copies instead of downloads. `concurrency` with `cancel-in-progress` cancels the older run of the same branch when a new push arrives, saving free-tier minutes.
 
+### 0.9 — README stub
+The README is a deliberately small stub: a working title, one line on what the project is, a work-in-progress note and the commands to run it locally and to run the checks. GitHub repo creation and the first push were intentionally skipped; they wait for the owner's go and his choice of repository name. The stub is honest about what does not exist yet (migrations and seed arrive in phase 1) so a fresh clone is never misleading.
+
 ### Phase 0 quiz
 1. Why does `createApp()` exist separately from the code that calls `listen`, and what does that buy the tests?
 2. In dev the browser calls `/api/...` on port 5173, not 3000. What makes that work, and why does it spare you CORS and cookie problems locally?
