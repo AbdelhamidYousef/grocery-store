@@ -43,3 +43,10 @@ export function createAuthRateLimiter(opts: RateLimitOptions): RequestHandler {
     },
   });
 }
+
+// For public lookups and forms that need no login (order tracking, withdrawals, contact): keyed by
+// client IP only, because there is no account to key on. With `trust proxy` set, that IP is the
+// real visitor's.
+export function createIpRateLimiter(opts: RateLimitOptions): RequestHandler {
+  return limiter(opts);
+}

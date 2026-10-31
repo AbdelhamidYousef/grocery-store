@@ -16,6 +16,7 @@ import { guidesRouter } from './guides/router.ts';
 import { helpRouter } from './help/router.ts';
 import type { Outbox } from './mail/outbox.ts';
 import { merchandisingRouter } from './merchandising/router.ts';
+import { createTrackingRouter } from './tracking/router.ts';
 import { registerTrialSubscribers } from './trials/service.ts';
 
 // Every feature module is `router.ts` (http only) -> `service.ts` (rules, transactions) ->
@@ -24,6 +25,7 @@ import { registerTrialSubscribers } from './trials/service.ts';
 // in the API contract can be searched for verbatim in the code.
 export function createModulesRouter(opts: {
   authRateLimit: RateLimitOptions;
+  lookupRateLimit?: RateLimitOptions;
   payments: PaymentGateway;
   outbox: Outbox;
   nodeEnv: 'development' | 'test' | 'production';
@@ -55,6 +57,7 @@ export function createModulesRouter(opts: {
   router.use(createAuthRouter(opts));
   router.use(createAccountRouter(opts));
   router.use(cartRouter);
+  router.use(createTrackingRouter(opts));
   router.use(createCheckoutRouter({ payments: opts.payments }));
   router.use(createAdminRouter({ payments: opts.payments, outbox: opts.outbox }));
   return router;

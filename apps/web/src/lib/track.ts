@@ -17,6 +17,7 @@ export type AnalyticsEvent =
   | { name: 'view_item_list'; listId: string; items: TrackItem[] }
   | { name: 'view_item'; item: TrackItem }
   | { name: 'help_search'; query: string; results: number }
+  | { name: 'track_order'; status: string }
   | { name: 'view_guide'; slug: string; category: string }
   | { name: 'add_to_cart'; item: TrackItem; quantity: number }
   | { name: 'remove_from_cart'; item: TrackItem; quantity: number }

@@ -118,6 +118,15 @@ export const TEST_IDS = {
   helpSnippet: 'help-snippet',
   helpNoResults: 'help-no-results',
 
+  pageTrackOrder: 'page-track-order',
+  trackOrderNumber: 'track-order-number',
+  trackEmail: 'track-email',
+  trackSubmit: 'track-submit',
+  trackResult: 'track-result',
+  trackStatus: 'track-status',
+  trackTimeline: 'track-timeline',
+  trackTimelineStep: 'track-timeline-step',
+
   pageAdmin: 'page-admin',
   adminNav: 'admin-nav',
   adminStat: 'admin-stat',

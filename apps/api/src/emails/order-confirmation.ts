@@ -1,14 +1,20 @@
 import type { Order } from '@store/shared';
 
+import { env } from '../config/env.ts';
+
 import {
   addressLines,
   escapeHtml,
   itemsTable,
   itemsText,
   paragraph,
+  PRIMARY,
   shell,
   type Email,
 } from './layout.ts';
+
+const trackUrl = (number: string) =>
+  `${env.WEB_ORIGIN.replace(/\/$/, '')}/track-order?number=${encodeURIComponent(number)}`;
 
 // Sent once, in the same transaction that marks the order paid (via the outbox).
 export function orderConfirmation(order: Order): Email {
@@ -25,6 +31,7 @@ export function orderConfirmation(order: Order): Email {
     ...address,
     '',
     "We'll email you again when it ships.",
+    `Follow your order any time: ${trackUrl(order.number)}`,
     '',
     '- The Pawsome team',
   ].join('\n');
@@ -38,6 +45,9 @@ export function orderConfirmation(order: Order): Email {
       itemsTable(order),
       paragraph(`<strong>Shipping to</strong><br>${address.map(escapeHtml).join('<br>')}`),
       paragraph("We'll email you again when it ships."),
+      paragraph(
+        `<a href="${escapeHtml(trackUrl(order.number))}" style="color:${PRIMARY};font-weight:bold;">Track your order</a> (you will need the email address you ordered with).`,
+      ),
     ].join('\n'),
   });
   return { subject, text, html };

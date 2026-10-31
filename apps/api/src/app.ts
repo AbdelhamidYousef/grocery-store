@@ -23,6 +23,11 @@ export interface AppConfig {
   /** Stricter limit for credential endpoints (login, register, password change). */
   authRateLimit: RateLimitOptions;
   /**
+   * Public no-login lookups (order tracking, withdrawals): 10 per hour per IP when omitted.
+   * They answer "is this order yours?", so they must be slow to brute-force.
+   */
+  lookupRateLimit?: RateLimitOptions;
+  /**
    * Switches on POST /test/webhooks/simulate (only ever mounted when `nodeEnv` is `test`).
    * `secret` is what the caller must send; `realStripe` says the payment gateway is the real
    * Stripe client, so the simulator must read the amounts from Stripe instead of the database.
@@ -93,6 +98,7 @@ export function createApp({ logger, pingDb, payments, outbox, config }: AppDeps)
     '/api/v1',
     createModulesRouter({
       authRateLimit: config.authRateLimit,
+      ...(config.lookupRateLimit && { lookupRateLimit: config.lookupRateLimit }),
       payments,
       outbox,
       nodeEnv: config.nodeEnv,

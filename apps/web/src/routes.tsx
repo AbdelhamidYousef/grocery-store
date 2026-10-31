@@ -18,6 +18,7 @@ import RegisterPage from './pages/RegisterPage';
 import RouteErrorPage from './pages/RouteErrorPage';
 import RouteFallback from './pages/RouteFallback';
 import SearchPage from './pages/SearchPage';
+import TrackOrderPage from './pages/TrackOrderPage';
 
 // Every route lives here, in one file (the plan's SSR guard-rail: a prerender step can read this
 // same table later). Shoppers hit the storefront routes first, so those are in the main bundle.
@@ -44,6 +45,7 @@ export const routes: RouteObject[] = [
           { path: 'brands/:slug', element: <BrandPage /> },
           { path: 'collections/:slug', element: <CollectionPage /> },
           { path: 'search', element: <SearchPage /> },
+          { path: 'track-order', element: <TrackOrderPage /> },
           { path: 'help', element: <HelpPage /> },
           { path: 'guides', element: <GuidesPage /> },
           { path: 'guides/:slug', element: <GuidePage /> },

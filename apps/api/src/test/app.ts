@@ -56,6 +56,7 @@ export function makeTestApp(
       cookieSecret: 'test-cookie-secret-test-cookie-secret',
       rateLimit: { windowMs: 60_000, limit: 100_000 },
       authRateLimit: { windowMs: 60_000, limit: 100_000 },
+      lookupRateLimit: { windowMs: 60_000, limit: 100_000 },
       testHooks: { secret: TEST_HOOK_SECRET, realStripe: false },
       ...opts.config,
     },
