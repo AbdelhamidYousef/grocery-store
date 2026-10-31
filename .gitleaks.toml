@@ -1,0 +1,12 @@
+# Picked up automatically by `gitleaks detect` and by the GitHub Action.
+title = "Pawsome gitleaks config"
+
+[extend]
+useDefault = true
+
+# Two made-up placeholders in a web unit test (a fake publishable key and a fake client secret).
+# They match the generic "api key" shape but unlock nothing. Listed by exact value, not by file, so
+# a real key pasted into the same file would still be caught.
+[allowlist]
+description = "placeholder values in checkout-pay.test.tsx"
+regexes = ['''pk_test_abc123''', '''pi_123_secret_456''']

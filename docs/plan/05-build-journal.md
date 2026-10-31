@@ -444,3 +444,13 @@ Learn: testing the built bundle catches what only minification or a missing prev
 1. Why does the e2e job `need` the check and test jobs, and what does it upload only on failure?
 2. What does the job set so that no Stripe account is needed, and which test does that leave skipped?
 3. Why did `vite preview` need its own proxy setting?
+
+### 11.4 — quality gates in CI
+The workflow gained a `secrets` job (the gitleaks action over the full history) and an `audit` job (`pnpm audit --audit-level=high` with `continue-on-error`, so it warns and never blocks), and `.github/dependabot.yml` opens one grouped weekly PR for npm minor and patch updates and one for GitHub Actions. I also ran gitleaks over every commit of every branch locally through Docker: 101 commits, 2 findings, both made-up placeholders in `checkout-pay.test.tsx` (`pk_test_abc123`, `pi_123_secret_456`); they are allowlisted by exact value in `.gitleaks.toml`, after which the history scan and a scan of the working tree both report no leaks. Today `pnpm audit` reports 4 moderate advisories and nothing high.
+Branch protection cannot be set yet (there is no remote). Once the repository exists: Settings > Branches > Add rule for `main` with: require a pull request before merging (0 or 1 approval, your choice as the sole owner); require status checks to pass, with "Require branches to be up to date" on, and select exactly `Typecheck, lint, format`, `Test`, `E2E (Playwright, Chromium)` and `Secret scan (gitleaks)` (not the audit, which is warn-only); require conversation resolution; block force pushes and deletions; do not allow bypassing for admins unless you need the escape hatch. The check names are the `name:` of each job in `ci.yml`, and a check only appears in the picker after it has run once on the repository. The gitleaks action is free for personal accounts; an organisation repository would need a `GITLEAKS_LICENSE` secret.
+Learn: a secret scan must read history, because deleting a leaked key from the latest commit does not un-leak it; "required checks" are matched by job name, so renaming a job silently un-requires it.
+
+#### 11.4 quiz
+1. Why does the gitleaks job use `fetch-depth: 0`, and how were the two local findings handled without hiding real keys?
+2. Which four checks should `main` require, and why is the audit not one of them?
+3. What happens to branch protection if someone renames a job in `ci.yml`?
