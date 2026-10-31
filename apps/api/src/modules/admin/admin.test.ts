@@ -3,11 +3,14 @@ import { Writable } from 'node:stream';
 import { pino } from 'pino';
 import { describe, expect, it } from 'vitest';
 
+import { MemoryTransport } from '../../lib/mailer.ts';
 import { makeTestApp } from '../../test/app.ts';
+import { FakeStripe } from '../../test/fake-stripe.ts';
 import { errorOf, bodyOf } from '../../test/http.ts';
 import { signedIn } from '../../test/orders.ts';
 import { listRoutes } from '../../test/routes.ts';
 import { makeShopper } from '../../test/shopper.ts';
+import { createOutbox } from '../mail/outbox.ts';
 
 import { createAdminRouter } from './router.ts';
 
@@ -22,7 +25,12 @@ const fill = (path: string) =>
 describe('admin guard: every admin route', () => {
   // Discovered from the router, not typed by hand, so a route added in a later step is covered
   // the moment it exists. Mounted under /admin by createAdminRouter.
-  const routes = listRoutes(createAdminRouter()).filter((r) => r.path.length > 0);
+  const routes = listRoutes(
+    createAdminRouter({
+      payments: new FakeStripe(),
+      outbox: createOutbox({ transport: new MemoryTransport(), log: pino({ level: 'silent' }) }),
+    }),
+  ).filter((r) => r.path.length > 0);
 
   it('has routes to test (the discovery itself works)', () => {
     expect(routes.length).toBeGreaterThan(0);

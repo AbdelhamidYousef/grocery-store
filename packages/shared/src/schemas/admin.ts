@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { OrderSchema, OrderStatusSchema, PaymentStatusSchema } from './checkout.ts';
 import { DataSchema, PaginatedSchema, PaginationQuerySchema } from './common.ts';
 
 // ---------- dashboard ----------
@@ -258,3 +259,83 @@ export const AdminInventoryResponseSchema = DataSchema(
 export type AdminInventoryResult = z.infer<typeof AdminInventoryResponseSchema>['data'];
 
 export const AdminVariantParamsSchema = z.object({ variantId: z.uuid() });
+
+// ---------- orders ----------
+
+export const AdminOrderListQuerySchema = PaginationQuerySchema.extend({
+  status: OrderStatusSchema.optional(),
+  // Order number or customer email, partial and case-insensitive.
+  q: z.string().trim().max(100).optional(),
+});
+export type AdminOrderListQuery = z.input<typeof AdminOrderListQuerySchema>;
+
+export const AdminOrderRowSchema = z.object({
+  number: z.string(),
+  status: OrderStatusSchema,
+  email: z.string(),
+  totalCents: z.number().int().min(0),
+  currency: z.string().length(3),
+  itemCount: z.number().int().min(0),
+  paymentStatus: PaymentStatusSchema.nullable(),
+  placedAt: z.string().nullable(),
+  createdAt: z.string(),
+});
+export type AdminOrderRow = z.infer<typeof AdminOrderRowSchema>;
+export const AdminOrderListResponseSchema = PaginatedSchema(AdminOrderRowSchema);
+
+// The audit trail IS shown to the admin in full: who, what, when and the note.
+export const AdminHistoryEntrySchema = z.object({
+  fromStatus: OrderStatusSchema.nullable(),
+  toStatus: OrderStatusSchema,
+  actor: z.string(),
+  note: z.string().nullable(),
+  at: z.string(),
+});
+export type AdminHistoryEntry = z.infer<typeof AdminHistoryEntrySchema>;
+
+export const AdminOrderDetailSchema = z.object({
+  order: OrderSchema,
+  payment: z
+    .object({
+      status: PaymentStatusSchema,
+      // The `pi_...` id, for the link to the Stripe dashboard (test mode).
+      providerPaymentIntentId: z.string().nullable(),
+      amountCents: z.number().int(),
+      currency: z.string().length(3),
+      lastError: z.string().nullable(),
+    })
+    .nullable(),
+  customer: z.object({ id: z.string(), email: z.string(), name: z.string() }).nullable(),
+  history: z.array(AdminHistoryEntrySchema),
+  // What the transition buttons may offer: exactly the state machine's requestable moves.
+  allowedNext: z.array(OrderStatusSchema),
+});
+export type AdminOrderDetail = z.infer<typeof AdminOrderDetailSchema>;
+export const AdminOrderDetailResponseSchema = DataSchema(AdminOrderDetailSchema);
+
+export const AdminTransitionSchema = z.object({
+  to: OrderStatusSchema,
+  note: z.string().trim().max(300).optional(),
+});
+export type AdminTransition = z.input<typeof AdminTransitionSchema>;
+
+// ---------- customers ----------
+
+export const AdminCustomerListQuerySchema = PaginationQuerySchema.extend({
+  q: z.string().trim().max(100).optional(),
+});
+export type AdminCustomerListQuery = z.input<typeof AdminCustomerListQuerySchema>;
+
+// Deliberately no password hash, sessions or addresses: the list needs identity and activity only.
+export const AdminCustomerRowSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  // Orders that were actually placed (pending, abandoned checkouts do not count).
+  orderCount: z.number().int().min(0),
+  lastOrderAt: z.string().nullable(),
+  createdAt: z.string(),
+});
+export type AdminCustomerRow = z.infer<typeof AdminCustomerRowSchema>;
+export const AdminCustomerListResponseSchema = PaginatedSchema(AdminCustomerRowSchema);

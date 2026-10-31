@@ -36,6 +36,6 @@ export function createModulesRouter(opts: {
   router.use(createAccountRouter(opts));
   router.use(cartRouter);
   router.use(createCheckoutRouter({ payments: opts.payments }));
-  router.use(createAdminRouter());
+  router.use(createAdminRouter({ payments: opts.payments, outbox: opts.outbox }));
   return router;
 }
