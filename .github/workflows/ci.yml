@@ -66,3 +66,63 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm db:migrate
       - run: pnpm test
+
+  e2e:
+    name: E2E (Playwright, Chromium)
+    runs-on: ubuntu-latest
+    # Only after the cheap checks pass: a type error should not cost a browser install.
+    needs: [check, test]
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ecommerce
+          POSTGRES_PASSWORD: ecommerce
+          POSTGRES_DB: ecommerce
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ecommerce -d ecommerce"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      # The e2e API runs as NODE_ENV=test on its own ports (playwright.config.ts starts it) and
+      # reads the seeded database below. No Stripe key: it boots the fake payment gateway and the
+      # specs pay through POST /test/webhooks/simulate.
+      DATABASE_URL: postgres://ecommerce:ecommerce@localhost:5432/ecommerce
+      WEB_ORIGIN: http://localhost:5273
+      LOG_LEVEL: warn
+      E2E_WEB_MODE: preview
+      # Optional. Unset secrets and variables evaluate to an empty string, which the API and the
+      # specs treat as "not configured": the real-card test then skips itself and the simulated
+      # flow runs. Add STRIPE_SECRET_KEY (an sk_test_ key) as a repository secret and
+      # VITE_STRIPE_PUBLISHABLE_KEY (pk_test_, public by design) as a repository variable to turn
+      # the real-card test on; the simulated group then skips itself (see e2e/checkout.spec.ts).
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      VITE_STRIPE_PUBLISHABLE_KEY: ${{ vars.VITE_STRIPE_PUBLISHABLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:migrate
+      - run: pnpm db:seed
+      # The production bundle (VITE_ variables are baked in here); `vite preview` serves it.
+      - run: pnpm --filter @store/web build
+      # Chromium only: the project config has one browser, and this skips ~1 GB of Firefox/WebKit.
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-artifacts
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore

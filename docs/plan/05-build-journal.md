@@ -435,3 +435,12 @@ Learn: a test-only door is still a door, so it checks a secret and stays shut by
 1. Under which two conditions does the simulator route exist, and what does a caller without the secret get?
 2. Why does the simulator refuse `amountReceivedCents` when a real Stripe key is set?
 3. Why does the simulated e2e group skip itself when `STRIPE_SECRET_KEY` is set?
+
+### 11.3 — e2e in CI
+A new `e2e` job (after `check` and `test` pass) starts a Postgres service, migrates and seeds it, builds the web app, installs Chromium only and runs `pnpm e2e`; on failure it uploads the HTML report, traces and videos for seven days. It needs no Stripe secret: the API boots the fake gateway and the specs pay through the guarded simulator, and I ran the exact same recipe locally (`CI=1 E2E_WEB_MODE=preview pnpm e2e`: 28 passed, 1 skipped, the real-card test). With `E2E_WEB_MODE=preview` Playwright serves the production bundle through `vite preview`, which needed the same `/api` proxy as the dev server (now one shared constant in `vite.config.ts`); the API still runs under `tsx` (as locally), because the e2e needs `NODE_ENV=test` and a compiled build would add a step without testing anything new. If the owner adds a `STRIPE_SECRET_KEY` repository secret and a `VITE_STRIPE_PUBLISHABLE_KEY` repository variable, the real-card test turns on and the simulated group skips itself; I added neither.
+Learn: testing the built bundle catches what only minification or a missing preview proxy can break; unset GitHub secrets arrive as empty strings, so "optional" must mean "empty is treated as absent".
+
+#### 11.3 quiz
+1. Why does the e2e job `need` the check and test jobs, and what does it upload only on failure?
+2. What does the job set so that no Stripe account is needed, and which test does that leave skipped?
+3. Why did `vite preview` need its own proxy setting?

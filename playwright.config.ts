@@ -24,6 +24,8 @@ process.env.TEST_HOOK_SECRET ||= 'e2e-test-hook-secret-not-a-real-secret';
 
 const API_PORT = process.env.E2E_API_PORT ?? '3100';
 const WEB_PORT = process.env.E2E_WEB_PORT ?? '5273';
+// `preview` serves apps/web/dist (run `pnpm --filter @store/web build` first, as CI does).
+const WEB_MODE = process.env.E2E_WEB_MODE === 'preview' ? 'preview' : 'dev';
 const WEB_ORIGIN = `http://localhost:${WEB_PORT}`;
 
 export default defineConfig({
@@ -31,10 +33,12 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? 'github' : 'list',
+  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: WEB_ORIGIN,
+    // Kept only for failed tests, so a green run uploads nothing; CI attaches them as artifacts.
     trace: 'retain-on-failure',
+    video: 'retain-on-failure',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: [
@@ -65,7 +69,9 @@ export default defineConfig({
       timeout: 60_000,
     },
     {
-      command: `pnpm --filter @store/web dev --port ${WEB_PORT} --strictPort`,
+      // CI builds the web app first and serves the production bundle (minified, the same code that
+      // ships); locally the dev server starts in a second and needs no build step.
+      command: `pnpm --filter @store/web ${WEB_MODE === 'preview' ? 'preview' : 'dev'} --port ${WEB_PORT} --strictPort`,
       env: { API_PROXY_TARGET: `http://localhost:${API_PORT}` },
       url: WEB_ORIGIN,
       reuseExistingServer: true,

@@ -1,6 +1,12 @@
 import react from '@vitejs/plugin-react-swc';
 import { defineConfig } from 'vitest/config';
 
+// The browser only ever talks to the web origin; Vite forwards /api to the API server. That keeps
+// requests same-origin, so session cookies work without CORS or SameSite workarounds. Both the dev
+// server and `vite preview` (the production build, used by the CI e2e) need it.
+// The e2e suite runs its own API on another port and says so here.
+const proxy = { '/api': process.env.API_PROXY_TARGET ?? 'http://localhost:3000' };
+
 export default defineConfig({
   plugins: [react()],
   // One `.env` at the repo root for the API and the web (only VITE_-prefixed names reach the
@@ -8,13 +14,9 @@ export default defineConfig({
   envDir: '../..',
   server: {
     port: 5173,
-    // The browser only ever talks to :5173; Vite forwards /api to the API server. That keeps
-    // requests same-origin in dev, so session cookies work without CORS or SameSite workarounds.
-    proxy: {
-      // The e2e suite runs its own API on another port and says so here.
-      '/api': process.env.API_PROXY_TARGET ?? 'http://localhost:3000',
-    },
+    proxy,
   },
+  preview: { proxy },
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test-setup.ts'],

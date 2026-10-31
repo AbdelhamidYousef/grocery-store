@@ -1,9 +1,16 @@
 // Adds DOM matchers such as toBeInTheDocument() to Vitest's expect.
 import '@testing-library/jest-dom/vitest';
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll } from 'vitest';
 
 import { server } from './test/server';
+
+// `findBy*` and `waitFor` return the moment their condition holds, so a longer ceiling costs
+// nothing when the machine is idle. The 1 s default is too tight for the first render of a
+// lazily loaded route (its module is transformed on demand) when several test workers, or other
+// jobs on the same machine, compete for the CPU: the admin pages failed that way, never in
+// isolation.
+configure({ asyncUtilTimeout: 5000 });
 
 // Vitest globals are off, so Testing Library cannot register its own cleanup; do it here.
 afterEach(cleanup);
