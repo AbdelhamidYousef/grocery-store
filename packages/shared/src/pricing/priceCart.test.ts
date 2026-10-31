@@ -401,6 +401,167 @@ describe('priceCart step 4: shipping', () => {
   });
 });
 
+describe('priceCart step 3: gift', () => {
+  const giftRule = { id: 'g1', thresholdCents: 4000, variantId: 'gift-toy' };
+  const run = (cents: number, extra: Partial<PriceCartInput> = {}) =>
+    priceCart(cart({ lines: [line('a', cents)], giftRule, ...extra }));
+
+  it('threshold boundary: 3999 no gift, 4000 gift', () => {
+    const under = run(3999);
+    expect(under.gift).toBeNull();
+    expect(under.progress.gift).toMatchObject({ remainingCents: 1, percent: 99, reached: false });
+    const at = run(4000);
+    expect(at.gift).toEqual({ variantId: 'gift-toy', qty: 1, unitCents: 0 });
+    expect(at.progress.gift).toMatchObject({ remainingCents: 0, percent: 100, reached: true });
+  });
+
+  it('gift is removed when the cart drops below the threshold', () => {
+    const two = priceCart(cart({ lines: [line('a', 2500, { qty: 2 })], giftRule }));
+    expect(two.gift).not.toBeNull();
+    const one = priceCart(cart({ lines: [line('a', 2500)], giftRule }));
+    expect(one.gift).toBeNull();
+    expect(one.progress.gift?.remainingCents).toBe(1500);
+  });
+
+  it('is one per order, however big the cart', () => {
+    expect(run(100000, { lines: [line('a', 100000, { qty: 5 })] }).gift?.qty).toBe(1);
+  });
+
+  it('is measured after the order discount, so a discount cannot leave an unearned gift', () => {
+    const r = run(4000, { code: pct(10) });
+    expect(r.merchandiseCents).toBe(3600);
+    expect(r.gift).toBeNull();
+    expect(r.progress.gift?.remainingCents).toBe(400);
+  });
+
+  it('counts fixed-price lines', () => {
+    expect(
+      priceCart(cart({ lines: [line('bundle', 4000, { fixedPrice: true })], giftRule })).gift,
+    ).not.toBeNull();
+  });
+
+  it('is not given when the gift is out of stock, and shows no gift progress', () => {
+    const r = run(9000, { giftRule: { ...giftRule, giftAvailable: false } });
+    expect(r.gift).toBeNull();
+    expect(r.progress.gift).toBeNull();
+  });
+
+  it('empty cart earns nothing, even with a zero threshold', () => {
+    const r = priceCart(cart({ giftRule: { ...giftRule, thresholdCents: 0 } }));
+    expect(r.gift).toBeNull();
+    expect(r.progress.gift?.reached).toBe(false);
+  });
+
+  it('is not counted in the total', () => {
+    expect(run(4000).totalCents).toBe(4500); // goods + shipping, the gift adds nothing
+  });
+
+  it('credits do not take the gift away', () => {
+    const r = run(4000, {
+      credits: [{ type: 'points', refId: 'u1', label: 'Points', cents: 1000 }],
+    });
+    expect(r.gift).not.toBeNull();
+  });
+});
+
+describe('priceCart step 5: credits', () => {
+  const credit = (cents: number, refId = 'cr1', type: 'points' | 'referral' = 'points') => ({
+    type,
+    refId,
+    label: type === 'points' ? 'Paw Points' : 'Referral credit',
+    cents,
+  });
+
+  it('takes credits last, after the code', () => {
+    const r = priceCart(cart({ lines: [line('a', 2000)], code: pct(10), credits: [credit(500)] }));
+    expect(r.adjustments.map((a) => [a.type, a.cents])).toEqual([
+      ['code', 200],
+      ['credit', 500],
+    ]);
+    expect(r.merchandiseCents).toBe(1300);
+    expect(r.totalCents).toBe(1800);
+  });
+
+  it('is capped at the remaining merchandise and never reduces shipping', () => {
+    const r = priceCart(cart({ lines: [line('a', 1000)], credits: [credit(5000)] }));
+    expect(r.adjustments[0]!.cents).toBe(1000);
+    expect(r.merchandiseCents).toBe(0);
+    expect(r.shippingCents).toBe(500);
+    expect(r.totalCents).toBe(500);
+    expect(r.notices).toEqual([{ key: 'credit_capped', refId: 'cr1', cents: 4000 }]);
+  });
+
+  it('exactly covering the merchandise is not a cap', () => {
+    const r = priceCart(cart({ lines: [line('a', 1000)], credits: [credit(1000)] }));
+    expect(r.notices).toEqual([]);
+    expect(r.totalCents).toBe(500);
+  });
+
+  it('several credits apply in order and share the cap', () => {
+    const r = priceCart(
+      cart({
+        lines: [line('a', 1000)],
+        credits: [credit(700, 'pts'), credit(700, 'ref', 'referral')],
+      }),
+    );
+    expect(r.adjustments.map((a) => [a.refId, a.cents])).toEqual([
+      ['pts', 700],
+      ['ref', 300],
+    ]);
+    expect(r.notices).toEqual([{ key: 'credit_capped', refId: 'ref', cents: 400 }]);
+  });
+
+  it('a zero credit is a no-op', () => {
+    const r = priceCart(cart({ lines: [line('a', 1000)], credits: [credit(0)] }));
+    expect(r.adjustments).toEqual([]);
+    expect(r.notices).toEqual([]);
+  });
+
+  it('an empty cart ignores credits', () => {
+    const r = priceCart(cart({ credits: [credit(100)] }));
+    expect(r.totalCents).toBe(0);
+    expect(r.adjustments).toEqual([]);
+  });
+
+  it('is allocated to lines (including fixed-price ones) so every cent is on a line', () => {
+    const r = priceCart(
+      cart({
+        lines: [line('a', 33), line('b', 33), line('trial', 33, { fixedPrice: true })],
+        credits: [credit(10)],
+      }),
+    );
+    expect(r.lines.map((l) => l.lineDiscountCents)).toEqual([4, 3, 3]);
+    expect(r.lines.reduce((a, l) => a + l.lineTotalCents, 0)).toBe(89);
+  });
+
+  it('credit allocation is based on what the code left on each line', () => {
+    const r = priceCart(
+      cart({
+        lines: [line('a', 1000), line('b', 1000)],
+        code: fixed(1000),
+        credits: [credit(500)],
+      }),
+    );
+    expect(r.lines.map((l) => l.lineTotalCents)).toEqual([250, 250]);
+    expect(r.lines.map((l) => l.lineDiscountCents)).toEqual([750, 750]);
+  });
+
+  it('credits do not lose free shipping (threshold looks at merchandise before credits)', () => {
+    const ship = { methodCents: 500, freeOverCents: 4000 };
+    const r = priceCart(
+      cart({ lines: [line('a', 4000)], shipping: ship, credits: [credit(3000)] }),
+    );
+    expect(r.shippingCents).toBe(0);
+    expect(r.totalCents).toBe(1000);
+  });
+
+  it('round-up donation hook is a no-op for now', () => {
+    const r = priceCart(cart({ lines: [line('a', 1001)], roundUpDonation: true }));
+    expect(r.donationCents).toBe(0);
+    expect(r.totalCents).toBe(1501);
+  });
+});
+
 describe('priceCart properties', () => {
   function rng(seed: number) {
     let s = seed;
@@ -429,6 +590,8 @@ describe('priceCart properties', () => {
         ? { ...kinds[rnd(4)]!, excludeSaleItems: rnd(2) === 0, minSpendCents: rnd(3000) }
         : undefined,
       customer: { isMember: rnd(2) === 0 },
+      giftRule: { id: 'g', thresholdCents: rnd(20000), variantId: 'gift' },
+      credits: rnd(2) ? [{ type: 'points', refId: 'u', label: 'Points', cents: rnd(30000) }] : [],
       shipping: { methodCents: rnd(1500), freeOverCents: rnd(2) ? rnd(20000) : undefined },
     });
   }

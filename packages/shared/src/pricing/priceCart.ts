@@ -19,9 +19,9 @@ import {
 // Stacking order (fixed; rendered to the customer as "How discounts combine"):
 //   1. Line price: min(base, sale, member), prices never stack with each other.
 //   2. Order discount: bulk tier OR percent/fixed code, whichever saves more, never both.
-//   3. Gift (step 18.2).
+//   3. Gift: free item once the merchandise total after step 2 reaches the threshold.
 //   4. Shipping: free over the threshold, or by a free-shipping code (stacks with everything).
-//   5. Credits last (step 18.2).
+//   5. Credits last, capped at the remaining merchandise, never on shipping.
 
 function percentOf(done: number, goal: number): number {
   if (goal <= 0) return 100;
@@ -154,14 +154,16 @@ export function priceCart(rawInput: PriceCartInput): PricedCart {
   }
   for (const d of orderDiscounts) applyToLines(d.adj, d.weights);
 
-  const merchandise = remaining.reduce((a, b) => a + b, 0);
+  // Thresholds (gift, free shipping) look at the merchandise after step 2 and BEFORE credits:
+  // paying with points must not make a customer lose their gift or free shipping.
+  const discounted = remaining.reduce((a, b) => a + b, 0);
 
   // ---- 4. shipping ----
   let shippingCents = lines.length === 0 ? 0 : shipping.methodCents;
   const overThreshold =
     shipping.freeOverCents !== undefined &&
     lines.length > 0 &&
-    merchandise >= shipping.freeOverCents;
+    discounted >= shipping.freeOverCents;
   const freeByCode = codeValid && code?.kind === 'free_shipping';
   if (shippingCents > 0 && (overThreshold || freeByCode)) {
     if (freeByCode && !overThreshold && code) {
@@ -175,6 +177,30 @@ export function priceCart(rawInput: PriceCartInput): PricedCart {
     }
     shippingCents = 0;
   }
+
+  // ---- 3. gift: earned on the discounted merchandise total ----
+  const giftRule = input.giftRule?.giftAvailable ? input.giftRule : undefined;
+  const giftEarned = !!giftRule && discounted > 0 && discounted >= giftRule.thresholdCents;
+  const gift =
+    giftRule && giftEarned
+      ? ({ variantId: giftRule.variantId, qty: 1, unitCents: 0 } as const)
+      : null;
+  const giftProgress = giftRule ? progressTowards(discounted, giftRule.thresholdCents) : null;
+  if (giftProgress && discounted === 0) giftProgress.reached = false;
+
+  // ---- 5. credits: last, capped at what is left of the merchandise, never on shipping ----
+  for (const credit of input.credits) {
+    const left = remaining.reduce((a, b) => a + b, 0);
+    const applied = Math.min(credit.cents, left);
+    if (applied < credit.cents)
+      notices.push({ key: 'credit_capped', refId: credit.refId, cents: credit.cents - applied });
+    if (applied === 0) continue;
+    applyToLines(
+      { type: 'credit', refId: credit.refId, label: credit.label, cents: applied, scope: 'lines' },
+      [...remaining],
+    );
+  }
+  const merchandise = remaining.reduce((a, b) => a + b, 0);
 
   // ---- result ----
   const pricedLines: PricedLine[] = lines.map((l, i) => ({
@@ -204,7 +230,7 @@ export function priceCart(rawInput: PriceCartInput): PricedCart {
   if (shipping.freeOverCents !== undefined) {
     freeShipping = freeByCode
       ? { thresholdCents: shipping.freeOverCents, remainingCents: 0, percent: 100, reached: true }
-      : progressTowards(merchandise, shipping.freeOverCents);
+      : progressTowards(discounted, shipping.freeOverCents);
   }
 
   return {
@@ -218,8 +244,8 @@ export function priceCart(rawInput: PriceCartInput): PricedCart {
     shippingCents,
     totalCents: merchandise + shippingCents,
     donationCents: 0,
-    gift: null,
-    progress: { freeShipping, gift: null, nextTier },
+    gift,
+    progress: { freeShipping, gift: giftProgress, nextTier },
     notices,
   };
 }

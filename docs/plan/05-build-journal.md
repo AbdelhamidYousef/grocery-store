@@ -590,3 +590,17 @@ Learn: a Tailwind display class (`grid`, `flex`) overrides the browser's `hidden
 1. A visitor submits the tracking form with a real order number and the wrong email, then with an order number that does not exist. What do the two responses have in common, why is the schema for the form deliberately loose, and why is it a POST?
 2. Notifying buyers of a recall is pressed twice, and a new order for the affected variant arrives in between. Which constraint makes the second press safe, what does each press email, and why are the delivery rows and the queued emails written in one transaction?
 3. Why does the cookie notice not block the page, why is `hasConsent('analytics')` false even after the visitor clicks OK, and what must a future analytics script do before it loads?
+## Phase 18
+
+### Step 18.1 — pure pricing engine
+- `priceCart(input) -> PricedCart` lives in `packages/shared/src/pricing/`. It takes `now` as an input instead of reading a clock, and it does no I/O. Same input, same output, so a unit test can cover every rule.
+- The stacking order is fixed: best single line price, then tier OR code (whichever saves more), then shipping. Prices never stack with each other, and a code never stacks with a tier. Ties go to the tier because the customer gets it without typing anything.
+- Order-level discounts are split across lines with largest-remainder allocation: floor each share, then hand the leftover cents to the biggest fractional remainders (ties: earlier line). Line sums then equal the adjustment exactly, which is what refunds need (`order_items.discount_cents`).
+- Percent rounds half-up on cents via `applyPercent`. Example: 10% of 99 is 9.9, so 10 cents, split as 4, 3, 3 over three 33-cent lines.
+- `fixedPrice` lines (trial sizes, bundles) are modelled as a plain boolean input. They skip tiers and codes but count towards shipping and gift thresholds.
+
+### Step 18.2 — gifts, progress, credits, notices
+- Thresholds (gift, free shipping) use the merchandise total after the order discount and BEFORE credits, so paying with points never costs a customer their gift or free shipping.
+- Credits go last, each capped at what is left of the merchandise (never shipping) and allocated to lines like any other adjustment, so the line column stays the single source of truth for refunds.
+- Progress bars are data (`thresholdCents`, `remainingCents`, `percent`, `reached`); the UI only draws them. Percent is floored so 99.9% never shows as 100%.
+- Notices are machine keys (`code_not_stackable`, `code_min_spend`, ...), the UI turns them into kind sentences.
