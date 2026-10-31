@@ -10,6 +10,7 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Price } from '../components/ui/Price';
 import { Skeleton } from '../components/ui/Skeleton';
+import { AddToCart } from '../features/catalog/AddToCart';
 import { formatFacetValue } from '../features/catalog/filters';
 import { Gallery } from '../features/catalog/Gallery';
 import { useProduct } from '../features/catalog/queries';
@@ -162,6 +163,8 @@ function ProductView({ product }: { product: ProductDetail }) {
                 </span>
               </p>
             )}
+
+            {variant && <AddToCart key={variant.id} variant={variant} />}
 
             <p className="max-w-prose text-lg">{product.description}</p>
 
