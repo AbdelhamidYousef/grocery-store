@@ -160,3 +160,73 @@ export async function deleteItems(tx: Tx, itemIds: string[]): Promise<void> {
   if (itemIds.length === 0) return;
   await tx.delete(cartItems).where(inArray(cartItems.id, itemIds));
 }
+
+// ---------- mutations ----------
+
+export type CartItemRow = typeof cartItems.$inferSelect;
+
+export async function findItemInCart(
+  tx: Tx,
+  cartId: string,
+  itemId: string,
+): Promise<CartItemRow | undefined> {
+  // Both ids in the WHERE: the item id comes from the URL, the cart id from the caller's identity.
+  // An item that exists in someone else's cart is therefore simply "not found".
+  const [row] = await tx
+    .select()
+    .from(cartItems)
+    .where(and(eq(cartItems.id, itemId), eq(cartItems.cartId, cartId)));
+  return row;
+}
+
+export async function findItemByVariant(
+  tx: Tx,
+  cartId: string,
+  variantId: string,
+): Promise<CartItemRow | undefined> {
+  const [row] = await tx
+    .select()
+    .from(cartItems)
+    .where(and(eq(cartItems.cartId, cartId), eq(cartItems.variantId, variantId)));
+  return row;
+}
+
+// What a shopper may buy of one variant right now. Undefined when the variant (or its product) is
+// not on sale, which callers report as "not found", not as "out of stock".
+export async function findPurchasable(
+  tx: Tx,
+  variantId: string,
+): Promise<{ available: number } | undefined> {
+  const [row] = await tx
+    .select({ stock: inventory.quantity, reserved: inventory.reserved })
+    .from(productVariants)
+    .innerJoin(products, eq(products.id, productVariants.productId))
+    .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
+    .where(
+      and(
+        eq(productVariants.id, variantId),
+        eq(productVariants.status, 'active'),
+        eq(products.status, 'active'),
+      ),
+    );
+  if (!row) return undefined;
+  return { available: Math.max(0, (row.stock ?? 0) - (row.reserved ?? 0)) };
+}
+
+export async function insertItem(
+  tx: Tx,
+  cartId: string,
+  variantId: string,
+  quantity: number,
+): Promise<void> {
+  await tx.insert(cartItems).values({ cartId, variantId, quantity });
+}
+
+export async function deleteAllItems(tx: Tx, cartId: string): Promise<void> {
+  await tx.delete(cartItems).where(eq(cartItems.cartId, cartId));
+}
+
+// A cart that is being used stays alive: guests another 30 days, users another 90.
+export async function setExpiry(tx: Tx, cartId: string, expiresAt: Date): Promise<void> {
+  await tx.update(carts).set({ expiresAt }).where(eq(carts.id, cartId));
+}

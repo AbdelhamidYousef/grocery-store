@@ -1,4 +1,50 @@
+import {
+  AddCartItemSchema,
+  CartItemParamsSchema,
+  CartResponseSchema,
+  UpdateCartItemSchema,
+} from '@store/shared';
 import { Router as ExpressRouter, type Router } from 'express';
 
-// Filled in by a later phase; mounted already so adding endpoints never touches app wiring.
+import { respond, valid, validate } from '../../lib/validate.ts';
+import { cartIdOf, withCart } from '../../middleware/cart.ts';
+
+import * as service from './service.ts';
+
 export const cartRouter: Router = ExpressRouter();
+
+// Every route below works on the caller's own cart, found from their session or signed cookie.
+// There is deliberately no cart id in any path or body: a client cannot name a cart, so it cannot
+// name somebody else's. (`POST /cart/merge` from the contract is internal: login/register call
+// the service directly and it is not exposed over HTTP.)
+cartRouter.use('/cart', withCart);
+
+cartRouter.get('/cart', async (req, res) => {
+  respond(res, CartResponseSchema, { data: await service.getCart(cartIdOf(req)) });
+});
+
+const add = { body: AddCartItemSchema };
+cartRouter.post('/cart/items', validate(add), async (req, res) => {
+  const { body } = valid(req, add);
+  respond(res, CartResponseSchema, {
+    data: await service.addItem(cartIdOf(req), body.variantId, body.quantity),
+  });
+});
+
+const update = { params: CartItemParamsSchema, body: UpdateCartItemSchema };
+cartRouter.patch('/cart/items/:id', validate(update), async (req, res) => {
+  const { params, body } = valid(req, update);
+  respond(res, CartResponseSchema, {
+    data: await service.updateItem(cartIdOf(req), params.id, body.quantity),
+  });
+});
+
+const byId = { params: CartItemParamsSchema };
+cartRouter.delete('/cart/items/:id', validate(byId), async (req, res) => {
+  const { params } = valid(req, byId);
+  respond(res, CartResponseSchema, { data: await service.removeItem(cartIdOf(req), params.id) });
+});
+
+cartRouter.delete('/cart', async (req, res) => {
+  respond(res, CartResponseSchema, { data: await service.clear(cartIdOf(req)) });
+});

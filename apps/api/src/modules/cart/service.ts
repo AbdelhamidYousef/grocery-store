@@ -1,14 +1,17 @@
 import {
+  ErrorCode,
   MAX_LINE_QUANTITY,
   sumCents,
   type Cart,
   type CartItem,
   type CartWarning,
+  type OutOfStockDetails,
 } from '@store/shared';
 
-import type { Tx } from '../../db/client.ts';
-import { db } from '../../db/client.ts';
+import { db, type Tx } from '../../db/client.ts';
+import { conflict, notFound } from '../../lib/errors.ts';
 
+import { guestExpiry, userExpiry } from './identity.ts';
 import * as repo from './repo.ts';
 
 // Store currency fallback for an empty cart (every variant defaults to it too).
@@ -111,4 +114,87 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
 
 export async function getCart(cartId: string): Promise<Cart> {
   return db.transaction((tx) => loadCart(tx, cartId));
+}
+
+// ---------- mutations ----------
+
+// Every mutation runs as: open a transaction, lock the cart row, change it, and return the freshly
+// loaded cart from the same transaction. The lock queues concurrent requests on this cart, so two
+// simultaneous "add 3" calls against 5 in stock are checked one after the other (the second sees
+// the first's rows) instead of both passing a check-then-insert and overselling. The whole cart
+// goes back in the response so the UI needs one round trip, never a second GET that could show a
+// state the mutation did not produce.
+//
+// `cartId` here is always the caller's own (see `withCart`): nothing in this file accepts a cart
+// id from the request.
+async function mutate(cartId: string, change: (tx: Tx) => Promise<void>): Promise<Cart> {
+  return db.transaction(async (tx) => {
+    const cart = await repo.lockCart(tx, cartId);
+    if (!cart) throw notFound('Cart not found');
+    await change(tx);
+    await repo.setExpiry(tx, cartId, cart.userId ? userExpiry() : guestExpiry());
+    return loadCart(tx, cartId);
+  });
+}
+
+function outOfStock(details: OutOfStockDetails) {
+  const message =
+    details.maxQty === 0
+      ? 'This item is sold out'
+      : `Only ${details.maxQty} available, and you already have ${details.inCart} in your cart`;
+  return conflict(ErrorCode.OUT_OF_STOCK, message, details);
+}
+
+export async function addItem(cartId: string, variantId: string, quantity: number): Promise<Cart> {
+  return mutate(cartId, async (tx) => {
+    const stock = await repo.findPurchasable(tx, variantId);
+    if (!stock) throw notFound('Product variant not found');
+    const maxQty = Math.min(MAX_LINE_QUANTITY, stock.available);
+
+    const existing = await repo.findItemByVariant(tx, cartId, variantId);
+    const inCart = existing?.quantity ?? 0;
+    // Adding is cumulative (the contract says "adds to existing qty"), and the total is what is
+    // checked: 3 in the cart plus 3 more must fit in stock together.
+    if (inCart + quantity > maxQty) {
+      throw outOfStock({ variantId, maxQty, inCart, requested: quantity });
+    }
+    if (existing) await repo.setItemQuantity(tx, existing.id, inCart + quantity);
+    else await repo.insertItem(tx, cartId, variantId, quantity);
+  });
+}
+
+// Sets an absolute quantity; 0 deletes the line.
+export async function updateItem(cartId: string, itemId: string, quantity: number): Promise<Cart> {
+  return mutate(cartId, async (tx) => {
+    const item = await repo.findItemInCart(tx, cartId, itemId);
+    if (!item) throw notFound('Cart item not found');
+    if (quantity === 0) {
+      await repo.deleteItems(tx, [item.id]);
+      return;
+    }
+    const stock = await repo.findPurchasable(tx, item.variantId);
+    if (!stock) throw notFound('Product variant not found');
+    const maxQty = Math.min(MAX_LINE_QUANTITY, stock.available);
+    if (quantity > maxQty) {
+      throw outOfStock({
+        variantId: item.variantId,
+        maxQty,
+        inCart: item.quantity,
+        requested: quantity,
+      });
+    }
+    await repo.setItemQuantity(tx, item.id, quantity);
+  });
+}
+
+export async function removeItem(cartId: string, itemId: string): Promise<Cart> {
+  return mutate(cartId, async (tx) => {
+    const item = await repo.findItemInCart(tx, cartId, itemId);
+    if (!item) throw notFound('Cart item not found');
+    await repo.deleteItems(tx, [item.id]);
+  });
+}
+
+export async function clear(cartId: string): Promise<Cart> {
+  return mutate(cartId, (tx) => repo.deleteAllItems(tx, cartId));
 }
