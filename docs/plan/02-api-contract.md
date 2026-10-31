@@ -27,6 +27,14 @@ Error codes (string enum in shared): `VALIDATION_ERROR` 400 · `UNAUTHENTICATED`
 | GET | `/products` | query: `category`, `q` (full-text), `sort` (`relevance`,`price_asc`,`price_desc`,`newest`,`name`), `minPrice`,`maxPrice` (cents), `attr.<key>=v1,v2` (jsonb filter, e.g. `attr.material=plush,rubber`), `inStock=true`, `page`,`limit`. Returns list cards: id, slug, name, primary image, price range (min/max of active variants), `inStock`, attributes subset. Also returns `facets` (attribute values + counts for the current category) so the PLP filter UI is data-driven. |
 | GET | `/products/:slug` | full product: variants (with available stock as boolean + `lowStock`, never the raw number), images, attributes, optionKeys, category breadcrumb |
 
+### Catalog notes (written in phase 3)
+- **Search (`q`)** is Postgres full-text (`websearch_to_tsquery('english', q)`): it matches word forms
+  through stemming (`ropes` finds `rope`) and understands `"quoted phrases"`, `-exclusion` and `or`.
+  It does **not** correct typos (`rpoe` finds nothing). Input of 1-2 characters (or only stop words)
+  falls back to a case-insensitive substring match on the name. `sort=relevance` is the default when
+  `q` is present, `newest` otherwise.
+- Unknown query parameters are ignored; an unknown `category` gives an empty list, not a 404.
+
 ## Auth & account (phase 6)
 | Method | Path | Auth | Notes |
 | --- | --- | --- | --- |

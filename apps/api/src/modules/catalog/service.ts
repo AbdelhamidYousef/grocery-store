@@ -92,6 +92,7 @@ export async function listProducts(
   const sort = query.sort ?? (query.q ? 'relevance' : 'newest');
   const { rows, total } = await repo.listProducts({
     filters: {
+      ...(query.q !== undefined && { q: query.q }),
       ...(query.category !== undefined && { category: query.category }),
       ...(query.minPrice !== undefined && { minPriceCents: query.minPrice }),
       ...(query.maxPrice !== undefined && { maxPriceCents: query.maxPrice }),

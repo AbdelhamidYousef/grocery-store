@@ -6,6 +6,7 @@ import {
   eq,
   exists,
   gte,
+  ilike,
   inArray,
   lte,
   or,
@@ -67,6 +68,8 @@ export async function getCategoryBySlug(slug: string): Promise<CategoryRow[]> {
 export type SortKey = 'relevance' | 'price_asc' | 'price_desc' | 'newest' | 'name';
 
 export interface ProductFilters {
+  /** Free-text search term, already trimmed (1-100 characters). */
+  q?: string;
   /** Category slug; its child categories are included. */
   category?: string;
   minPriceCents?: number;
@@ -75,6 +78,15 @@ export interface ProductFilters {
   /** key -> accepted values: OR within a key, AND across keys. */
   attr: Record<string, string[]>;
 }
+
+// Postgres full-text needs a few letters to mean anything (and the english config drops stop
+// words), so one or two characters fall back to a plain substring match on the name.
+const SHORT_QUERY_MAX = 2;
+
+const tsQuery = (q: string) => sql`websearch_to_tsquery('english', ${q})`;
+
+// `%` and `_` are wildcards in LIKE; a shopper typing "50%" means the characters.
+const likeEscape = (q: string) => q.replace(/[\\%_]/g, '\\$&');
 
 export interface ProductListParams {
   filters: ProductFilters;
@@ -129,7 +141,7 @@ export interface ProductImageRow {
 
 // Every ordering ends in `products.id`: without a unique last key, rows that tie on the sort
 // column may swap places between pages and a shopper would see duplicates or gaps.
-function orderBy(sort: SortKey, v: ReturnType<typeof variantSummary>): SQL[] {
+function orderBy(sort: SortKey, v: ReturnType<typeof variantSummary>, q?: string): SQL[] {
   switch (sort) {
     case 'price_asc':
       return [asc(v.minCents), asc(products.id)];
@@ -137,7 +149,16 @@ function orderBy(sort: SortKey, v: ReturnType<typeof variantSummary>): SQL[] {
       return [desc(v.minCents), asc(products.id)];
     case 'name':
       return [asc(sql`lower(${products.name})`), asc(products.id)];
-    case 'relevance': // becomes ts_rank in step 3.5; until then the newest-first order
+    case 'relevance': {
+      // Without a term there is nothing to rank by; newest is the sensible stand-in.
+      if (!q) return [desc(products.createdAt), asc(products.id)];
+      const rank =
+        q.length <= SHORT_QUERY_MAX
+          ? // Substring fallback has no score, so names that *start* with the input go first.
+            sql`(${products.name} ilike ${likeEscape(q) + '%'})::int`
+          : sql`ts_rank(${products.searchVector}, ${tsQuery(q)})`;
+      return [desc(rank), desc(products.createdAt), asc(products.id)];
+    }
     case 'newest':
       return [desc(products.createdAt), asc(products.id)];
   }
@@ -189,6 +210,18 @@ function filterConditions(
     );
   }
 
+  if (f.q) {
+    conds.push(
+      f.q.length <= SHORT_QUERY_MAX
+        ? ilike(products.name, `%${likeEscape(f.q)}%`)
+        : // A query made only of stop words ("the") compiles to an empty tsquery that matches
+          // nothing; treat that case as a name substring search instead of an empty page.
+          sql`(case when numnode(${tsQuery(f.q)}) = 0
+                then ${products.name} ilike ${'%' + likeEscape(f.q) + '%'}
+                else ${products.searchVector} @@ ${tsQuery(f.q)} end)`,
+    );
+  }
+
   if (f.inStock) conds.push(eq(v.inStock, true));
 
   if (!opts.skipAttrs) {
@@ -229,7 +262,7 @@ export async function listProducts(
     .innerJoin(v, eq(v.productId, products.id))
     .innerJoin(categories, eq(categories.id, products.categoryId))
     .where(where)
-    .orderBy(...orderBy(params.sort, v))
+    .orderBy(...orderBy(params.sort, v, params.filters.q))
     .limit(params.limit)
     .offset(params.offset);
 

@@ -289,3 +289,109 @@ describe('GET /api/v1/products — filters', () => {
     expect((await list('?attr.pet=dog')).body.meta.total).toBe(2);
   });
 });
+
+describe('GET /api/v1/products — full-text search', () => {
+  async function seedToys() {
+    await createProduct({
+      name: 'Braided Tug Rope',
+      description: 'A thick cotton rope for tug games.',
+      createdAt: new Date('2026-01-01'),
+    });
+    await createProduct({
+      name: 'Rope Ball',
+      description: 'A ball made of knotted rope. Rope everywhere, rope rope rope.',
+      createdAt: new Date('2026-01-02'),
+    });
+    await createProduct({
+      name: 'Squeaky Fox',
+      description: 'A plush fox that squeaks.',
+      createdAt: new Date('2026-01-03'),
+    });
+    await createProduct({
+      name: 'Seed Mix',
+      description: 'A tasty mix for your pet parrot or budgie.',
+      createdAt: new Date('2026-01-04'),
+    });
+  }
+
+  it('finds products by words in the name or description', async () => {
+    await seedToys();
+    expect(names((await list('?q=rope')).body).sort()).toEqual(['Braided Tug Rope', 'Rope Ball']);
+    expect(names((await list('?q=parrot')).body)).toEqual(['Seed Mix']);
+  });
+
+  it('matches word forms through stemming (ropes finds rope, squeaking finds squeaks)', async () => {
+    await seedToys();
+    expect((await list('?q=ropes')).body.meta.total).toBe(2);
+    expect(names((await list('?q=squeaking')).body)).toEqual(['Squeaky Fox']);
+  });
+
+  it('ranks by relevance by default when searching, newest breaking ties', async () => {
+    await seedToys();
+    // "Rope Ball" mentions rope many more times, so it outranks the older, newer-listed ordering.
+    expect(names((await list('?q=rope')).body)).toEqual(['Rope Ball', 'Braided Tug Rope']);
+  });
+
+  it('lets another sort override relevance', async () => {
+    await seedToys();
+    expect(names((await list('?q=rope&sort=name')).body)).toEqual([
+      'Braided Tug Rope',
+      'Rope Ball',
+    ]);
+  });
+
+  it('supports websearch syntax: quoted phrases, exclusion and or', async () => {
+    await seedToys();
+    expect(names((await list(`?q=${encodeURIComponent('"tug games"')}`)).body)).toEqual([
+      'Braided Tug Rope',
+    ]);
+    expect(names((await list(`?q=${encodeURIComponent('rope -ball')}`)).body)).toEqual([
+      'Braided Tug Rope',
+    ]);
+    expect(names((await list(`?q=${encodeURIComponent('parrot or fox')}`)).body).sort()).toEqual([
+      'Seed Mix',
+      'Squeaky Fox',
+    ]);
+  });
+
+  it('does not promise typo tolerance: a misspelling finds nothing', async () => {
+    await seedToys();
+    expect((await list('?q=rpoe')).body.data).toEqual([]);
+  });
+
+  it('falls back to a name substring match for 1-2 character input', async () => {
+    await seedToys();
+    expect(names((await list('?q=fo')).body)).toEqual(['Squeaky Fox']);
+    expect(names((await list('?q=ro')).body).sort()).toEqual(['Braided Tug Rope', 'Rope Ball']);
+  });
+
+  it('treats LIKE wildcards in short input literally', async () => {
+    await seedToys();
+    expect((await list(`?q=${encodeURIComponent('%')}`)).body.data).toEqual([]);
+  });
+
+  it('falls back to a name search when the query is only stop words', async () => {
+    await createProduct({ name: 'The Thing', description: 'zzz' });
+    expect(names((await list('?q=the')).body)).toEqual(['The Thing']);
+  });
+
+  it('returns an empty list for punctuation-only input without erroring', async () => {
+    await seedToys();
+    const { res, body } = await list(`?q=${encodeURIComponent('!!!')}`);
+    expect(res.status).toBe(200);
+    expect(body.data).toEqual([]);
+  });
+
+  it('combines search with filters and counts the matches', async () => {
+    await createProduct({ name: 'Dog rope', description: 'rope', attributes: { pet: 'dog' } });
+    await createProduct({ name: 'Cat rope', description: 'rope', attributes: { pet: 'cat' } });
+    const { body } = await list('?q=rope&attr.pet=dog');
+    expect(names(body)).toEqual(['Dog rope']);
+    expect(body.meta.total).toBe(1);
+  });
+
+  it('rejects an empty or over-long q with 400', async () => {
+    expect((await list('?q=')).res.status).toBe(400);
+    expect((await list(`?q=${'x'.repeat(101)}`)).res.status).toBe(400);
+  });
+});
