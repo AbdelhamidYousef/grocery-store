@@ -34,6 +34,7 @@ describe('mail environment variables', () => {
     COOKIE_SECRET: 'x'.repeat(32),
     STRIPE_SECRET_KEY: 'sk_test_x',
     STRIPE_WEBHOOK_SECRET: 'whsec_x',
+    WEB_ORIGIN: 'https://pawsome.example.app',
   };
 
   it('are all optional, in production too', () => {

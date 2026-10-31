@@ -98,6 +98,12 @@ export const envSchema = z
     message: 'STRIPE_WEBHOOK_SECRET (whsec_...) is required in production',
     path: ['STRIPE_WEBHOOK_SECRET'],
   })
+  // The Origin check (CSRF) and CORS compare against it: left at the localhost default, every
+  // browser request in production would be refused, and Secure cookies need https anyway.
+  .refine((e) => e.NODE_ENV !== 'production' || e.WEB_ORIGIN.startsWith('https://'), {
+    message: 'WEB_ORIGIN must be the https URL of the deployed web app in production',
+    path: ['WEB_ORIGIN'],
+  })
   .transform((e) => ({ ...e, COOKIE_SECRET: e.COOKIE_SECRET ?? DEV_COOKIE_SECRET }));
 
 // Fail at boot with a readable message instead of at the first request that needs a variable.

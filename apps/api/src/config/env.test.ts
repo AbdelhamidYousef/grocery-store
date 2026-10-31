@@ -3,7 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { envSchema } from './env.ts';
 
 const base = { DATABASE_URL: 'postgres://u:p@localhost:5432/db' };
-const prod = { ...base, NODE_ENV: 'production', COOKIE_SECRET: 'x'.repeat(32) };
+const prod = {
+  ...base,
+  NODE_ENV: 'production',
+  COOKIE_SECRET: 'x'.repeat(32),
+  WEB_ORIGIN: 'https://pawsome.example.app',
+};
 
 function problems(source: Record<string, string>): string[] {
   const result = envSchema.safeParse(source);
@@ -51,6 +56,41 @@ describe('Stripe configuration', () => {
     expect(
       problems({ ...prod, STRIPE_SECRET_KEY: 'sk_test_abc', STRIPE_WEBHOOK_SECRET: 'whsec_abc' }),
     ).toEqual([]);
+  });
+});
+
+describe('production safety', () => {
+  const complete = {
+    ...prod,
+    STRIPE_SECRET_KEY: 'sk_test_abc',
+    STRIPE_WEBHOOK_SECRET: 'whsec_abc',
+  };
+
+  it('refuses to boot without a cookie secret of 32+ characters', () => {
+    expect(problems({ ...complete, COOKIE_SECRET: '' })).toEqual(['COOKIE_SECRET']);
+    expect(problems({ ...complete, COOKIE_SECRET: 'short' })).toEqual(['COOKIE_SECRET']);
+  });
+
+  it('refuses the localhost default or a plain-http WEB_ORIGIN', () => {
+    const withoutOrigin: Record<string, string> = { ...complete };
+    delete withoutOrigin.WEB_ORIGIN;
+    expect(problems(withoutOrigin)).toEqual(['WEB_ORIGIN']);
+    expect(problems({ ...complete, WEB_ORIGIN: 'http://pawsome.example.app' })).toEqual([
+      'WEB_ORIGIN',
+    ]);
+    expect(problems({ ...complete, NODE_ENV: 'development' })).toEqual([]);
+  });
+
+  it('reduces WEB_ORIGIN to an origin, so a trailing path or slash does not break the CSRF check', () => {
+    expect(
+      envSchema.parse({ ...complete, WEB_ORIGIN: 'https://pawsome.example.app/shop/' }).WEB_ORIGIN,
+    ).toBe('https://pawsome.example.app');
+  });
+
+  it('rejects live Stripe keys even when everything else is right', () => {
+    expect(problems({ ...complete, STRIPE_SECRET_KEY: 'sk_live_abc' })).toEqual([
+      'STRIPE_SECRET_KEY',
+    ]);
   });
 });
 
