@@ -17,6 +17,8 @@ export function createApp({ logger, nodeEnv }: AppDeps): Express {
   const app = express();
 
   app.disable('x-powered-by');
+  // `respond()` reads this to decide whether to validate responses (everywhere except production).
+  app.set('env', nodeEnv);
   // First, so every later middleware (and the access log) can rely on req.id.
   app.use(requestId);
   app.use(
