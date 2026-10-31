@@ -88,3 +88,8 @@ The app now runs `helmet`, CORS limited to `WEB_ORIGIN` with credentials, a glob
 1. Why does the CSRF origin check plus `SameSite=Lax` protect a cookie-authenticated API, and why is the Stripe webhook route exempt from the check?
 2. A request fails validation, another throws a plain `Error` from a service, and a third has malformed JSON: what status and error code does each get, and what does production hide?
 3. Why does the health endpoint race the database ping against a timer and return 503 instead of 200, and what does the SIGTERM handler do before the process exits?
+
+## Phase 3 — Catalog API
+
+### 3.1 — shared catalog schemas
+`packages/shared/src/schemas/` now has `common.ts` (the `{ data }` / `{ data, meta }` envelopes, pagination meta and query) and `catalog.ts` (category, product card, variant, product detail, facets and the list query). The list query schema moves every `attr.<key>` parameter into an `attr` record, splits comma lists into arrays, coerces numbers, turns `inStock=true|false` into a boolean, caps `limit` at 100, rejects `minPrice > maxPrice` and strips unknown parameters. `respond()` from step 2.3 now takes the whole envelope schema so the web can parse responses with the same schema the API validated against. Learn: sharing one schema file means a change to a response shape is a type error in both the API and the web at once, instead of a bug found in the browser.

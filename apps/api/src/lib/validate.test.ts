@@ -16,6 +16,11 @@ const schemas = {
   body: z.object({ name: z.string().min(1) }),
 };
 
+const envelope = z.object({
+  data: z.object({ n: z.number() }),
+  meta: z.object({ total: z.number() }).optional(),
+});
+
 function makeApp(env: 'test' | 'production' = 'test') {
   const app = express();
   app.set('env', env);
@@ -29,10 +34,10 @@ function makeApp(env: 'test' | 'production' = 'test') {
     res.json({ id, page, name: body.name });
   });
   app.get('/drift', (_req, res) => {
-    respond(res, z.object({ n: z.number() }), { n: 'oops' } as unknown as { n: number });
+    respond(res, envelope, { data: { n: 'oops' } } as unknown as z.input<typeof envelope>);
   });
   app.get('/ok', (_req, res) => {
-    respond(res, z.object({ n: z.number() }), { n: 1 }, { total: 3 });
+    respond(res, envelope, { data: { n: 1 }, meta: { total: 3 } });
   });
   app.use(createErrorHandler({ isProduction: env === 'production' }));
   return app;

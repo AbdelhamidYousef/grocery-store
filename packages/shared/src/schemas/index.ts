@@ -1,2 +1,3 @@
-// Zod schemas shared by API and web land here, one file per resource, starting in phase 1/3.
-export {};
+// Zod schemas shared by API and web, one file per resource.
+export * from './catalog.ts';
+export * from './common.ts';

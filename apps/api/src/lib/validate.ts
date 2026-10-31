@@ -46,21 +46,17 @@ export function valid<const S extends Schemas>(req: Request, _schemas: S): Valid
   return req.valid as Valid<S>;
 }
 
-// Sends `{ data }` (plus optional `meta`). Outside production the data is first checked against
-// the schema that documents the endpoint, so a response drifting from the contract fails loudly
-// in development and tests instead of silently confusing the web client.
-export function respond<T extends z.ZodType>(
-  res: Response,
-  schema: T,
-  data: z.input<T>,
-  meta?: Record<string, unknown>,
-): void {
+// Sends a response body. `schema` describes the whole envelope (`DataSchema(x)`,
+// `PaginatedSchema(x)` ... from @store/shared), so the web parses the very same shape. Outside
+// production the body is first checked against it, so a response drifting from the contract fails
+// loudly in development and tests instead of silently confusing the web client.
+export function respond<T extends z.ZodType>(res: Response, schema: T, body: z.input<T>): void {
   if (res.app.get('env') !== 'production') {
-    const result = schema.safeParse(data);
+    const result = schema.safeParse(body);
     if (!result.success) {
       // A plain Error on purpose: invalid *output* is our bug (500), not a client mistake (400).
       throw new Error(`response does not match its schema: ${z.prettifyError(result.error)}`);
     }
   }
-  res.json(meta ? { data, meta } : { data });
+  res.json(body);
 }
