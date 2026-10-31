@@ -92,6 +92,20 @@ describe('order history list', () => {
     expect(asked).toBe('?page=1&limit=10');
   });
 
+  it('does not claim there are no orders when the page is past the end', async () => {
+    server.use(
+      signedInAs(),
+      http.get(`${API}/account/orders`, () =>
+        HttpResponse.json({ data: [], meta: { page: 9, limit: 10, total: 30, totalPages: 3 } }),
+      ),
+    );
+    renderApp('/account/orders?page=9');
+    const note = await screen.findByTestId('empty-state');
+    expect(note).toHaveTextContent('There are no orders on this page.');
+    expect(note).not.toHaveTextContent('You have not placed an order yet.');
+    expect(within(note).getByRole('link')).toHaveAttribute('href', '/account/orders?page=3');
+  });
+
   it('offers a retry when the list cannot be loaded', async () => {
     server.use(
       signedInAs(),

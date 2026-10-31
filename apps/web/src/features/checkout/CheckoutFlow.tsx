@@ -120,8 +120,8 @@ export function CheckoutFlow({
             details &&
             a && (
               <>
-                <p>{details.email}</p>
-                <p>
+                <p className="line-clamp-1 break-all">{details.email}</p>
+                <p className="line-clamp-2 break-all">
                   {a.fullName}, {a.line1}, {a.postalCode} {a.city}, {a.country}
                 </p>
               </>

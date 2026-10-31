@@ -46,7 +46,23 @@ export function OrdersSection() {
           </Button>
         </div>
       )}
-      {data && data.data.length === 0 && (
+      {data && data.data.length === 0 && data.meta.total > 0 && (
+        // A page past the end (an old bookmark, a hand-edited URL) is not "no orders at all".
+        <div className="mt-4" data-testid={TEST_IDS.emptyState} data-reason="past-the-end">
+          <p className="text-muted">There are no orders on this page.</p>
+          <Link
+            to={
+              data.meta.totalPages > 1
+                ? `/account/orders?page=${data.meta.totalPages}`
+                : '/account/orders'
+            }
+            className="mt-2 inline-block font-semibold text-primary-strong underline"
+          >
+            Go to your latest orders
+          </Link>
+        </div>
+      )}
+      {data && data.data.length === 0 && data.meta.total === 0 && (
         <div className="mt-4" data-testid={TEST_IDS.emptyState}>
           <p className="text-muted">You have not placed an order yet.</p>
           <Link to="/" className="mt-2 inline-block font-semibold text-primary-strong underline">
