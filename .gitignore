@@ -5,6 +5,7 @@ coverage/
 playwright-report/
 test-results/
 *.log
+*.tsbuildinfo
 .DS_Store
 
 # Environment: real values never committed; .env.example documents every variable

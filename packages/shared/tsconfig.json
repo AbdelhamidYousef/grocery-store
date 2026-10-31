@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // The package ships TS sources and consumers compile them, so tsc only type-checks here.
+    "noEmit": true,
+    "types": []
+  },
+  "include": ["src"]
+}
