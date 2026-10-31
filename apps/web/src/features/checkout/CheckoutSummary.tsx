@@ -6,6 +6,8 @@ import { TEST_IDS } from '../../lib/test-ids';
 
 import { SummaryLines, TotalsList } from './OrderSummary';
 
+const LONG_LIST = 5;
+
 // The sidebar. Lines and subtotal come from the cart, the shipping price from the quote the server
 // gave for the chosen method, and the TOTAL only from the server's answer to POST /checkout: the
 // browser never adds money up, so what it shows is always what Stripe will charge.
@@ -36,7 +38,21 @@ export function CheckoutSummary({
       className="flex flex-col gap-4 rounded-card border-2 border-line bg-surface p-4 sm:p-5 lg:sticky lg:top-32"
     >
       <h2 className="font-display text-xl font-bold">Order summary</h2>
-      <SummaryLines lines={lines} currency={cart.currency} />
+      {lines.length > LONG_LIST ? (
+        // 20 lines would push the totals 17 screens down on a phone. Past a handful the list
+        // scrolls inside its own box; it is focusable so a keyboard can scroll it too.
+        <div
+          role="region"
+          aria-label={`Items in your order (${lines.length}), scrollable`}
+          tabIndex={0}
+          data-testid="checkout-summary-lines"
+          className="max-h-80 overflow-y-auto overscroll-contain pr-2"
+        >
+          <SummaryLines lines={lines} currency={cart.currency} />
+        </div>
+      ) : (
+        <SummaryLines lines={lines} currency={cart.currency} />
+      )}
       <TotalsList
         currency={cart.currency}
         rows={[

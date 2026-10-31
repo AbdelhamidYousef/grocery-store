@@ -19,7 +19,7 @@ export function AdminLayout() {
     <Container className="py-6" data-testid={TEST_IDS.pageAdmin}>
       <Seo title="Admin" noindex />
       <h1 className="font-display text-2xl font-bold sm:text-3xl">Admin</h1>
-      <div className="mt-4 grid gap-5 md:grid-cols-[11rem_minmax(0,1fr)] md:gap-8">
+      <div className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-[11rem_minmax(0,1fr)] md:gap-8">
         <nav aria-label="Admin" data-testid={TEST_IDS.adminNav}>
           <ul className="flex flex-wrap gap-2 md:flex-col md:gap-1">
             {LINKS.map((link) => (

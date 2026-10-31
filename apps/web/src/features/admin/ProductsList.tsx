@@ -49,7 +49,7 @@ export function ProductsList() {
         </Link>
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem] sm:items-end">
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_12rem] sm:items-end">
         <AdminSearch
           label="Find products"
           hint="Name, slug or SKU"

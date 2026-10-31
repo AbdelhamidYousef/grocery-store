@@ -97,7 +97,7 @@ function ProductView({ product }: { product: ProductDetail }) {
       />
       <Container className="py-6">
         <Breadcrumbs items={crumbs} />
-        <div className="mt-6 grid gap-8 md:grid-cols-2 lg:gap-12">
+        <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-12">
           <Gallery
             images={product.images}
             selectedId={imageId}
@@ -202,7 +202,7 @@ function ProductSkeleton() {
         Loading product
       </p>
       <Skeleton className="h-5 w-64" />
-      <div className="mt-6 grid gap-8 md:grid-cols-2 lg:gap-12">
+      <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-12">
         <Skeleton className="aspect-square w-full rounded-card" />
         <div className="flex flex-col gap-4">
           <Skeleton className="h-10 w-3/4" />

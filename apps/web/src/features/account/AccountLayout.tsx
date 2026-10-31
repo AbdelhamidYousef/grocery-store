@@ -22,7 +22,7 @@ export function AccountLayout() {
           Signed in as {user.firstName} {user.lastName} ({user.email})
         </p>
       )}
-      <div className="mt-6 grid gap-6 md:grid-cols-[14rem_minmax(0,1fr)] md:gap-10">
+      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-[14rem_minmax(0,1fr)] md:gap-10">
         <nav aria-label="Account" data-testid="account-nav">
           <ul className="flex flex-wrap gap-2 md:flex-col">
             {LINKS.map((link) => (

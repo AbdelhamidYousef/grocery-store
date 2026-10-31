@@ -108,7 +108,7 @@ export function CheckoutFlow({
 
   const a = details?.shippingAddress;
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:gap-10">
+    <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:gap-10">
       <div className="flex min-w-0 flex-col gap-4">
         <StepCard
           id="details"

@@ -148,7 +148,7 @@ function Body({ detail }: { detail: AdminOrderDetail }) {
         </dl>
       </section>
 
-      <section aria-labelledby="order-customer" className="grid gap-6 sm:grid-cols-2">
+      <section aria-labelledby="order-customer" className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <h3 id="order-customer" className="sr-only">
           Customer and payment
         </h3>

@@ -46,7 +46,7 @@ export default function CartPage() {
       )}
 
       {cart && cart.items.length > 0 && (
-        <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10">
+        <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10">
           <div className="min-w-0">
             <CartContents cart={cart} />
           </div>

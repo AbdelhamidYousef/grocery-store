@@ -11,7 +11,7 @@ const linkClass =
 export function Footer() {
   return (
     <footer className="mt-16 bg-ink text-surface" data-testid="footer">
-      <Container className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
+      <Container className="grid grid-cols-1 gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div className="flex flex-col gap-3 sm:col-span-2 lg:col-span-1">
           <p className="flex items-center gap-2 font-display text-2xl font-bold">
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-bright text-ink">

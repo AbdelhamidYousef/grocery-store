@@ -128,7 +128,7 @@ export function ProductForm({
           error={errors.description?.message}
           {...register('description')}
         />
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* Keyed on the tree arriving: an uncontrolled select given its value before its options
               exist shows the placeholder, so the edit page would look like it lost the category. */}
           <Select
@@ -160,7 +160,7 @@ export function ProductForm({
         </div>
       </fieldset>
 
-      <fieldset className="grid gap-4 sm:grid-cols-2">
+      <fieldset className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <legend className="mb-1 font-display text-lg font-bold">Attributes</legend>
         <Select label="Pet" error={errors.attributes?.pet?.message} {...register('attributes.pet')}>
           <option value="">Not set</option>
@@ -216,7 +216,7 @@ export function ProductForm({
           return (
             <div
               key={item.id}
-              className="grid gap-3 rounded-card border-2 border-line p-3 sm:grid-cols-2"
+              className="grid grid-cols-1 gap-3 rounded-card border-2 border-line p-3 sm:grid-cols-2"
               role="group"
               aria-label={`Image ${index + 1}`}
             >

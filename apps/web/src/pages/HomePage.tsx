@@ -44,7 +44,7 @@ export default function HomePage() {
       />
 
       <section className="bg-primary-soft">
-        <Container className="grid items-center gap-8 py-10 md:grid-cols-2 md:py-16">
+        <Container className="grid grid-cols-1 items-center gap-8 py-10 md:grid-cols-2 md:py-16">
           <div className="flex flex-col items-start gap-4">
             <h1 className="font-display text-4xl font-bold leading-tight text-ink sm:text-5xl">
               Happy tails start <span className="text-primary-strong">here</span>
@@ -62,6 +62,15 @@ export default function HomePage() {
           </div>
           {/* Decorative collage of real catalogue photos; the same pictures are links below. */}
           <div className="grid grid-cols-3 gap-3" aria-hidden="true">
+            {/* While the products load, three empty tiles hold the collage's place so the page
+                below does not jump when the photos arrive. */}
+            {isPending &&
+              [0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className={`aspect-square w-full rounded-card bg-surface/60 ${i === 1 ? 'mt-6' : ''}`}
+                />
+              ))}
             {hero.map((p, i) =>
               p.image ? (
                 <img
@@ -105,7 +114,7 @@ export default function HomePage() {
 
       <Container className="mt-12">
         <h2 className="mb-5 text-2xl font-bold sm:text-3xl">Why Pawsome</h2>
-        <ul className="grid gap-4 md:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {WHY.map((item) => (
             <li key={item.title} className="rounded-card border border-line bg-surface p-6">
               <h3 className="text-xl font-bold">{item.title}</h3>

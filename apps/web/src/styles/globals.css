@@ -24,6 +24,9 @@
     /* Last line of defence for the "no horizontal scroll at 360px" rule; components should
        still never be wider than the viewport. */
     overflow-x: clip;
+    /* A long unbroken word (a product named with a 60-letter compound, a pasted URL) wraps
+       instead of pushing the page wider than the screen. Inherited by everything. */
+    overflow-wrap: break-word;
   }
 
   h1,

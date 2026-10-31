@@ -34,7 +34,10 @@ export default function CategoryPage() {
   }
   if (isPending) {
     return (
-      <Container className="flex justify-center py-16" data-testid={TEST_IDS.pageCategory}>
+      <Container
+        className="flex min-h-[70vh] justify-center py-16"
+        data-testid={TEST_IDS.pageCategory}
+      >
         <Spinner label="Loading category" className="h-8 w-8 text-primary-strong" />
       </Container>
     );

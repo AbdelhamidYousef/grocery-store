@@ -107,7 +107,7 @@ export function OrderDetail() {
         </ol>
       )}
 
-      <div className="mt-8 grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_16rem]">
+      <div className="mt-8 grid grid-cols-1 items-start gap-8 xl:grid-cols-[minmax(0,1fr)_16rem]">
         <div className="min-w-0">
           <h3 className="font-display text-xl font-bold">Items</h3>
           <div className="mt-3">

@@ -29,7 +29,7 @@ export function Dashboard() {
         Dashboard
       </h2>
       {isPending && !error && (
-        <div className="mt-4 grid gap-3 sm:grid-cols-3" aria-busy="true">
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3" aria-busy="true">
           {[0, 1, 2].map((i) => (
             <Skeleton key={i} className="h-28 rounded-card" />
           ))}
@@ -44,7 +44,7 @@ export function Dashboard() {
         </div>
       )}
       {data && (
-        <dl className="mt-4 grid gap-3 sm:grid-cols-3">
+        <dl className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <StatTile label="Orders today" value={String(data.ordersToday)} note="Since 00:00 UTC" />
           <StatTile
             label="Revenue, last 30 days"
