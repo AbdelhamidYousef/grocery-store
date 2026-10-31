@@ -1,0 +1,43 @@
+# Render Blueprint: `New > Blueprint` in the Render dashboard reads this file and creates the API
+# service. Free plan, no card. Values marked `sync: false` are asked for in the dashboard and are
+# never stored in the repo. Step-by-step: docs/DEPLOYMENT.md.
+services:
+  - type: web
+    name: pawsome-api
+    runtime: node
+    plan: free
+    region: frankfurt # change to the region closest to your Neon project
+    # Repo root, not apps/api: pnpm needs the workspace files (lockfile, packages/shared).
+    # `--prod=false` also installs devDependencies (esbuild, tsx) which the build needs, even
+    # though Render sets NODE_ENV=production.
+    buildCommand: pnpm install --frozen-lockfile --prod=false && pnpm --filter @store/api build
+    startCommand: node apps/api/dist/index.js
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 22
+      # Neon connection string (see docs/DEPLOYMENT.md: pooled URL for the running API).
+      - key: DATABASE_URL
+        sync: false
+      # https URL of the Vercel site, no trailing path, e.g. https://pawsome.vercel.app
+      - key: WEB_ORIGIN
+        sync: false
+      # 32+ random characters; Render can invent one.
+      - key: COOKIE_SECRET
+        generateValue: true
+      # Stripe TEST mode only: sk_test_... and the webhook endpoint's whsec_...
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      # Optional: Resend key (re_...). Without it emails are logged and skipped.
+      - key: RESEND_API_KEY
+        sync: false
+      # Without a verified domain Resend only accepts this sender.
+      - key: MAIL_FROM
+        value: Pawsome <onboarding@resend.dev>
+      - key: LOG_LEVEL
+        value: info
