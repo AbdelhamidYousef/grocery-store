@@ -12,6 +12,8 @@ try {
 // reuses) a `pnpm dev` session. That matters: the payment tests need an API started with
 // NODE_ENV=test (it exposes POST /test/webhooks/simulate and, without a Stripe key, boots a fake
 // payment gateway), and a dev-mode server on :3000 would quietly lack both.
+// To run against a database of your own (two suites at once), start with
+// DATABASE_URL=postgres://.../other_db: it is what the e2e API uses (see below).
 // The API needs the dev database up and seeded (`docker compose up -d && pnpm db:migrate &&
 // pnpm db:seed`). Override the ports with E2E_API_PORT / E2E_WEB_PORT if they are taken.
 const API_PORT = process.env.E2E_API_PORT ?? '3100';
@@ -37,6 +39,10 @@ export default defineConfig({
         // NODE_ENV=test makes the API use DATABASE_URL_TEST (a scratch database the unit tests
         // truncate). The e2e needs the seeded dev data, so point that variable at it.
         ...(process.env.DATABASE_URL ? { DATABASE_URL_TEST: process.env.DATABASE_URL } : {}),
+        // NODE_ENV=test sends no mail without a transport; point it at Mailpit (docker compose)
+        // so the admin spec can check the shipped email. Nothing listening is harmless: the
+        // outbox retries later and that assertion skips itself.
+        SMTP_URL: process.env.SMTP_URL || 'smtp://127.0.0.1:1025',
         PORT: API_PORT,
         // The CSRF check compares the browser's Origin with this.
         WEB_ORIGIN,
