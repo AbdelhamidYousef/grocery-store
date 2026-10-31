@@ -2,6 +2,8 @@ import {
   ErrorCode,
   sumCents,
   type CheckoutRequest,
+  type Order,
+  type OrderStatusResponse,
   type OrderTotals,
   type ShippingQuote,
 } from '@store/shared';
@@ -260,4 +262,62 @@ async function attachPaymentIntent(
     }
     throw err;
   }
+}
+
+// ---------- reading an order back ----------
+
+// Who is asking: a signed-in user (by session) and/or a browser that just placed an order (by the
+// signed `last_order` cookie). Either one is enough to see that order, nothing more.
+export interface OrderViewer {
+  userId: string | null;
+  lastOrderNumber: string | null;
+}
+
+// The access rule for every order read in this module. A missing order and somebody else's order
+// answer the same 404, so the endpoint cannot be used to find out which numbers exist.
+async function findViewableOrder(
+  number: string,
+  viewer: OrderViewer,
+): Promise<{ order: repo.OrderRow; payment: repo.PaymentRow | undefined }> {
+  const order = await repo.findOrderByNumber(number);
+  const owns = order && viewer.userId !== null && order.userId === viewer.userId;
+  const justPlaced = order && viewer.lastOrderNumber === order.number;
+  if (!order || !(owns || justPlaced)) throw notFound('Order not found');
+  return { order, payment: await repo.findPaymentByOrder(db, order.id) };
+}
+
+export async function getOrderStatus(
+  number: string,
+  viewer: OrderViewer,
+): Promise<OrderStatusResponse['data']> {
+  const { order, payment } = await findViewableOrder(number, viewer);
+  return { status: order.status, paymentStatus: payment?.status ?? null };
+}
+
+export async function getOrder(number: string, viewer: OrderViewer): Promise<Order> {
+  const { order, payment } = await findViewableOrder(number, viewer);
+  const items = await repo.listOrderItems(db, order.id);
+  return {
+    number: order.number,
+    status: order.status,
+    paymentStatus: payment?.status ?? null,
+    email: order.email,
+    totals: totalsOf(order),
+    shippingMethod: { code: order.shippingMethodCode, name: order.shippingMethodName },
+    shippingAddress: order.shippingAddress,
+    billingAddress: order.billingAddress,
+    notes: order.notes,
+    items: items.map((i) => ({
+      id: i.id,
+      productName: i.productName,
+      variantName: i.variantName,
+      sku: i.sku,
+      imageUrl: i.imageUrl,
+      unitPriceCents: i.unitPriceCents,
+      quantity: i.quantity,
+      lineTotalCents: i.lineTotalCents,
+    })),
+    placedAt: order.placedAt?.toISOString() ?? null,
+    createdAt: order.createdAt.toISOString(),
+  };
 }

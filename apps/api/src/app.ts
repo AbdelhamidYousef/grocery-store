@@ -67,10 +67,27 @@ export function createApp({ logger, pingDb, payments, config }: AppDeps): Expres
   app.use(cookieParser(config.cookieSecret));
   // 100 kB is far above any legitimate request here; it caps the memory a hostile body can cost.
   app.use(express.json({ limit: '100kb' }));
-  app.use(createCsrfCheck({ webOrigin: config.webOrigin }));
+  app.use(
+    createCsrfCheck({
+      webOrigin: config.webOrigin,
+      // Stripe calls the webhook server-to-server; the test-only simulator is driven by scripts.
+      // Neither has an Origin, and the second route does not exist outside NODE_ENV=test.
+      exemptPrefixes: [
+        '/api/v1/webhooks/',
+        ...(config.nodeEnv === 'test' ? ['/api/v1/test/'] : []),
+      ],
+    }),
+  );
 
   app.use('/api/v1', createHealthRouter({ pingDb }));
-  app.use('/api/v1', createModulesRouter({ authRateLimit: config.authRateLimit, payments }));
+  app.use(
+    '/api/v1',
+    createModulesRouter({
+      authRateLimit: config.authRateLimit,
+      payments,
+      nodeEnv: config.nodeEnv,
+    }),
+  );
 
   // Order matters: unknown routes first, then the error handler that catches everything above.
   app.use(notFoundHandler);

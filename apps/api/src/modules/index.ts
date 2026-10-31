@@ -11,6 +11,7 @@ import { createAuthRouter } from './auth/router.ts';
 import { cartRouter } from './cart/router.ts';
 import { catalogRouter } from './catalog/router.ts';
 import { createCheckoutRouter } from './checkout/router.ts';
+import { createTestRouter } from './checkout/test-router.ts';
 
 // Every feature module is `router.ts` (http only) -> `service.ts` (rules, transactions) ->
 // `repo.ts` (Drizzle). This file is the one place that knows which modules exist; each mounts at
@@ -19,9 +20,12 @@ import { createCheckoutRouter } from './checkout/router.ts';
 export function createModulesRouter(opts: {
   authRateLimit: RateLimitOptions;
   payments: PaymentGateway;
+  nodeEnv: 'development' | 'test' | 'production';
 }): Router {
   const router = Router();
   router.use(catalogRouter);
+  // Exists only under NODE_ENV=test (see test-router.ts): no way to fake a payment anywhere else.
+  if (opts.nodeEnv === 'test') router.use(createTestRouter());
   // Everything below depends on who is asking, so it is mounted after the catalog: public catalog
   // responses stay cookie-free and cacheable, and never trigger a session lookup.
   router.use(attachUser);
