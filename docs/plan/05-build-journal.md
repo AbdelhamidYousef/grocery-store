@@ -80,3 +80,11 @@ The app now runs `helmet`, CORS limited to `WEB_ORIGIN` with credentials, a glob
 
 ### 2.5 — database health check and graceful shutdown
 `GET /api/v1/health` now runs `select 1` raced against a 1 s timer and returns `{ status, db, version }` with 200, or 503 (`degraded`/`down`) plus a logged error carrying the request id. The version is read from `package.json` at startup. `index.ts` now keeps the server handle and, on SIGTERM/SIGINT, stops accepting connections, closes idle sockets, closes the DB pool and exits 0; if anything has not finished after 10 s it exits 1. The logic lives in `lib/shutdown.ts` with the exit function injected so tests can check it, and I also sent a real SIGTERM to the running server and saw "shutdown complete". Learn: platforms stop a service by sending SIGTERM and killing it after a grace period, so finishing in-flight requests and releasing connections prevents dropped checkouts and leaked database connections on every deploy.
+
+### 2.6 — module layout and router mounting
+`src/modules/index.ts` mounts the `catalog`, `auth`, `cart`, `checkout` and `admin` routers at the root of `/api/v1`; each folder has a `router.ts` exporting an empty router so later phases only add files. Routers declare their full sub-paths (`/products`, `/auth/login`), so a path from the API contract can be found by searching the code. `.env.example` was already updated in 2.4. A final test checks the phase's acceptance criterion: a bad JSON body, an unknown route, a foreign-origin POST and a database outage each give the right status and a log line carrying the request id. Router variables carry an explicit `Router` type annotation because TypeScript otherwise refuses to name the pnpm-internal type.
+
+### Phase 2 quiz
+1. Why does the CSRF origin check plus `SameSite=Lax` protect a cookie-authenticated API, and why is the Stripe webhook route exempt from the check?
+2. A request fails validation, another throws a plain `Error` from a service, and a third has malformed JSON: what status and error code does each get, and what does production hide?
+3. Why does the health endpoint race the database ping against a timer and return 503 instead of 200, and what does the SIGTERM handler do before the process exits?
