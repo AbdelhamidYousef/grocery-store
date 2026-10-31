@@ -7,6 +7,7 @@ import type { PaymentGateway } from '../lib/stripe.ts';
 import { cancelPendingOrder } from '../modules/checkout/orders.ts';
 import { confirmPayment } from '../modules/checkout/payment-events.ts';
 import * as repo from '../modules/checkout/repo.ts';
+import type { Outbox } from '../modules/mail/outbox.ts';
 
 const ACTOR = 'system:reconciler';
 export const STALE_AFTER_MS = 30 * 60_000;
@@ -43,6 +44,8 @@ export interface SweepResult {
 export async function releaseStaleReservations(opts: {
   gateway: PaymentGateway;
   log: Logger;
+  /** Kicked after a sweep that recovered a payment (its confirmation email is queued). */
+  outbox?: Outbox;
   now?: Date;
   olderThanMs?: number;
 }): Promise<SweepResult> {
@@ -114,6 +117,7 @@ export async function releaseStaleReservations(opts: {
   }
 
   if (result.examined > 0) log.info(result, 'stale reservation sweep finished');
+  if (result.recovered > 0) opts.outbox?.kick();
   return result;
 }
 
@@ -124,6 +128,7 @@ export async function releaseStaleReservations(opts: {
 export async function runExclusiveSweep(opts: {
   gateway: PaymentGateway;
   log: Logger;
+  outbox?: Outbox;
   now?: Date;
 }): Promise<SweepResult | null> {
   return db.transaction(async (tx) => {
@@ -142,6 +147,7 @@ export async function runExclusiveSweep(opts: {
 export function startReservationSweeper(opts: {
   gateway: PaymentGateway;
   log: Logger;
+  outbox?: Outbox;
   intervalMs?: number;
   firstRunDelayMs?: number;
 }): { stop: () => void } {

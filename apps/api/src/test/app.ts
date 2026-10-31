@@ -3,7 +3,9 @@ import { pino, type Logger } from 'pino';
 
 import { createApp, type AppConfig } from '../app.ts';
 import { db } from '../db/client.ts';
+import { MemoryTransport } from '../lib/mailer.ts';
 import type { PaymentGateway } from '../lib/stripe.ts';
+import { createOutbox, type Outbox } from '../modules/mail/outbox.ts';
 
 import { FakeStripe } from './fake-stripe.ts';
 
@@ -18,6 +20,8 @@ export function makeTestApp(
     pingDb?: () => Promise<void>;
     /** Defaults to a fresh FakeStripe; pass your own to inspect or script it. */
     payments?: PaymentGateway;
+    /** Defaults to an outbox over a MemoryTransport nobody inspects. */
+    outbox?: Outbox;
   } = {},
 ) {
   return createApp({
@@ -29,6 +33,9 @@ export function makeTestApp(
         await db.execute(sql`select 1`);
       }),
     payments: opts.payments ?? new FakeStripe(),
+    outbox:
+      opts.outbox ??
+      createOutbox({ transport: new MemoryTransport(), log: pino({ level: 'silent' }) }),
     config: {
       nodeEnv: 'test',
       webOrigin: TEST_ORIGIN,

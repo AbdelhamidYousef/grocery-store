@@ -3,6 +3,7 @@ import type { OrderStatus } from '@store/shared';
 import type { Tx } from '../../db/client.ts';
 import * as cartRepo from '../cart/repo.ts';
 import * as repo from '../checkout/repo.ts';
+import { enqueueEmail } from '../mail/outbox.ts';
 
 import { assertTransition, stockEffect } from './state-machine.ts';
 
@@ -82,5 +83,12 @@ export async function applyTransition(
     actor: ctx.actor,
     note: ctx.note ?? null,
   });
+
+  // Customer emails are queued in THIS transaction (the outbox pattern, see mail/outbox.ts): the
+  // email is owed exactly when the status change commits. Only the two moments a customer cares
+  // about have one; the others (processing, delivered, cancelled, refunded) are visible in the
+  // account page and Stripe already emails refund receipts.
+  const kind = to === 'paid' ? 'order_confirmation' : to === 'shipped' ? 'order_shipped' : null;
+  if (kind) await enqueueEmail(tx, { kind, orderId: order.id, to: order.email });
   return updated;
 }

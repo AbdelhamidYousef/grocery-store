@@ -3,13 +3,14 @@ import express, { Router as ExpressRouter, type Router } from 'express';
 
 import { AppError } from '../../lib/errors.ts';
 import { WebhookSignatureError, type PaymentGateway } from '../../lib/stripe.ts';
+import type { Outbox } from '../mail/outbox.ts';
 
 import { processStripeEvent } from './payment-events.ts';
 
 // Must be mounted BEFORE `express.json()` (see app.ts). Stripe signs the exact bytes it sent;
 // once a JSON parser has turned them into an object and back, whitespace and key order may differ
 // and the signature no longer matches. `express.raw` keeps the body as a Buffer for the check.
-export function createWebhookRouter(deps: { payments: PaymentGateway }): Router {
+export function createWebhookRouter(deps: { payments: PaymentGateway; outbox: Outbox }): Router {
   const router = ExpressRouter();
 
   router.post(
@@ -38,6 +39,9 @@ export function createWebhookRouter(deps: { payments: PaymentGateway }): Router 
       // (from the error middleware) so Stripe redelivers, which is safe because processing is
       // idempotent. A duplicate delivery also gets 200 immediately.
       const outcome = await processStripeEvent(event, req.log);
+      // Emails owed by this event are already committed; sending them is a separate, best-effort
+      // step that can never fail the webhook.
+      deps.outbox.kick();
       res.json({ data: { received: true, duplicate: outcome === 'duplicate' } });
     },
   );

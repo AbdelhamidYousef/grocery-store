@@ -8,6 +8,7 @@ import { db } from '../../db/client.ts';
 import { conflict, notFound } from '../../lib/errors.ts';
 import type { StripeEvent } from '../../lib/stripe.ts';
 import { valid, validate } from '../../lib/validate.ts';
+import type { Outbox } from '../mail/outbox.ts';
 
 import { processStripeEvent } from './payment-events.ts';
 import * as repo from './repo.ts';
@@ -34,7 +35,7 @@ const SimulateSchema = z.object({
   errorMessage: z.string().optional(),
 });
 
-export function createTestRouter(): Router {
+export function createTestRouter(deps: { outbox: Outbox }): Router {
   const router = ExpressRouter();
 
   const simulate = { body: SimulateSchema };
@@ -73,6 +74,7 @@ export function createTestRouter(): Router {
     };
 
     const outcome = await processStripeEvent(event, req.log);
+    deps.outbox.kick();
     res.json({ data: { eventId: event.id, type: event.type, outcome } });
   });
 

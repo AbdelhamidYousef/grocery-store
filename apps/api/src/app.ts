@@ -13,6 +13,7 @@ import { createRateLimiter, type RateLimitOptions } from './middleware/rate-limi
 import { requestId } from './middleware/request-id.ts';
 import { createWebhookRouter } from './modules/checkout/webhook.ts';
 import { createModulesRouter } from './modules/index.ts';
+import type { Outbox } from './modules/mail/outbox.ts';
 
 export interface AppConfig {
   nodeEnv: 'development' | 'test' | 'production';
@@ -29,13 +30,15 @@ export interface AppDeps {
   pingDb: () => Promise<void>;
   /** Stripe (or a fake in tests); injected like `pingDb` so no test ever needs the network. */
   payments: PaymentGateway;
+  /** Sends the emails the status changes queued (a recording fake in tests). */
+  outbox: Outbox;
   // Required (no defaults) so nobody can build a production app with test-grade security by omission.
   config: AppConfig;
 }
 
 // The app is built by a function, not at import time, so tests can create as many isolated
 // instances as they like and Supertest can drive one without opening a real port.
-export function createApp({ logger, pingDb, payments, config }: AppDeps): Express {
+export function createApp({ logger, pingDb, payments, outbox, config }: AppDeps): Express {
   const app = express();
 
   app.disable('x-powered-by');
@@ -60,7 +63,7 @@ export function createApp({ logger, pingDb, payments, config }: AppDeps): Expres
   // covers the raw bytes (a parsed body cannot be verified), and a burst of legitimate retries
   // from Stripe's shared IPs must not be rate-limited into failures. It needs no CORS (a server
   // calls it) and no CSRF check (it has no cookies; the signature is its authentication).
-  app.use('/api/v1', createWebhookRouter({ payments }));
+  app.use('/api/v1', createWebhookRouter({ payments, outbox }));
   // Only our own web origin may call the API from a browser, and only it may send cookies.
   app.use(cors({ origin: config.webOrigin, credentials: true }));
   app.use(createRateLimiter(config.rateLimit));
@@ -85,6 +88,7 @@ export function createApp({ logger, pingDb, payments, config }: AppDeps): Expres
     createModulesRouter({
       authRateLimit: config.authRateLimit,
       payments,
+      outbox,
       nodeEnv: config.nodeEnv,
     }),
   );

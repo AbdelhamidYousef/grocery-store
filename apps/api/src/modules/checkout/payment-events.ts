@@ -105,7 +105,7 @@ export async function confirmPayment(
 
   // Stock commit, payment row, cart and history all happen inside the state machine.
   await applyTransition(tx, order, 'paid', { actor });
-  // The confirmation email is enqueued here in phase 9, in this same transaction (outbox style).
+  // The confirmation email was queued by applyTransition, in this same transaction.
   return 'paid';
 }
 
