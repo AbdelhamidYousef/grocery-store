@@ -323,3 +323,9 @@ Learn: a property test states what must always be true and lets random sequences
 1. A paid, not yet shipped order is cancelled by an admin. List, in order, what happens at Stripe, in `inventory`, in `payments`, in the history and in the email outbox, and say why the Stripe call comes before the database transaction.
 2. The webhook commits "order paid" and the process dies before any email is sent. What is on disk, who sends the email and when, and in which single crash window could the customer get it twice?
 3. Why is a shipped-then-refunded order not restocked automatically, while a paid-then-refunded one is, and which two places in the code encode that rule?
+
+## Phase 10 (API) — Admin
+
+### 10.1 — admin router, guard, audit and stats
+`createAdminRouter` mounts `requireAdmin` and an audit middleware once on `/admin`, so every route added to it later is protected and logged by default: a guest gets 401, a customer 403, and the guard runs before validation so a stranger learns nothing about a route. Each mutation writes one structured log line with the request id, the user id, an action name, the target and the final status when the response finishes. `GET /admin/stats` returns today's order count, 30-day revenue (paid and still standing orders only) and the number of variants whose available stock is at or below their threshold.
+Learn: guarding a prefix beats guarding routes because the safe state is the default; logging on `finish` captures failures and refusals as well as successes; "available" (quantity minus reserved) is the number that matters for restocking.
