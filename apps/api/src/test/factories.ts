@@ -175,11 +175,19 @@ export async function createCart(
       .returning(),
     'cart',
   );
-  const items = input.items?.length
-    ? await db
-        .insert(cartItems)
-        .values(input.items.map((item) => ({ cartId: cart.id, ...item })))
-        .returning()
-    : [];
+  // One insert per line, not one batch: a batch gives every row the same created_at (now() is
+  // fixed per statement), which would leave the cart's line order to the random uuid tiebreak.
+  const items = [];
+  for (const item of input.items ?? []) {
+    items.push(
+      first(
+        await db
+          .insert(cartItems)
+          .values({ cartId: cart.id, ...item })
+          .returning(),
+        'cart item',
+      ),
+    );
+  }
   return { cart, items };
 }
