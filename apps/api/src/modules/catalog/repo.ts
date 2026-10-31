@@ -164,13 +164,9 @@ function orderBy(sort: SortKey, v: ReturnType<typeof variantSummary>, q?: string
   }
 }
 
-// All filters as SQL fragments, composed with and(). Kept separate from the query so the count
-// query (and the facet queries in step 3.6) apply exactly the same conditions as the list.
-function filterConditions(
-  f: ProductFilters,
-  v: ReturnType<typeof variantSummary>,
-  opts: { skipAttrs?: boolean } = {},
-): SQL[] {
+// The part of the filters that defines "what the shopper is browsing": active products in the
+// category that match the search. Facets are computed over exactly this scope.
+function scopeConditions(f: ProductFilters): SQL[] {
   const conds: SQL[] = [eq(products.status, 'active')];
 
   if (f.category) {
@@ -191,6 +187,25 @@ function filterConditions(
     );
   }
 
+  if (f.q) {
+    conds.push(
+      f.q.length <= SHORT_QUERY_MAX
+        ? ilike(products.name, `%${likeEscape(f.q)}%`)
+        : // A query made only of stop words ("the") compiles to an empty tsquery that matches
+          // nothing; treat that case as a name substring search instead of an empty page.
+          sql`(case when numnode(${tsQuery(f.q)}) = 0
+                then ${products.name} ilike ${'%' + likeEscape(f.q) + '%'}
+                else ${products.searchVector} @@ ${tsQuery(f.q)} end)`,
+    );
+  }
+  return conds;
+}
+
+// Scope plus the narrowing filters, composed with and(). The count query uses the same function
+// as the list so `meta.total` can never disagree with the rows.
+function filterConditions(f: ProductFilters, v: ReturnType<typeof variantSummary>): SQL[] {
+  const conds = scopeConditions(f);
+
   if (f.minPriceCents !== undefined || f.maxPriceCents !== undefined) {
     // "Has a variant in the price range", not "min/max of the product overlap the range": a
     // shopper filtering 10-20 EUR expects something they can actually buy in that band.
@@ -210,32 +225,18 @@ function filterConditions(
     );
   }
 
-  if (f.q) {
-    conds.push(
-      f.q.length <= SHORT_QUERY_MAX
-        ? ilike(products.name, `%${likeEscape(f.q)}%`)
-        : // A query made only of stop words ("the") compiles to an empty tsquery that matches
-          // nothing; treat that case as a name substring search instead of an empty page.
-          sql`(case when numnode(${tsQuery(f.q)}) = 0
-                then ${products.name} ilike ${'%' + likeEscape(f.q) + '%'}
-                else ${products.searchVector} @@ ${tsQuery(f.q)} end)`,
-    );
-  }
-
   if (f.inStock) conds.push(eq(v.inStock, true));
 
-  if (!opts.skipAttrs) {
-    for (const [key, values] of Object.entries(f.attr)) {
-      // `@>` (containment) is what the GIN index on `attributes` accelerates, unlike
-      // `attributes->>key = ...`. Values are bound as jsonb parameters, never string-built.
-      conds.push(
-        or(
-          ...values.map(
-            (value) => sql`${products.attributes} @> ${JSON.stringify({ [key]: value })}::jsonb`,
-          ),
-        ) ?? sql`false`,
-      );
-    }
+  for (const [key, values] of Object.entries(f.attr)) {
+    // `@>` (containment) is what the GIN index on `attributes` accelerates, unlike
+    // `attributes->>key = ...`. Values are bound as jsonb parameters, never string-built.
+    conds.push(
+      or(
+        ...values.map(
+          (value) => sql`${products.attributes} @> ${JSON.stringify({ [key]: value })}::jsonb`,
+        ),
+      ) ?? sql`false`,
+    );
   }
   return conds;
 }
@@ -297,4 +298,49 @@ export async function listPrimaryImages(productIds: string[]): Promise<ProductIm
       productImages.sortOrder,
       productImages.id,
     );
+}
+
+// ---------- facets ----------
+
+export interface FacetRows {
+  attributes: { key: string; value: string; count: number }[];
+  price: { min: number; max: number } | null;
+}
+
+// Counts per attribute value over the *scope* (category + search), deliberately ignoring the
+// attribute, price and stock filters: if counts honoured the filter the shopper just clicked,
+// every other value would show 0 and the filter UI could only ever narrow, never switch.
+export async function getFacets(
+  filters: ProductFilters,
+  keys: readonly string[],
+): Promise<FacetRows> {
+  const v = variantSummary();
+  const where = and(...scopeConditions(filters));
+
+  const [attributes, [price]] = await Promise.all([
+    db
+      .select({ key: sql<string>`kv.key`, value: sql<string>`kv.value`, count: count() })
+      .from(products)
+      .innerJoin(v, eq(v.productId, products.id))
+      // jsonb_each_text turns each attribute into a (key, value) row, so one GROUP BY counts
+      // every facet at once instead of one query per key.
+      .innerJoin(sql`jsonb_each_text(${products.attributes}) as kv(key, value)`, sql`true`)
+      .where(and(where, inArray(sql`kv.key`, [...keys])))
+      .groupBy(sql`kv.key`, sql`kv.value`)
+      .orderBy(sql`kv.key`, desc(count()), sql`kv.value`),
+    db
+      .select({
+        min: sql<number | null>`min(${v.minCents})`,
+        max: sql<number | null>`max(${v.maxCents})`,
+      })
+      .from(products)
+      .innerJoin(v, eq(v.productId, products.id))
+      .where(where),
+  ]);
+
+  return {
+    attributes,
+    price:
+      price && price.min !== null && price.max !== null ? { min: price.min, max: price.max } : null,
+  };
 }

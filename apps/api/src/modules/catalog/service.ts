@@ -2,6 +2,7 @@ import {
   FACET_KEYS,
   type Category,
   type CategoryNode,
+  type Facets,
   type ProductCard,
   type ProductListQuery,
   type ProductListResponse,
@@ -84,25 +85,38 @@ function toCard(row: repo.ProductCardRow, image: repo.ProductImageRow | undefine
   };
 }
 
-export async function listProducts(
-  query: ProductListQuery,
-): Promise<Omit<ProductListResponse, 'facets'>> {
+function toFilters(query: ProductListQuery): repo.ProductFilters {
+  return {
+    ...(query.q !== undefined && { q: query.q }),
+    ...(query.category !== undefined && { category: query.category }),
+    ...(query.minPrice !== undefined && { minPriceCents: query.minPrice }),
+    ...(query.maxPrice !== undefined && { maxPriceCents: query.maxPrice }),
+    ...(query.inStock !== undefined && { inStock: query.inStock }),
+    attr: query.attr,
+  };
+}
+
+async function getFacets(query: ProductListQuery): Promise<Facets> {
+  const rows = await repo.getFacets(toFilters(query), FACET_KEYS);
+  // Every facet key is present (possibly empty) so the filter UI never has to guess.
+  const attributes: Facets['attributes'] = Object.fromEntries(FACET_KEYS.map((key) => [key, []]));
+  for (const { key, value, count } of rows.attributes) attributes[key]?.push({ value, count });
+  return { attributes, price: rows.price };
+}
+
+export async function listProducts(query: ProductListQuery): Promise<ProductListResponse> {
   // `relevance` only means something with a search term; without one it would be an arbitrary
   // order, so it quietly becomes the default.
   const sort = query.sort ?? (query.q ? 'relevance' : 'newest');
-  const { rows, total } = await repo.listProducts({
-    filters: {
-      ...(query.q !== undefined && { q: query.q }),
-      ...(query.category !== undefined && { category: query.category }),
-      ...(query.minPrice !== undefined && { minPriceCents: query.minPrice }),
-      ...(query.maxPrice !== undefined && { maxPriceCents: query.maxPrice }),
-      ...(query.inStock !== undefined && { inStock: query.inStock }),
-      attr: query.attr,
-    },
-    sort,
-    limit: query.limit,
-    offset: (query.page - 1) * query.limit,
-  });
+  const [{ rows, total }, facets] = await Promise.all([
+    repo.listProducts({
+      filters: toFilters(query),
+      sort,
+      limit: query.limit,
+      offset: (query.page - 1) * query.limit,
+    }),
+    getFacets(query),
+  ]);
   const images = await repo.listPrimaryImages(rows.map((r) => r.id));
   const imageByProduct = new Map(images.map((i) => [i.productId, i]));
 
@@ -114,5 +128,6 @@ export async function listProducts(
       total,
       totalPages: Math.ceil(total / query.limit),
     },
+    facets,
   };
 }

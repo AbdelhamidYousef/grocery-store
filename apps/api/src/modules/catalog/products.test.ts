@@ -24,7 +24,10 @@ describe('GET /api/v1/products — base list', () => {
   it('returns an empty page with zero totals when the catalog is empty', async () => {
     const { res, body } = await list();
     expect(res.status).toBe(200);
-    expect(body).toEqual({ data: [], meta: { page: 1, limit: 24, total: 0, totalPages: 0 } });
+    expect(body).toMatchObject({
+      data: [],
+      meta: { page: 1, limit: 24, total: 0, totalPages: 0 },
+    });
   });
 
   it('returns card fields: price range, stock flag, primary image, attribute subset', async () => {
@@ -393,5 +396,106 @@ describe('GET /api/v1/products — full-text search', () => {
   it('rejects an empty or over-long q with 400', async () => {
     expect((await list('?q=')).res.status).toBe(400);
     expect((await list(`?q=${'x'.repeat(101)}`)).res.status).toBe(400);
+  });
+});
+
+describe('GET /api/v1/products — facets', () => {
+  type FacetBody = ListBody & {
+    facets: {
+      attributes: Record<string, { value: string; count: number }[]>;
+      price: { min: number; max: number } | null;
+    };
+  };
+  const facets = async (query = '') => bodyOf<FacetBody>((await list(query)).res).facets;
+
+  async function seed() {
+    const dogs = await createCategory({ slug: 'dogs', name: 'Dogs' });
+    const cats = await createCategory({ slug: 'cats', name: 'Cats' });
+    await createProduct({
+      name: 'Plush dog toy',
+      description: 'squeaky',
+      categoryId: dogs.id,
+      attributes: { pet: 'dog', material: 'plush', brand: 'Pawsome' },
+      variants: [{ priceCents: 500 }, { options: { v: '2' }, priceCents: 900 }],
+    });
+    await createProduct({
+      name: 'Rubber dog toy',
+      description: 'squeaky',
+      categoryId: dogs.id,
+      attributes: { pet: 'dog', material: 'rubber', brand: 'Pawsome' },
+      variants: [{ priceCents: 1500 }],
+    });
+    await createProduct({
+      name: 'Plush cat toy',
+      description: 'catnip',
+      categoryId: cats.id,
+      attributes: { pet: 'cat', material: 'plush', brand: 'Pawsome' },
+      variants: [{ priceCents: 300 }],
+    });
+    await createProduct({ name: 'Draft toy', status: 'draft', attributes: { pet: 'dog' } });
+  }
+
+  it('returns every facet key, empty when there is no data, and a null price range', async () => {
+    const f = await facets();
+    expect(f.attributes).toEqual({ pet: [], material: [], brand: [], ageStage: [] });
+    expect(f.price).toBeNull();
+  });
+
+  it('counts attribute values over active products, most frequent first', async () => {
+    await seed();
+    const f = await facets();
+    expect(f.attributes.pet).toEqual([
+      { value: 'dog', count: 2 },
+      { value: 'cat', count: 1 },
+    ]);
+    expect(f.attributes.material).toEqual([
+      { value: 'plush', count: 2 },
+      { value: 'rubber', count: 1 },
+    ]);
+    expect(f.attributes.brand).toEqual([{ value: 'Pawsome', count: 3 }]);
+    expect(f.attributes.ageStage).toEqual([]);
+  });
+
+  it('reports the price range of the scope across all active variants', async () => {
+    await seed();
+    expect((await facets()).price).toEqual({ min: 300, max: 1500 });
+  });
+
+  it('scopes counts and price to the current category (children included)', async () => {
+    await seed();
+    const f = await facets('?category=dogs');
+    expect(f.attributes.pet).toEqual([{ value: 'dog', count: 2 }]);
+    expect(f.price).toEqual({ min: 500, max: 1500 });
+  });
+
+  it('scopes to the search term', async () => {
+    await seed();
+    const f = await facets('?q=catnip');
+    expect(f.attributes.pet).toEqual([{ value: 'cat', count: 1 }]);
+  });
+
+  it('ignores attribute, price and stock filters so alternatives keep their counts', async () => {
+    await seed();
+    const unfiltered = await facets('?category=dogs');
+    const filtered = await facets('?category=dogs&attr.material=plush&minPrice=400&maxPrice=600');
+    expect(filtered).toEqual(unfiltered);
+    // ...while the list itself is filtered.
+    expect((await list('?category=dogs&attr.material=plush')).body.meta.total).toBe(1);
+  });
+
+  it('does not count non-facet attributes such as size', async () => {
+    await createProduct({ attributes: { pet: 'dog', size: 'L' } });
+    expect(Object.keys((await facets()).attributes).sort()).toEqual([
+      'ageStage',
+      'brand',
+      'material',
+      'pet',
+    ]);
+  });
+
+  it('returns facets for the whole scope even on a page beyond the results', async () => {
+    await seed();
+    const f = await facets('?page=9');
+    expect(f.attributes.pet).toHaveLength(2);
   });
 });

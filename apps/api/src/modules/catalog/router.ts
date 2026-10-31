@@ -1,9 +1,8 @@
 import {
   CategoryResponseSchema,
   CategoryTreeResponseSchema,
-  PaginatedSchema,
-  ProductCardSchema,
   ProductListQuerySchema,
+  ProductListResponseSchema,
   SlugParamsSchema,
 } from '@store/shared';
 import { Router as ExpressRouter, type Router } from 'express';
@@ -27,5 +26,5 @@ catalogRouter.get('/categories/:slug', validate(bySlug), async (req, res) => {
 const listProducts = { query: ProductListQuerySchema };
 catalogRouter.get('/products', validate(listProducts), async (req, res) => {
   const { query } = valid(req, listProducts);
-  respond(res, PaginatedSchema(ProductCardSchema), await service.listProducts(query));
+  respond(res, ProductListResponseSchema, await service.listProducts(query));
 });
