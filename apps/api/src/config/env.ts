@@ -56,6 +56,12 @@ export const envSchema = z
     ),
     // Read by the web build, not the API; validated here too so one typo'd `.env` fails in one place.
     STRIPE_PUBLISHABLE_KEY: testKey('pk_test_', 'test-mode publishable key only'),
+    // Background jobs inside the API process (the stale-reservation sweeper). Tests call the job
+    // functions directly, so this only matters for a running server.
+    ENABLE_JOBS: z
+      .enum(['true', 'false'])
+      .default('true')
+      .transform((v) => v === 'true'),
   })
   .refine((e) => e.NODE_ENV !== 'production' || e.COOKIE_SECRET !== undefined, {
     message: 'COOKIE_SECRET (32+ characters) is required in production',

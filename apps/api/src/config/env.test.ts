@@ -53,3 +53,11 @@ describe('Stripe configuration', () => {
     ).toEqual([]);
   });
 });
+
+describe('ENABLE_JOBS', () => {
+  it('defaults to on and accepts only true or false', () => {
+    expect(envSchema.parse(base).ENABLE_JOBS).toBe(true);
+    expect(envSchema.parse({ ...base, ENABLE_JOBS: 'false' }).ENABLE_JOBS).toBe(false);
+    expect(problems({ ...base, ENABLE_JOBS: 'yes' })).toEqual(['ENABLE_JOBS']);
+  });
+});

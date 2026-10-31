@@ -3,25 +3,28 @@ import { sql } from 'drizzle-orm';
 import { createApp } from './app.ts';
 import { env } from './config/env.ts';
 import { closeDb, db } from './db/client.ts';
+import { startReservationSweeper } from './jobs/release-stale-reservations.ts';
 import { createLogger } from './lib/logger.ts';
 import { createShutdown } from './lib/shutdown.ts';
 import { createStripeGateway, createUnconfiguredGateway } from './lib/stripe.ts';
 
 // Bootstrap only: read config, build the app, listen. Anything testable lives in createApp().
 const logger = createLogger({ level: env.LOG_LEVEL, pretty: env.NODE_ENV === 'development' });
+// Without a key the server still boots (catalog, cart, account all work) and any payment call
+// answers 502 "not configured"; production refuses to boot without one (see config/env.ts).
+const payments = env.STRIPE_SECRET_KEY
+  ? createStripeGateway({
+      secretKey: env.STRIPE_SECRET_KEY,
+      webhookSecret: env.STRIPE_WEBHOOK_SECRET,
+    })
+  : createUnconfiguredGateway();
+
 const app = createApp({
   logger,
   pingDb: async () => {
     await db.execute(sql`select 1`);
   },
-  // Without a key the server still boots (catalog, cart, account all work) and any payment call
-  // answers 502 "not configured"; production refuses to boot without one (see config/env.ts).
-  payments: env.STRIPE_SECRET_KEY
-    ? createStripeGateway({
-        secretKey: env.STRIPE_SECRET_KEY,
-        webhookSecret: env.STRIPE_WEBHOOK_SECRET,
-      })
-    : createUnconfiguredGateway(),
+  payments,
   config: {
     nodeEnv: env.NODE_ENV,
     webOrigin: env.WEB_ORIGIN,
@@ -35,6 +38,20 @@ const server = app.listen(env.PORT, () => {
   logger.info(`api listening on http://localhost:${env.PORT}`);
 });
 
-const shutdown = createShutdown({ server, logger, cleanup: closeDb });
+// The sweeper needs a configured gateway to ask Stripe about stale orders; without one it would
+// only log errors every five minutes, so it stays off.
+const sweeper =
+  env.ENABLE_JOBS && env.STRIPE_SECRET_KEY
+    ? startReservationSweeper({ gateway: payments, log: logger })
+    : null;
+
+const shutdown = createShutdown({
+  server,
+  logger,
+  cleanup: async () => {
+    sweeper?.stop();
+    await closeDb();
+  },
+});
 process.on('SIGTERM', () => void shutdown('SIGTERM'));
 process.on('SIGINT', () => void shutdown('SIGINT'));
