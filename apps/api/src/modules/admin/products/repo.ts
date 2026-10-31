@@ -2,13 +2,16 @@ import { and, asc, count, desc, eq, ilike, ne, or, sql } from 'drizzle-orm';
 
 import { db, type Tx } from '../../../db/client.ts';
 import {
+  brands,
   cartItems,
   categories,
   inventory,
   inventoryAdjustments,
   productImages,
+  productTags,
   productVariants,
   products,
+  tags,
 } from '../../../db/schema/index.ts';
 
 type Db = typeof db | Tx;
@@ -256,4 +259,18 @@ export async function setLowStockThreshold(tx: Tx, variantId: string, threshold:
     .update(inventory)
     .set({ lowStockThreshold: threshold, updatedAt: sql`now()` })
     .where(eq(inventory.variantId, variantId));
+}
+
+export async function brandExists(run: Db, id: string): Promise<boolean> {
+  const [row] = await run.select({ id: brands.id }).from(brands).where(eq(brands.id, id));
+  return row !== undefined;
+}
+
+export async function listProductTags(run: Db, productId: string) {
+  return run
+    .select({ id: tags.id, slug: tags.slug, name: tags.name })
+    .from(productTags)
+    .innerJoin(tags, eq(tags.id, productTags.tagId))
+    .where(eq(productTags.productId, productId))
+    .orderBy(asc(tags.name));
 }

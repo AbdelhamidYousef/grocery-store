@@ -13,6 +13,7 @@ import { catalogRouter } from './catalog/router.ts';
 import { createCheckoutRouter } from './checkout/router.ts';
 import { createTestRouter } from './checkout/test-router.ts';
 import type { Outbox } from './mail/outbox.ts';
+import { merchandisingRouter } from './merchandising/router.ts';
 
 // Every feature module is `router.ts` (http only) -> `service.ts` (rules, transactions) ->
 // `repo.ts` (Drizzle). This file is the one place that knows which modules exist; each mounts at
@@ -27,6 +28,7 @@ export function createModulesRouter(opts: {
 }): Router {
   const router = Router();
   router.use(catalogRouter);
+  router.use(merchandisingRouter);
   // Exists only under NODE_ENV=test with a TEST_HOOK_SECRET (see test-router.ts): no way to fake a
   // payment anywhere else.
   if (opts.nodeEnv === 'test' && opts.testHooks) {

@@ -6,4 +6,5 @@ export * from './cart.ts';
 export * from './checkout.ts';
 export * from './catalog.ts';
 export * from './common.ts';
+export * from './merchandising.ts';
 export * from './shipping.ts';

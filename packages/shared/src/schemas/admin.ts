@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { PetSchema } from '../pets.ts';
+import { NetUnitSchema, PetSchema } from '../pets.ts';
 
 import { OrderSchema, OrderStatusSchema, PaymentStatusSchema } from './checkout.ts';
 import { DataSchema, PaginatedSchema, PaginationQuerySchema } from './common.ts';
@@ -81,7 +81,21 @@ const VariantFields = {
   isDefault: z.boolean().optional(),
   status: ProductStatusSchema.default('active'),
   lowStockThreshold: z.number().int().min(0).max(100_000).optional(),
+  // What is inside, for the unit price. Amount and unit come as a pair (or neither).
+  netAmount: z.number().int().min(1).max(10_000_000).nullish(),
+  netUnit: NetUnitSchema.nullish(),
+  isTrial: z.boolean().optional(),
+  swatchHex: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/, 'A colour like #A1B2C3')
+    .nullish(),
 };
+
+const netPair = (v: {
+  netAmount?: number | null | undefined;
+  netUnit?: string | null | undefined;
+}) => (v.netAmount == null) === (v.netUnit == null);
+const NET_PAIR_MESSAGE = 'Give the net amount and its unit together, or neither';
 
 const compareAtAbovePrice = (v: {
   priceCents?: number | undefined;
@@ -98,7 +112,8 @@ export const AdminVariantInputSchema = z
     // Opening stock; later changes go through the inventory endpoint, which records a reason.
     stock: z.number().int().min(0).max(1_000_000).default(0),
   })
-  .refine(compareAtAbovePrice, { message: COMPARE_AT_MESSAGE, path: ['compareAtPriceCents'] });
+  .refine(compareAtAbovePrice, { message: COMPARE_AT_MESSAGE, path: ['compareAtPriceCents'] })
+  .refine(netPair, { message: NET_PAIR_MESSAGE, path: ['netAmount'] });
 export type AdminVariantInput = z.input<typeof AdminVariantInputSchema>;
 
 export const AdminVariantUpdateSchema = z
@@ -108,7 +123,10 @@ export const AdminVariantUpdateSchema = z
   })
   .partial()
   .refine((v) => Object.values(v).some((x) => x !== undefined), 'Nothing to update')
-  .refine(compareAtAbovePrice, { message: COMPARE_AT_MESSAGE, path: ['compareAtPriceCents'] });
+  .refine(compareAtAbovePrice, { message: COMPARE_AT_MESSAGE, path: ['compareAtPriceCents'] })
+  // On a PATCH, "set neither" means "leave both alone"; setting one alone would pair it with the
+  // old other half, so it is refused.
+  .refine(netPair, { message: NET_PAIR_MESSAGE, path: ['netAmount'] });
 export type AdminVariantUpdate = z.input<typeof AdminVariantUpdateSchema>;
 
 export const AdminVariantSchema = z.object({
@@ -122,6 +140,10 @@ export const AdminVariantSchema = z.object({
   currency: z.string().length(3),
   weightGrams: z.number().int(),
   isDefault: z.boolean(),
+  netAmount: z.number().int().nullable(),
+  netUnit: NetUnitSchema.nullable(),
+  isTrial: z.boolean(),
+  swatchHex: z.string().nullable(),
   status: ProductStatusSchema,
   quantity: z.number().int(),
   reserved: z.number().int(),
@@ -156,12 +178,21 @@ const ProductFields = {
   categoryId: z.uuid(),
   status: ProductStatusSchema,
   attributes: AdminAttributesSchema,
+  // Normalised brand and the editorial flags (everything else on a badge is derived).
+  brandId: z.uuid().nullable(),
+  isEco: z.boolean(),
+  isBestsellerOverride: z.boolean(),
+  badgeNewUntil: z.iso.datetime({ offset: true }).nullable(),
 };
 
 export const AdminProductCreateSchema = z.object({
   ...ProductFields,
   status: ProductStatusSchema.default('draft'),
   attributes: AdminAttributesSchema.default({}),
+  brandId: ProductFields.brandId.default(null),
+  isEco: ProductFields.isEco.default(false),
+  isBestsellerOverride: ProductFields.isBestsellerOverride.default(false),
+  badgeNewUntil: ProductFields.badgeNewUntil.default(null),
   // Generated from the name (with a numeric suffix if taken) unless given.
   slug: z
     .string()
@@ -203,6 +234,11 @@ export const AdminProductSchema = z.object({
   status: ProductStatusSchema,
   category: z.object({ id: z.string(), slug: z.string(), name: z.string() }),
   attributes: z.record(z.string(), z.unknown()),
+  brandId: z.string().nullable(),
+  isEco: z.boolean(),
+  isBestsellerOverride: z.boolean(),
+  badgeNewUntil: z.string().nullable(),
+  tags: z.array(z.object({ id: z.string(), slug: z.string(), name: z.string() })),
   variants: z.array(AdminVariantSchema),
   images: z.array(AdminProductImageSchema),
   createdAt: z.string(),

@@ -3,7 +3,7 @@ import request, { type Response } from 'supertest';
 
 import { TEST_ORIGIN } from './app.ts';
 
-type Method = 'get' | 'post' | 'patch' | 'delete';
+type Method = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
 export interface Shopper {
   call: (method: Method, path: string, body?: object) => Promise<Response>;

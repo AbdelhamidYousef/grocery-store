@@ -50,6 +50,10 @@ const toAdminVariant = (v: repo.VariantWithStock): AdminVariant => {
     currency: v.currency,
     weightGrams: v.weightGrams,
     isDefault: v.isDefault,
+    netAmount: v.netAmount,
+    netUnit: v.netUnit,
+    isTrial: v.isTrial,
+    swatchHex: v.swatchHex,
     status: v.status,
     quantity,
     reserved,
@@ -114,10 +118,11 @@ export async function listProducts(query: ListQuery) {
 async function loadProduct(run: typeof db | Tx, id: string): Promise<AdminProduct> {
   const product = await repo.findProduct(run, id);
   if (!product) throw notFound('Product not found');
-  const [category, variants, images] = await Promise.all([
+  const [category, variants, images, tags] = await Promise.all([
     repo.findCategory(run, product.categoryId),
     repo.listVariants(run, id),
     repo.listImages(run, id),
+    repo.listProductTags(run, id),
   ]);
   if (!category) throw new Error(`product ${id} has no category`);
   return {
@@ -128,6 +133,11 @@ async function loadProduct(run: typeof db | Tx, id: string): Promise<AdminProduc
     status: product.status,
     category: { id: category.id, slug: category.slug, name: category.name },
     attributes: product.attributes,
+    brandId: product.brandId,
+    isEco: product.isEco,
+    isBestsellerOverride: product.isBestsellerOverride,
+    badgeNewUntil: product.badgeNewUntil?.toISOString() ?? null,
+    tags,
     variants: variants.map(toAdminVariant),
     images: images.map((i) => ({
       id: i.id,
@@ -184,6 +194,10 @@ async function createVariant(
     weightGrams: input.weightGrams,
     status: input.status,
     isDefault,
+    netAmount: input.netAmount ?? null,
+    netUnit: input.netUnit ?? null,
+    isTrial: input.isTrial ?? false,
+    swatchHex: input.swatchHex ?? null,
   });
   await repo.insertInventory(tx, {
     variantId: variant.id,
@@ -234,6 +248,9 @@ export async function createProduct(input: ProductCreate, actor: string): Promis
       if (!(await repo.findCategory(tx, input.categoryId))) {
         throw fieldError('categoryId', 'Unknown category');
       }
+      if (input.brandId && !(await repo.brandExists(tx, input.brandId))) {
+        throw fieldError('brandId', 'Unknown brand');
+      }
       let slug: string;
       if (input.slug) {
         if (await repo.findProductSlug(tx, input.slug)) {
@@ -250,6 +267,10 @@ export async function createProduct(input: ProductCreate, actor: string): Promis
         categoryId: input.categoryId,
         status: input.status,
         attributes: input.attributes,
+        brandId: input.brandId,
+        isEco: input.isEco,
+        isBestsellerOverride: input.isBestsellerOverride,
+        badgeNewUntil: input.badgeNewUntil ? new Date(input.badgeNewUntil) : null,
       });
 
       // The explicitly flagged variant is the default, else the first one.
@@ -277,6 +298,9 @@ export async function updateProduct(id: string, input: ProductUpdate): Promise<A
       if (input.categoryId && !(await repo.findCategory(tx, input.categoryId))) {
         throw fieldError('categoryId', 'Unknown category');
       }
+      if (input.brandId && !(await repo.brandExists(tx, input.brandId))) {
+        throw fieldError('brandId', 'Unknown brand');
+      }
       const variants = await repo.listVariants(tx, id);
 
       if (input.attributes) {
@@ -288,6 +312,14 @@ export async function updateProduct(id: string, input: ProductUpdate): Promise<A
         ...(input.categoryId !== undefined && { categoryId: input.categoryId }),
         ...(input.status !== undefined && { status: input.status }),
         ...(input.attributes !== undefined && { attributes: input.attributes }),
+        ...(input.brandId !== undefined && { brandId: input.brandId }),
+        ...(input.isEco !== undefined && { isEco: input.isEco }),
+        ...(input.isBestsellerOverride !== undefined && {
+          isBestsellerOverride: input.isBestsellerOverride,
+        }),
+        ...(input.badgeNewUntil !== undefined && {
+          badgeNewUntil: input.badgeNewUntil ? new Date(input.badgeNewUntil) : null,
+        }),
       });
       if (input.images) {
         const idBySku = new Map(variants.map((v) => [v.sku, v.id]));
@@ -386,6 +418,10 @@ export async function updateVariant(
         ...(fields.weightGrams !== undefined && { weightGrams: fields.weightGrams }),
         ...(fields.status !== undefined && { status: fields.status }),
         ...(fields.isDefault !== undefined && { isDefault: fields.isDefault }),
+        ...(fields.netAmount !== undefined && { netAmount: fields.netAmount }),
+        ...(fields.netUnit !== undefined && { netUnit: fields.netUnit }),
+        ...(fields.isTrial !== undefined && { isTrial: fields.isTrial }),
+        ...(fields.swatchHex !== undefined && { swatchHex: fields.swatchHex }),
       });
       if (lowStockThreshold !== undefined) {
         await repo.setLowStockThreshold(tx, variantId, lowStockThreshold);

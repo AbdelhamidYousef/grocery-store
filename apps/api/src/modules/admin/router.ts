@@ -3,6 +3,7 @@ import { Router as ExpressRouter, type Router } from 'express';
 import type { PaymentGateway } from '../../lib/stripe.ts';
 import { requireAdmin } from '../../middleware/auth.ts';
 import type { Outbox } from '../mail/outbox.ts';
+import { createMerchandisingAdminRouter } from '../merchandising/admin-router.ts';
 
 import { auditMutations } from './audit.ts';
 import { createAdminOrdersRouter } from './orders/router.ts';
@@ -20,6 +21,7 @@ export function createAdminRouter(deps: { payments: PaymentGateway; outbox: Outb
   const admin = ExpressRouter();
   admin.use(createStatsRouter());
   admin.use(createProductsRouter());
+  admin.use(createMerchandisingAdminRouter());
   admin.use(createAdminOrdersRouter(deps));
   router.use('/admin', admin);
   return router;
