@@ -24,3 +24,11 @@ One root flat `eslint.config.js` lints every workspace with typescript-eslint's 
 
 ### 0.7 — docker compose for local services
 `docker-compose.yml` runs Postgres 16 (database `ecommerce`, data in a named volume, healthcheck via `pg_isready`) and Mailpit (SMTP on 1025, web UI on 8025), both bound to 127.0.0.1 only. A one-line init script creates a second database, `ecommerce_test`, the first time the volume is created. `.env.example` documents every variable so far (`NODE_ENV`, `PORT`, `DATABASE_URL`, `DATABASE_URL_TEST`, `WEB_ORIGIN`, `LOG_LEVEL`). Why a separate test DB: integration tests truncate or roll back freely, which must never be able to wipe the data you are developing against. A healthcheck says whether a service is actually ready to accept work, while `depends_on` alone only orders container start; combining them (`condition: service_healthy`) is what makes "start the API after Postgres is ready" reliable.
+
+### 0.8 — CI skeleton
+`.github/workflows/ci.yml` runs on every push and pull request with two parallel jobs: `check` (typecheck, lint, format check) and `test` (Postgres service container, then `pnpm test`; a comment marks where `db:migrate` joins in phase 1). It could not be run here (no `act`, no remote), so it was validated by Prettier parsing it and by repeating the same commands in a clean clone. A service container is a Docker container GitHub starts beside the job and health-checks before your steps run, so tests talk to a real Postgres on `localhost:5432` just like locally. Caching the pnpm store (keyed on the lockfile) makes installs mostly local copies instead of downloads. `concurrency` with `cancel-in-progress` cancels the older run of the same branch when a new push arrives, saving free-tier minutes.
+
+### Phase 0 quiz
+1. Why does `createApp()` exist separately from the code that calls `listen`, and what does that buy the tests?
+2. In dev the browser calls `/api/...` on port 5173, not 3000. What makes that work, and why does it spare you CORS and cookie problems locally?
+3. Why are prices stored and summed as integer cents, and which helper turns them into text for the user?
