@@ -16,7 +16,7 @@ describe('routes', () => {
   it.each([
     ['/', 'Happy tails start here'],
     ['/c/dogs', 'Dogs'],
-    ['/products/rope-tug', 'rope-tug'],
+    ['/products/rope-tug', 'Rope Tug'],
     ['/search', 'Search'],
     ['/cart', 'Your cart'],
     ['/login', 'Sign in'],

@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 
 import { Container } from '../components/layout/Container';
+import { Seo } from '../components/Seo';
 
 export default function NotFoundPage() {
   return (
     <Container className="py-16 text-center" data-testid="page-not-found">
+      <Seo title="Page not found" noindex />
       <p className="font-display text-6xl font-bold text-primary-strong" aria-hidden="true">
         404
       </p>

@@ -1,6 +1,7 @@
 import { isRouteErrorResponse, Link, useRouteError } from 'react-router-dom';
 
 import { Container } from '../components/layout/Container';
+import { Seo } from '../components/Seo';
 
 // Rendered by the router's errorElement when a route throws while loading or rendering.
 // Without it React unmounts the whole app to a blank page. In a data router a 404 response
@@ -10,6 +11,7 @@ export default function RouteErrorPage() {
   const notFound = isRouteErrorResponse(error) && error.status === 404;
   return (
     <Container className="py-16 text-center" data-testid="page-error">
+      <Seo title="Something went wrong" noindex />
       <h1 className="text-3xl font-bold">
         {notFound ? "We can't find that page" : 'Something went wrong'}
       </h1>
