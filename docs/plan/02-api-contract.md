@@ -33,6 +33,12 @@ Error codes (string enum in shared): `VALIDATION_ERROR` 400 · `UNAUTHENTICATED`
   It does **not** correct typos (`rpoe` finds nothing). Input of 1-2 characters (or only stop words)
   falls back to a case-insensitive substring match on the name. `sort=relevance` is the default when
   `q` is present, `newest` otherwise.
+- **Facets** come back beside `data` and `meta` as `facets: { attributes: { pet|material|brand|ageStage:
+  [{value, count}] }, price: {min, max} | null }`, computed over category + `q` and ignoring the
+  attribute, price and stock filters.
+- **Caching:** catalog GETs send `Cache-Control: public, max-age=60, stale-while-revalidate=300` plus a
+  weak `ETag` (`If-None-Match` gets a 304). An admin change can therefore take up to 60 s to show
+  publicly. Errors are `no-store`.
 - Unknown query parameters are ignored; an unknown `category` gives an empty list, not a 404.
 
 ## Auth & account (phase 6)

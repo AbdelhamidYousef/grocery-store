@@ -36,6 +36,9 @@ export function createErrorHandler(opts: { isProduction: boolean }): ErrorReques
       return;
     }
 
+    // Whatever an earlier middleware promised about caching no longer holds for an error body.
+    res.setHeader('Cache-Control', 'no-store');
+
     if (err instanceof AppError) {
       req.log.info({ err: { code: err.code, message: err.message } }, 'request failed');
       res.status(err.status).json(body(err.code, err.message, err.details));

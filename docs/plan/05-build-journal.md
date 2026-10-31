@@ -111,3 +111,11 @@ The list response now carries `facets: { attributes, price }` next to `data` and
 
 ### 3.7 — product detail
 `GET /api/v1/products/:slug` returns the product with its active variants (cheapest first, with `compareAtPriceCents`, `isDefault`, `available` and `lowStock`), images in sort order (variant-specific ones carry their `variantId`), the public attributes, `optionKeys` split out of the attributes jsonb, a root-first breadcrumb (parent category then category) and the price range and `inStock`. Availability is `quantity - reserved > 0` and low stock is available units at or below the variant's threshold; the raw numbers never leave the service, and a test checks the JSON for any stock field names. Draft, archived, unknown and no-active-variant products are all the same 404. Learn: exposing booleans instead of counts avoids leaking sales velocity, and keeping the rule in the service means the router and the repo stay free of business logic.
+
+### 3.8 — caching headers
+Catalog GETs (`/categories`, `/categories/:slug`, `/products`, `/products/:slug`) now send `Cache-Control: public, max-age=60, stale-while-revalidate=300`; Express's default weak `ETag` is already on every JSON response and a conditional request gets a 304. The header is applied by a middleware scoped to those paths (the catalog router is mounted at the API root, so an unscoped one would have leaked onto cart and account), and the error handler overwrites it with `no-store`, so a 404 or 400 is never cached as data. The contract documents that an admin change can lag up to 60 s publicly. Learn: `max-age` lets browsers and the CDN reuse a response without asking; `stale-while-revalidate` lets them serve a slightly old copy instantly while fetching a fresh one in the background; the ETag lets a client that does ask pay only for a 304 instead of the whole body.
+
+### Phase 3 quiz
+1. Why do the facet counts ignore the attribute filters the shopper has selected, and which two things do they still respect?
+2. What is the difference between `plainto_tsquery` and `websearch_to_tsquery`, and what happens when a shopper searches for one or two letters or only "the"?
+3. Why is `Cache-Control` scoped to the catalog paths and overwritten with `no-store` on errors, and what is the cost to the business of `max-age=60`?
