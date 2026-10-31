@@ -1,8 +1,7 @@
 import { sql } from 'drizzle-orm';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import { closeDb, db } from '../client.ts';
-import { runMigrations } from '../migrate.ts';
+import { db } from '../client.ts';
 
 import { runSeed } from './index.ts';
 
@@ -19,20 +18,7 @@ async function counts() {
   return rows[0];
 }
 
-// Leaves the (test-only) database empty again so other test files see no seeded products.
-const wipe = () =>
-  db.execute(sql`truncate categories, users, shipping_methods, products restart identity cascade`);
-
 describe('seed', () => {
-  beforeAll(async () => {
-    await runMigrations();
-    await wipe();
-  });
-  afterAll(async () => {
-    await wipe();
-    await closeDb();
-  });
-
   it('can run twice without creating duplicates', async () => {
     await runSeed();
     const first = await counts();
@@ -42,6 +28,7 @@ describe('seed', () => {
   });
 
   it('does not reset stock on a second run', async () => {
+    await runSeed();
     await db.execute(sql`update inventory set quantity = 777`);
     await runSeed();
     const rows = await db.execute<{ n: number }>(

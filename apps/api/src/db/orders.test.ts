@@ -1,8 +1,6 @@
-import { eq, like } from 'drizzle-orm';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import { closeDb, db } from './client.ts';
-import { runMigrations } from './migrate.ts';
+import { db } from './client.ts';
 import { orderItems, orders, webhookEvents } from './schema/index.ts';
 
 const email = 'order-test@pawsome.test';
@@ -26,16 +24,6 @@ const base = {
 };
 
 describe('orders', () => {
-  beforeAll(async () => {
-    await runMigrations();
-    await db.delete(orders).where(eq(orders.email, email));
-  });
-  afterAll(async () => {
-    await db.delete(orders).where(eq(orders.email, email));
-    await db.delete(webhookEvents).where(like(webhookEvents.id, 'evt_test_%'));
-    await closeDb();
-  });
-
   it('accepts an order whose total equals subtotal + shipping + tax - discount', async () => {
     const [order] = await db.insert(orders).values(base).returning();
     expect(order?.status).toBe('pending_payment');
@@ -69,7 +57,7 @@ describe('orders', () => {
   });
 
   it('treats a repeated webhook event id as a conflict', async () => {
-    const event = { id: 'evt_test_1', type: 'payment_intent.succeeded', payload: {} };
+    const event = { id: 'evt_1', type: 'payment_intent.succeeded', payload: {} };
     await db.insert(webhookEvents).values(event);
     await expect(db.insert(webhookEvents).values(event)).rejects.toThrow();
   });

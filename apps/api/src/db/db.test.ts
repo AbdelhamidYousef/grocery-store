@@ -1,8 +1,7 @@
 import { eq } from 'drizzle-orm';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import { closeDb, db } from './client.ts';
-import { runMigrations } from './migrate.ts';
+import { db } from './client.ts';
 import { addresses, sessions, users } from './schema/index.ts';
 
 const email = 'db-smoke@pawsome.test';
@@ -17,15 +16,6 @@ async function insertUser() {
 }
 
 describe('users, sessions and addresses', () => {
-  beforeAll(async () => {
-    await runMigrations();
-    await db.delete(users).where(eq(users.email, email));
-  });
-  afterAll(async () => {
-    await db.delete(users).where(eq(users.email, email));
-    await closeDb();
-  });
-
   it('treats emails as case-insensitive and unique', async () => {
     const user = await insertUser();
     expect(user.role).toBe('customer');
@@ -37,7 +27,6 @@ describe('users, sessions and addresses', () => {
         lastName: 'User',
       }),
     ).rejects.toThrow();
-    await db.delete(users).where(eq(users.id, user.id));
   });
 
   it('cascades deletes from a user to their sessions and addresses', async () => {
@@ -79,6 +68,5 @@ describe('users, sessions and addresses', () => {
     await expect(
       db.insert(addresses).values({ ...base, isDefaultShipping: true }),
     ).rejects.toThrow();
-    await db.delete(users).where(eq(users.id, user.id));
   });
 });
