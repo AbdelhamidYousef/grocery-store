@@ -28,15 +28,13 @@ const qtyOf = (res: request.Response, variantId: string) =>
 
 // A guest browser that has put `lines` in its cart, returning the cookie it holds.
 async function guestWith(lines: { variantId: string; quantity: number }[]) {
-  const first = await request(app).get('/api/v1/cart');
-  const cookie = `cart_id=${cookieValue(first, 'cart_id') ?? ''}`;
+  // The first add creates the guest cart and hands out the cookie (a read no longer does).
+  let cookie = '';
   for (const line of lines) {
-    const res = await request(app)
-      .post('/api/v1/cart/items')
-      .set('Origin', TEST_ORIGIN)
-      .set('Cookie', cookie)
-      .send(line);
+    const req = request(app).post('/api/v1/cart/items').set('Origin', TEST_ORIGIN);
+    const res = await (cookie ? req.set('Cookie', cookie) : req).send(line);
     expect(res.status).toBe(200);
+    cookie ||= `cart_id=${cookieValue(res, 'cart_id') ?? ''}`;
   }
   return cookie;
 }

@@ -126,6 +126,18 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
   };
 }
 
+// What `GET /cart` answers for a visitor who has no cart yet (nothing is stored for them).
+export function emptyCart(): Cart {
+  return {
+    items: [],
+    currency: DEFAULT_CURRENCY,
+    subtotalCents: 0,
+    itemCount: 0,
+    weightGrams: 0,
+    warnings: [],
+  };
+}
+
 export async function getCart(cartId: string): Promise<Cart> {
   return db.transaction((tx) => loadCart(tx, cartId));
 }

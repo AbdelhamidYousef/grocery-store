@@ -58,7 +58,7 @@ Error codes (string enum in shared): `VALIDATION_ERROR` 400 · `UNAUTHENTICATED`
 ## Cart (phase 7) — works for guest and user
 | Method | Path | Notes |
 | --- | --- | --- |
-| GET | `/cart` | creates guest cart on demand; returns re-priced cart: items (variant, product name, image, unitPrice, qty, lineTotal, `available`, `maxQty`), subtotal, itemCount, `warnings[]` (price changed, out of stock, qty clamped) |
+| GET | `/cart` | never creates a cart (a visitor with none gets an empty cart, no cookie); the first `POST /cart/items` creates the guest cart and sets `cart_id`; returns re-priced cart: items (variant, product name, image, unitPrice, qty, lineTotal, `available`, `maxQty`), subtotal, itemCount, `warnings[]` (price changed, out of stock, qty clamped) |
 | POST | `/cart/items` | `{variantId, quantity}`; upsert (adds to existing qty); 409 `OUT_OF_STOCK` if exceeds available |
 | PATCH | `/cart/items/:id` | `{quantity}`; 0 deletes |
 | DELETE | `/cart/items/:id` | |

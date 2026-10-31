@@ -48,17 +48,35 @@ async function member() {
 const add = (variantId: string, quantity = 1) => ({ variantId, quantity });
 
 describe('GET /cart', () => {
-  it('creates a guest cart on demand and sets the signed cookie', async () => {
+  it('answers an empty cart to a visitor without storing a row or setting a cookie', async () => {
     const guest = shopper();
     const res = await guest.call('get', '/cart');
     expect(res.status).toBe(200);
     expect(cartOf(res)).toMatchObject({ items: [], subtotalCents: 0, itemCount: 0, warnings: [] });
-    expect(setCookieLine(res, 'cart_id')).toContain('HttpOnly');
+    expect(setCookieLine(res, 'cart_id')).toBeUndefined();
     expect(res.headers['cache-control']).toBe('no-store');
+    await guest.call('get', '/cart');
+    expect(await db.select().from(carts)).toHaveLength(0);
+  });
+
+  it('creates the guest cart on the first add and keeps it for later reads', async () => {
+    const { variants } = await createProduct();
+    const guest = shopper();
+    const res = await guest.call('post', '/cart/items', add(variants[0]!.id));
+    expect(setCookieLine(res, 'cart_id')).toContain('HttpOnly');
     expect(await db.select().from(carts)).toHaveLength(1);
 
-    await guest.call('get', '/cart');
+    const read = await guest.call('get', '/cart');
+    expect(cartOf(read).itemCount).toBe(1);
+    expect(setCookieLine(read, 'cart_id')).toBeUndefined();
     expect(await db.select().from(carts)).toHaveLength(1);
+  });
+
+  it('treats a forged or expired cart cookie like no cart at all', async () => {
+    const forged = await request(app).get('/api/v1/cart').set('Cookie', 'cart_id=not-a-real-one');
+    expect(forged.status).toBe(200);
+    expect(cartOf(forged).items).toEqual([]);
+    expect(await db.select().from(carts)).toHaveLength(0);
   });
 
   it('gives two guests two separate carts', async () => {
@@ -187,7 +205,7 @@ describe('POST /cart/items', () => {
   it('slides the cart expiry when it is used', async () => {
     const { variants } = await createProduct();
     const guest = shopper();
-    await guest.call('get', '/cart');
+    await guest.call('post', '/cart/items', add(variants[0]!.id));
     const [row] = await db.select().from(carts);
     await db
       .update(carts)
@@ -204,7 +222,10 @@ describe('concurrency: serialised by the cart row lock', () => {
     const { variants } = await createProduct({ variants: [{ stock: 5 }] });
     const variantId = variants[0]!.id;
     const guest = shopper();
-    await guest.call('get', '/cart'); // one cart first, so both adds target the same one
+    // One cart first, so both adds target the same one (two first-ever adds would race to create
+    // two carts; the web serialises its cart writes, so that never happens in practice).
+    const { variants: warmup } = await createProduct();
+    await guest.call('post', '/cart/items', add(warmup[0]!.id));
 
     const results = await Promise.all([
       guest.call('post', '/cart/items', add(variantId, 3)),
@@ -212,7 +233,7 @@ describe('concurrency: serialised by the cart row lock', () => {
     ]);
 
     expect(results.map((r) => r.status).sort()).toEqual([200, 409]);
-    const [item] = await db.select().from(cartItems);
+    const [item] = await db.select().from(cartItems).where(eq(cartItems.variantId, variantId));
     expect(item?.quantity).toBe(3);
   });
 
@@ -220,7 +241,8 @@ describe('concurrency: serialised by the cart row lock', () => {
     const { variants } = await createProduct({ variants: [{ stock: 4 }] });
     const variantId = variants[0]!.id;
     const guest = shopper();
-    await guest.call('get', '/cart');
+    const { variants: warmup } = await createProduct();
+    await guest.call('post', '/cart/items', add(warmup[0]!.id));
 
     const results = await Promise.all(
       Array.from({ length: 10 }, () => guest.call('post', '/cart/items', add(variantId, 1))),
@@ -228,7 +250,7 @@ describe('concurrency: serialised by the cart row lock', () => {
 
     expect(results.filter((r) => r.status === 200)).toHaveLength(4);
     expect(results.filter((r) => r.status === 409)).toHaveLength(6);
-    const items = await db.select().from(cartItems);
+    const items = await db.select().from(cartItems).where(eq(cartItems.variantId, variantId));
     expect(items).toHaveLength(1);
     expect(items[0]?.quantity).toBe(4);
   });

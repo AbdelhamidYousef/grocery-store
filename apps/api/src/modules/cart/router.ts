@@ -7,7 +7,7 @@ import {
 import { Router as ExpressRouter, type Router } from 'express';
 
 import { respond, valid, validate } from '../../lib/validate.ts';
-import { cartIdOf, withCart } from '../../middleware/cart.ts';
+import { cartIdOf, withCart, withExistingCart } from '../../middleware/cart.ts';
 
 import * as service from './service.ts';
 
@@ -17,11 +17,14 @@ export const cartRouter: Router = ExpressRouter();
 // There is deliberately no cart id in any path or body: a client cannot name a cart, so it cannot
 // name somebody else's. (`POST /cart/merge` from the contract is internal: login/register call
 // the service directly and it is not exposed over HTTP.)
-cartRouter.use('/cart', withCart);
-
-cartRouter.get('/cart', async (req, res) => {
-  respond(res, CartResponseSchema, { data: await service.getCart(cartIdOf(req)) });
+// Writes create the guest cart on first need (`withCart`); a read never does (`withExistingCart`),
+// because the header asks for the cart on every first page load and bots would fill the table.
+cartRouter.get('/cart', withExistingCart, async (req, res) => {
+  respond(res, CartResponseSchema, {
+    data: req.cartId ? await service.getCart(req.cartId) : service.emptyCart(),
+  });
 });
+cartRouter.use('/cart', withCart);
 
 const add = { body: AddCartItemSchema };
 cartRouter.post('/cart/items', validate(add), async (req, res) => {

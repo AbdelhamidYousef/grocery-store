@@ -1,7 +1,7 @@
 import type { Request, RequestHandler } from 'express';
 
 import { readGuestCartId, setCartCookie } from '../lib/cookies.ts';
-import { resolveCartIdentity } from '../modules/cart/identity.ts';
+import { findCartIdentity, resolveCartIdentity } from '../modules/cart/identity.ts';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace -- the only way to extend Express's Request
@@ -24,6 +24,17 @@ export const withCart: RequestHandler = async (req, res, next) => {
   });
   if (createdGuestCart) setCartCookie(res, cartId);
   req.cartId = cartId;
+  next();
+};
+
+// Read-only variant for `GET /cart`: sets `req.cartId` only when the caller already has a cart and
+// never creates one or sets a cookie. The first POST /cart/items creates the guest cart.
+export const withExistingCart: RequestHandler = async (req, _res, next) => {
+  const found = await findCartIdentity({
+    userId: req.user?.id ?? null,
+    guestCartId: readGuestCartId(req),
+  });
+  if (found) req.cartId = found.cartId;
   next();
 };
 

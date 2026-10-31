@@ -39,6 +39,19 @@ export async function resolveCartIdentity(who: {
   userId: string | null;
   guestCartId: string | null;
 }): Promise<CartIdentity> {
+  const found = await findCartIdentity(who);
+  if (found) return found;
+  return { cartId: (await repo.insertGuestCart(guestExpiry())).id, createdGuestCart: true };
+}
+
+// The read-only half: the caller's cart if one exists, otherwise null and nothing is written.
+// `GET /cart` uses this so a visitor who never adds anything (most of them, and every bot) never
+// costs a row. A signed-in user still gets their one cart, because that row is bounded by the
+// number of accounts, not by the number of visits.
+export async function findCartIdentity(who: {
+  userId: string | null;
+  guestCartId: string | null;
+}): Promise<CartIdentity | null> {
   if (who.userId) {
     // A signed-in user's guest cookie (left over from before login) is ignored here; the merge on
     // login is the only thing that moves guest items into an account.
@@ -48,5 +61,5 @@ export async function resolveCartIdentity(who: {
     const live = await repo.findLiveGuestCart(who.guestCartId);
     if (live) return { cartId: live.id, createdGuestCart: false };
   }
-  return { cartId: (await repo.insertGuestCart(guestExpiry())).id, createdGuestCart: true };
+  return null;
 }
