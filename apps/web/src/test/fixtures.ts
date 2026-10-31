@@ -1,4 +1,5 @@
 import type {
+  Address,
   CategoryNode,
   Facets,
   ProductCard,
@@ -158,6 +159,24 @@ export function makeUser(overrides: Partial<User> = {}): User {
     firstName: 'Sam',
     lastName: 'Rivers',
     role: 'customer',
+    ...overrides,
+  };
+}
+
+export function makeAddress(overrides: Partial<Address> = {}): Address {
+  return {
+    id: 'a1',
+    label: 'Home',
+    fullName: 'Sam Rivers',
+    line1: '1 Bone Street',
+    line2: null,
+    city: 'Berlin',
+    region: null,
+    postalCode: '10115',
+    country: 'DE',
+    phone: null,
+    isDefaultShipping: true,
+    isDefaultBilling: true,
     ...overrides,
   };
 }

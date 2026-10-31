@@ -38,6 +38,22 @@ export const TEST_IDS = {
   addToCart: 'add-to-cart',
   stockHint: 'stock-hint',
   productAttributes: 'product-attributes',
+  addressList: 'address-list',
+  addressCard: 'address-card',
+  addressForm: 'address-form',
+  addressAdd: 'address-add',
+  cartPage: 'page-cart',
+  cartLine: 'cart-line',
+  cartLineQty: 'cart-line-qty',
+  cartLineRemove: 'cart-line-remove',
+  cartLineWarning: 'cart-line-warning',
+  cartWarnings: 'cart-warnings',
+  cartSubtotal: 'cart-subtotal',
+  cartCheckout: 'cart-checkout',
+  cartEmpty: 'cart-empty',
+  cartShippingHint: 'cart-shipping-hint',
+  miniCart: 'mini-cart',
+  miniCartButton: 'mini-cart-button',
 } as const;
 
 export type TestId = (typeof TEST_IDS)[keyof typeof TEST_IDS];
