@@ -9,6 +9,7 @@ import BrandsPage from './pages/BrandsPage';
 import CartPage from './pages/CartPage';
 import CategoryPage from './pages/CategoryPage';
 import CollectionPage from './pages/CollectionPage';
+import ContactPage from './pages/ContactPage';
 import GuidePage from './pages/GuidePage';
 import GuidesPage from './pages/GuidesPage';
 import HelpPage from './pages/HelpPage';
@@ -48,6 +49,7 @@ export const routes: RouteObject[] = [
           { path: 'brands/:slug', element: <BrandPage /> },
           { path: 'collections/:slug', element: <CollectionPage /> },
           { path: 'search', element: <SearchPage /> },
+          { path: 'contact', element: <ContactPage /> },
           { path: 'withdraw', element: <WithdrawPage /> },
           // Static pages: one component, one route per Markdown file.
           ...LEGAL_PAGES.map((page) => ({

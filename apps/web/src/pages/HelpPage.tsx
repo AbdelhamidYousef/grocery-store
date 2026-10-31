@@ -137,7 +137,15 @@ export default function HelpPage() {
               <Link to="/help" className="font-semibold text-primary-strong underline">
                 browse every topic
               </Link>
-              . Still stuck? Get in touch and a real person will answer.
+              . Still stuck?{' '}
+              <Link
+                to="/contact"
+                className="font-semibold text-primary-strong underline"
+                data-testid={TEST_IDS.helpContact}
+              >
+                Contact us
+              </Link>{' '}
+              and a real person will answer.
             </p>
           </div>
         )}

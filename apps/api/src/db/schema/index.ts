@@ -4,6 +4,7 @@ export * from './cart-items.ts';
 export * from './carts.ts';
 export * from './categories.ts';
 export * from './collections.ts';
+export * from './contact-messages.ts';
 export * from './email-outbox.ts';
 export * from './guide-categories.ts';
 export * from './guides.ts';

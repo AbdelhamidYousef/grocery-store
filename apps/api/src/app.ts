@@ -27,6 +27,8 @@ export interface AppConfig {
    * They answer "is this order yours?", so they must be slow to brute-force.
    */
   lookupRateLimit?: RateLimitOptions;
+  /** Public contact form: 5 per hour per IP when omitted. */
+  contactRateLimit?: RateLimitOptions;
   /**
    * Switches on POST /test/webhooks/simulate (only ever mounted when `nodeEnv` is `test`).
    * `secret` is what the caller must send; `realStripe` says the payment gateway is the real
@@ -99,6 +101,7 @@ export function createApp({ logger, pingDb, payments, outbox, config }: AppDeps)
     createModulesRouter({
       authRateLimit: config.authRateLimit,
       ...(config.lookupRateLimit && { lookupRateLimit: config.lookupRateLimit }),
+      ...(config.contactRateLimit && { contactRateLimit: config.contactRateLimit }),
       payments,
       outbox,
       nodeEnv: config.nodeEnv,

@@ -1,5 +1,6 @@
 import type { Order } from '@store/shared';
 
+import { contactAck, contactNotify } from './contact.ts';
 import { orderConfirmation } from './order-confirmation.ts';
 import { orderShipped } from './order-shipped.ts';
 import { withdrawalAck } from './withdrawal-ack.ts';
@@ -12,7 +13,10 @@ export type { Email } from './layout.ts';
 export const ORDER_EMAIL_KINDS = ['order_confirmation', 'order_shipped', 'withdrawal_ack'] as const;
 export type OrderEmailKind = (typeof ORDER_EMAIL_KINDS)[number];
 
-export const EMAIL_KINDS = [...ORDER_EMAIL_KINDS] as const;
+// Not about one order: the payload carries everything.
+export const GENERAL_EMAIL_KINDS = ['contact_ack', 'contact_notify'] as const;
+
+export const EMAIL_KINDS = [...ORDER_EMAIL_KINDS, ...GENERAL_EMAIL_KINDS] as const;
 export type EmailKind = (typeof EMAIL_KINDS)[number];
 
 export type EmailPayload = Record<string, unknown>;
@@ -46,5 +50,10 @@ export function renderQueuedEmail(
     if (!order) throw new Error(`email "${kind}" needs an order`);
     return renderEmail(kind, order, payload);
   }
-  throw new Error(`unknown email kind "${String(kind)}"`);
+  switch (kind) {
+    case 'contact_ack':
+      return contactAck(payload);
+    case 'contact_notify':
+      return contactNotify(payload);
+  }
 }

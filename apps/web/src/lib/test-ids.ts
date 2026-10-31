@@ -117,6 +117,7 @@ export const TEST_IDS = {
   helpItem: 'help-item',
   helpSnippet: 'help-snippet',
   helpNoResults: 'help-no-results',
+  helpContact: 'help-contact',
 
   pageTrackOrder: 'page-track-order',
   trackOrderNumber: 'track-order-number',
@@ -132,6 +133,11 @@ export const TEST_IDS = {
   pageWithdraw: 'page-withdraw',
   withdrawForm: 'withdraw-form',
   withdrawSuccess: 'withdraw-success',
+
+  pageContact: 'page-contact',
+  contactForm: 'contact-form',
+  contactSuccess: 'contact-success',
+  contactHoneypot: 'contact-honeypot',
 
   pageAdmin: 'page-admin',
   adminNav: 'admin-nav',

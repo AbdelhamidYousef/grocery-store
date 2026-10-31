@@ -20,6 +20,7 @@ export type AnalyticsEvent =
   | { name: 'track_order'; status: string }
   | { name: 'footer_link'; group: string; label: string | null }
   | { name: 'withdrawal_submitted'; orderNumber: string }
+  | { name: 'contact_sent'; topic: string }
   | { name: 'view_guide'; slug: string; category: string }
   | { name: 'add_to_cart'; item: TrackItem; quantity: number }
   | { name: 'remove_from_cart'; item: TrackItem; quantity: number }

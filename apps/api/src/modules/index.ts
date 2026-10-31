@@ -12,6 +12,7 @@ import { cartRouter } from './cart/router.ts';
 import { catalogRouter } from './catalog/router.ts';
 import { createCheckoutRouter } from './checkout/router.ts';
 import { createTestRouter } from './checkout/test-router.ts';
+import { createContactRouter } from './contact/router.ts';
 import { guidesRouter } from './guides/router.ts';
 import { helpRouter } from './help/router.ts';
 import type { Outbox } from './mail/outbox.ts';
@@ -27,6 +28,7 @@ import { createWithdrawalsRouter } from './withdrawals/router.ts';
 export function createModulesRouter(opts: {
   authRateLimit: RateLimitOptions;
   lookupRateLimit?: RateLimitOptions;
+  contactRateLimit?: RateLimitOptions;
   payments: PaymentGateway;
   outbox: Outbox;
   nodeEnv: 'development' | 'test' | 'production';
@@ -60,6 +62,7 @@ export function createModulesRouter(opts: {
   router.use(cartRouter);
   router.use(createTrackingRouter(opts));
   router.use(createWithdrawalsRouter(opts));
+  router.use(createContactRouter(opts));
   router.use(createCheckoutRouter({ payments: opts.payments }));
   router.use(createAdminRouter({ payments: opts.payments, outbox: opts.outbox }));
   return router;

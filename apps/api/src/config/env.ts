@@ -90,6 +90,9 @@ export const envSchema = z
     // Resend without a verified domain only accepts `onboarding@resend.dev` as sender, and only
     // delivers to the account owner's address.
     MAIL_FROM: z.string().trim().min(3).default('Pawsome <orders@pawsome.test>'),
+    // Where the contact form's notification for the shop goes (Mailpit locally). With the Resend
+    // free tier and no verified domain it must be the account owner's address.
+    SHOP_INBOX_EMAIL: z.string().trim().min(3).default('hello@pawsome.test'),
     // Background jobs inside the API process (the stale-reservation sweeper). Tests call the job
     // functions directly, so this only matters for a running server.
     ENABLE_JOBS: z

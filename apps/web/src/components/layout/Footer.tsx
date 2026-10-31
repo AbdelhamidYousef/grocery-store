@@ -51,6 +51,7 @@ const GROUPS: FooterGroup[] = [
     links: [
       { label: 'Help centre', to: '/help' },
       { label: 'Track your order', to: '/track-order' },
+      { label: 'Contact us', to: '/contact' },
       legal('shipping'),
       legal('returns'),
     ],
