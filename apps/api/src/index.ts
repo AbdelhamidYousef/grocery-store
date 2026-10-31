@@ -1,11 +1,18 @@
+import { sql } from 'drizzle-orm';
+
 import { createApp } from './app.ts';
 import { env } from './config/env.ts';
+import { closeDb, db } from './db/client.ts';
 import { createLogger } from './lib/logger.ts';
+import { createShutdown } from './lib/shutdown.ts';
 
 // Bootstrap only: read config, build the app, listen. Anything testable lives in createApp().
 const logger = createLogger({ level: env.LOG_LEVEL, pretty: env.NODE_ENV === 'development' });
 const app = createApp({
   logger,
+  pingDb: async () => {
+    await db.execute(sql`select 1`);
+  },
   config: {
     nodeEnv: env.NODE_ENV,
     webOrigin: env.WEB_ORIGIN,
@@ -14,6 +21,10 @@ const app = createApp({
   },
 });
 
-app.listen(env.PORT, () => {
+const server = app.listen(env.PORT, () => {
   logger.info(`api listening on http://localhost:${env.PORT}`);
 });
+
+const shutdown = createShutdown({ server, logger, cleanup: closeDb });
+process.on('SIGTERM', () => void shutdown('SIGTERM'));
+process.on('SIGINT', () => void shutdown('SIGINT'));
