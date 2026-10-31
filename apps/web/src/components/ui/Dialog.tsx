@@ -8,6 +8,8 @@ interface DialogProps {
   onClose: () => void;
   title: string;
   children: ReactNode;
+  /** `left` turns the dialog into a full-height side drawer (used by the mobile nav). */
+  placement?: 'center' | 'left';
   className?: string;
 }
 
@@ -15,7 +17,14 @@ interface DialogProps {
 // top layer, `inert` on everything behind it (that IS the focus trap: Tab cannot leave the
 // dialog), Escape to close, and focus restored to the opener on close. A hand-rolled trap would
 // re-implement all of that with more bugs.
-export function Dialog({ open, onClose, title, children, className }: DialogProps) {
+export function Dialog({
+  open,
+  onClose,
+  title,
+  children,
+  placement = 'center',
+  className,
+}: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
@@ -48,7 +57,10 @@ export function Dialog({ open, onClose, title, children, className }: DialogProp
         if (event.target === event.currentTarget) event.currentTarget.close();
       }}
       className={cn(
-        'm-auto w-[calc(100%-2rem)] max-w-lg rounded-card bg-surface p-0 text-ink shadow-card',
+        'bg-surface p-0 text-ink shadow-card',
+        placement === 'center'
+          ? 'm-auto w-[calc(100%-2rem)] max-w-lg rounded-card'
+          : 'my-0 ml-0 mr-auto h-full max-h-none w-[min(20rem,88vw)] rounded-r-card',
         className,
       )}
     >

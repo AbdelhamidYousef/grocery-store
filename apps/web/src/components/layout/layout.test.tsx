@@ -1,0 +1,155 @@
+import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { describe, expect, it } from 'vitest';
+
+import { PETS } from '../../lib/pets';
+
+import { AppLayout } from './AppLayout';
+import { Breadcrumbs } from './Breadcrumbs';
+import { Header } from './Header';
+
+function Where() {
+  const loc = useLocation();
+  return <p data-testid="where">{loc.pathname + loc.search}</p>;
+}
+
+function renderShell(initial = '/') {
+  return render(
+    <MemoryRouter initialEntries={[initial]}>
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route path="*" element={<Where />} />
+        </Route>
+      </Routes>
+    </MemoryRouter>,
+  );
+}
+
+describe('AppLayout', () => {
+  it('has the page landmarks and the skip link as the first tab stop', async () => {
+    renderShell();
+    expect(screen.getByRole('banner')).toBeInTheDocument();
+    expect(screen.getByRole('main')).toHaveAttribute('id', 'main');
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument();
+
+    await userEvent.tab();
+    const skip = screen.getByRole('link', { name: 'Skip to main content' });
+    expect(skip).toHaveFocus();
+    expect(skip).toHaveAttribute('href', '#main');
+  });
+
+  it('lists the five pets in the header nav, each with its accent', () => {
+    renderShell();
+    const items = within(screen.getByTestId('main-nav')).getAllByRole('listitem');
+    expect(items).toHaveLength(PETS.length);
+    expect(items.map((li) => li.getAttribute('data-pet'))).toEqual([
+      'dog',
+      'cat',
+      'bird',
+      'fish',
+      'small-pet',
+    ]);
+    expect(within(items[0]!).getByRole('link', { name: 'Dogs' })).toHaveAttribute(
+      'href',
+      '/c/dogs',
+    );
+  });
+
+  it('marks the current category link', () => {
+    renderShell('/c/cats');
+    const nav = screen.getByTestId('main-nav');
+    expect(within(nav).getByRole('link', { name: 'Cats' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('has a labelled footer with shop links and a test-mode notice', () => {
+    renderShell();
+    const footer = screen.getByRole('contentinfo');
+    expect(within(footer).getByRole('navigation', { name: 'Shop' })).toBeInTheDocument();
+    expect(footer).toHaveTextContent('Stripe test mode');
+  });
+});
+
+describe('Header', () => {
+  it('searches by navigating to /search?q= and ignores an empty query', async () => {
+    const user = userEvent.setup();
+    renderShell();
+    const box = within(screen.getByTestId('header')).getByRole('searchbox', {
+      name: 'Search products',
+    });
+    await user.type(box, '   {Enter}');
+    expect(screen.getByTestId('where')).toHaveTextContent('/');
+
+    await user.type(box, 'squeaky ball{Enter}');
+    expect(screen.getByTestId('where')).toHaveTextContent('/search?q=squeaky%20ball');
+  });
+
+  it('announces the cart count in the link name and shows a badge', () => {
+    render(
+      <MemoryRouter>
+        <Header cartCount={3} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('link', { name: 'Cart, 3 items' })).toHaveAttribute('href', '/cart');
+    expect(screen.getByTestId('cart-count')).toHaveTextContent('3');
+  });
+
+  it('uses the singular for one item and hides the badge at zero', () => {
+    const { unmount } = render(
+      <MemoryRouter>
+        <Header cartCount={1} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('link', { name: 'Cart, 1 item' })).toBeInTheDocument();
+    unmount();
+    render(
+      <MemoryRouter>
+        <Header />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByTestId('cart-count')).not.toBeInTheDocument();
+  });
+
+  it('opens and closes the account menu with the keyboard', async () => {
+    const user = userEvent.setup();
+    renderShell();
+    const button = screen.getByRole('button', { name: 'Account' });
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+    await user.click(button);
+    expect(button).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login');
+    await user.keyboard('{Escape}');
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+    expect(button).toHaveFocus();
+  });
+
+  it('opens the mobile drawer, navigates from it and closes it', async () => {
+    const user = userEvent.setup();
+    renderShell();
+    await user.click(screen.getByRole('button', { name: 'Open menu' }));
+    const drawer = screen.getByRole('dialog', { name: 'Menu' });
+    await user.click(within(drawer).getByRole('link', { name: 'Birds' }));
+    expect(screen.getByTestId('where')).toHaveTextContent('/c/birds');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+});
+
+describe('Breadcrumbs', () => {
+  it('links the trail and marks the last item as the current page', () => {
+    render(
+      <MemoryRouter>
+        <Breadcrumbs
+          items={[
+            { label: 'Home', to: '/' },
+            { label: 'Dogs', to: '/c/dogs' },
+            { label: 'Rope tug' },
+          ]}
+        />
+      </MemoryRouter>,
+    );
+    const nav = screen.getByRole('navigation', { name: 'Breadcrumb' });
+    expect(within(nav).getByRole('link', { name: 'Dogs' })).toHaveAttribute('href', '/c/dogs');
+    expect(within(nav).getByText('Rope tug')).toHaveAttribute('aria-current', 'page');
+    expect(within(nav).queryByRole('link', { name: 'Rope tug' })).not.toBeInTheDocument();
+  });
+});
