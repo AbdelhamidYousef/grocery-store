@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { createMemoryRouter, MemoryRouter, RouterProvider, useLocation } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
 import { PETS } from '../../lib/pets';
@@ -14,16 +14,13 @@ function Where() {
   return <p data-testid="where">{loc.pathname + loc.search}</p>;
 }
 
+// AppLayout renders <ScrollRestoration />, which needs a data router.
 function renderShell(initial = '/') {
-  return render(
-    <MemoryRouter initialEntries={[initial]}>
-      <Routes>
-        <Route element={<AppLayout />}>
-          <Route path="*" element={<Where />} />
-        </Route>
-      </Routes>
-    </MemoryRouter>,
+  const router = createMemoryRouter(
+    [{ element: <AppLayout />, children: [{ path: '*', element: <Where /> }] }],
+    { initialEntries: [initial] },
   );
+  return render(<RouterProvider router={router} />);
 }
 
 describe('AppLayout', () => {

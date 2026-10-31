@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, ScrollRestoration } from 'react-router-dom';
 
 import { Footer } from './Footer';
 import { Header } from './Header';
@@ -16,6 +16,9 @@ export function AppLayout() {
         <Outlet />
       </main>
       <Footer />
+      {/* Restores scroll per history entry (back returns to where you were) and resets to the
+          top on a new navigation; needs the data router. */}
+      <ScrollRestoration />
     </div>
   );
 }
