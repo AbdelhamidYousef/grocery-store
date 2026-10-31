@@ -11,6 +11,7 @@ import { createCsrfCheck } from './middleware/csrf.ts';
 import { createErrorHandler, notFoundHandler } from './middleware/error.ts';
 import { createRateLimiter, type RateLimitOptions } from './middleware/rate-limit.ts';
 import { requestId } from './middleware/request-id.ts';
+import { createWebhookRouter } from './modules/checkout/webhook.ts';
 import { createModulesRouter } from './modules/index.ts';
 
 export interface AppConfig {
@@ -55,6 +56,11 @@ export function createApp({ logger, pingDb, payments, config }: AppDeps): Expres
     }),
   );
   app.use(helmet());
+  // The Stripe webhook is mounted here, BEFORE the JSON parser and the rate limiter: its signature
+  // covers the raw bytes (a parsed body cannot be verified), and a burst of legitimate retries
+  // from Stripe's shared IPs must not be rate-limited into failures. It needs no CORS (a server
+  // calls it) and no CSRF check (it has no cookies; the signature is its authentication).
+  app.use('/api/v1', createWebhookRouter({ payments }));
   // Only our own web origin may call the API from a browser, and only it may send cookies.
   app.use(cors({ origin: config.webOrigin, credentials: true }));
   app.use(createRateLimiter(config.rateLimit));

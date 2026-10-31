@@ -8,6 +8,7 @@ import {
   orders,
   payments,
   shippingMethods,
+  webhookEvents,
 } from '../../db/schema/index.ts';
 
 type Db = typeof db | Tx;
@@ -173,4 +174,63 @@ export async function insertHistory(
   values: typeof orderStatusHistory.$inferInsert,
 ): Promise<void> {
   await tx.insert(orderStatusHistory).values(values);
+}
+
+// The payment that belongs to a Stripe intent id, or undefined for an intent we never created.
+export async function findPaymentByIntent(
+  run: Db,
+  intentId: string,
+): Promise<PaymentRow | undefined> {
+  const [row] = await run
+    .select()
+    .from(payments)
+    .where(eq(payments.providerPaymentIntentId, intentId));
+  return row;
+}
+
+export async function lockPayment(tx: Tx, paymentId: string): Promise<PaymentRow | undefined> {
+  const [row] = await tx.select().from(payments).where(eq(payments.id, paymentId)).for('update');
+  return row;
+}
+
+// ---------- webhook events ----------
+
+export type WebhookEventRow = typeof webhookEvents.$inferSelect;
+
+// `ON CONFLICT DO NOTHING`: the Stripe event id is the primary key, so a second delivery of the
+// same event inserts nothing. (If a concurrent first delivery has not committed yet, this
+// statement waits for it, which is exactly the serialisation we want.)
+export async function insertWebhookEvent(
+  tx: Tx,
+  values: typeof webhookEvents.$inferInsert,
+): Promise<void> {
+  await tx.insert(webhookEvents).values(values).onConflictDoNothing();
+}
+
+export async function lockWebhookEvent(tx: Tx, eventId: string): Promise<WebhookEventRow> {
+  const [row] = await tx
+    .select()
+    .from(webhookEvents)
+    .where(eq(webhookEvents.id, eventId))
+    .for('update');
+  if (!row) throw new Error(`webhook event ${eventId} vanished after insert`);
+  return row;
+}
+
+export async function markWebhookEventProcessed(tx: Tx, eventId: string): Promise<void> {
+  await tx
+    .update(webhookEvents)
+    .set({ processedAt: new Date(), error: null })
+    .where(eq(webhookEvents.id, eventId));
+}
+
+// Written outside the failed transaction (which rolled back along with the event row), so the
+// failure is visible for debugging while `processed_at` stays null and Stripe's retry reprocesses.
+export async function recordWebhookFailure(
+  values: typeof webhookEvents.$inferInsert & { error: string },
+): Promise<void> {
+  await db
+    .insert(webhookEvents)
+    .values(values)
+    .onConflictDoUpdate({ target: webhookEvents.id, set: { error: values.error } });
 }

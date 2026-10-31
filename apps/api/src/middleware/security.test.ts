@@ -71,8 +71,10 @@ describe('CSRF origin check', () => {
   });
 
   it('exempts the Stripe webhook path', async () => {
+    // No Origin and no signature: the route itself refuses (400), but the CSRF check (403) never
+    // sees it. Before the webhook existed this was a 404.
     const res = await request(app).post('/api/v1/webhooks/stripe');
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(400);
   });
 });
 

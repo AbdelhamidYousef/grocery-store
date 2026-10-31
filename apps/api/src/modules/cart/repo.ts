@@ -66,7 +66,7 @@ export async function insertUserCartIfAbsent(
 
 export async function markStatus(
   id: string,
-  status: 'merged' | 'abandoned',
+  status: 'merged' | 'abandoned' | 'converted',
   run: Db = db,
 ): Promise<void> {
   await run.update(carts).set({ status }).where(eq(carts.id, id));
