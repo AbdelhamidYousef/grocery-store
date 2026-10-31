@@ -4,3 +4,4 @@ export * from './auth.ts';
 export * from './cart.ts';
 export * from './catalog.ts';
 export * from './common.ts';
+export * from './shipping.ts';

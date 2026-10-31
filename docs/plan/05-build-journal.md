@@ -227,3 +227,9 @@ Playwright now covers the catalog: home, the Dogs tile, a material filter (URL g
 1. Why does the product list keep its filters, sort and page in the URL instead of in React state, and what does `applyListPatch` do to the page number when a filter changes?
 2. The variant picker is made of native radio inputs inside fieldsets. What does the browser give you for free, and which options are disabled?
 3. The API returns `available` and `lowStock` but never the stock count. Why, and how does that shape the quantity stepper?
+
+## Phase 8 (API) — Checkout and Stripe
+
+### 8.1 — shipping quotes
+`shipping.ts` is a pure function pair: `shippingPriceCents` (base plus per started kilogram, zero once the subtotal reaches the free threshold) and `quote` (prices every active method, cheapest first, stable on ties). `GET /checkout/shipping-methods?country=` re-prices the caller's own cart through `getCart`, so weight and subtotal come from the server and sold-out lines do not count. The country is validated against a short allow-list that now lives in `@store/shared`, because the address form in 8.2 needs the same list.
+Learn: carriers bill per started kilogram, which is why it is `ceil`; keeping the pricing free of database imports is what makes the boundary cases (4899 vs 4900 cents) cheap to test.
