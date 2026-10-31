@@ -1,0 +1,72 @@
+/*
+ * Design tokens. Plain CSS variables are the single source of truth: Tailwind (tailwind.config.ts)
+ * only points at them, and src/styles/tokens.test.ts parses this very file to check WCAG AA.
+ * Change a colour here and the contrast test tells you if a text pairing broke.
+ *
+ * Naming: --color-<role>. "ink" is text, "surface" is a card, "bg" is the page. Each pet theme
+ * defines three roles so any component can be themed with `data-pet` on a wrapper:
+ *   --pet-accent  bright fill (badges, tiles, icons). Text on it is always ink.
+ *   --pet-soft    pastel tint for backgrounds. Sits next to the pastel product photos.
+ *   --pet-strong  dark shade of the hue, for text and borders on white, bg or soft.
+ */
+:root {
+  --color-ink: #1f1b2e;
+  --color-muted: #5b5670;
+  --color-bg: #fff7f0;
+  --color-surface: #ffffff;
+  --color-border: #e6d9cf;
+
+  /* Primary (coral). `primary` is dark enough for white text; `bright` is for big fills with ink text. */
+  --color-primary: #d63a1f;
+  --color-primary-hover: #b92d12;
+  --color-primary-strong: #c2310f;
+  --color-primary-bright: #ff6b4a;
+  --color-primary-soft: #ffe8df;
+
+  --color-success: #166534;
+  --color-success-soft: #dcfce7;
+  --color-danger: #b91c1c;
+  --color-danger-soft: #fee2e2;
+
+  /* Default pet theme (no data-pet) is the brand coral. */
+  --pet-accent: var(--color-primary-bright);
+  --pet-soft: var(--color-primary-soft);
+  --pet-strong: var(--color-primary-strong);
+
+  --radius-control: 0.75rem;
+  --radius-card: 1.25rem;
+  --shadow-card: 0 1px 2px rgb(31 27 46 / 6%), 0 8px 24px rgb(31 27 46 / 8%);
+
+  --font-display: 'Fredoka Variable', ui-rounded, 'Nunito Sans Variable', system-ui, sans-serif;
+  --font-body: 'Nunito Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+[data-pet='dog'] {
+  --pet-accent: #fbbf24;
+  --pet-soft: #fef3c7;
+  --pet-strong: #92400e;
+}
+
+[data-pet='cat'] {
+  --pet-accent: #a78bfa;
+  --pet-soft: #ede9fe;
+  --pet-strong: #6d28d9;
+}
+
+[data-pet='bird'] {
+  --pet-accent: #2dd4bf;
+  --pet-soft: #ccfbf1;
+  --pet-strong: #0f766e;
+}
+
+[data-pet='fish'] {
+  --pet-accent: #38bdf8;
+  --pet-soft: #e0f2fe;
+  --pet-strong: #0369a1;
+}
+
+[data-pet='small-pet'] {
+  --pet-accent: #a3e635;
+  --pet-soft: #ecfccb;
+  --pet-strong: #3f6212;
+}
