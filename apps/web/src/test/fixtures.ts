@@ -2,7 +2,9 @@ import type {
   Address,
   CategoryNode,
   Facets,
+  CustomerOrder,
   Order,
+  OrderSummary,
   ShippingQuote,
   ProductCard,
   ProductDetail,
@@ -273,6 +275,31 @@ export function makeOrder(overrides: Partial<Order> = {}): Order {
     ],
     placedAt: '2026-10-31T10:00:00.000Z',
     createdAt: '2026-10-31T09:59:00.000Z',
+    ...overrides,
+  };
+}
+
+export function makeOrderSummary(overrides: Partial<OrderSummary> = {}): OrderSummary {
+  return {
+    number: 'PW-2026-000123',
+    status: 'paid',
+    totalCents: 2689,
+    currency: 'EUR',
+    itemCount: 2,
+    thumbnails: ['/products/dog-toys/rope-tug-1.webp'],
+    placedAt: '2026-10-31T10:00:00.000Z',
+    createdAt: '2026-10-31T09:59:00.000Z',
+    ...overrides,
+  };
+}
+
+export function makeCustomerOrder(overrides: Partial<CustomerOrder> = {}): CustomerOrder {
+  return {
+    ...makeOrder(),
+    timeline: [
+      { status: 'pending_payment', at: '2026-10-31T09:59:00.000Z' },
+      { status: 'paid', at: '2026-10-31T10:00:00.000Z' },
+    ],
     ...overrides,
   };
 }

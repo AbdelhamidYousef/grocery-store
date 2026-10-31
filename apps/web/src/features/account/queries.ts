@@ -1,15 +1,17 @@
 import type { AddressUpdateInput } from '@store/shared';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   changePassword,
   createAddress,
   deleteAddress,
   fetchAddresses,
+  fetchOrder,
   fetchOrders,
   updateAddress,
   updateProfile,
 } from '../../api/account';
+import { ApiError } from '../../api/client';
 import { keys } from '../../lib/query-client';
 
 export function useUpdateProfile() {
@@ -50,6 +52,21 @@ export const useUpdateAddress = () =>
   );
 export const useDeleteAddress = () => useAddressMutation(deleteAddress);
 
-export function useOrders() {
-  return useQuery({ queryKey: keys.account.orders, queryFn: ({ signal }) => fetchOrders(signal) });
+export function useOrders(page: number) {
+  return useQuery({
+    queryKey: keys.account.orderList(page),
+    queryFn: ({ signal }) => fetchOrders(page, signal),
+    // Stay on the previous page's rows while the next page loads, so paging does not flash a
+    // skeleton.
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useOrder(number: string) {
+  return useQuery({
+    queryKey: keys.account.order(number),
+    queryFn: ({ signal }) => fetchOrder(number, signal),
+    // 404 means "not your order" (or no such order): retrying cannot change that.
+    retry: (count, error) => !(error instanceof ApiError && error.status === 404) && count < 2,
+  });
 }

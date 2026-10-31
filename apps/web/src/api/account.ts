@@ -1,6 +1,7 @@
 import {
   AddressListResponseSchema,
   AddressResponseSchema,
+  CustomerOrderResponseSchema,
   OrderListResponseSchema,
   ProfileResponseSchema,
   type Address,
@@ -65,9 +66,20 @@ export async function deleteAddress(id: string): Promise<void> {
   });
 }
 
-export function fetchOrders(signal?: AbortSignal) {
-  return apiFetch('/account/orders', {
+export const ORDERS_PER_PAGE = 10;
+
+export function fetchOrders(page: number, signal?: AbortSignal) {
+  return apiFetch(`/account/orders?page=${page}&limit=${ORDERS_PER_PAGE}`, {
     schema: OrderListResponseSchema,
     ...(signal && { signal }),
   });
+}
+
+export async function fetchOrder(number: string, signal?: AbortSignal) {
+  return (
+    await apiFetch(`/account/orders/${encodeURIComponent(number)}`, {
+      schema: CustomerOrderResponseSchema,
+      ...(signal && { signal }),
+    })
+  ).data;
 }

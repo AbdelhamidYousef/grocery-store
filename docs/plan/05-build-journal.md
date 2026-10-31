@@ -361,3 +361,14 @@ Learn: a test double belongs at the one seam the code already has (the gateway) 
 1. The shopper changes the shipping method after reaching the payment step. What happens to the pending order and to the total on screen, and why does the browser never add subtotal and shipping itself?
 2. Stripe.js says the card payment succeeded, but the order page still says "Confirming your payment". Why, who may turn the order to paid, what does the page do for 30 seconds, and what does it say after that?
 3. How does the e2e suite pay an order without a Stripe account, which two things only exist under `NODE_ENV=test`, and why would a dev server on port 3000 break the test if it were reused?
+
+## Phase 9 (web) — Order history
+
+### 9.3 — order history and detail
+`/account/orders` lists the signed-in customer's orders ten to a page (`?page=`): number, status badge, date, item count, up to four thumbnails and the total, each row a link. `/account/orders/:number` shows the order the way the confirmation page does (it reuses the same `OrderSummary` and address blocks) plus a timeline of the customer-visible status changes, oldest first. A broken page number falls back to page 1, someone else's order shows the same "can't find that order" as a missing one, and the empty state still points back to the shop. The API side of this (item counts, thumbnails, the detail endpoint) was copied from the API lane's commit so the pages could be built and tested against the real contract.
+Learn: a list is a set of URLs, not component state, so paging survives Back, reload and sharing; the timeline shows only what the shopper needs (status and time), because the audit log's actors and notes are internal.
+
+### Phase 9 (web) quiz
+1. Why is the order list's page number kept in the URL instead of component state, and what does the page do with `?page=abc`?
+2. The detail page for an order that belongs to another customer answers like one that does not exist. What does the shopper see, and which attack does the identical answer prevent?
+3. Which component do the confirmation page and the order detail share, and what would go wrong if each had its own copy of the markup?

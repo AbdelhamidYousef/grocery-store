@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import { Seo } from '../components/Seo';
 import { AccountLayout } from '../features/account/AccountLayout';
 import { AddressesSection } from '../features/account/AddressesSection';
+import { OrderDetail } from '../features/account/OrderDetail';
 import { OrdersSection } from '../features/account/OrdersSection';
 import { ProfileSection } from '../features/account/ProfileSection';
 import { SecuritySection } from '../features/account/SecuritySection';
@@ -17,7 +18,7 @@ export default function AccountPage() {
         <Route path="security" element={<SecuritySection />} />
         <Route path="addresses" element={<AddressesSection />} />
         <Route path="orders" element={<OrdersSection />} />
-        {/* Order detail arrives with phase 9. */}
+        <Route path="orders/:number" element={<OrderDetail />} />
         <Route path="*" element={<AccountNotFound />} />
       </Route>
     </Routes>

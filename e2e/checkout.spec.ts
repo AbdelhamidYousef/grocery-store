@@ -34,6 +34,24 @@ async function api<T>(
   path: string,
   body?: unknown,
 ): Promise<{ status: number; body: T }> {
+  // A page that is still navigating destroys the evaluation context; try again once it settles.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await callApi<T>(page, method, path, body);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      if (attempt >= 4 || !message.includes('Execution context was destroyed')) throw error;
+      await page.waitForLoadState('load');
+    }
+  }
+}
+
+function callApi<T>(
+  page: Page,
+  method: 'GET' | 'POST',
+  path: string,
+  body?: unknown,
+): Promise<{ status: number; body: T }> {
   return page.evaluate(
     async ({ method, path, body }) => {
       const res = await fetch(`/api/v1${path}`, {
@@ -200,10 +218,24 @@ test.describe('simulated payment (fake gateway + /test/webhooks/simulate)', () =
     await expect(page.getByTestId('checkout-sign-in-hint')).toHaveCount(0);
     await expect(page.getByTestId('checkout-save-address')).not.toBeChecked();
 
-    await payAndVerify(page, email, {
+    const orderNumber = await payAndVerify(page, email, {
       slug: 'braided-tug-rope',
       name: 'Braided Tug Rope',
     });
+
+    // The order is in the account's history, and its page shows the paid timeline.
+    await page.goto('/account/orders');
+    const row = page.getByTestId('order-row').filter({ hasText: orderNumber });
+    await expect(row).toBeVisible();
+    await expect(row.getByTestId('order-status-badge')).toHaveText('Paid');
+    await row.click();
+    await expect(page).toHaveURL(new RegExp(`/account/orders/${orderNumber}$`));
+    await expect(page.getByTestId('page-order-detail')).toHaveAttribute('data-state', 'ready');
+    await expect(page.getByTestId('order-timeline-step').last()).toHaveAttribute(
+      'data-status',
+      'paid',
+    );
+    await expect(page.getByTestId('order-summary')).toContainText('Braided Tug Rope');
   });
 
   test('an empty cart has nothing to check out', async ({ page }) => {
