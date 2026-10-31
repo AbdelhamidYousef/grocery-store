@@ -1,0 +1,33 @@
+# Local services only. Production uses Neon (Postgres) and Resend (email), never Docker.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      # Throwaway local credentials: the port is bound to 127.0.0.1 and holds only seed data.
+      POSTGRES_USER: ecommerce
+      POSTGRES_PASSWORD: ecommerce
+      POSTGRES_DB: ecommerce
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init-test-db.sql:/docker-entrypoint-initdb.d/01-test-db.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ecommerce -d ecommerce']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - '127.0.0.1:1025:1025' # SMTP: the API sends here in development
+      - '127.0.0.1:8025:8025' # web UI to read the captured emails
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
