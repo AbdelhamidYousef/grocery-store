@@ -89,6 +89,15 @@ export const TEST_IDS = {
   pageAdmin: 'page-admin',
   adminNav: 'admin-nav',
   adminStat: 'admin-stat',
+  adminTable: 'admin-table',
+  adminRow: 'admin-row',
+  adminSearch: 'admin-search',
+  adminStatusFilter: 'admin-status-filter',
+  adminEmpty: 'admin-empty',
+  adminProductForm: 'admin-product-form',
+  adminVariantRow: 'admin-variant-row',
+  adminVariantForm: 'admin-variant-form',
+  adminStockForm: 'admin-stock-form',
 } as const;
 
 export type TestId = (typeof TEST_IDS)[keyof typeof TEST_IDS];

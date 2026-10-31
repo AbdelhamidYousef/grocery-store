@@ -1,6 +1,9 @@
 import type {
   Address,
+  AdminProduct,
+  AdminProductRow,
   AdminStats,
+  AdminVariant,
   CategoryNode,
   CustomerOrder,
   Facets,
@@ -311,6 +314,83 @@ export function makeAdminStats(overrides: Partial<AdminStats> = {}): AdminStats 
     revenue30dCents: 123_456,
     currency: 'EUR',
     lowStockCount: 2,
+    ...overrides,
+  };
+}
+
+export const CATEGORY_UUID = '2f6d3a52-5b2c-4d57-9a41-0d6f1f0f7a10';
+
+export function makeAdminRow(overrides: Partial<AdminProductRow> = {}): AdminProductRow {
+  return {
+    id: 'p1',
+    slug: 'rope-tug',
+    name: 'Rope Tug',
+    status: 'active',
+    categoryName: 'Dog toys',
+    variantCount: 3,
+    minPriceCents: 1099,
+    maxPriceCents: 1899,
+    currency: 'EUR',
+    availableStock: 12,
+    imageUrl: '/products/dog-toys/rope-tug-1.webp',
+    updatedAt: '2026-10-30T10:00:00.000Z',
+    ...overrides,
+  };
+}
+
+export function makeAdminVariant(overrides: Partial<AdminVariant> = {}): AdminVariant {
+  return {
+    id: 'v1',
+    productId: 'p1',
+    sku: 'TUG-RED-S',
+    name: 'Red, small',
+    options: { Colour: 'Red', Size: 'S' },
+    priceCents: 1099,
+    compareAtPriceCents: null,
+    currency: 'EUR',
+    weightGrams: 250,
+    isDefault: true,
+    status: 'active',
+    quantity: 10,
+    reserved: 2,
+    available: 8,
+    lowStockThreshold: 3,
+    updatedAt: '2026-10-30T10:00:00.000Z',
+    ...overrides,
+  };
+}
+
+export function makeAdminProduct(overrides: Partial<AdminProduct> = {}): AdminProduct {
+  return {
+    id: 'p1',
+    slug: 'rope-tug',
+    name: 'Rope Tug',
+    description: 'A sturdy braided tug for happy games.',
+    status: 'active',
+    category: { id: CATEGORY_UUID, slug: 'dog-toys', name: 'Dog toys' },
+    attributes: {
+      pet: 'dog',
+      material: 'cotton rope',
+      brand: 'Pawsome',
+      optionKeys: ['Colour', 'Size'],
+    },
+    variants: [
+      makeAdminVariant(),
+      makeAdminVariant({ id: 'v2', sku: 'TUG-RED-L', name: 'Red, large', isDefault: false }),
+    ],
+    images: [
+      {
+        id: 'i1',
+        url: '/products/dog-toys/rope-tug-1.webp',
+        alt: 'Rope tug',
+        width: 1200,
+        height: 1200,
+        variantId: null,
+        sortOrder: 0,
+      },
+    ],
+    createdAt: '2026-10-01T10:00:00.000Z',
+    updatedAt: '2026-10-30T10:00:00.000Z',
     ...overrides,
   };
 }

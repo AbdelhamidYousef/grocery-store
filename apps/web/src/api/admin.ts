@@ -1,5 +1,22 @@
-import { AdminStatsResponseSchema, type AdminStats } from '@store/shared';
+import {
+  AdminInventoryResponseSchema,
+  AdminProductListResponseSchema,
+  AdminProductResponseSchema,
+  AdminStatsResponseSchema,
+  AdminVariantResponseSchema,
+  type AdminInventoryResult,
+  type AdminInventorySet,
+  type AdminProduct,
+  type AdminProductCreate,
+  type AdminProductUpdate,
+  type AdminStats,
+  type AdminVariant,
+  type AdminVariantInput,
+  type AdminVariantUpdate,
+  type ProductStatus,
+} from '@store/shared';
 
+import { NoContentSchema } from './auth';
 import { apiFetch } from './client';
 
 // Every admin call goes through the same apiFetch (cookie session, shared Zod schemas). The API
@@ -10,6 +27,111 @@ export async function fetchAdminStats(signal?: AbortSignal): Promise<AdminStats>
     await apiFetch('/admin/stats', {
       schema: AdminStatsResponseSchema,
       ...(signal && { signal }),
+    })
+  ).data;
+}
+
+// ---------- products ----------
+
+export interface AdminProductListParams {
+  q?: string | undefined;
+  status?: ProductStatus | undefined;
+  page?: number | undefined;
+  limit?: number | undefined;
+}
+
+export function toAdminListSearch(params: Record<string, string | number | undefined>): string {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === '' || (key === 'page' && value === 1)) continue;
+    search.set(key, String(value));
+  }
+  const text = search.toString();
+  return text ? `?${text}` : '';
+}
+
+// The whole envelope: the table needs the rows and the pagination meta together.
+export function fetchAdminProducts(params: AdminProductListParams, signal?: AbortSignal) {
+  return apiFetch(`/admin/products${toAdminListSearch({ ...params })}`, {
+    schema: AdminProductListResponseSchema,
+    ...(signal && { signal }),
+  });
+}
+
+export async function fetchAdminProduct(id: string, signal?: AbortSignal): Promise<AdminProduct> {
+  return (
+    await apiFetch(`/admin/products/${encodeURIComponent(id)}`, {
+      schema: AdminProductResponseSchema,
+      ...(signal && { signal }),
+    })
+  ).data;
+}
+
+export async function createAdminProduct(input: AdminProductCreate): Promise<AdminProduct> {
+  return (
+    await apiFetch('/admin/products', {
+      method: 'POST',
+      body: input,
+      schema: AdminProductResponseSchema,
+    })
+  ).data;
+}
+
+export async function updateAdminProduct(
+  id: string,
+  input: AdminProductUpdate,
+): Promise<AdminProduct> {
+  return (
+    await apiFetch(`/admin/products/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: input,
+      schema: AdminProductResponseSchema,
+    })
+  ).data;
+}
+
+export async function addAdminVariant(
+  productId: string,
+  input: AdminVariantInput,
+): Promise<AdminVariant> {
+  return (
+    await apiFetch(`/admin/products/${encodeURIComponent(productId)}/variants`, {
+      method: 'POST',
+      body: input,
+      schema: AdminVariantResponseSchema,
+    })
+  ).data;
+}
+
+export async function updateAdminVariant(
+  id: string,
+  input: AdminVariantUpdate,
+): Promise<AdminVariant> {
+  return (
+    await apiFetch(`/admin/variants/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: input,
+      schema: AdminVariantResponseSchema,
+    })
+  ).data;
+}
+
+export async function deleteAdminVariant(id: string): Promise<void> {
+  await apiFetch(`/admin/variants/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    schema: NoContentSchema,
+  });
+}
+
+export async function setAdminInventory(
+  variantId: string,
+  input: AdminInventorySet,
+): Promise<AdminInventoryResult> {
+  return (
+    await apiFetch(`/admin/inventory/${encodeURIComponent(variantId)}`, {
+      method: 'PATCH',
+      body: input,
+      schema: AdminInventoryResponseSchema,
     })
   ).data;
 }
