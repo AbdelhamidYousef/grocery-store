@@ -1,11 +1,18 @@
-import { useEffect, useRef } from 'react';
+import type { ProductSort } from '@store/shared';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import type { ProductListParams } from '../../api/catalog';
 import { Button } from '../../components/ui/Button';
+import { Dialog } from '../../components/ui/Dialog';
+import { Select } from '../../components/ui/Select';
+import { Skeleton } from '../../components/ui/Skeleton';
 import { PETS } from '../../lib/pets';
 import { TEST_IDS } from '../../lib/test-ids';
 
+import { AppliedFilters } from './AppliedFilters';
+import { FilterPanel } from './FilterPanel';
+import { defaultSort, SORT_LABELS, sortOptions } from './filters';
 import { applyListPatch, hasActiveFilters, PAGE_SIZE, useProductListParams } from './list-params';
 import { Pagination } from './Pagination';
 import { ProductGrid, ProductGridSkeleton } from './ProductGrid';
@@ -22,9 +29,10 @@ interface ProductListingProps {
 
 // The listing shared by /c/:slug and /search: reads the URL, asks the API, and renders the
 // states (loading, error, empty, results, page out of range). Filters and sort controls attach
-// here in step 5.4; this step is the data and URL plumbing.
+// here: a sidebar on desktop, a drawer on phones, both built from the API's `facets`.
 export function ProductListing({ listId, category, q }: ProductListingProps) {
-  const { query, search, clear } = useProductListParams();
+  const { query, search, update, clear } = useProductListParams();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // The route decides category and query; a stray `?category=` or `?limit=` in the URL must not
   // override it, so those are set last.
@@ -60,10 +68,16 @@ export function ProductListing({ listId, category, q }: ProductListingProps) {
 
   if (isPending) {
     return (
-      <div aria-busy="true">
+      <div className="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8" aria-busy="true">
         <p className="sr-only" role="status">
           Loading products
         </p>
+        <div className="mb-4 hidden flex-col gap-3 lg:flex" aria-hidden="true">
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-6 w-24" />
+          <Skeleton className="h-32 w-full" />
+        </div>
         <ProductGridSkeleton count={PAGE_SIZE / 2} />
       </div>
     );
@@ -73,34 +87,102 @@ export function ProductListing({ listId, category, q }: ProductListingProps) {
   const first = (meta.page - 1) * meta.limit + 1;
   const last = first + data.data.length - 1;
 
-  return (
-    <div>
-      <p
-        data-testid={TEST_IDS.resultCount}
-        role="status"
-        className="mb-4 text-sm font-semibold text-muted"
-      >
-        {meta.total === 0
-          ? 'No products'
-          : meta.total <= meta.limit
-            ? `${meta.total} ${meta.total === 1 ? 'product' : 'products'}`
-            : `Showing ${first}-${last} of ${meta.total} products`}
-      </p>
+  const hasSearch = q !== undefined;
+  const currency = data.data[0]?.price.currency ?? 'EUR';
+  const activeCount =
+    (query.inStock ? 1 : 0) +
+    (query.minPrice !== undefined || query.maxPrice !== undefined ? 1 : 0) +
+    Object.values(query.attr).reduce((n, v) => n + v.length, 0);
 
-      {data.data.length === 0 ? (
-        <EmptyState
-          q={q}
-          filtered={filtered}
-          pageOutOfRange={meta.total > 0}
-          onClear={clear}
-          firstPageHref={hrefFor(1)}
-        />
-      ) : (
-        <div aria-busy={isFetching} className={isFetching ? 'opacity-60 transition-opacity' : ''}>
-          <ProductGrid products={data.data} listId={listId} eagerCount={4} />
-          <Pagination page={meta.page} totalPages={meta.totalPages} hrefFor={hrefFor} />
+  return (
+    <div className="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8">
+      <aside aria-label="Filters" className="hidden lg:block">
+        <div className="sticky top-36 max-h-[calc(100vh-10rem)] overflow-y-auto pr-2">
+          <h2 className="mb-4 font-display text-xl font-bold">Filters</h2>
+          <FilterPanel facets={data.facets} query={query} currency={currency} update={update} />
         </div>
-      )}
+      </aside>
+
+      <div className="min-w-0">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+          {/* role=status is a polite live region: after a filter changes, a screen reader
+              announces the new count without moving focus. */}
+          <p
+            data-testid={TEST_IDS.resultCount}
+            role="status"
+            className="text-sm font-semibold text-muted"
+          >
+            {meta.total === 0
+              ? 'No products'
+              : meta.total <= meta.limit
+                ? `${meta.total} ${meta.total === 1 ? 'product' : 'products'}`
+                : `Showing ${first}-${last} of ${meta.total} products`}
+          </p>
+          <div className="flex items-end gap-3">
+            <Button
+              variant="secondary"
+              data-testid={TEST_IDS.filtersToggle}
+              aria-haspopup="dialog"
+              onClick={() => setDrawerOpen(true)}
+              className="lg:hidden"
+            >
+              Filters{activeCount > 0 ? ` (${activeCount})` : ''}
+            </Button>
+            <Select
+              label="Sort by"
+              data-testid={TEST_IDS.sortSelect}
+              value={query.sort ?? defaultSort(hasSearch)}
+              onChange={(e) => {
+                const sort = e.target.value as ProductSort;
+                // The default is the absence of a parameter, so clean URLs stay clean.
+                update({ sort: sort === defaultSort(hasSearch) ? undefined : sort });
+              }}
+              className="w-auto min-w-44"
+            >
+              {sortOptions(hasSearch).map((s) => (
+                <option key={s} value={s}>
+                  {SORT_LABELS[s]}
+                </option>
+              ))}
+            </Select>
+          </div>
+        </div>
+
+        <AppliedFilters query={query} currency={currency} update={update} onClear={clear} />
+
+        {data.data.length === 0 ? (
+          <EmptyState
+            q={q}
+            filtered={filtered}
+            pageOutOfRange={meta.total > 0}
+            onClear={clear}
+            firstPageHref={hrefFor(1)}
+          />
+        ) : (
+          <div aria-busy={isFetching} className={isFetching ? 'opacity-60 transition-opacity' : ''}>
+            <ProductGrid products={data.data} listId={listId} eagerCount={4} />
+            <Pagination page={meta.page} totalPages={meta.totalPages} hrefFor={hrefFor} />
+          </div>
+        )}
+      </div>
+
+      <Dialog
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        title="Filters"
+        placement="left"
+      >
+        <FilterPanel
+          facets={data.facets}
+          query={query}
+          currency={currency}
+          update={update}
+          testId="filters-drawer"
+        />
+        <Button onClick={() => setDrawerOpen(false)} className="sticky bottom-0">
+          Show {meta.total} {meta.total === 1 ? 'product' : 'products'}
+        </Button>
+      </Dialog>
     </div>
   );
 }
