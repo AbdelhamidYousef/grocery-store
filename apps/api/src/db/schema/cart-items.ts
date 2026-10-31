@@ -5,8 +5,9 @@ import { carts } from './carts.ts';
 import { createdAt, id, updatedAt } from './columns.ts';
 import { productVariants } from './product-variants.ts';
 
-// No price column on purpose: the cart is re-priced from the catalog on every read, so a price
-// change can never leave a stale price sitting in someone's cart.
+// The cart is always re-priced from the catalog on read, so no price here is ever *charged*.
+// `last_seen_price_cents` only remembers what the shopper last saw, to power the "price changed"
+// warning: when the catalog price differs on read we warn once, then store the new value.
 export const cartItems = pgTable(
   'cart_items',
   {
@@ -19,6 +20,8 @@ export const cartItems = pgTable(
       .notNull()
       .references(() => productVariants.id),
     quantity: integer('quantity').notNull(),
+    // Null for lines created before this column existed: nothing to compare, so no warning.
+    lastSeenPriceCents: integer('last_seen_price_cents'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

@@ -88,6 +88,7 @@ export type LineRow = {
   variantName: string;
   sku: string;
   priceCents: number;
+  lastSeenPriceCents: number | null;
   currency: string;
   weightGrams: number;
   variantStatus: 'draft' | 'active' | 'archived';
@@ -111,6 +112,7 @@ export async function listLines(tx: Tx, cartId: string): Promise<LineRow[]> {
         variantName: productVariants.name,
         sku: productVariants.sku,
         priceCents: productVariants.priceCents,
+        lastSeenPriceCents: cartItems.lastSeenPriceCents,
         currency: productVariants.currency,
         weightGrams: productVariants.weightGrams,
         variantStatus: productVariants.status,
@@ -152,8 +154,27 @@ export async function listImages(tx: Tx, productIds: string[]): Promise<ImageRow
     .orderBy(asc(productImages.sortOrder), asc(productImages.id));
 }
 
-export async function setItemQuantity(tx: Tx, itemId: string, quantity: number): Promise<void> {
-  await tx.update(cartItems).set({ quantity }).where(eq(cartItems.id, itemId));
+// `lastSeenPriceCents` is passed when the shopper just acted on the line (add / quantity change):
+// they are looking at the current price at that moment, so it becomes the remembered one. The
+// automatic clamp in `loadCart` omits it, because the shopper has not seen anything new there.
+export async function setItemQuantity(
+  tx: Tx,
+  itemId: string,
+  quantity: number,
+  lastSeenPriceCents?: number,
+): Promise<void> {
+  await tx
+    .update(cartItems)
+    .set({ quantity, ...(lastSeenPriceCents !== undefined && { lastSeenPriceCents }) })
+    .where(eq(cartItems.id, itemId));
+}
+
+export async function setLastSeenPrice(
+  tx: Tx,
+  itemId: string,
+  lastSeenPriceCents: number,
+): Promise<void> {
+  await tx.update(cartItems).set({ lastSeenPriceCents }).where(eq(cartItems.id, itemId));
 }
 
 export async function deleteItems(tx: Tx, itemIds: string[]): Promise<void> {
@@ -196,9 +217,13 @@ export async function findItemByVariant(
 export async function findPurchasable(
   tx: Tx,
   variantId: string,
-): Promise<{ available: number } | undefined> {
+): Promise<{ available: number; priceCents: number } | undefined> {
   const [row] = await tx
-    .select({ stock: inventory.quantity, reserved: inventory.reserved })
+    .select({
+      stock: inventory.quantity,
+      reserved: inventory.reserved,
+      priceCents: productVariants.priceCents,
+    })
     .from(productVariants)
     .innerJoin(products, eq(products.id, productVariants.productId))
     .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
@@ -210,7 +235,10 @@ export async function findPurchasable(
       ),
     );
   if (!row) return undefined;
-  return { available: Math.max(0, (row.stock ?? 0) - (row.reserved ?? 0)) };
+  return {
+    available: Math.max(0, (row.stock ?? 0) - (row.reserved ?? 0)),
+    priceCents: row.priceCents,
+  };
 }
 
 export async function insertItem(
@@ -218,8 +246,9 @@ export async function insertItem(
   cartId: string,
   variantId: string,
   quantity: number,
+  lastSeenPriceCents: number | null,
 ): Promise<void> {
-  await tx.insert(cartItems).values({ cartId, variantId, quantity });
+  await tx.insert(cartItems).values({ cartId, variantId, quantity, lastSeenPriceCents });
 }
 
 export async function deleteAllItems(tx: Tx, cartId: string): Promise<void> {

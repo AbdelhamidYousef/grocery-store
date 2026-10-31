@@ -5,7 +5,7 @@ import { db } from '../../db/client.ts';
 import { cartItems, inventory, productVariants, products } from '../../db/schema/index.ts';
 import { createCart, createProduct } from '../../test/factories.ts';
 
-import { getCart } from './service.ts';
+import { addItem, getCart, updateItem } from './service.ts';
 
 async function cartWith(variantId: string, quantity: number) {
   const { cart } = await createCart({ items: [{ variantId, quantity }] });
@@ -140,6 +140,77 @@ describe('getCart', () => {
       const second = await getCart(cartId);
       expect(second.warnings).toEqual([]);
       expect(second.subtotalCents).toBe(3 * 1000);
+    });
+
+    it('PRICE_CHANGED: warns once with old and new price, then remembers the new one', async () => {
+      const { variants } = await createProduct({
+        name: 'Tug Rope',
+        variants: [{ priceCents: 1000 }],
+      });
+      const variant = variants[0]!;
+      const { cart } = await createCart({
+        items: [{ variantId: variant.id, quantity: 2, lastSeenPriceCents: 1000 }],
+      });
+      await db
+        .update(productVariants)
+        .set({ priceCents: 1200 })
+        .where(eq(productVariants.id, variant.id));
+
+      const first = await getCart(cart.id);
+      expect(first.warnings).toEqual([
+        {
+          code: 'PRICE_CHANGED',
+          variantId: variant.id,
+          productName: 'Tug Rope',
+          variantName: 'Variant 1',
+          previousUnitPriceCents: 1000,
+          unitPriceCents: 1200,
+        },
+      ]);
+      // The charge basis is still the catalog price, never the remembered one.
+      expect(first.subtotalCents).toBe(2400);
+      expect((await rowsOf(cart.id))[0]?.lastSeenPriceCents).toBe(1200);
+      expect((await getCart(cart.id)).warnings).toEqual([]);
+    });
+
+    it('PRICE_CHANGED: also warns when the price went down', async () => {
+      const { variants } = await createProduct({ variants: [{ priceCents: 1000 }] });
+      const { cart } = await createCart({
+        items: [{ variantId: variants[0]!.id, quantity: 1, lastSeenPriceCents: 1000 }],
+      });
+      await db
+        .update(productVariants)
+        .set({ priceCents: 800 })
+        .where(eq(productVariants.id, variants[0]!.id));
+      expect((await getCart(cart.id)).warnings).toMatchObject([
+        { code: 'PRICE_CHANGED', previousUnitPriceCents: 1000, unitPriceCents: 800 },
+      ]);
+    });
+
+    it('PRICE_CHANGED: stays quiet for a line that never had a remembered price', async () => {
+      const { variants } = await createProduct({ variants: [{ priceCents: 1000 }] });
+      const cartId = await cartWith(variants[0]!.id, 1);
+      expect((await getCart(cartId)).warnings).toEqual([]);
+      expect((await rowsOf(cartId))[0]?.lastSeenPriceCents).toBe(1000);
+    });
+
+    it('PRICE_CHANGED: adding and changing quantity record the price the shopper sees', async () => {
+      const { variants } = await createProduct({ variants: [{ priceCents: 1000 }] });
+      const variant = variants[0]!;
+      const { cart } = await createCart();
+
+      await addItem(cart.id, variant.id, 1);
+      const [line] = await rowsOf(cart.id);
+      expect(line?.lastSeenPriceCents).toBe(1000);
+
+      await db
+        .update(productVariants)
+        .set({ priceCents: 1500 })
+        .where(eq(productVariants.id, variant.id));
+      const after = await updateItem(cart.id, line!.id, 3);
+      // The shopper just acted on the line at today's price, so there is nothing stale to warn about.
+      expect(after.warnings).toEqual([]);
+      expect((await rowsOf(cart.id))[0]?.lastSeenPriceCents).toBe(1500);
     });
 
     it('VARIANT_UNAVAILABLE: removes an archived variant and says so', async () => {

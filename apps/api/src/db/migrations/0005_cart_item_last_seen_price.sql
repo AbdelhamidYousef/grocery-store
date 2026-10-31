@@ -1,0 +1,1 @@
+ALTER TABLE "cart_items" ADD COLUMN "last_seen_price_cents" integer;

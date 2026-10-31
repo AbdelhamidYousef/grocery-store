@@ -74,6 +74,20 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
       quantity = maxQty;
     }
 
+    // Warn once when the catalog price moved since the shopper last saw it, then remember the new
+    // price so the next read is calm. A null memory (line predates the column) is filled quietly.
+    if (line.lastSeenPriceCents !== line.priceCents) {
+      if (line.lastSeenPriceCents !== null) {
+        warnings.push({
+          code: 'PRICE_CHANGED',
+          ...base,
+          previousUnitPriceCents: line.lastSeenPriceCents,
+          unitPriceCents: line.priceCents,
+        });
+      }
+      await repo.setLastSeenPrice(tx, line.itemId, line.priceCents);
+    }
+
     const image = pickImage(images, line);
     const lineTotal = line.priceCents * quantity;
     items.push({
@@ -158,8 +172,9 @@ export async function addItem(cartId: string, variantId: string, quantity: numbe
     if (inCart + quantity > maxQty) {
       throw outOfStock({ variantId, maxQty, inCart, requested: quantity });
     }
-    if (existing) await repo.setItemQuantity(tx, existing.id, inCart + quantity);
-    else await repo.insertItem(tx, cartId, variantId, quantity);
+    if (existing) {
+      await repo.setItemQuantity(tx, existing.id, inCart + quantity, stock.priceCents);
+    } else await repo.insertItem(tx, cartId, variantId, quantity, stock.priceCents);
   });
 }
 
@@ -183,7 +198,7 @@ export async function updateItem(cartId: string, itemId: string, quantity: numbe
         requested: quantity,
       });
     }
-    await repo.setItemQuantity(tx, item.id, quantity);
+    await repo.setItemQuantity(tx, item.id, quantity, stock.priceCents);
   });
 }
 
@@ -249,8 +264,12 @@ export async function mergeGuestCart(guestCartId: string, userId: string): Promi
         result.dropped += 1;
         continue;
       }
+      // A merge is not the shopper looking at a price: the user's own line keeps what it
+      // remembered, and a guest-only line brings its memory along, so a pending change still warns.
       if (existing) await repo.setItemQuantity(tx, existing.id, quantity);
-      else await repo.insertItem(tx, userCart.id, line.variantId, quantity);
+      else {
+        await repo.insertItem(tx, userCart.id, line.variantId, quantity, line.lastSeenPriceCents);
+      }
       result.merged += 1;
       if (quantity < wanted) result.clamped += 1;
     }

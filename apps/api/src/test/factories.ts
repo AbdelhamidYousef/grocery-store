@@ -161,7 +161,7 @@ export async function createCart(
   input: {
     userId?: string | null;
     status?: 'active' | 'merged' | 'converted' | 'abandoned';
-    items?: { variantId: string; quantity: number }[];
+    items?: { variantId: string; quantity: number; lastSeenPriceCents?: number | null }[];
   } = {},
 ) {
   const cart = first(

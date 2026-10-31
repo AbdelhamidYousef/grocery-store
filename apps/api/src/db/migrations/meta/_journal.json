@@ -36,6 +36,13 @@
       "when": 1793424428534,
       "tag": "0004_orders_payments_webhooks",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793430229994,
+      "tag": "0005_cart_item_last_seen_price",
+      "breakpoints": true
     }
   ]
 }

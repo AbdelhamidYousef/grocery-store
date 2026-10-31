@@ -50,7 +50,14 @@ export type CartItem = z.infer<typeof CartItemSchema>;
 // OUT_OF_STOCK: available is 0; the line stays (greyed) so the shopper sees what happened.
 // QTY_REDUCED: the quantity exceeded stock and was lowered (`quantity` is the new value).
 // VARIANT_UNAVAILABLE: the product or variant was archived; the line was removed.
-export const CartWarningCodeSchema = z.enum(['OUT_OF_STOCK', 'QTY_REDUCED', 'VARIANT_UNAVAILABLE']);
+// PRICE_CHANGED: the catalog price differs from the one the shopper last saw; shown once, with
+// `previousUnitPriceCents` and the new `unitPriceCents`.
+export const CartWarningCodeSchema = z.enum([
+  'OUT_OF_STOCK',
+  'QTY_REDUCED',
+  'VARIANT_UNAVAILABLE',
+  'PRICE_CHANGED',
+]);
 export type CartWarningCode = z.infer<typeof CartWarningCodeSchema>;
 
 export const CartWarningSchema = z.object({
@@ -60,6 +67,8 @@ export const CartWarningSchema = z.object({
   variantName: z.string(),
   previousQuantity: z.number().int().optional(),
   quantity: z.number().int().optional(),
+  previousUnitPriceCents: z.number().int().min(0).optional(),
+  unitPriceCents: z.number().int().min(0).optional(),
 });
 export type CartWarning = z.infer<typeof CartWarningSchema>;
 
