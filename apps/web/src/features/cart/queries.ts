@@ -61,8 +61,12 @@ export function useCart() {
   const queryClient = useQueryClient();
   return useQuery({
     queryKey: keys.cart,
-    queryFn: async ({ signal }) => {
-      const cart = await fetchCart(signal);
+    // The abort signal is deliberately NOT passed on. Reading the cart can repair it on the
+    // server (and the API reports each warning only once), so a read that is aborted mid-flight
+    // (a remount, StrictMode in dev, a quick navigation) would lose its warnings for good. Left
+    // running, the answer still passes through rememberNotices below even if the query ignores it.
+    queryFn: async () => {
+      const cart = await fetchCart();
       rememberNotices(queryClient, cart.warnings);
       return cart;
     },

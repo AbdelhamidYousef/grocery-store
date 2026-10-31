@@ -249,6 +249,28 @@ describe('cart page', () => {
     expect(screen.getAllByTestId('cart-line')).toHaveLength(1);
   });
 
+  it('clamps a typed quantity to the most available (99 at most)', async () => {
+    serveCart(makeCart([makeCartItem({ quantity: 1, maxQty: 99, available: 150 })]));
+    const sent: unknown[] = [];
+    server.use(
+      http.patch(`${API}/cart/items/:id`, async ({ request }) => {
+        sent.push(await request.json());
+        return HttpResponse.json({
+          data: makeCart([
+            makeCartItem({ quantity: 99, maxQty: 99, available: 150, lineTotalCents: 108801 }),
+          ]),
+        });
+      }),
+    );
+    renderApp('/cart');
+    const box = await screen.findByLabelText('Quantity of Rope Tug');
+    await userEvent.clear(box);
+    await userEvent.type(box, '150');
+    await userEvent.tab();
+    await waitFor(() => expect(sent).toEqual([{ quantity: 99 }]));
+    expect(await screen.findByText('Maximum available')).toBeInTheDocument();
+  });
+
   it('states the maximum when the line is at the most available', async () => {
     serveCart(makeCart([makeCartItem({ quantity: 3, maxQty: 3, lineTotalCents: 3297 })]));
     renderApp('/cart');

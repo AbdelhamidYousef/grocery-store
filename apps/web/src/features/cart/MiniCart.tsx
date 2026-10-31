@@ -22,7 +22,7 @@ export function MiniCart({ open, onClose }: { open: boolean; onClose: () => void
 function MiniCartBody({ onClose }: { onClose: () => void }) {
   const { data: cart, isPending, error, refetch } = useCart();
   return (
-    <div data-testid={TEST_IDS.miniCart} className="flex flex-col gap-4">
+    <div data-testid={TEST_IDS.miniCart} className="flex min-h-[calc(100dvh-3rem)] flex-col gap-4">
       {isPending && <Skeleton className="h-24 w-full" />}
       {error && !cart && (
         <button type="button" className="font-semibold underline" onClick={() => void refetch()}>
@@ -32,20 +32,21 @@ function MiniCartBody({ onClose }: { onClose: () => void }) {
       {cart && cart.items.length === 0 && (
         <p data-testid={TEST_IDS.cartEmpty}>Your cart is empty.</p>
       )}
-      {cart && cart.items.length > 0 && (
-        <>
-          <CartContents cart={cart} compact onNavigate={onClose} />
-          <CartSummary cart={cart} compact onNavigate={onClose} />
-        </>
-      )}
-      <Link
-        to="/cart"
-        onClick={onClose}
-        data-testid="mini-cart-view"
-        className={buttonClasses('secondary', 'md')}
-      >
-        View cart
-      </Link>
+      {cart && cart.items.length > 0 && <CartContents cart={cart} compact onNavigate={onClose} />}
+      {/* Pinned to the bottom of the drawer: with 15 lines the total and the checkout button
+          would otherwise sit 3000px down. The negative margins cancel the dialog's padding so the
+          bar spans the full drawer width. */}
+      <div className="sticky bottom-0 -mx-6 -mb-6 mt-auto flex flex-col gap-3 border-t-2 border-line bg-surface p-4">
+        {cart && cart.items.length > 0 && <CartSummary cart={cart} compact onNavigate={onClose} />}
+        <Link
+          to="/cart"
+          onClick={onClose}
+          data-testid="mini-cart-view"
+          className={buttonClasses('secondary', 'md')}
+        >
+          View cart
+        </Link>
+      </div>
     </div>
   );
 }
