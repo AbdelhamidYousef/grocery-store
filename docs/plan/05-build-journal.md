@@ -157,3 +157,9 @@ Learn: IDOR means trusting an id from the URL, fixed by putting the owner in the
 1. A login request arrives carrying a `sid` cookie. What happens to the session behind it, why, and what attack does that prevent?
 2. The database stores `sha256(token)` while the cookie holds `token`. What does a leaked `sessions` table give an attacker, and why is a fast hash acceptable here when it would not be for passwords?
 3. User B sends `PATCH /account/addresses/<A's id>`. Which part of the query stops it, what status do they get, and why not 403?
+
+## Phase 7 (API) — Cart
+
+### 7.1 — cart identity
+`withCart` decides which cart a request works on: the signed-in user's single active cart, or the guest cart named by the signed `cart_id` cookie, creating either lazily on first use. The cookie only counts if its HMAC verifies and the row is still an active, ownerless, unexpired cart; for a user the cookie is ignored. The cart id therefore always comes from the server, never from a body or URL, which is the whole IDOR defence for the mutation steps. Races on a user's first cart are absorbed by `ON CONFLICT DO NOTHING` plus a re-read.
+Learn: signed cookies stop tampering but are readable, encrypted cookies hide the value too (not needed for a uuid); the cart is a server resource keyed by identity, so the client never sends a cart id; lazy creation avoids one empty row per bot.

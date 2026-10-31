@@ -34,3 +34,32 @@ export function readSessionCookie(req: Request): string | null {
   const value = (req.cookies as Record<string, unknown> | undefined)?.[SESSION_COOKIE];
   return typeof value === 'string' && value.length > 0 ? value : null;
 }
+
+// ---------- guest cart ----------
+
+export const CART_COOKIE = 'cart_id';
+const CART_MAX_AGE_MS = 30 * 24 * 3600 * 1000;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Unlike `sid`, this cookie holds a plain uuid, so it IS signed (HMAC with COOKIE_SECRET): a visitor
+// cannot edit it to point at somebody else's cart, and cookie-parser drops any value whose
+// signature does not match. (Signed, not encrypted: the browser can read the uuid, which is fine
+// because the uuid alone grants nothing without a valid signature.)
+export function setCartCookie(res: Response, cartId: string): void {
+  res.cookie(CART_COOKIE, cartId, {
+    ...baseOptions(res),
+    signed: true,
+    maxAge: CART_MAX_AGE_MS,
+  });
+}
+
+export function clearCartCookie(res: Response): void {
+  res.clearCookie(CART_COOKIE, baseOptions(res));
+}
+
+// Only a correctly signed, well-formed uuid comes back; a tampered cookie is `false` in
+// `signedCookies` and a cookie sent unsigned never appears there at all.
+export function readGuestCartId(req: Request): string | null {
+  const value = (req.signedCookies as Record<string, unknown> | undefined)?.[CART_COOKIE];
+  return typeof value === 'string' && UUID.test(value) ? value : null;
+}
