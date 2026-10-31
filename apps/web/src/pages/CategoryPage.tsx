@@ -20,7 +20,7 @@ export default function CategoryPage() {
   const { data: tree } = useCategories();
   const { query } = useProductListParams();
 
-  if (error instanceof ApiError && error.status === 404) return <NotFoundPage />;
+  if (error instanceof ApiError && error.status === 404) return <NotFoundPage what="category" />;
   if (error) {
     return (
       <Container className="py-12 text-center" data-testid={TEST_IDS.pageCategory}>

@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query';
+import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
 
 import type { AdminOrderListParams, AdminProductListParams } from '../api/admin';
 import type { ProductListParams } from '../api/catalog';
@@ -17,12 +17,35 @@ export function shouldRetry(failureCount: number, error: unknown): boolean {
   return error instanceof ApiError && (error.status >= 500 || error.code === 'NETWORK');
 }
 
+// A 401 for someone the page believes is signed in means the session ended behind the page's back
+// (it expired, or was revoked by a password change on another device). The cached user is stale,
+// so drop it: the header turns back into "Sign in", guarded pages send the visitor to the login
+// form with a way back, and checkout (open to guests) carries on as a guest. The flag lets those
+// places say WHY. The cart is untouched: it lives in its own cookie, not in the session.
+// Only when `me` holds a user: a wrong password at the login form is also a 401, and that is just
+// a failed attempt.
+export function handleUnauthenticated(client: QueryClient, error: unknown): void {
+  if (!(error instanceof ApiError) || error.status !== 401) return;
+  if (!client.getQueryData(keys.me)) return;
+  client.setQueryData(keys.me, null);
+  client.setQueryData(keys.sessionExpired, true);
+  // Whoever signs in next may be someone else: do not show them this account's cached data. Deferred
+  // so the failing query finishes its own error handling first.
+  setTimeout(() => {
+    client.removeQueries({ queryKey: keys.account.all });
+    client.removeQueries({ queryKey: keys.admin.all });
+  }, 0);
+}
+
 export function createQueryClient(): QueryClient {
-  return new QueryClient({
+  const client: QueryClient = new QueryClient({
+    queryCache: new QueryCache({ onError: (error) => handleUnauthenticated(client, error) }),
+    mutationCache: new MutationCache({ onError: (error) => handleUnauthenticated(client, error) }),
     defaultOptions: {
       queries: { staleTime: CATALOG_STALE_MS, retry: shouldRetry, refetchOnWindowFocus: false },
     },
   });
+  return client;
 }
 
 // Query keys are the cache identity: two components asking for the same key share one request and
@@ -32,6 +55,10 @@ export const keys = {
   // Signed-in user (or null). Written directly on login/logout, so it never needs a refetch.
   me: ['me'] as const,
   cart: ['cart'] as const,
+  // The API's own health check, polled by the "server unreachable" banner.
+  health: ['health'] as const,
+  // True once a request came back 401 while the shopper looked signed in (see createQueryClient).
+  sessionExpired: ['session-expired'] as const,
   // Warnings the cart reported, kept until dismissed (see features/cart/queries.ts).
   cartNotices: ['cart-notices'] as const,
   // Quotes depend on the cart's subtotal and weight as well as the country.

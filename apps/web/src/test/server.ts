@@ -17,6 +17,8 @@ export const API = 'http://api.test/api/v1';
 
 // Default answers every test gets; a test overrides one with `server.use(...)`.
 export const server = setupServer(
+  // The "server unreachable" banner polls this from every page that has the layout.
+  http.get(`${API}/health`, () => HttpResponse.json({ status: 'ok', db: 'ok', version: 'test' })),
   // Nobody is signed in unless a test says so (`server.use(signedInAs(...))`).
   http.get(`${API}/auth/me`, () =>
     HttpResponse.json(

@@ -108,6 +108,32 @@ describe('confirmation page', () => {
     await act(() => vi.advanceTimersByTimeAsync(31_000));
     await waitFor(() => expect(status).toHaveAttribute('data-state', 'timeout'));
     expect(status).toHaveTextContent('you will get an email');
+    expect(status).toHaveTextContent('do not pay again');
+  });
+
+  it('"Check again" starts a fresh polling window and finds the late payment', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    let paid = false;
+    server.use(
+      http.get(`${API}/checkout/orders/:number/status`, () =>
+        HttpResponse.json({
+          data: paid
+            ? { status: 'paid', paymentStatus: 'succeeded' }
+            : { status: 'pending_payment', paymentStatus: 'processing' },
+        }),
+      ),
+      orderOf(makeOrder({ status: 'pending_payment' })),
+    );
+    renderApp(PATH);
+    const status = await screen.findByTestId('confirmation-status');
+    await act(() => vi.advanceTimersByTimeAsync(31_000));
+    await waitFor(() => expect(status).toHaveAttribute('data-state', 'timeout'));
+
+    paid = true; // the webhook finally arrives
+    act(() => screen.getByTestId('confirmation-check-again').click());
+    await act(() => vi.advanceTimersByTimeAsync(2_500));
+    await waitFor(() => expect(status).toHaveAttribute('data-state', 'paid'));
+    expect(screen.queryByTestId('confirmation-check-again')).not.toBeInTheDocument();
   });
 
   it('shows the waking-up copy when the first answer is slow', async () => {

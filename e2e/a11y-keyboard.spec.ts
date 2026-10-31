@@ -159,7 +159,13 @@ test('buy a product with the keyboard only', async ({ page }) => {
   });
   expect(order.status, JSON.stringify(order.body)).toBe(200);
   const orderNumber = order.body.data.orderNumber;
-  const sim = await api(page, 'POST', '/test/webhooks/simulate', { orderNumber });
+  const sim = await api(
+    page,
+    'POST',
+    '/test/webhooks/simulate',
+    { orderNumber },
+    { 'x-test-hook-secret': process.env.TEST_HOOK_SECRET ?? '' },
+  );
   expect(sim.status, JSON.stringify(sim.body)).toBe(200);
   await page.goto(`/checkout/confirmation/${orderNumber}`);
   await expect(page.getByTestId('confirmation-status')).toHaveAttribute('data-state', 'paid', {

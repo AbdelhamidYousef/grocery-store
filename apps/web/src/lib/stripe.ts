@@ -19,3 +19,9 @@ export function getStripe(): Promise<Stripe | null> | null {
   loading ??= loadStripe(key);
   return loading;
 }
+
+// Forget a load that failed (offline, an ad blocker on js.stripe.com): the kept promise would
+// otherwise stay rejected for the whole visit and "Try again" could never succeed.
+export function resetStripe(): void {
+  loading = null;
+}

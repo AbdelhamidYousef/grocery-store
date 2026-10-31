@@ -35,7 +35,7 @@ export default function ProductPage() {
   const { slug } = useParams();
   const { data: product, error, isPending, refetch } = useProduct(slug);
 
-  if (error instanceof ApiError && error.status === 404) return <NotFoundPage />;
+  if (error instanceof ApiError && error.status === 404) return <NotFoundPage what="product" />;
   if (error) {
     return (
       <Container className="py-12 text-center" data-testid={TEST_IDS.pageProduct}>

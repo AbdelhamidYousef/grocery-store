@@ -4,6 +4,7 @@ import { Seo } from '../components/Seo';
 import { AuthCard } from '../features/auth/AuthCard';
 import { useAuth } from '../features/auth/AuthProvider';
 import { LoginForm } from '../features/auth/LoginForm';
+import { SessionExpiredNotice } from '../features/auth/SessionExpiredNotice';
 import { safeNext } from '../lib/safe-next';
 
 export default function LoginPage() {
@@ -15,6 +16,7 @@ export default function LoginPage() {
   return (
     <AuthCard title="Sign in" testId="page-login">
       <Seo title="Sign in" noindex />
+      <SessionExpiredNotice />
       <LoginForm next={next} />
     </AuthCard>
   );

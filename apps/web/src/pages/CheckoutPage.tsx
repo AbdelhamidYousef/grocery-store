@@ -7,6 +7,7 @@ import { buttonClasses, Button } from '../components/ui/Button';
 import { Skeleton } from '../components/ui/Skeleton';
 import { useAddresses } from '../features/account/queries';
 import { useAuth } from '../features/auth/AuthProvider';
+import { SessionExpiredNotice } from '../features/auth/SessionExpiredNotice';
 import { useCart } from '../features/cart/queries';
 import { CheckoutFlow } from '../features/checkout/CheckoutFlow';
 import { TEST_IDS } from '../lib/test-ids';
@@ -50,6 +51,7 @@ export default function CheckoutPage() {
           Back to cart
         </Link>
       </div>
+      <SessionExpiredNotice signInNext="/checkout" />
 
       {(isPending || (cart && !prefillReady && hasItems && !soldOut)) && (
         <div className="mt-6 flex flex-col gap-4" aria-busy="true">

@@ -4,6 +4,7 @@ import { Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
 import { MiniCart } from '../../features/cart/MiniCart';
 import { useCart } from '../../features/cart/queries';
 
+import { ApiStatusBanner } from './ApiStatusBanner';
 import { Footer } from './Footer';
 import { Header } from './Header';
 import { SkipLink } from './SkipLink';
@@ -35,6 +36,7 @@ export function AppLayout() {
   return (
     <div className="flex min-h-screen flex-col">
       <SkipLink />
+      <ApiStatusBanner />
       <Header
         cartCount={cart?.itemCount ?? 0}
         // On the cart and checkout pages the page itself is the cart, so the icon just links.

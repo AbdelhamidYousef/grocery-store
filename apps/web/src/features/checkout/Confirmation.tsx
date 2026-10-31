@@ -36,7 +36,7 @@ const COPY: Record<View, { title: string; body: string }> = {
   },
   timeout: {
     title: 'We are still confirming your payment',
-    body: 'It is taking longer than usual. You do not need to wait here: you will get an email as soon as the payment is confirmed.',
+    body: 'It is taking longer than usual, which can happen when the payment provider is slow to tell us. Please do not pay again. You do not need to wait here: you will get an email as soon as the payment is confirmed, and you can come back to this page to check.',
   },
   failed: {
     title: 'Your payment did not go through',
@@ -59,12 +59,12 @@ const COPY: Record<View, { title: string; body: string }> = {
 export function Confirmation({ number }: { number: string }) {
   const [params] = useSearchParams();
   // Fixed for this visit so re-renders do not extend the 30 s polling window.
-  const [startedAt] = useState(() => Date.now());
+  const [startedAt, setStartedAt] = useState(() => Date.now());
   const [expired, setExpired] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => setExpired(true), POLL_FOR_MS);
     return () => clearTimeout(timer);
-  }, []);
+  }, [startedAt]);
 
   const status = useOrderStatus(number, startedAt);
   const order = usePlacedOrder(number);
@@ -130,6 +130,19 @@ export function Confirmation({ number }: { number: string }) {
               Try again
             </Link>
           )}
+          {view === 'timeout' && (
+            <Button
+              size="lg"
+              data-testid={TEST_IDS.confirmationCheckAgain}
+              onClick={() => {
+                // A fresh 30 s polling window, for the webhook that is merely late.
+                setExpired(false);
+                setStartedAt(Date.now());
+              }}
+            >
+              Check again
+            </Button>
+          )}
           {view === 'error' && (
             <Button
               size="lg"
@@ -147,7 +160,7 @@ export function Confirmation({ number }: { number: string }) {
       </div>
 
       {order.data && view !== 'not-found' && (
-        <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="mt-8 grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
           <section aria-labelledby="order-items-heading" className="min-w-0">
             <h2 id="order-items-heading" className="font-display text-2xl font-bold">
               Your order

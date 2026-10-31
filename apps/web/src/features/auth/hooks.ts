@@ -11,6 +11,8 @@ function useSignedIn() {
   const queryClient = useQueryClient();
   return (user: User) => {
     queryClient.setQueryData(keys.me, user);
+    // Signed in again: the "your session expired" explanation has done its job.
+    queryClient.setQueryData(keys.sessionExpired, false);
     return queryClient.invalidateQueries({ queryKey: keys.cart });
   };
 }

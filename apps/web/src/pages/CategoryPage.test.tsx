@@ -52,7 +52,7 @@ describe('category page', () => {
   it('shows the not-found page for an unknown category', async () => {
     renderApp('/c/unicorns');
     expect(
-      await screen.findByRole('heading', { level: 1, name: "We can't find that page" }),
+      await screen.findByRole('heading', { level: 1, name: "We can't find that category" }),
     ).toBeInTheDocument();
   });
 

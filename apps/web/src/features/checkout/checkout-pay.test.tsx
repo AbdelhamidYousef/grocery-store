@@ -1,9 +1,10 @@
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { resetStripe } from '../../lib/stripe';
 import * as tracking from '../../lib/track';
 import { makeCart, makeCartItem } from '../../test/fixtures';
 import { renderApp } from '../../test/render';
@@ -15,15 +16,26 @@ import { API, server } from '../../test/server';
 // /checkout, what the button says, how an error or a success is handled), not Stripe's iframe,
 // which the Playwright test covers against the real thing when keys exist.
 const confirmPayment = vi.fn();
+// `loadStripe` and the element's load-error callback are scripted by the load-failure tests.
+const stripe = vi.hoisted(() => ({
+  loadStripe: (): Promise<unknown> => Promise.resolve({}),
+  failElement: undefined as (() => void) | undefined,
+}));
 vi.mock('@stripe/react-stripe-js', () => ({
   Elements: ({ children }: { children: ReactNode }) => <div data-testid="elements">{children}</div>,
-  PaymentElement: () => <div data-testid="payment-element-stub" />,
+  PaymentElement: ({ onLoadError }: { onLoadError?: () => void }) => {
+    stripe.failElement = onLoadError;
+    return <div data-testid="payment-element-stub" />;
+  },
   useStripe: () => ({ confirmPayment }),
   useElements: () => ({}),
 }));
-vi.mock('@stripe/stripe-js', () => ({ loadStripe: () => Promise.resolve({}) }));
+vi.mock('@stripe/stripe-js', () => ({ loadStripe: () => stripe.loadStripe() }));
 
 beforeEach(() => {
+  resetStripe();
+  stripe.loadStripe = () => Promise.resolve({});
+  stripe.failElement = undefined;
   vi.stubEnv('VITE_STRIPE_PUBLISHABLE_KEY', 'pk_test_abc123');
   confirmPayment.mockReset();
   server.use(
@@ -179,5 +191,39 @@ describe('checkout payment step with a Stripe key', () => {
     renderApp('/checkout');
     await reachPayment();
     expect(await screen.findByTestId('payment-not-configured')).toBeVisible();
+  });
+
+  describe("when Stripe's form cannot load", () => {
+    beforeEach(() => {
+      server.use(http.post(`${API}/checkout`, () => HttpResponse.json({ data: placed })));
+    });
+
+    it('says so, keeps the order, and recovers on Try again when Stripe.js fails to load', async () => {
+      stripe.loadStripe = () => Promise.reject(new Error('Failed to load Stripe.js'));
+      renderApp('/checkout');
+      const user = await reachPayment();
+
+      const alert = await screen.findByTestId('payment-load-error');
+      expect(alert).toHaveTextContent('could not load the secure payment form');
+      expect(alert).toHaveTextContent('Nothing was charged');
+      expect(screen.queryByTestId('pay-button')).not.toBeInTheDocument();
+
+      stripe.loadStripe = () => Promise.resolve({});
+      await user.click(screen.getByRole('button', { name: 'Try again' }));
+      expect(await screen.findByRole('button', { name: 'Pay €26.88' })).toBeEnabled();
+      expect(screen.queryByTestId('payment-load-error')).not.toBeInTheDocument();
+    });
+
+    it('shows the same state when the payment iframe reports a load error', async () => {
+      renderApp('/checkout');
+      const user = await reachPayment();
+      await screen.findByTestId('payment-element-stub');
+
+      act(() => stripe.failElement?.());
+      expect(await screen.findByTestId('payment-load-error')).toBeVisible();
+
+      await user.click(screen.getByRole('button', { name: 'Try again' }));
+      expect(await screen.findByTestId('payment-element-stub')).toBeInTheDocument();
+    });
   });
 });

@@ -488,3 +488,12 @@ Learn: `overflow-wrap` fixes text inside a box of known width, but a flex or gri
 1. Why did a long word make the checkout page wider than the screen even though every text element already had `break-words`, and what does `grid-cols-1` change?
 2. Cart with 20 lines: the cart page and the checkout summary both list them. Why did only the summary get a scroll box, and how does a keyboard user scroll it?
 3. What does a layout shift of 0.6 on the category page tell you about the loading state it replaced, and what was done about it?
+
+### 13.3 — resilient error and empty states
+A thin banner above the header polls `/health` (every 30 s, every 5 s once it fails) and says the server cannot be reached; it disappears by itself and, when the server returns, re-runs the queries that failed meanwhile, so a page that said "We could not load..." fills in without a click. A 401 for someone who looks signed in (a session that ended behind the page's back) now clears the cached user and sets a flag: guarded pages redirect to sign-in with a way back and say the session expired, checkout carries on as a guest with a "sign in again" link, and the cart survives because it lives in its own cookie. The payment step has a proper failure state when Stripe.js cannot load or its iframe reports a load error (with a retry that reloads the script instead of reusing the failed promise), the "still confirming" page tells shoppers not to pay again and has a "Check again" button for a late webhook, and the 404 page words itself for a missing product or category and links to the pet categories.
+Learn: a cached rejected promise turns a blip into a permanent failure, so a retry has to clear the cache first; and "the session expired" is only a 401 you can trust when the page believed it was signed in, because a wrong password is also a 401.
+
+### Phase 13 (resilience) quiz
+1. The health banner shows nothing while its first request is slow but appears when it fails. Why is that distinction deliberate on a free-tier host, and which two pacing values does it use?
+2. A signed-in shopper's cookie disappears and they click Orders. Walk through what the client does with the 401, why the cart is still there after signing in again, and why a 401 from the login form must not trigger the same path.
+3. Stripe.js is blocked by an extension. What does the shopper see, what is already saved on the server, and what would go wrong if "Try again" only re-rendered the form without `resetStripe()`?

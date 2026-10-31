@@ -6,6 +6,6 @@ import { apiFetch } from './client';
 export const HealthSchema = z.object({ status: z.string(), db: z.string(), version: z.string() });
 export type Health = z.infer<typeof HealthSchema>;
 
-export function fetchHealth(): Promise<Health> {
-  return apiFetch('/health', { schema: HealthSchema });
+export function fetchHealth(signal?: AbortSignal): Promise<Health> {
+  return apiFetch('/health', { schema: HealthSchema, ...(signal && { signal }) });
 }

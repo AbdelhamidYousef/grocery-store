@@ -56,7 +56,7 @@ describe('product page', () => {
   it('shows the not-found page for an unknown product', async () => {
     renderApp('/products/nope');
     expect(
-      await screen.findByRole('heading', { level: 1, name: "We can't find that page" }),
+      await screen.findByRole('heading', { level: 1, name: "We can't find that product" }),
     ).toBeInTheDocument();
   });
 
