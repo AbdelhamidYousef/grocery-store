@@ -1,4 +1,22 @@
+import {
+  CategoryResponseSchema,
+  CategoryTreeResponseSchema,
+  SlugParamsSchema,
+} from '@store/shared';
 import { Router as ExpressRouter, type Router } from 'express';
 
-// Filled in by a later phase; mounted already so adding endpoints never touches app wiring.
+import { respond, valid, validate } from '../../lib/validate.ts';
+
+import * as service from './service.ts';
+
 export const catalogRouter: Router = ExpressRouter();
+
+catalogRouter.get('/categories', async (_req, res) => {
+  respond(res, CategoryTreeResponseSchema, { data: await service.getCategoryTree() });
+});
+
+const bySlug = { params: SlugParamsSchema };
+catalogRouter.get('/categories/:slug', validate(bySlug), async (req, res) => {
+  const { params } = valid(req, bySlug);
+  respond(res, CategoryResponseSchema, { data: await service.getCategory(params.slug) });
+});

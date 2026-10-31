@@ -1,13 +1,17 @@
+import { eq } from 'drizzle-orm';
+
 import { db } from '../db/client.ts';
 import {
   cartItems,
   carts,
   categories,
   inventory,
+  productImages,
   productVariants,
   products,
   users,
 } from '../db/schema/index.ts';
+import type { ProductAttributes } from '../db/schema/products.ts';
 
 // Unique suffix per call so factories can be used many times inside one test without colliding
 // on slug / SKU / email unique constraints.
@@ -38,39 +42,65 @@ export async function createUser(overrides: Partial<typeof users.$inferInsert> =
   );
 }
 
+export async function createCategory(overrides: Partial<typeof categories.$inferInsert> = {}) {
+  const n = next();
+  return first(
+    await db
+      .insert(categories)
+      .values({ slug: `cat-${n}`, name: `Category ${n}`, ...overrides })
+      .returning(),
+    'category',
+  );
+}
+
 export type VariantInput = {
   name?: string;
   options?: Record<string, string>;
   priceCents?: number;
+  compareAtPriceCents?: number;
   weightGrams?: number;
+  status?: 'draft' | 'active' | 'archived';
   /** Units in stock; defaults to 50. */
   stock?: number;
+  reserved?: number;
+  lowStockThreshold?: number;
 };
+
+export type ImageInput = { url?: string; alt?: string; variantIndex?: number; sortOrder?: number };
 
 export async function createProduct(
   input: {
     name?: string;
+    slug?: string;
     description?: string;
     status?: 'draft' | 'active' | 'archived';
+    /** Put the product in this category instead of a fresh one. */
+    categoryId?: string;
+    attributes?: ProductAttributes;
+    createdAt?: Date;
     variants?: VariantInput[];
+    images?: ImageInput[];
   } = {},
 ) {
   const n = next();
-  const [category] = await db
-    .insert(categories)
-    .values({ slug: `test-category-${n}`, name: `Test category ${n}` })
-    .returning();
-  if (!category) throw new Error('factory: insert of category returned no row');
+  const category = input.categoryId
+    ? first(
+        await db.select().from(categories).where(eq(categories.id, input.categoryId)),
+        'category lookup',
+      )
+    : await createCategory({ slug: `test-category-${n}`, name: `Test category ${n}` });
 
   const product = first(
     await db
       .insert(products)
       .values({
-        slug: `test-product-${n}`,
+        slug: input.slug ?? `test-product-${n}`,
         name: input.name ?? `Test product ${n}`,
         description: input.description ?? 'A product made by a test factory.',
         categoryId: category.id,
         status: input.status ?? 'active',
+        attributes: input.attributes ?? {},
+        ...(input.createdAt && { createdAt: input.createdAt }),
       })
       .returning(),
     'product',
@@ -87,6 +117,8 @@ export async function createProduct(
         // Options must differ per variant (unique per product), hence the index.
         options: v.options ?? { variant: String(i + 1) },
         priceCents: v.priceCents ?? 1000,
+        compareAtPriceCents: v.compareAtPriceCents ?? null,
+        status: v.status ?? 'active',
         weightGrams: v.weightGrams ?? 200,
         isDefault: i === 0,
       })),
@@ -97,10 +129,32 @@ export async function createProduct(
     variants.map((variant, i) => ({
       variantId: variant.id,
       quantity: variantInputs[i]?.stock ?? 50,
+      reserved: variantInputs[i]?.reserved ?? 0,
+      ...(variantInputs[i]?.lowStockThreshold !== undefined && {
+        lowStockThreshold: variantInputs[i]?.lowStockThreshold,
+      }),
     })),
   );
 
-  return { product, category, variants };
+  const images = input.images?.length
+    ? await db
+        .insert(productImages)
+        .values(
+          input.images.map((img, i) => ({
+            productId: product.id,
+            variantId:
+              img.variantIndex === undefined ? null : (variants[img.variantIndex]?.id ?? null),
+            url: img.url ?? `/products/${product.slug}-${i + 1}.webp`,
+            alt: img.alt ?? `${product.name} image ${i + 1}`,
+            width: 1200,
+            height: 1200,
+            sortOrder: img.sortOrder ?? i,
+          })),
+        )
+        .returning()
+    : [];
+
+  return { product, category, variants, images };
 }
 
 export async function createCart(
