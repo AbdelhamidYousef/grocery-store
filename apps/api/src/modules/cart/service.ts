@@ -11,7 +11,7 @@ import {
 import { db, type Tx } from '../../db/client.ts';
 import { conflict, notFound } from '../../lib/errors.ts';
 
-import { guestExpiry, userExpiry } from './identity.ts';
+import { getOrCreateUserCart, guestExpiry, userExpiry } from './identity.ts';
 import * as repo from './repo.ts';
 
 // Store currency fallback for an empty cart (every variant defaults to it too).
@@ -197,4 +197,66 @@ export async function removeItem(cartId: string, itemId: string): Promise<Cart> 
 
 export async function clear(cartId: string): Promise<Cart> {
   return mutate(cartId, (tx) => repo.deleteAllItems(tx, cartId));
+}
+
+// ---------- merge on login ----------
+
+export interface MergeResult {
+  /** Guest lines that ended up in the user's cart (added or summed). */
+  merged: number;
+  /** Of those, how many were limited by stock or the 99 cap. */
+  clamped: number;
+  /** Guest lines left behind because the variant is archived, not on sale or sold out. */
+  dropped: number;
+}
+
+// Moves a guest cart into the user's active cart when they sign in or register. The rules, which
+// are deterministic (same inputs, same result, whatever order requests arrive in):
+//   1. Only a live guest cart merges: active, ownerless, not expired. Anything else is a no-op, so
+//      a stale or foreign cookie can never pull someone else's cart into an account.
+//   2. Quantities for the same variant are SUMMED, then limited to min(99, available stock).
+//   3. A merge never lowers what the user already had: the result is at least their old quantity,
+//      even if stock has since dropped (the next cart read applies the usual QTY_REDUCED clamp).
+//   4. A guest line whose variant is archived, not on sale or sold out is dropped, never added.
+//   5. Variants only the guest had are added; variants only the user had are untouched.
+//   6. The guest cart is marked `merged` (its rows stay as provenance) so it cannot merge twice.
+//   7. All of it is one transaction: a failure leaves both carts exactly as they were.
+// Lock order is always guest cart first, then user cart. Mutations lock a single cart, so no
+// request ever waits for these two in the opposite order (no deadlock), and two simultaneous
+// logins carrying the same guest cookie queue on the guest lock, the second sees `merged` and
+// does nothing (no double count).
+export async function mergeGuestCart(guestCartId: string, userId: string): Promise<MergeResult> {
+  return db.transaction(async (tx) => {
+    const result: MergeResult = { merged: 0, clamped: 0, dropped: 0 };
+
+    const guest = await repo.lockCart(tx, guestCartId);
+    const live =
+      guest && guest.userId === null && guest.status === 'active' && guest.expiresAt > new Date();
+    if (!guest || !live) return result;
+
+    const userCart = await getOrCreateUserCart(userId, tx);
+    await repo.lockCart(tx, userCart.id);
+
+    for (const line of await repo.listItems(tx, guest.id)) {
+      const stock = await repo.findPurchasable(tx, line.variantId);
+      const maxQty = stock ? Math.min(MAX_LINE_QUANTITY, stock.available) : 0;
+      const existing = await repo.findItemByVariant(tx, userCart.id, line.variantId);
+      const had = existing?.quantity ?? 0;
+
+      const wanted = had + line.quantity;
+      const quantity = Math.max(had, Math.min(wanted, maxQty));
+      if (quantity === 0) {
+        result.dropped += 1;
+        continue;
+      }
+      if (existing) await repo.setItemQuantity(tx, existing.id, quantity);
+      else await repo.insertItem(tx, userCart.id, line.variantId, quantity);
+      result.merged += 1;
+      if (quantity < wanted) result.clamped += 1;
+    }
+
+    await repo.setExpiry(tx, userCart.id, userExpiry());
+    await repo.markStatus(guest.id, 'merged', tx);
+    return result;
+  });
 }

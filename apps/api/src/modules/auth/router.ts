@@ -1,19 +1,36 @@
 import { LoginSchema, RegisterSchema, UserResponseSchema } from '@store/shared';
 import { Router as ExpressRouter, type Request, type Response, type Router } from 'express';
 
-import { clearSessionCookie, readSessionCookie, setSessionCookie } from '../../lib/cookies.ts';
+import {
+  clearCartCookie,
+  clearSessionCookie,
+  readGuestCartId,
+  readSessionCookie,
+  setSessionCookie,
+} from '../../lib/cookies.ts';
 import { respond, valid, validate } from '../../lib/validate.ts';
 import { requireUser } from '../../middleware/auth.ts';
 import { createAuthRateLimiter, type RateLimitOptions } from '../../middleware/rate-limit.ts';
+import { mergeGuestCart } from '../cart/service.ts';
 
 import * as service from './service.ts';
 
 const meta = (req: Request) => ({ ip: req.ip, userAgent: req.get('user-agent') });
 
-// Runs after a successful login or registration, once the session cookie is set.
-// TODO(7.4): call cartService.mergeGuestCart(guestCartId, userId) here and clear the cart_id cookie.
-async function onLogin(_userId: string, _req: Request, _res: Response): Promise<void> {
-  await Promise.resolve();
+// Runs after a successful login or registration, once the session cookie is set: the guest cart
+// (if the browser carries a valid signed cookie) is merged into the account's cart. A merge
+// failure must not fail the login, since the session already exists; the cookie is then kept so
+// the next login retries, and the error is logged.
+async function onLogin(userId: string, req: Request, res: Response): Promise<void> {
+  const guestCartId = readGuestCartId(req);
+  if (!guestCartId) return;
+  try {
+    await mergeGuestCart(guestCartId, userId);
+    // Merged, or not a live guest cart any more: either way the cookie has no further use.
+    clearCartCookie(res);
+  } catch (err) {
+    req.log.error({ err }, 'guest cart merge failed');
+  }
 }
 
 export function createAuthRouter(opts: { authRateLimit: RateLimitOptions }): Router {

@@ -171,3 +171,12 @@ Learn: re-pricing on read means stale prices cannot exist; repairing on read mak
 ### 7.3 — cart mutations
 `addItem`, `updateItem`, `removeItem` and `clear` each run in one transaction: lock the cart row, change it, slide its expiry, and return the whole re-priced cart from that same transaction. Adding is cumulative and the total (`inCart + quantity`) is checked against `min(99, available)`, refusing with 409 `OUT_OF_STOCK` and `{ maxQty, inCart, requested }`. The routes take no cart id at all (it comes from `withCart`), and every item lookup filters by both item id and the caller's cart id, so a foreign line is a 404. The parallel-add tests fire two (and ten) simultaneous requests at one cart and prove stock is never exceeded.
 Learn: `SELECT ... FOR UPDATE` makes concurrent requests on one row take turns, so check-then-write becomes safe; returning the whole cart avoids a second GET that might show something the mutation did not produce; carts do not reserve stock, checkout does.
+
+### 7.4 — merge on login
+`mergeGuestCart(guestCartId, userId)` runs from `onLogin` after a successful login or registration. In one transaction it locks the guest cart, then the user's cart (created if missing), and walks the guest lines in a fixed order: same-variant quantities are summed and limited to `min(99, available)`, never below what the account already had; unbuyable lines are dropped; the guest cart is marked `merged` so a second login with the same cookie adds nothing. The rules are written above the function and again in the decisions log. A failure inside leaves both carts untouched (tested by making an insert throw), and a failed merge never fails the login.
+Learn: a fixed lock order (guest, then user) prevents deadlocks; marking the source `merged` inside the same transaction makes the operation idempotent under double submits; "sum then clamp" is easy to say, the edge cases (stock below the user's own quantity) are the real design.
+
+### Phase 7 (API) quiz
+1. Two requests add 3 units each to the same cart while 5 are in stock. Walk through what each does and which line of the design makes exactly one win. What does it NOT protect against, and where is that handled instead?
+2. Why does `POST /cart/items` take no cart id, and what happens when user B sends `PATCH /cart/items/<A's item id>`?
+3. A guest has 2 of a variant, the account has 1, and only 2 are in stock. What does the merge produce, what if the account had 3, and why does the guest cart end up `merged` rather than deleted?

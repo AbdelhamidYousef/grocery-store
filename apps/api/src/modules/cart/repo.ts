@@ -230,3 +230,12 @@ export async function deleteAllItems(tx: Tx, cartId: string): Promise<void> {
 export async function setExpiry(tx: Tx, cartId: string, expiresAt: Date): Promise<void> {
   await tx.update(carts).set({ expiresAt }).where(eq(carts.id, cartId));
 }
+
+export async function listItems(tx: Tx, cartId: string): Promise<CartItemRow[]> {
+  // Oldest first, then id: the merge visits lines in a fixed order, so its outcome is repeatable.
+  return tx
+    .select()
+    .from(cartItems)
+    .where(eq(cartItems.cartId, cartId))
+    .orderBy(asc(cartItems.createdAt), asc(cartItems.id));
+}
