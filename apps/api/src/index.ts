@@ -18,6 +18,8 @@ const logger = createLogger({ level: env.LOG_LEVEL, pretty: env.NODE_ENV === 'de
 const { kind: gatewayKind, gateway: payments } = await selectPaymentGateway(env);
 if (gatewayKind === 'fake')
   logger.warn('using the FAKE payment gateway (NODE_ENV=test, no Stripe key)');
+if (env.NODE_ENV === 'test' && !env.TEST_HOOK_SECRET)
+  logger.warn('TEST_HOOK_SECRET is not set: POST /test/webhooks/simulate is disabled');
 
 // Emails: Mailpit in development, Resend or SMTP in production, nothing (logged and skipped) when
 // production has neither. The API boots in every case.
@@ -47,6 +49,9 @@ const app = createApp({
     cookieSecret: env.COOKIE_SECRET,
     rateLimit: { windowMs: env.RATE_LIMIT_WINDOW_MS, limit: env.RATE_LIMIT_MAX },
     authRateLimit: { windowMs: env.RATE_LIMIT_AUTH_WINDOW_MS, limit: env.RATE_LIMIT_AUTH_MAX },
+    ...(env.TEST_HOOK_SECRET && {
+      testHooks: { secret: env.TEST_HOOK_SECRET, realStripe: gatewayKind === 'stripe' },
+    }),
   },
 });
 

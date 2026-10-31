@@ -6,6 +6,7 @@ import { db } from '../db/client.ts';
 import { inventory, orders } from '../db/schema/index.ts';
 import { createSession } from '../modules/auth/sessions.ts';
 
+import { TEST_HOOK_SECRET } from './app.ts';
 import { createProduct, createUser } from './factories.ts';
 import { bodyOf } from './http.ts';
 import { makeShopper, type Shopper } from './shopper.ts';
@@ -61,7 +62,10 @@ export function simulate(
     | 'payment_intent.canceled'
     | 'charge.refunded' = 'payment_intent.succeeded',
 ) {
-  return request(app).post('/api/v1/test/webhooks/simulate').send({ orderNumber, type });
+  return request(app)
+    .post('/api/v1/test/webhooks/simulate')
+    .set('X-Test-Hook-Secret', TEST_HOOK_SECRET)
+    .send({ orderNumber, type });
 }
 
 export async function stockOf(variantId: string) {

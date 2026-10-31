@@ -23,11 +23,22 @@ export function createModulesRouter(opts: {
   payments: PaymentGateway;
   outbox: Outbox;
   nodeEnv: 'development' | 'test' | 'production';
+  testHooks?: { secret: string; realStripe: boolean };
 }): Router {
   const router = Router();
   router.use(catalogRouter);
-  // Exists only under NODE_ENV=test (see test-router.ts): no way to fake a payment anywhere else.
-  if (opts.nodeEnv === 'test') router.use(createTestRouter({ outbox: opts.outbox }));
+  // Exists only under NODE_ENV=test with a TEST_HOOK_SECRET (see test-router.ts): no way to fake a
+  // payment anywhere else.
+  if (opts.nodeEnv === 'test' && opts.testHooks) {
+    router.use(
+      createTestRouter({
+        outbox: opts.outbox,
+        payments: opts.payments,
+        secret: opts.testHooks.secret,
+        realStripe: opts.testHooks.realStripe,
+      }),
+    );
+  }
   // Everything below depends on who is asking, so it is mounted after the catalog: public catalog
   // responses stay cookie-free and cacheable, and never trigger a session lookup.
   router.use(attachUser);

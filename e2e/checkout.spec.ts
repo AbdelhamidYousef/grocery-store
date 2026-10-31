@@ -4,23 +4,24 @@ import { register, uniqueEmail } from './helpers';
 
 // Two ways to pay, one UI:
 //
-// (a) REAL STRIPE: card 4242 4242 4242 4242 typed into Stripe's iframe, the webhook delivered by
-//     `stripe listen --forward-to localhost:3100/api/v1/webhooks/stripe` (the e2e API port). Needs
-//     STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET and VITE_STRIPE_PUBLISHABLE_KEY in .env; skipped,
-//     loudly, without them.
-// (b) SIMULATED: always on. The API runs with NODE_ENV=test (see playwright.config.ts), so
-//     POST /test/webhooks/simulate exists and, with no Stripe key, a fake payment gateway answers
-//     in place of Stripe. The test drives the UI through address and shipping to the payment step,
+// (a) REAL STRIPE: card 4242 4242 4242 4242 typed into Stripe's iframe against Stripe's test API.
+//     The webhook is delivered by POST /test/webhooks/simulate, which first retrieves the REAL
+//     PaymentIntent from Stripe, so the handler's amount check sees what Stripe actually received
+//     (no Stripe CLI needed, which is what lets CI run it). Needs STRIPE_SECRET_KEY and
+//     VITE_STRIPE_PUBLISHABLE_KEY in .env or the environment; skipped, loudly, without them.
+// (b) SIMULATED: runs when there is no Stripe key. The API runs with NODE_ENV=test (see
+//     playwright.config.ts), so POST /test/webhooks/simulate exists and a fake payment gateway
+//     answers in place of Stripe. The test drives the UI through address and shipping to the payment step,
 //     places the order through the same API the UI uses, pays it with the simulator, then checks
 //     the confirmation page, the stock and the cart. Everything but Stripe's iframe is real.
 
-const STRIPE_KEYS = ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'VITE_STRIPE_PUBLISHABLE_KEY'];
+const STRIPE_KEYS = ['STRIPE_SECRET_KEY', 'VITE_STRIPE_PUBLISHABLE_KEY'];
 const missingKeys = STRIPE_KEYS.filter((name) => !process.env[name]);
 if (missingKeys.length > 0) {
   console.warn(
     `\n!!! checkout e2e (a) REAL STRIPE flow SKIPPED: missing ${missingKeys.join(', ')} in .env.\n` +
-      '!!! The simulated payment flow (b) still runs. Add the test keys and run `stripe listen`\n' +
-      '!!! to enable the card 4242 test.\n',
+      '!!! The simulated payment flow (b) still runs. Add the Stripe test keys to enable the\n' +
+      '!!! card 4242 test (and switch off the simulated flow, which needs the fake gateway).\n',
   );
 }
 
@@ -53,16 +54,20 @@ function callApi<T>(
   body?: unknown,
 ): Promise<{ status: number; body: T }> {
   return page.evaluate(
-    async ({ method, path, body }) => {
+    async ({ method, path, body, hookSecret }) => {
       const res = await fetch(`/api/v1${path}`, {
         method,
         credentials: 'include',
-        headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
+        headers: {
+          ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+          // Only the test-only routes check it (playwright.config.ts sets it for the API).
+          ...(path.startsWith('/test/') ? { 'X-Test-Hook-Secret': hookSecret } : {}),
+        },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       });
       return { status: res.status, body: (await res.json().catch(() => null)) as never };
     },
-    { method, path, body },
+    { method, path, body, hookSecret: process.env.TEST_HOOK_SECRET ?? '' },
   );
 }
 
@@ -145,8 +150,9 @@ async function simulatePaid(page: Page, orderNumber: string): Promise<void> {
   expect(res.status, JSON.stringify(res.body)).toBe(200);
 }
 
-// The simulator only exists in an API started with NODE_ENV=test. A server reused from another
-// session may lack it; say so loudly instead of failing with a confusing 404.
+// The simulator only exists in an API started with NODE_ENV=test and the same TEST_HOOK_SECRET as
+// this process. A server reused from another session may lack it; say so loudly instead of failing
+// with a confusing 404 or 403.
 async function simulatorAvailable(page: Page): Promise<boolean> {
   await page.goto('/');
   const res = await api<{ error?: { message?: string } }>(page, 'POST', '/test/webhooks/simulate', {
@@ -158,8 +164,12 @@ async function simulatorAvailable(page: Page): Promise<boolean> {
 test.describe('simulated payment (fake gateway + /test/webhooks/simulate)', () => {
   test.beforeEach(async ({ page }) => {
     test.skip(
+      Boolean(process.env.STRIPE_SECRET_KEY),
+      'A Stripe key is set, so the API uses real Stripe and its intents cannot be paid by the simulator without a card. The real Stripe flow below covers it.',
+    );
+    test.skip(
       !(await simulatorAvailable(page)),
-      '!!! The API on this port was not started with NODE_ENV=test, so /test/webhooks/simulate is missing. Stop it and let playwright start its own.',
+      '!!! The API on this port was not started with NODE_ENV=test and this TEST_HOOK_SECRET, so /test/webhooks/simulate is missing. Stop it and let playwright start its own.',
     );
   });
 
@@ -253,10 +263,10 @@ test.describe('simulated payment (fake gateway + /test/webhooks/simulate)', () =
   });
 });
 
-test.describe('real Stripe (card 4242, webhook from `stripe listen`)', () => {
+test.describe('real Stripe (card 4242, real PaymentIntent, simulated webhook delivery)', () => {
   test.skip(
     missingKeys.length > 0,
-    `!!! REAL STRIPE FLOW SKIPPED: missing ${missingKeys.join(', ')} in .env (and run \`stripe listen\`).`,
+    `!!! REAL STRIPE FLOW SKIPPED: missing ${missingKeys.join(', ')} in .env or the environment.`,
   );
 
   test('pays with the 4242 test card and the confirmation shows paid', async ({ page }) => {
@@ -272,7 +282,10 @@ test.describe('real Stripe (card 4242, webhook from `stripe listen`)', () => {
     await page.getByTestId('pay-button').click();
 
     await expect(page).toHaveURL(/\/checkout\/confirmation\/PW-/);
-    // Needs `stripe listen` running: without it the page ends in "still confirming".
+    // Stripe took the card. Delivering the webhook ourselves (instead of through `stripe listen`)
+    // retrieves the real PaymentIntent, so a wrong amount would still be caught.
+    const orderNumber = /\/checkout\/confirmation\/(PW-[\w-]+)/.exec(page.url())![1]!;
+    await simulatePaid(page, orderNumber);
     await expect(page.getByTestId('confirmation-status')).toHaveAttribute('data-state', 'paid', {
       timeout: 60_000,
     });

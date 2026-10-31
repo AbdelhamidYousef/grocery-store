@@ -22,6 +22,12 @@ export interface AppConfig {
   rateLimit: RateLimitOptions;
   /** Stricter limit for credential endpoints (login, register, password change). */
   authRateLimit: RateLimitOptions;
+  /**
+   * Switches on POST /test/webhooks/simulate (only ever mounted when `nodeEnv` is `test`).
+   * `secret` is what the caller must send; `realStripe` says the payment gateway is the real
+   * Stripe client, so the simulator must read the amounts from Stripe instead of the database.
+   */
+  testHooks?: { secret: string; realStripe: boolean };
 }
 
 export interface AppDeps {
@@ -90,6 +96,7 @@ export function createApp({ logger, pingDb, payments, outbox, config }: AppDeps)
       payments,
       outbox,
       nodeEnv: config.nodeEnv,
+      ...(config.testHooks && { testHooks: config.testHooks }),
     }),
   );
 

@@ -101,3 +101,17 @@ describe('ENABLE_JOBS', () => {
     expect(problems({ ...base, ENABLE_JOBS: 'yes' })).toEqual(['ENABLE_JOBS']);
   });
 });
+
+describe('TEST_HOOK_SECRET', () => {
+  it('is optional, and an empty value counts as absent', () => {
+    expect(problems(base)).toEqual([]);
+    expect(envSchema.parse({ ...base, TEST_HOOK_SECRET: '' }).TEST_HOOK_SECRET).toBeUndefined();
+  });
+
+  it('accepts a long secret and rejects a short one', () => {
+    expect(
+      envSchema.parse({ ...base, TEST_HOOK_SECRET: 'a-long-enough-secret' }).TEST_HOOK_SECRET,
+    ).toBe('a-long-enough-secret');
+    expect(problems({ ...base, TEST_HOOK_SECRET: 'short' })).toEqual(['TEST_HOOK_SECRET']);
+  });
+});

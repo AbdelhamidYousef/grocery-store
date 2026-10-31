@@ -16,6 +16,12 @@ try {
 // DATABASE_URL=postgres://.../other_db: it is what the e2e API uses (see below).
 // The API needs the dev database up and seeded (`docker compose up -d && pnpm db:migrate &&
 // pnpm db:seed`). Override the ports with E2E_API_PORT / E2E_WEB_PORT if they are taken.
+// The test-only payment simulator refuses callers without this secret. A throwaway value is fine
+// here: the e2e API is started by this config on localhost, and CI overrides nothing. Set before
+// the workers start so the tests (which send it) and the API (which checks it) agree. `||=` also
+// replaces the empty value a copied .env.example carries.
+process.env.TEST_HOOK_SECRET ||= 'e2e-test-hook-secret-not-a-real-secret';
+
 const API_PORT = process.env.E2E_API_PORT ?? '3100';
 const WEB_PORT = process.env.E2E_WEB_PORT ?? '5273';
 const WEB_ORIGIN = `http://localhost:${WEB_PORT}`;
@@ -44,6 +50,7 @@ export default defineConfig({
         // outbox retries later and that assertion skips itself.
         SMTP_URL: process.env.SMTP_URL || 'smtp://127.0.0.1:1025',
         PORT: API_PORT,
+        TEST_HOOK_SECRET: process.env.TEST_HOOK_SECRET,
         // The CSRF check compares the browser's Origin with this.
         WEB_ORIGIN,
         // Checkout fills the cart and pays more than the 300/min default allows when specs run

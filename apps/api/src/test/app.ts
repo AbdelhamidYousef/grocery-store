@@ -22,6 +22,7 @@ function withTrackedKicks(real: Outbox): Outbox {
 }
 
 export const TEST_ORIGIN = 'http://localhost:5173';
+export const TEST_HOOK_SECRET = 'unit-test-hook-secret-0000';
 
 // One way to build the app in tests: silent logger, a limit too high to trip by accident, and the
 // same origin every test sends. Tests override only what they are about.
@@ -55,6 +56,7 @@ export function makeTestApp(
       cookieSecret: 'test-cookie-secret-test-cookie-secret',
       rateLimit: { windowMs: 60_000, limit: 100_000 },
       authRateLimit: { windowMs: 60_000, limit: 100_000 },
+      testHooks: { secret: TEST_HOOK_SECRET, realStripe: false },
       ...opts.config,
     },
   });

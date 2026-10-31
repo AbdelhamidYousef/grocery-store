@@ -426,3 +426,12 @@ Learn: coverage numbers say which code never ran, not whether it is tested well;
 1. Services were already above 90 % before any new test. What did the coverage report show instead, and why is a high percentage still not proof of good tests?
 2. Why did the "deadlock detected" appear only under coverage, and why is awaiting the tracked drains better than retrying the failed test?
 3. The Stripe gateway tests replace the SDK with spies. Which behaviours of ours do they prove, and which one thing do they leave to the live test?
+
+### 11.2 — guarded webhook simulator
+`POST /test/webhooks/simulate` (it already existed from phase 8) now needs the header `X-Test-Hook-Secret` to equal the `TEST_HOOK_SECRET` environment variable (16+ characters, documented in `.env.example`); a missing or wrong value is a 403 before the body is even validated, and without a configured secret the route is not mounted at all. When a real Stripe key is configured, the route first retrieves the real PaymentIntent and builds the event from Stripe's amounts, so the handler's amount check compares what Stripe really received with the order; with the fake gateway it still reads our own payment row. The e2e config sets a throwaway secret and the checkout spec sends it; the real-card test now needs only the two Stripe keys and delivers its webhook through the simulator instead of `stripe listen`.
+Learn: a test-only door is still a door, so it checks a secret and stays shut by default; comparing digests with `timingSafeEqual` avoids both the length error and leaking how much matched.
+
+#### 11.2 quiz
+1. Under which two conditions does the simulator route exist, and what does a caller without the secret get?
+2. Why does the simulator refuse `amountReceivedCents` when a real Stripe key is set?
+3. Why does the simulated e2e group skip itself when `STRIPE_SECRET_KEY` is set?

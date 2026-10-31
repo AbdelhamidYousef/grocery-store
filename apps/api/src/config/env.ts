@@ -54,6 +54,16 @@ export const envSchema = z
       'whsec_',
       'signing secret from `stripe listen` or the dashboard',
     ),
+    // Shared secret for the test-only payment simulator (POST /test/webhooks/simulate), sent in the
+    // `X-Test-Hook-Secret` header. The route exists only when NODE_ENV=test AND this is set, so a
+    // server started in test mode by mistake still cannot be told to mark orders paid by anyone
+    // who does not know it. 16+ characters; never needed in development or production.
+    TEST_HOOK_SECRET: z
+      .string()
+      .trim()
+      .optional()
+      .transform((v) => (v === '' ? undefined : v))
+      .pipe(z.string().min(16, 'use at least 16 characters').optional()),
     // Read by the web build, not the API; validated here too so one typo'd `.env` fails in one place.
     STRIPE_PUBLISHABLE_KEY: testKey('pk_test_', 'test-mode publishable key only'),
     // Email. Development: Mailpit (smtp://127.0.0.1:1025, see docker-compose.yml) when SMTP_URL is

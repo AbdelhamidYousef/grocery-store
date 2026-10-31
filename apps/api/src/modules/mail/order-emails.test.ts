@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { db } from '../../db/client.ts';
 import { emailOutbox } from '../../db/schema/index.ts';
 import { MemoryTransport } from '../../lib/mailer.ts';
-import { makeTestApp } from '../../test/app.ts';
+import { makeTestApp, TEST_HOOK_SECRET } from '../../test/app.ts';
 import { createShippingMethods } from '../../test/factories.ts';
 import { FakeStripe } from '../../test/fake-stripe.ts';
 import { placeOrder, simulate } from '../../test/orders.ts';
@@ -72,6 +72,7 @@ describe('order emails through the outbox', () => {
     const b = await placeOrder(app);
     await request(app)
       .post('/api/v1/test/webhooks/simulate')
+      .set('X-Test-Hook-Secret', TEST_HOOK_SECRET)
       .send({ orderNumber: b.number, amountReceivedCents: 1 });
     expect(await queued()).toEqual([]);
   });
