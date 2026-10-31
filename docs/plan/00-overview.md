@@ -159,6 +159,32 @@ ecommerce/
 | 11 | Testing hardening + CI complete | `phase-11-testing-ci.md` | 1–2 sessions |
 | 12 | Deployment (free tiers) | `phase-12-deployment.md` | 1 session |
 | 13 | Polish, README, demo, accessibility | `phase-13-polish-readme.md` | 1 session |
+| 14 | Catalogue depth (brands, collections, badges, unit price, trial sizes, 120 products) | `phase-14-catalogue-depth.md` | 2–3 sessions |
+| 15 | Discovery & navigation (pet profiles, mega-menu, autocomplete, filters, gift finder) | `phase-15-discovery.md` | 2–3 sessions |
+| 16 | Product page depth (tabs, feeding calculator, size guide, bundles, delivery estimate) | `phase-16-pdp-depth.md` | 2–3 sessions |
+| 17 | Reviews & customer photos | `phase-17-reviews-ugc.md` | 2 sessions |
+| 18 | Promotions engine (`priceCart`, codes, flash sales, Omnibus, member prices) | `phase-18-promotions.md` | 2–3 sessions |
+| 19 | Loyalty & retention (jobs, points, referrals, newsletter, wishlist, alerts) | `phase-19-loyalty-retention.md` | 3 sessions |
+| 20 | Content & trust (homepage, guides, help, tracking, legal, safety notices) | `phase-20-content-trust.md` | 2–3 sessions |
+| 21 | Store views, languages & currencies | `phase-21-stores-languages.md` | 3 sessions |
+| 22 | Post-purchase & operations (returns, vet approval, analytics) | `phase-22-post-purchase-ops.md` | 2–3 sessions |
+| 23 | Physical stores & services (finder, click & collect, grooming) | `phase-23-stores-services.md` | 2–3 sessions |
+| 24 | AI-agent-ready store (WebMCP) | `phase-24-agent-ready.md` | 1 session |
+
+## Expansion waves (phases 14–24)
+
+Build order, merge order inside each wave, one phase per branch:
+1. **Wave 1: 14, then 20.** 14 owns the schema everything else builds on (brands, tags, pet enum, `isPaidOrLater`, order events). 20 depends hard on 14 (Bestseller query, seasonal slot) and owns the homepage slot registry.
+2. **Wave 2: 15, 16, 17.** 15 first (pets, menu); 16 next (PDP, bundles); 17 last (reviews touch cards and PDP). All register homepage blocks as slots; none edits `HomePage`.
+3. **Wave 3: 18, 19, 22.** 18 first (`priceCart`, the single price owner); 19 next (job runner, points, credits plug into the engine); 22 last (state machine, gateway refunds, vet gate). 19 and 22 do not import each other: 22 emits `onOrderRefunded`, 19 subscribes (event registry from 14).
+4. **Wave 4: 23, 24.** 23 after 22 (both extend the order status table). 24 last among them: it wraps the finished API client and `searchHelp` from 20.
+5. **Wave 5: 21.** Touches every string and price, so it merges last.
+
+No wave change was needed. The only real cycle found (19 reversal vs 22 refunds) is removed by the event registry; the 20/14 homepage overlap is removed by the registry plus merge order 14, 20.
+
+Migration numbering: migration files are `00XX_<name>.sql` in the phase docs; the number is assigned **at merge time, in merge order, after the last existing migration** (the last one today is `0007_inventory_adjustments`, so wave 1 gives `0008_catalogue_depth`, then `0009_content_trust`, and so on). Never reserve numbers in advance and never renumber a merged one; rebase and regenerate the unmerged branch's migration instead.
+
+**Parked until Stripe keys:** autoship subscriptions, gift cards, wallets / pay-later. **Deferred to the end:** product compare (not planned yet). Until keys exist, every payment path in phases 14–24 runs through the simulated gateway.
 
 Supporting docs: `01-data-model.md` (every table and column), `02-api-contract.md` (every endpoint),
 `03-conventions.md` (code style, commit style, testing rules, definition of done),

@@ -92,3 +92,45 @@ Error codes (string enum in shared): `VALIDATION_ERROR` 400 · `UNAUTHENTICATED`
 - Rate limit: 300 req / 15 min per IP globally, stricter on auth.
 - Helmet defaults; CORS allows only `WEB_ORIGIN` with credentials.
 - Timeouts: DB query 5 s, Stripe 10 s, whole request 15 s.
+
+## Expansion endpoints (phases 14–24)
+Added by the expansion phases; shapes follow the same Zod-in-shared rule. New error code `TRIAL_LIMIT` 409 (14). Detail lives in each phase file. "Admin" = role `admin`, audit logged.
+
+| Method | Path | Auth | Notes | Phase |
+| --- | --- | --- | --- | --- |
+| GET | `/brands`, `/brands/:slug`; `/collections`, `/collections/:slug`; `/tags` | — | collection outside its window = 404 | 14 |
+| GET | `/products` | — | new filters `brand`, `tag`, `collection`, `badge`; sort `unit_price_asc`; items add `badges`, `unitPrice`, `swatches`; facets add price range and chips (15) | 14, 15 |
+| CRUD | `/admin/brands`, `/admin/collections`; PUT `/admin/collections/:id/products`, `/admin/products/:id/tags` | admin | | 14 |
+| GET/POST | `/account/pets`; PATCH/DELETE `/account/pets/:id`; POST `/account/pets/merge` | user | guest pets merged on login | 15 |
+| GET | `/search/suggest?q=`, `/navigation` | — | suggest rate limited 60/min/IP | 15 |
+| CRUD | `/admin/menu-promos` | admin | | 15 |
+| GET | `/products/:slug` | — | extended: specs, constituents, faqs, feedingTable, sizeGuide, bundles, relations, `safetyNotices` (20) | 16, 20 |
+| GET | `/products/by-ids`, `/products/:slug/recommendations` | — | | 16 |
+| POST | `/cart/items/bulk` | guest/user | all-or-nothing | 16 |
+| CRUD | `/admin/size-guides`, `/admin/bundles`; PUT `/admin/products/:id/content` | admin | | 16 |
+| GET/POST | `/products/:slug/reviews`; POST `/reviews/:id/helpful`; GET `/gallery` | public / auth | multipart photos on POST | 17 |
+| GET/POST/DELETE | `/admin/reviews` (+ `POST /:id/approve\|reject`), `/admin/gallery` | admin | | 17 |
+| POST/DELETE | `/cart/code` | cart identity | apply or remove code; `GET /cart` now returns the `priceCart` output | 18 |
+| GET | `/promotions/banner`, `/promotions/rules` | — | banner includes `serverNow` | 18 |
+| CRUD | `/admin/discount-codes`, `/admin/flash-sales`, `/admin/bulk-tiers`, `/admin/gift-rule` | admin | | 18 |
+| POST | `/internal/jobs/run` | secret header | cron entry point | 19 |
+| GET | `/me/points`, `/me/referral`, `/me/buy-again`; POST `/me/points/donate`, `/me/rewards/:id/redeem`, `/me/orders/:id/reorder` | user | | 19 |
+| GET | `/rewards`, `/charity/total`, `/wishlist/shared/:token` | — | | 19 |
+| POST | `/newsletter/subscribe\|confirm\|unsubscribe`, `/stock-alerts`; DELETE `/stock-alerts/:token` | — | double opt-in, token | 19 |
+| GET/POST/DELETE | `/wishlist/items`; POST `/wishlist/share` | cart-style | | 19 |
+| CRUD | `/admin/rewards`; POST `/admin/points/adjust` | admin | | 19 |
+| GET | `/home`, `/guides`, `/guides/:slug`, `/guide-categories`, `/help`, `/testimonials`, `/safety-notices/active` | — | `/help?topic=&q=` is the contract for phase 24's tool | 20 |
+| POST | `/orders/track`, `/withdrawals` | — | rate limited; identical 404 for wrong email and unknown order | 20 |
+| CRUD | `/admin/guides`, `/admin/help-articles`, `/admin/testimonials`, `/admin/safety-notices` (+ `POST /:id/notify`), `/admin/withdrawals`; PUT `/admin/home-content/:key` | admin | | 20 |
+| GET | `/store-views` | — | store view registry (languages/currencies); not physical stores | 21 |
+| any | catalogue reads, `PATCH /cart`, `POST /checkout` | — | optional `X-Store-View` header, `Vary` on it | 21 |
+| GET/PUT | `/admin/translations/:entity/:id[/:locale]`, `/admin/translations/missing`; PUT `/admin/variants/:id/prices` | admin | | 21 |
+| POST/GET | `/orders/:id/returns` | owner | 30-day window | 22 |
+| GET/POST | `/admin/returns`, `/admin/returns/:id/approve\|reject\|receive\|refund`, `/admin/vet-approvals` (+ `POST /:orderId/approve\|reject`) | admin | | 22 |
+| POST | `/checkout` | — | accepts `vetDetails` when the cart needs it (22) and `pointsToRedeem`, `roundUp` (19) | 19, 22 |
+| GET | `/admin/analytics`, `/admin/analytics/export.csv` | admin | integer cents, CSV injection escaped | 22 |
+| GET | `/stores`, `/stores/:slug`, `/products/:slug/store-availability`, `/grooming/services`, `/grooming/availability` | — | physical stores; `/stores?near=` | 23 |
+| POST/GET | `/grooming/bookings`; POST `/grooming/bookings/:id/cancel` | user | | 23 |
+| CRUD | `/admin/stores` (+ hours, closures), `/admin/grooming-services`; PUT `/admin/stores/:id/stock`; GET/POST `/admin/grooming/bookings`; POST `/admin/orders/:id/pickup-ready\|collected` | admin | | 23 |
+
+Phase 24 adds no endpoints (browser-side tools over the existing client).

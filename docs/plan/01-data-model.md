@@ -232,3 +232,68 @@ Prices are **not** stored on cart items; the cart is re-priced from the catalog 
 - 2 shipping methods: standard (base 490, per kg 100, free over 4900), express (base 990, per kg 200).
 - 1 admin user and 2 customers with obviously fake emails (`admin@pawsome.test`), password printed by the seed script, hashed in DB.
 - Seed is idempotent (`ON CONFLICT (slug) DO UPDATE`), lives in `apps/api/src/db/seed/`, run with `pnpm --filter api db:seed`.
+
+## Expansion tables and columns (phases 14–24)
+Added by the expansion phases; each phase's migration is numbered at merge time (see `00-overview.md`, "Expansion waves"). Same conventions as above (uuid pk, timestamps, integer cents). The phase file is the detail source.
+
+### New tables
+| table | key columns | phase |
+| --- | --- | --- |
+| brands | name, slug unique, tagline, story, accent_color, logo_url | 14 |
+| collections | name, slug unique, kind manual, starts_at/ends_at null (seasonal window), active | 14 |
+| collection_products | collection_id, product_id, sort_order | 14 |
+| tags, product_tags | tags(name, slug: health needs); product_tags(product_id, tag_id) | 14 |
+| trial_redemptions | customer_key (user id or lowercase email), variant_id, order_id; unique partial `(customer_key, variant_id)` | 14 |
+| pets | user_id, name, species (shared `PET_VALUES`), birthday date null, approx_age_months null, size null; max 8 per user | 15 |
+| menu_promos | pet species null, title, subtitle, image_url, image_alt, link, sort_order, active | 15 |
+| variant_constituents | variant_id, key, value_bp (basis points) | 16 |
+| product_faqs, product_specs | per-product Q&A and key/value specs, sort_order | 16 |
+| size_guides | slug, title, rows jsonb, howto_md, tip | 16 |
+| feeding_rows | product_id, pet_weight_g_min/max, daily_g, life_stage | 16 |
+| product_relations | product_id, related_id, kind bought_together or related, sort_order | 16 |
+| bundle_items | bundle_variant_id, component_variant_id, qty (bundle price = its variant's `price_cents`) | 16 |
+| reviews | product_id, user_id, order_id null, rating 1-5, title, body, verified_buyer, pet context, status pending/approved/rejected, helpful_count; unique `(user_id, product_id)` | 17 |
+| review_photos, review_votes | review_photos(review_id, path, position); review_votes(review_id, user_id) | 17 |
+| gallery_photos, gallery_photo_products | path, caption, pet_name, sort_order, published; photo-to-product links | 17 |
+| discount_codes, discount_redemptions | code citext unique, kind percent/fixed/free_shipping, value, min_spend_cents, caps, flags, owner_user_id null; redemption unique `(code_id, order_id)` | 18 |
+| bulk_tiers, gift_rules | tiers (min_cents, percent); gift rule (threshold_cents, variant_id) | 18 |
+| flash_sales, flash_sale_items | window and status; items (variant_id, sale_price_cents, reference_cents = Omnibus 30-day low) | 18 |
+| price_history | variant_id, price_cents, kind base/sale/member, valid_from; append-only | 18 |
+| order_promotions | order_id, type, ref_id, label, cents (snapshot) | 18 |
+| job_runs | name, run_key unique, finished_at | 19 |
+| points_ledger | user_id, delta, kind earn/redeem/reversal/bonus/donate/adjust, order_id null, ref_key unique; balance = SUM(delta) | 19 |
+| rewards | name, cost_points, kind, value_cents, active | 19 |
+| charities, donations | fictional charity; donations per order or points | 19 |
+| referral_codes, referrals | code per user; referrer, referred_user_id unique, status pending/qualified/rejected | 19 |
+| newsletter_subscribers | email citext unique, status pending/confirmed/unsubscribed, token_hash, pets jsonb, consent_text | 19 |
+| stock_alerts | variant_id, email, status waiting/sent/cancelled, token | 19 |
+| pet_messages | pet_id, kind, period_key; unique (once per pet per period) | 19 |
+| wishlists, wishlist_items | user_id or guest_token, share_token null; items unique per product/variant | 19 |
+| guide_categories, guides, guide_products | Markdown guides: slug, title, summary, body_md, status, published_at; guide-to-product links | 20 |
+| help_articles | topic, question, answer_md, generated tsvector + GIN | 20 |
+| testimonials | name, pet, rating, quote, is_featured | 20 |
+| safety_notices, safety_notice_variants, safety_notice_deliveries | recall notices with window, severity, affected variants, per-email notified_at | 20 |
+| withdrawal_requests | order ref, email, items, reason, status new/acknowledged/done | 20 |
+| home_content | key, json (hero slides, promo tile) | 20 |
+| product_translations, category_translations, brand_translations, collection_translations, guide_translations | PK `(entity_id, locale)`, unique `(locale, slug)`; English stays in base columns | 21 |
+| variant_prices | variant_id, currency, price_cents, compare_at_cents | 21 |
+| returns, return_items | returns(order_id, user_id, status requested/approved/rejected/received/refunded, reason, refund_cents, simulated); return_items(order_item_id, quantity, refund_cents) | 22 |
+| order_vet_details | order_id pk, vet_name, clinic, vet_email, decision, confirmation_code | 22 |
+| stores, store_hours, store_closures | physical shops (not store views): address, lat/lng numeric(9,6), timezone, grooming_stations; hours by weekday; closure dates | 23 |
+| geo_places | seeded cities and postcode prefixes with coordinates (store finder) | 23 |
+| store_stock | store_id, variant_id, quantity, reserved; checks `quantity >= 0`, `reserved <= quantity` | 23 |
+| grooming_services, store_services, grooming_bookings | services (duration, price_cents display-only); bookings unique `(store_id, station_no, starts_at)` | 23 |
+
+### New columns and enum values
+| table.column | notes | phase |
+| --- | --- | --- |
+| products.brand_id, is_eco, badge_new_until, is_bestseller_override | `attributes.brand` migrated into `brand_id`; pet values gain `reptile` | 14 |
+| product_variants.net_amount, net_unit, is_trial, swatch_hex | net amount in integer g or ml | 14 |
+| products.size_guide_id, delivery_note, kind (simple/bundle) | | 16 |
+| products.rating_count, rating_sum | updated in the moderation transaction | 17 |
+| product_variants.member_price_cents | null = none | 18 |
+| order_items.discount_cents | order-level discounts and credits allocated per line; source for refund amounts | 18 |
+| orders.donation_cents | total check constraint extended | 19 |
+| carts.currency, carts.store_view; orders.store_view, orders.locale | promotion thresholds become `{currency: cents}` jsonb maps | 21 |
+| products.requires_vet_approval; `order_status` + `awaiting_vet_approval` | `paid -> awaiting_vet_approval \| processing`, `awaiting_vet_approval -> processing \| cancelled` | 22 |
+| shipping_methods.kind (delivery/pickup); orders.pickup_store_id, pickup_code; inventory_adjustments.store_id; `order_status` + `ready_for_pickup` | `processing -> ready_for_pickup -> delivered \| cancelled` | 23 |
