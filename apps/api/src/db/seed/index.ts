@@ -21,7 +21,7 @@ import {
 import { HOUSE_BRAND, brands } from './brands.ts';
 import { categories } from './categories.ts';
 import { collections, windowDates } from './collections.ts';
-import { expandVariants, stockLevels } from './expand.ts';
+import { FORCED_STOCK, expandVariants, stockLevels } from './expand.ts';
 import { imageRowsFor } from './images.ts';
 import { products } from './products.ts';
 import { validateSeed } from './schema.ts';
@@ -198,7 +198,10 @@ export async function runSeed(now = new Date()) {
           if (!id) throw new Error(`variant ${v.sku} was not inserted`);
           // A sample is the way in to a product, so it is never the sold-out one (the random
           // stock levels would otherwise leave some samples at 0 or 3).
-          return { variantId: id, quantity: v.isTrial ? 50 : (stock[i] ?? 0) };
+          return {
+            variantId: id,
+            quantity: FORCED_STOCK[v.sku] ?? (v.isTrial ? 50 : (stock[i] ?? 0)),
+          };
         }),
       )
       .onConflictDoNothing();

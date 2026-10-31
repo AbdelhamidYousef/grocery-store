@@ -249,6 +249,16 @@ export function imageRows(product: ProductSeed) {
   });
 }
 
+/**
+ * Stock that is fixed on purpose, whatever the random sequence says. The sequence is index-based, so
+ * adding a product anywhere moves every later variant's stock; the e2e suite and demos need one
+ * sold-out product and one low-stock variant to stay put.
+ */
+export const FORCED_STOCK: Readonly<Record<string, number>> = {
+  'PW-FISH-LED': 0, // the whole product is sold out
+  'PW-BIRD-BELL-GREEN': 3, // low stock (below the default alert of 5)
+};
+
 /** Small seeded PRNG (mulberry32): "random" stock that is identical on every run. */
 export function seededRandom(seed: number): () => number {
   let a = seed;

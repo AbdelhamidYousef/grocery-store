@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { categories } from './categories.ts';
-import { expandVariants, imageRows, stockLevels } from './expand.ts';
+import { FORCED_STOCK, expandVariants, imageRows, stockLevels } from './expand.ts';
 import { buildImagesBrief, imageRowsFor } from './images.ts';
 import { products } from './products.ts';
 
@@ -78,6 +78,13 @@ describe('seed catalog data', () => {
         expect([img.width, img.height]).toEqual([1200, 1200]);
       }
     }
+  });
+
+  it('forces the sold-out and low-stock fixtures onto SKUs that exist', () => {
+    const skus = new Set(variants.map((v) => v.sku));
+    for (const sku of Object.keys(FORCED_STOCK)) expect(skus.has(sku), sku).toBe(true);
+    expect(Object.values(FORCED_STOCK).some((q) => q === 0)).toBe(true);
+    expect(Object.values(FORCED_STOCK).some((q) => q > 0 && q < 5)).toBe(true);
   });
 
   it('produces the same stock on every run, with some sold out and some low', () => {

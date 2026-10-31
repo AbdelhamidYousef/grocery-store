@@ -13,7 +13,13 @@ test('browse: home, category, filter by material, open a product, change variant
   const allDogs = await cards.count();
   expect(allDogs).toBeGreaterThan(1);
 
-  // Filter by material: the checkbox label is "<value> (<count>)".
+  // Filter by material: the checkbox label is "<value> (<count>)". Long lists fold their smaller
+  // entries behind "Show N more", so open the Material group first.
+  await page
+    .getByTestId('filters')
+    .getByRole('group', { name: 'Material' })
+    .getByRole('button', { name: /^Show \d+ more/ })
+    .click();
   await page
     .getByTestId('filters')
     .getByRole('checkbox', { name: /^Natural rubber/ })

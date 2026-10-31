@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { db } from '../client.ts';
 
@@ -22,6 +22,11 @@ async function counts() {
       (select count(*)::int from shipping_methods) as shipping`);
   return rows[0];
 }
+
+// Each run hashes the demo passwords with argon2 and writes ~125 products, ~450 variants and their
+// joins; on a busy machine that is several seconds, and a test that times out keeps running into the
+// next one's truncate, so the limit is generous rather than tight.
+vi.setConfig({ testTimeout: 60_000 });
 
 describe('seed', () => {
   it('can run twice without creating duplicates', async () => {
