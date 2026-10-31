@@ -7,6 +7,7 @@ import { createMerchandisingAdminRouter } from '../merchandising/admin-router.ts
 import { createSafetyAdminRouter } from '../safety/admin-router.ts';
 
 import { auditMutations } from './audit.ts';
+import { createAdminContentRouter } from './content/router.ts';
 import { createAdminOrdersRouter } from './orders/router.ts';
 import { createProductsRouter } from './products/router.ts';
 import { createStatsRouter } from './stats/router.ts';
@@ -25,6 +26,7 @@ export function createAdminRouter(deps: { payments: PaymentGateway; outbox: Outb
   admin.use(createMerchandisingAdminRouter());
   admin.use(createAdminOrdersRouter(deps));
   admin.use(createSafetyAdminRouter(deps));
+  admin.use(createAdminContentRouter());
   router.use('/admin', admin);
   return router;
 }

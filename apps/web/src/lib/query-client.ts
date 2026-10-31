@@ -90,6 +90,18 @@ export const keys = {
     orders: ['admin', 'orders'] as const,
     orderList: (params: AdminOrderListParams) => ['admin', 'orders', 'list', params] as const,
     order: (number: string) => ['admin', 'orders', 'detail', number] as const,
+    // Content management (guides, help, testimonials, safety notices, withdrawals, messages).
+    content: {
+      guides: ['admin', 'content', 'guides'] as const,
+      guide: (id: string) => ['admin', 'content', 'guides', id] as const,
+      help: ['admin', 'content', 'help'] as const,
+      testimonials: ['admin', 'content', 'testimonials'] as const,
+      safety: ['admin', 'content', 'safety'] as const,
+      safetyNotice: (id: string) => ['admin', 'content', 'safety', id] as const,
+      withdrawals: ['admin', 'content', 'withdrawals'] as const,
+      messages: ['admin', 'content', 'messages'] as const,
+      home: ['admin', 'content', 'home'] as const,
+    },
   },
   safety: { active: ['safety', 'active'] as const },
   help: {

@@ -11,6 +11,13 @@ const LINKS = [
   { to: '/admin/brands', label: 'Brands', end: false },
   { to: '/admin/collections', label: 'Collections', end: false },
   { to: '/admin/tags', label: 'Tags', end: false },
+  { to: '/admin/guides', label: 'Guides', end: false },
+  { to: '/admin/help', label: 'Help articles', end: false },
+  { to: '/admin/testimonials', label: 'Testimonials', end: false },
+  { to: '/admin/safety', label: 'Safety notices', end: false },
+  { to: '/admin/withdrawals', label: 'Withdrawals', end: false },
+  { to: '/admin/messages', label: 'Messages', end: false },
+  { to: '/admin/home', label: 'Homepage', end: false },
 ] as const;
 
 // The back office frame: a compact menu above the content on phones (wrapping pills, so it can

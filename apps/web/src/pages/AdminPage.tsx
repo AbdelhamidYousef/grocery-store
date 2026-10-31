@@ -4,6 +4,15 @@ import { Seo } from '../components/Seo';
 import { AdminLayout } from '../features/admin/AdminLayout';
 import { BrandsAdmin } from '../features/admin/BrandsAdmin';
 import { CollectionsAdmin } from '../features/admin/CollectionsAdmin';
+import { GuideEdit } from '../features/admin/content/GuideEdit';
+import { GuidesList } from '../features/admin/content/GuidesList';
+import { HelpAdmin } from '../features/admin/content/HelpAdmin';
+import { HomeAdmin } from '../features/admin/content/HomeAdmin';
+import { MessagesAdmin } from '../features/admin/content/MessagesAdmin';
+import { SafetyEdit } from '../features/admin/content/SafetyEdit';
+import { SafetyList } from '../features/admin/content/SafetyList';
+import { TestimonialsAdmin } from '../features/admin/content/TestimonialsAdmin';
+import { WithdrawalsAdmin } from '../features/admin/content/WithdrawalsAdmin';
 import { Dashboard } from '../features/admin/Dashboard';
 import { OrderDetail } from '../features/admin/OrderDetail';
 import { OrdersList } from '../features/admin/OrdersList';
@@ -27,6 +36,17 @@ export default function AdminPage() {
         <Route path="brands" element={<BrandsAdmin />} />
         <Route path="collections" element={<CollectionsAdmin />} />
         <Route path="tags" element={<TagsAdmin />} />
+        <Route path="guides" element={<GuidesList />} />
+        <Route path="guides/new" element={<GuideEdit />} />
+        <Route path="guides/:id" element={<GuideEdit />} />
+        <Route path="help" element={<HelpAdmin />} />
+        <Route path="testimonials" element={<TestimonialsAdmin />} />
+        <Route path="safety" element={<SafetyList />} />
+        <Route path="safety/new" element={<SafetyEdit />} />
+        <Route path="safety/:id" element={<SafetyEdit />} />
+        <Route path="withdrawals" element={<WithdrawalsAdmin />} />
+        <Route path="messages" element={<MessagesAdmin />} />
+        <Route path="home" element={<HomeAdmin />} />
         <Route path="*" element={<AdminNotFound />} />
       </Route>
     </Routes>
