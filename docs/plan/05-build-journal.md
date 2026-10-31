@@ -135,3 +135,8 @@ Colours live as plain CSS variables in `src/styles/tokens.css`; `tailwind.config
 
 ## Product images (between phases 3 and 5)
 The 63 product photos were generated with Gemini in the browser, one fresh chat per product so the close-up (`-2`) shows the same item as the main shot. A shared style line (pastel background in the pet's accent colour, no text, no animals) keeps the set consistent. `pnpm images:process` cover-crops each to a 1200px and a 600px WebP; the 600px one feeds `srcset` on product cards so phones download a quarter of the pixels. Every image and its exact prompt is listed in `apps/web/public/products/CREDITS.md`, which is the AI-image version of a licence record.
+## Phase 6 (API) — Auth and accounts
+
+### 6.1 — password hashing + session store
+`password.ts` wraps argon2id (64 MiB, 3 passes, 1 lane) and also owns a lazily computed dummy hash that login will verify against when an email is unknown, so both failures cost the same time. `sessions.ts` mints a 32-byte random token, stores only its SHA-256 in `sessions.id`, and `getSession` joins the user with explicit columns (the password hash can never leak upward), rejects expired rows in the query, and slides the expiry at most once an hour. `deleteOtherSessions` and `purgeExpired` cover password-change revocation and cron-less cleanup.
+Learn: argon2id beats bcrypt because its memory cost makes GPU cracking expensive and bcrypt is capped at 72 bytes; a session fixation attack plants a known session id before login, so login must always issue a fresh one; sliding expiry keeps active users signed in without a write on every request.
