@@ -454,3 +454,12 @@ Learn: a secret scan must read history, because deleting a leaked key from the l
 1. Why does the gitleaks job use `fetch-depth: 0`, and how were the two local findings handled without hiding real keys?
 2. Which four checks should `main` require, and why is the audit not one of them?
 3. What happens to branch protection if someone renames a job in `ci.yml`?
+
+### 11.5 — load sanity
+I started the built API (`node dist/index.js`, development mode with silent logs and no background jobs, on port 3200) against the seeded dev database (47 products, 269 variants) and ran `pnpm dlx autocannon -c 20 -d 10`: `GET /api/v1/products` gave about 500 requests per second (p50 37 ms, p99 63 ms) and the filtered query (`category=dog-toys&inStock=true&sort=price_asc&minPrice=500&maxPrice=3000`) about 490 (p50 39 ms, p99 59 ms), no errors or non-2xx, on a laptop shared with other jobs. `EXPLAIN ANALYZE` of the filtered list query shows sequential scans on `products`, `product_variants` and `inventory`, but on 47 to 269 rows an index is slower than reading four pages, the whole query runs in 0.76 ms, and it already uses the indexes that matter (the category slug, primary keys, the variant-by-product index); so no index was added. The honest caveat is that the variant summary aggregates every active variant on each request, which grows with the catalog and is not an indexing problem; a cache or a materialised summary would be the next step if the catalog grew a hundred times.
+Learn: a seq scan is not a bug, it is the planner choosing the cheapest plan for a small table; read `actual time` and row counts before adding an index, and measure on data the size you expect.
+
+#### 11.5 quiz
+1. Why is a sequential scan on `products` fine here, and at what point would you revisit it?
+2. The request takes about 40 ms but the query 0.76 ms. Where does the rest go?
+3. Why was autocannon run through `pnpm dlx` instead of added as a dependency?
