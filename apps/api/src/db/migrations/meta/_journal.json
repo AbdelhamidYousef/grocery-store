@@ -8,6 +8,13 @@
       "when": 1793424173702,
       "tag": "0000_base_extensions_and_triggers",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793424229177,
+      "tag": "0001_users_sessions_addresses",
+      "breakpoints": true
     }
   ]
 }
