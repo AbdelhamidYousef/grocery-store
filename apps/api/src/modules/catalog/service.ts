@@ -1,4 +1,11 @@
-import type { Category, CategoryNode } from '@store/shared';
+import {
+  FACET_KEYS,
+  type Category,
+  type CategoryNode,
+  type ProductCard,
+  type ProductListQuery,
+  type ProductListResponse,
+} from '@store/shared';
 
 import { notFound } from '../../lib/errors.ts';
 
@@ -45,4 +52,59 @@ export async function getCategory(slug: string): Promise<CategoryNode> {
     self,
     rows.filter((r) => r.parentId === self.id),
   );
+}
+
+// ---------- product list ----------
+
+function toCard(row: repo.ProductCardRow, image: repo.ProductImageRow | undefined): ProductCard {
+  // Only the facet keys leave the API on a card: the jsonb may hold internal keys (optionKeys).
+  const attributes: ProductCard['attributes'] = {};
+  for (const key of FACET_KEYS) {
+    const value = row.attributes[key];
+    if (value !== undefined) attributes[key] = value;
+  }
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    categorySlug: row.categorySlug,
+    image: image
+      ? {
+          id: image.id,
+          url: image.url,
+          alt: image.alt,
+          width: image.width,
+          height: image.height,
+          variantId: image.variantId,
+        }
+      : null,
+    price: { minCents: row.minCents, maxCents: row.maxCents, currency: row.currency },
+    inStock: row.inStock,
+    attributes,
+  };
+}
+
+export async function listProducts(
+  query: ProductListQuery,
+): Promise<Omit<ProductListResponse, 'facets'>> {
+  // `relevance` only means something with a search term; without one it would be an arbitrary
+  // order, so it quietly becomes the default.
+  const sort = query.sort ?? (query.q ? 'relevance' : 'newest');
+  const { rows, total } = await repo.listProducts({
+    sort,
+    limit: query.limit,
+    offset: (query.page - 1) * query.limit,
+  });
+  const images = await repo.listPrimaryImages(rows.map((r) => r.id));
+  const imageByProduct = new Map(images.map((i) => [i.productId, i]));
+
+  return {
+    data: rows.map((row) => toCard(row, imageByProduct.get(row.id))),
+    meta: {
+      page: query.page,
+      limit: query.limit,
+      total,
+      totalPages: Math.ceil(total / query.limit),
+    },
+  };
 }
