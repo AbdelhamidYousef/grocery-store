@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Container } from '../components/layout/Container';
 import { Seo } from '../components/Seo';
 import { PetTiles } from '../features/catalog/PetTiles';
-import { ProductCard } from '../features/catalog/ProductCard';
+import { ProductGrid, ProductGridSkeleton } from '../features/catalog/ProductGrid';
 import { useProducts } from '../features/catalog/queries';
 import { image600 } from '../lib/images';
 import { TEST_IDS } from '../lib/test-ids';
@@ -93,17 +93,13 @@ export default function HomePage() {
             We could not load new arrivals just now. Please try again in a moment.
           </p>
         ) : (
-          <ul className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {isPending
-              ? Array.from({ length: 8 }, (_, i) => (
-                  <li
-                    key={i}
-                    className="aspect-[3/4] animate-pulse rounded-card bg-line"
-                    aria-hidden
-                  />
-                ))
-              : data.data.map((p) => <ProductCard key={p.id} product={p} />)}
-          </ul>
+          <div aria-busy={isPending}>
+            {isPending ? (
+              <ProductGridSkeleton />
+            ) : (
+              <ProductGrid products={data.data} listId="new-arrivals" />
+            )}
+          </div>
         )}
       </Container>
 
