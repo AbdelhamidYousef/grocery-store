@@ -296,3 +296,9 @@ Learn: the cart is where stale data hurts most, so it is re-read often (15 s) an
 1. You tap "+" three times quickly on a cart line. What does the UI show, how many requests run at once and why, and what happens to the screen if the second one is refused with 409?
 2. The API reports `QTY_REDUCED` once and the header badge fetches the cart before the cart page opens. Why would the notice be lost without the notices cache, and what does the web do with a warning code it does not know?
 3. Why does the cart treat a sold-out line differently from an archived one, and what does that do to the subtotal, the badge and the checkout button?
+
+## Phase 9 (API) — Orders, inventory rules, email
+
+### 9.1 — order state machine
+`modules/orders/state-machine.ts` is a table of allowed moves (`pending_payment -> paid|cancelled`, `paid -> processing|refunded|cancelled`, and so on) plus a pure `stockEffect(from, to)` that says whether stock is committed, released, restocked or left alone. `applyTransition` is the only code that writes an order's status: it checks the table, adjusts inventory, updates the payment row, spends the cart on `paid` and writes the history row, all inside the caller's transaction. The webhook, the sweeper, the checkout rollback and the admin service all call it, and the admin service does the Stripe refund or intent cancel first, before the transaction.
+Learn: an explicit table makes every rule visible and testable in one place, where scattered `if`s let two code paths disagree; do the irreversible network step first and make it idempotent, so a failure afterwards is just a retry.

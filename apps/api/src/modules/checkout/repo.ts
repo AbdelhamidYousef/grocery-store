@@ -82,6 +82,14 @@ export async function commitStock(tx: Tx, variantId: string, qty: number): Promi
     .where(eq(inventory.variantId, variantId));
 }
 
+// Cancel/refund of an order that was paid but not shipped: the units go back on the shelf.
+export async function restockUnits(tx: Tx, variantId: string, qty: number): Promise<void> {
+  await tx
+    .update(inventory)
+    .set({ quantity: sql`${inventory.quantity} + ${qty}` })
+    .where(eq(inventory.variantId, variantId));
+}
+
 export async function findPendingOrderByCart(
   tx: Tx,
   cartId: string,

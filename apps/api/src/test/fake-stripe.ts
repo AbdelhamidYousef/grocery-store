@@ -3,10 +3,11 @@ import type {
   CreatePaymentIntentInput,
   PaymentGateway,
   PaymentIntentInfo,
+  RefundInfo,
   StripeEvent,
 } from '../lib/stripe.ts';
 
-type Method = 'create' | 'update' | 'retrieve' | 'cancel';
+type Method = 'create' | 'update' | 'retrieve' | 'cancel' | 'refund';
 
 // An in-memory PaymentGateway for the order, stock, totals and idempotency tests. It reproduces the
 // one Stripe behaviour those tests lean on (the same idempotency key returns the same intent) and
@@ -18,6 +19,9 @@ export class FakeStripe implements PaymentGateway {
   readonly calls: { method: Method; args: unknown[] }[] = [];
   /** Intent ids that `cancelPaymentIntent` was asked to cancel. */
   readonly cancelled: string[] = [];
+  /** Intent ids refunded through `refundPaymentIntent` (one entry per distinct idempotency key). */
+  readonly refunded: string[] = [];
+  private refundKeys = new Set<string>();
   private failures: Method[] = [];
   private counter = 0;
 
@@ -100,6 +104,18 @@ export class FakeStripe implements PaymentGateway {
       const cancelled = { ...pi, status: 'canceled' };
       this.intents.set(id, cancelled);
       return cancelled;
+    });
+  }
+
+  refundPaymentIntent(id: string, idempotencyKey: string): Promise<RefundInfo> {
+    return Promise.resolve().then(() => {
+      this.enter('refund', id, idempotencyKey);
+      this.require(id);
+      if (!this.refundKeys.has(idempotencyKey)) {
+        this.refundKeys.add(idempotencyKey);
+        this.refunded.push(id);
+      }
+      return { id: `re_fake_${this.refunded.length}`, status: 'succeeded' };
     });
   }
 

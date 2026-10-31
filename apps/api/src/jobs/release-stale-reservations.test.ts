@@ -151,6 +151,7 @@ describe('releaseStaleReservations', () => {
         stripe.setStatus(id, 'succeeded');
         return stripe.retrievePaymentIntent(id);
       },
+      refundPaymentIntent: (id, key) => stripe.refundPaymentIntent(id, key),
       constructWebhookEvent: (b) => stripe.constructWebhookEvent(b),
     };
     expect(await sweep(racing)).toMatchObject({ recovered: 1, released: 0 });

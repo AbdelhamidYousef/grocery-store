@@ -1,4 +1,5 @@
 import type { Tx } from '../../db/client.ts';
+import { applyTransition } from '../orders/transition.ts';
 
 import * as repo from './repo.ts';
 
@@ -33,21 +34,6 @@ export async function cancelPendingOrder(
 ): Promise<boolean> {
   const order = await repo.lockOrder(tx, orderId);
   if (!order || order.status !== 'pending_payment') return false;
-
-  await releaseReservations(tx, await repo.listOrderItems(tx, orderId));
-  await repo.updateOrder(tx, orderId, { status: 'cancelled' });
-
-  const payment = await repo.findPaymentByOrder(tx, orderId);
-  // `payment_status` has no "cancelled" value; `failed` with the reason is the honest fit.
-  if (payment && payment.status !== 'succeeded') {
-    await repo.updatePayment(tx, payment.id, { status: 'failed', lastError: opts.note });
-  }
-  await repo.insertHistory(tx, {
-    orderId,
-    fromStatus: 'pending_payment',
-    toStatus: 'cancelled',
-    actor: opts.actor,
-    note: opts.note,
-  });
+  await applyTransition(tx, order, 'cancelled', opts);
   return true;
 }

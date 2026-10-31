@@ -3,7 +3,8 @@ import { z } from 'zod';
 
 import { db, type Tx } from '../../db/client.ts';
 import type { StripeEvent } from '../../lib/stripe.ts';
-import * as cartRepo from '../cart/repo.ts';
+import { canTransition } from '../orders/state-machine.ts';
+import { applyTransition } from '../orders/transition.ts';
 
 import { cancelPendingOrder } from './orders.ts';
 import * as repo from './repo.ts';
@@ -102,28 +103,8 @@ export async function confirmPayment(
     return 'amount_mismatch';
   }
 
-  await repo.updatePayment(tx, payment.id, { status: 'succeeded', lastError: null });
-  await repo.updateOrder(tx, order.id, { status: 'paid', placedAt: new Date() });
-
-  // Reservations become real decrements: the units leave the shelf for good. Lock first, in order.
-  const items = await repo.listOrderItems(tx, order.id);
-  await repo.lockInventory(
-    tx,
-    items.flatMap((i) => (i.variantId === null ? [] : [i.variantId])),
-  );
-  for (const item of items) {
-    if (item.variantId !== null) await repo.commitStock(tx, item.variantId, item.quantity);
-  }
-
-  // Only now is the cart spent; until payment is confirmed an abandoned checkout keeps it.
-  if (order.cartId) await cartRepo.markStatus(order.cartId, 'converted', tx);
-
-  await repo.insertHistory(tx, {
-    orderId: order.id,
-    fromStatus: 'pending_payment',
-    toStatus: 'paid',
-    actor,
-  });
+  // Stock commit, payment row, cart and history all happen inside the state machine.
+  await applyTransition(tx, order, 'paid', { actor });
   // The confirmation email is enqueued here in phase 9, in this same transaction (outbox style).
   return 'paid';
 }
@@ -152,16 +133,13 @@ async function refunded(tx: Tx, charge: z.infer<typeof ChargeObject>, actor: str
   const order = await repo.lockOrder(tx, found.orderId);
   const payment = await repo.lockPayment(tx, found.id);
   if (!order || !payment) return;
-  // Only an order that was actually paid can be refunded.
-  if (!['paid', 'processing', 'shipped', 'delivered'].includes(order.status)) return;
-  await repo.updatePayment(tx, payment.id, { status: 'refunded' });
-  await repo.updateOrder(tx, order.id, { status: 'refunded' });
-  await repo.insertHistory(tx, {
-    orderId: order.id,
-    fromStatus: order.status,
-    toStatus: 'refunded',
+  // Only an order that was actually paid can be refunded; the state machine knows which
+  // statuses those are (including the provider-only ones: a dashboard refund mid-shipping).
+  if (!canTransition(order.status, 'refunded', { fromProvider: true })) return;
+  await applyTransition(tx, order, 'refunded', {
     actor,
     note: 'Refunded in Stripe',
+    fromProvider: true,
   });
 }
 

@@ -47,6 +47,12 @@ export class WebhookSignatureError extends Error {
   }
 }
 
+export interface RefundInfo {
+  id: string;
+  /** Stripe's refund status: succeeded, pending, failed, canceled. */
+  status: string;
+}
+
 export interface PaymentGateway {
   createPaymentIntent(input: CreatePaymentIntentInput): Promise<PaymentIntentInfo>;
   // Changing the amount of a not-yet-paid intent (the shopper edited their cart before paying).
@@ -54,6 +60,9 @@ export interface PaymentGateway {
   retrievePaymentIntent(id: string): Promise<PaymentIntentInfo>;
   // Idempotent: cancelling an already-cancelled intent returns it instead of throwing.
   cancelPaymentIntent(id: string): Promise<PaymentIntentInfo>;
+  // Returns the whole charge to the customer. Idempotent per key, and an already-refunded intent
+  // is an answer ("done"), not a failure, so a retry after a timeout is always safe.
+  refundPaymentIntent(id: string, idempotencyKey: string): Promise<RefundInfo>;
   /** `rawBody` must be the exact bytes Stripe sent: the signature covers them, not the JSON. */
   constructWebhookEvent(rawBody: Buffer, signature: string | undefined): StripeEvent;
 }
@@ -145,6 +154,19 @@ export function createStripeGateway(options: StripeGatewayOptions): PaymentGatew
         }
       }),
 
+    refundPaymentIntent: (id, idempotencyKey) =>
+      call(async () => {
+        try {
+          const refund = await stripe.refunds.create({ payment_intent: id }, { idempotencyKey });
+          return { id: refund.id, status: refund.status ?? 'pending' };
+        } catch (err) {
+          if (err instanceof Stripe.errors.StripeError && err.code === 'charge_already_refunded') {
+            return { id: 'already_refunded', status: 'succeeded' };
+          }
+          throw err;
+        }
+      }),
+
     constructWebhookEvent(rawBody, signature) {
       if (!options.webhookSecret) throw paymentProvider('Webhooks are not configured');
       if (!signature) throw new WebhookSignatureError('Missing Stripe-Signature header');
@@ -169,6 +191,7 @@ export function createUnconfiguredGateway(): PaymentGateway {
     updatePaymentIntentAmount: reject,
     retrievePaymentIntent: reject,
     cancelPaymentIntent: reject,
+    refundPaymentIntent: reject,
     constructWebhookEvent: () => {
       throw error();
     },
