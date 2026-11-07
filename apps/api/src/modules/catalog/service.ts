@@ -2,6 +2,7 @@ import {
   FACET_KEYS,
   badgeFromSlug,
   badgeSlug,
+  buildQuickChips,
   unitPriceCents,
   type Badge,
   type Category,
@@ -249,6 +250,9 @@ export async function listProducts(
   ]);
   return {
     data: await buildCards(rows, index, viewer),
+    // Same scope as the facets (they ignore the filter just clicked), so a chip never disappears
+    // when it is switched on, and never leads to an empty list.
+    chips: buildQuickChips(facets),
     meta: {
       page: query.page,
       limit: query.limit,

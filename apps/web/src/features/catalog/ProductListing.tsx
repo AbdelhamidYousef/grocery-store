@@ -20,6 +20,7 @@ import { applyListPatch, hasActiveFilters, PAGE_SIZE, useProductListParams } fro
 import { Pagination } from './Pagination';
 import { ProductGrid, ProductGridSkeleton } from './ProductGrid';
 import { useProducts } from './queries';
+import { QuickChips } from './QuickChips';
 
 interface ProductListingProps {
   /** Analytics id of the list: category slug or `search`. */
@@ -125,6 +126,7 @@ export function ProductListing({
     (query.minPrice !== undefined || query.maxPrice !== undefined ? 1 : 0) +
     (query.brand?.length ?? 0) +
     (query.tag?.length ?? 0) +
+    (query.badge?.length ?? 0) +
     Object.values(query.attr).reduce((n, v) => n + v.length, 0);
 
   return (
@@ -187,6 +189,11 @@ export function ProductListing({
         </div>
 
         <ActivePetNote query={query} update={update} />
+        <QuickChips
+          chips={brand ? data.chips.filter((c) => c.kind !== 'brand') : data.chips}
+          query={query}
+          update={update}
+        />
         <AppliedFilters
           query={query}
           facets={facets}

@@ -20,6 +20,8 @@ export interface ProductListParams {
   brand?: string[] | undefined;
   /** Health-need tag slugs, sent as `tag=a,b`. */
   tag?: string[] | undefined;
+  /** Badge slugs (`sale`, `new`), sent as `badge=a,b`. */
+  badge?: string[] | undefined;
   /** Collection slug (set by the collection page, not by the filter UI). */
   collection?: string | undefined;
   page?: number | undefined;
@@ -38,6 +40,7 @@ export function toListSearch(params: ProductListParams): string {
   if (params.inStock) search.set('inStock', 'true');
   if (params.brand?.length) search.set('brand', params.brand.join(','));
   if (params.tag?.length) search.set('tag', params.tag.join(','));
+  if (params.badge?.length) search.set('badge', params.badge.join(','));
   if (params.collection) search.set('collection', params.collection);
   if (params.page && params.page > 1) search.set('page', String(params.page));
   if (params.limit) search.set('limit', String(params.limit));

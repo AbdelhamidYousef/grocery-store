@@ -42,6 +42,13 @@ export function AppliedFilters({ query, facets, currency, update, onClear }: App
       remove: () => update({ tag: (query.tag ?? []).filter((v) => v !== slug) }),
     });
   }
+  for (const slug of query.badge ?? []) {
+    chips.push({
+      id: `badge:${slug}`,
+      label: `Label: ${named(facets?.badge, slug)}`,
+      remove: () => update({ badge: (query.badge ?? []).filter((v) => v !== slug) }),
+    });
+  }
   for (const [key, values] of Object.entries(query.attr)) {
     for (const value of values) {
       chips.push({

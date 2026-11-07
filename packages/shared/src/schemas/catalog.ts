@@ -127,8 +127,18 @@ export const FacetsSchema = z.object({
 });
 export type Facets = z.infer<typeof FacetsSchema>;
 
+// The quick-filter chips for this result set, already ordered (see quick-chips.ts). Defaulted so a
+// response (or a test fixture) that predates them still parses.
+export const QuickChipSchema = z.object({
+  kind: z.enum(['badge', 'brand', 'tag']),
+  value: z.string(),
+  label: z.string(),
+  count: z.number().int().min(0),
+});
+
 export const ProductListResponseSchema = PaginatedSchema(ProductCardSchema).extend({
   facets: FacetsSchema,
+  chips: z.array(QuickChipSchema).default([]),
 });
 export type ProductListResponse = z.infer<typeof ProductListResponseSchema>;
 

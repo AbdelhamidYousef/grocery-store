@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
@@ -20,7 +20,7 @@ describe('filters and sort', () => {
     expect(sidebar().getByRole('group', { name: 'Material' })).toBeInTheDocument();
     expect(sidebar().queryByRole('group', { name: 'Brand' })).not.toBeInTheDocument();
     expect(sidebar().getByRole('checkbox', { name: 'Cotton rope (1)' })).toBeInTheDocument();
-    expect(sidebar().getByRole('checkbox', { name: 'In stock only' })).toBeInTheDocument();
+    expect(sidebar().getByRole('switch', { name: 'In stock only' })).toBeInTheDocument();
   });
 
   it('writes a ticked value to the url, shows a chip and removes it again', async () => {
@@ -34,34 +34,52 @@ describe('filters and sort', () => {
 
   it('toggles in-stock and sends it to the api', async () => {
     const router = await open('/c/dogs');
-    await userEvent.click(sidebar().getByRole('checkbox', { name: 'In stock only' }));
+    await userEvent.click(sidebar().getByRole('switch', { name: 'In stock only' }));
     await waitFor(() => expect(router.state.location.search).toBe('?inStock=true'));
   });
 
-  it('applies price on blur in cents and rejects nonsense with a message', async () => {
+  it('moves the price handles with the keyboard and applies the range once, in cents', async () => {
     const router = await open('/c/dogs');
-    const min = sidebar().getByRole('textbox', { name: 'Minimum price' });
-    await userEvent.type(min, '5.5');
-    await userEvent.tab();
-    await waitFor(() => expect(router.state.location.search).toBe('?minPrice=550'));
+    // Facet range 7.99..18.99 becomes whole euros: 7..19.
+    const min = sidebar().getByRole('slider', { name: 'Minimum price' });
+    const max = sidebar().getByRole('slider', { name: 'Maximum price' });
+    expect(min).toHaveAttribute('min', '700');
+    expect(max).toHaveAttribute('max', '1900');
+    expect(sidebar().getByTestId('price-range-text')).toHaveTextContent('€7.00 to €19.00');
 
-    await userEvent.type(sidebar().getByRole('textbox', { name: 'Maximum price' }), 'abc');
-    await userEvent.tab();
-    expect(await within(screen.getByRole('main')).findByRole('alert')).toHaveTextContent(
-      'Enter a price like 12.50',
-    );
-    expect(router.state.location.search).toBe('?minPrice=550');
+    fireEvent.change(min, { target: { value: '1000' } });
+    fireEvent.change(max, { target: { value: '1500' } });
+    // Nothing is written while the handles are moving...
+    expect(router.state.location.search).toBe('');
+    expect(sidebar().getByTestId('price-range-text')).toHaveTextContent('€10.00 to €15.00');
+    // ...only on release.
+    fireEvent.pointerUp(max);
+    await waitFor(() => expect(router.state.location.search).toBe('?minPrice=1000&maxPrice=1500'));
+    expect(
+      await screen.findByRole('button', { name: 'Remove filter Price: €10.00 - €15.00' }),
+    ).toBeInTheDocument();
   });
 
-  it('applies price with Enter and rejects min above max', async () => {
-    const router = await open('/c/dogs');
-    await userEvent.type(sidebar().getByRole('textbox', { name: 'Minimum price' }), '20');
-    await userEvent.type(sidebar().getByRole('textbox', { name: 'Maximum price' }), '10{Enter}');
-    expect(await within(screen.getByRole('main')).findByRole('alert')).toHaveTextContent(
-      'minimum is higher',
-    );
-    // Leaving the minimum box already applied it (blur); the bad pair is not written.
-    expect(router.state.location.search).toBe('?minPrice=2000');
+  it('never lets the minimum pass the maximum, and a handle at its end means no limit', async () => {
+    const router = await open('/c/dogs?minPrice=1000&maxPrice=1500');
+    const min = sidebar().getByRole('slider', { name: 'Minimum price' });
+    const max = sidebar().getByRole('slider', { name: 'Maximum price' });
+    expect(min).toHaveValue('1000');
+    expect(max).toHaveValue('1500');
+    fireEvent.change(min, { target: { value: '1800' } });
+    expect(min).toHaveValue('1500');
+    expect(sidebar().getByTestId('price-range-text')).toHaveTextContent('€15.00 to €15.00');
+    fireEvent.change(min, { target: { value: '700' } });
+    fireEvent.change(max, { target: { value: '1900' } });
+    fireEvent.pointerUp(max);
+    await waitFor(() => expect(router.state.location.search).toBe(''));
+  });
+
+  it('reflects the url on load and keeps the chosen range after a reload', async () => {
+    await open('/c/dogs?minPrice=800&maxPrice=1200&inStock=true');
+    expect(sidebar().getByRole('slider', { name: 'Minimum price' })).toHaveValue('800');
+    expect(sidebar().getByRole('slider', { name: 'Maximum price' })).toHaveValue('1200');
+    expect(sidebar().getByRole('switch', { name: 'In stock only' })).toBeChecked();
   });
 
   it('changes sort through the url and keeps the default out of it', async () => {
@@ -109,7 +127,7 @@ describe('filters and sort', () => {
     await open('/c/dogs');
     await userEvent.click(screen.getByTestId('filters-toggle'));
     const drawer = within(await screen.findByTestId('filters-drawer'));
-    expect(drawer.getByRole('checkbox', { name: 'In stock only' })).toBeInTheDocument();
+    expect(drawer.getByRole('switch', { name: 'In stock only' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Show 2 products/ })).toBeInTheDocument();
   });
 

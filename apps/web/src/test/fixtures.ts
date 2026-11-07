@@ -79,7 +79,13 @@ export function makeFacets(overrides: Partial<Facets> = {}): Facets {
 
 export function makeList(
   cards: ProductCard[],
-  extra: { total?: number; page?: number; limit?: number; facets?: Facets } = {},
+  extra: {
+    total?: number;
+    page?: number;
+    limit?: number;
+    facets?: Facets;
+    chips?: ProductListResponse['chips'];
+  } = {},
 ): ProductListResponse {
   const limit = extra.limit ?? 24;
   const total = extra.total ?? cards.length;
@@ -92,6 +98,7 @@ export function makeList(
       totalPages: Math.ceil(total / limit),
     },
     facets: extra.facets ?? makeFacets(),
+    chips: extra.chips ?? [],
   };
 }
 

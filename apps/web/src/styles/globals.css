@@ -78,3 +78,66 @@
 dialog::backdrop {
   background: rgb(31 27 46 / 60%);
 }
+
+/* Dual-handle price slider (features/catalog/PriceSlider.tsx): two native range inputs stacked on
+   one track. The inputs themselves ignore the pointer so the one underneath stays reachable, and
+   only the thumbs take it. Native inputs keep arrow/Home/End/PageUp keys and screen-reader
+   announcements for free. */
+.dual-range {
+  position: relative;
+  height: 2.75rem;
+}
+.dual-range input[type='range'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background: transparent;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.dual-range input[type='range']::-webkit-slider-runnable-track {
+  background: transparent;
+  height: 100%;
+}
+.dual-range input[type='range']::-moz-range-track {
+  background: transparent;
+  height: 100%;
+}
+.dual-range input[type='range']::-webkit-slider-thumb {
+  pointer-events: auto;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 1.75rem;
+  width: 1.75rem;
+  margin-top: 0.5rem;
+  border-radius: 9999px;
+  border: 3px solid var(--color-ink);
+  background: var(--color-surface);
+  cursor: grab;
+}
+.dual-range input[type='range']::-moz-range-thumb {
+  pointer-events: auto;
+  height: 1.75rem;
+  width: 1.75rem;
+  border-radius: 9999px;
+  border: 3px solid var(--color-ink);
+  background: var(--color-surface);
+  cursor: grab;
+}
+.dual-range input[type='range']:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.dual-range input[type='range']:focus-visible::-webkit-slider-thumb {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--color-surface);
+}
+.dual-range input[type='range']:focus-visible::-moz-range-thumb {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--color-surface);
+}
