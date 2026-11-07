@@ -1,13 +1,16 @@
 import { fileURLToPath } from 'node:url';
 
-import { inArray, sql } from 'drizzle-orm';
+import { and, eq, inArray, ne, sql } from 'drizzle-orm';
 
 import { closeDb, db } from '../client.ts';
 import {
   brands as brandsTable,
+  bulkTiers,
   categories as categoriesTable,
   collectionProducts,
   collections as collectionsTable,
+  discountCodes,
+  giftRules,
   inventory,
   productImages,
   productTags,
@@ -26,6 +29,7 @@ import { FORCED_STOCK, expandVariants, stockLevels } from './expand.ts';
 import { seedHomeContent } from './home.ts';
 import { imageRowsFor } from './images.ts';
 import { products } from './products.ts';
+import { bulkTierSeeds, discountCodeSeeds, giftRuleSeed } from './promotions.ts';
 import { validateSeed } from './schema.ts';
 import { shippingMethods } from './shipping.ts';
 import { tags } from './tags.ts';
@@ -302,6 +306,53 @@ export async function runSeed(now = new Date()) {
           isActive: excluded('is_active'),
         },
       });
+
+    // ---- promotions (phase 18): codes and tiers upsert on their natural key ----
+    await tx
+      .insert(discountCodes)
+      .values(discountCodeSeeds)
+      .onConflictDoUpdate({
+        target: discountCodes.code,
+        set: {
+          kind: excluded('kind'),
+          value: excluded('value'),
+          minSpendCents: excluded('min_spend_cents'),
+          excludeSaleItems: excluded('exclude_sale_items'),
+          firstOrderOnly: excluded('first_order_only'),
+          perCustomerMax: excluded('per_customer_max'),
+          active: sql`true`,
+          archivedAt: sql`null`,
+        },
+      });
+    await tx
+      .insert(bulkTiers)
+      .values(bulkTierSeeds)
+      .onConflictDoUpdate({
+        target: bulkTiers.minCents,
+        set: { percent: excluded('percent'), active: sql`true` },
+      });
+    // Gift rules have no natural key and at most one may be active: switch the others off first.
+    const giftVariantId = variantId.get(giftRuleSeed.variantSku);
+    if (!giftVariantId) throw new Error(`gift variant ${giftRuleSeed.variantSku} is not seeded`);
+    await tx
+      .update(giftRules)
+      .set({ active: false })
+      .where(and(eq(giftRules.active, true), ne(giftRules.variantId, giftVariantId)));
+    const [gift] = await tx
+      .select({ id: giftRules.id })
+      .from(giftRules)
+      .where(eq(giftRules.variantId, giftVariantId))
+      .limit(1);
+    if (gift) {
+      await tx
+        .update(giftRules)
+        .set({ thresholdCents: giftRuleSeed.thresholdCents, active: true })
+        .where(eq(giftRules.id, gift.id));
+    } else {
+      await tx
+        .insert(giftRules)
+        .values({ thresholdCents: giftRuleSeed.thresholdCents, variantId: giftVariantId });
+    }
 
     // ---- users: the password hash is reset too, so the printed credentials are always true ----
     await tx

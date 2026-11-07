@@ -92,6 +92,13 @@
       "when": 1794067095357,
       "tag": "0012_safety_notices",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794068340233,
+      "tag": "0013_promotions",
+      "breakpoints": true
     }
   ]
 }

@@ -23,6 +23,9 @@ export const orderItems = pgTable(
     unitPriceCents: integer('unit_price_cents').notNull(),
     quantity: integer('quantity').notNull(),
     lineTotalCents: integer('line_total_cents').notNull(),
+    // This line's share of the order-level discounts and credits (largest-remainder split by the
+    // pricing engine). The single source for refund amounts (phase 22).
+    discountCents: integer('discount_cents').notNull().default(0),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -31,6 +34,10 @@ export const orderItems = pgTable(
     index('order_items_variant_id_idx').on(t.variantId),
     check('order_items_quantity_check', sql`${t.quantity} > 0`),
     check('order_items_unit_price_check', sql`${t.unitPriceCents} >= 0`),
+    check(
+      'order_items_discount_check',
+      sql`${t.discountCents} >= 0 AND ${t.discountCents} <= ${t.lineTotalCents}`,
+    ),
     check(
       'order_items_line_total_check',
       sql`${t.lineTotalCents} = ${t.unitPriceCents} * ${t.quantity}`,

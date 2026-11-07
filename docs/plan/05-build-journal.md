@@ -604,3 +604,10 @@ Learn: a Tailwind display class (`grid`, `flex`) overrides the browser's `hidden
 - Credits go last, each capped at what is left of the merchandise (never shipping) and allocated to lines like any other adjustment, so the line column stays the single source of truth for refunds.
 - Progress bars are data (`thresholdCents`, `remainingCents`, `percent`, `reached`); the UI only draws them. Percent is floored so 99.9% never shows as 100%.
 - Notices are machine keys (`code_not_stackable`, `code_min_spend`, ...), the UI turns them into kind sentences.
+
+### Step 18.3 — promotions schema and seed
+- Eight tables in one migration (`0013_promotions`): `discount_codes`, `discount_redemptions`, `bulk_tiers`, `gift_rules`, `flash_sales`, `flash_sale_items`, `price_history`, `order_promotions`; plus `product_variants.member_price_cents` and `order_items.discount_cents`.
+- The database guards the rules the engine assumes: a percent code is 1..100, a fixed code is above 0, a free-shipping code has no value, windows end after they start, one tier per threshold, one active gift rule (partial unique index), one redemption per code per order, a line discount never above its line total.
+- Codes are `citext`, so `paws10` finds `PAWS10`. Redemptions are released, never deleted (same idea as trial redemptions), so the usage cap only counts live rows and history stays.
+- `order_promotions` copies type, label and cents as values and keeps the rule id as text, not a foreign key: editing or deleting a code later must not rewrite what an old order says.
+- Seed: PAWS10 (10%, min EUR 30, not on sale items), WELCOME5 (EUR 5, first order, once per customer), FREESHIP (min EUR 25), tiers 5% over EUR 75 and 10% over EUR 100, a free bag of Peanut Crunch Biscuits from EUR 40. Idempotent: codes and tiers upsert on their natural key.

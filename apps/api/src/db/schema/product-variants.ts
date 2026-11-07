@@ -32,6 +32,9 @@ export const productVariants = pgTable(
     // Money is integer minor units (cents), never a float.
     priceCents: integer('price_cents').notNull(),
     compareAtPriceCents: integer('compare_at_price_cents'),
+    // Price for signed-in customers (phase 18). Null = none. The engine picks the lowest of base,
+    // member and an active flash-sale price; prices never stack.
+    memberPriceCents: integer('member_price_cents'),
     currency: char('currency', { length: 3 }).notNull().default('EUR'),
     weightGrams: integer('weight_grams').notNull(),
     // What is inside, in grams or ml; null for items with no meaningful net amount (a toy).
@@ -49,6 +52,10 @@ export const productVariants = pgTable(
   },
   (t) => [
     check('product_variants_price_cents_check', sql`${t.priceCents} >= 0`),
+    check(
+      'product_variants_member_price_check',
+      sql`${t.memberPriceCents} is null or ${t.memberPriceCents} > 0`,
+    ),
     check('product_variants_net_amount_check', sql`${t.netAmount} is null or ${t.netAmount} > 0`),
     // An amount without a unit (or the reverse) is meaningless.
     check(

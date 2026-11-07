@@ -19,6 +19,7 @@ export * from './payments.ts';
 export * from './product-images.ts';
 export * from './product-variants.ts';
 export * from './products.ts';
+export * from './promotions.ts';
 export * from './safety-notices.ts';
 export * from './sessions.ts';
 export * from './shipping-methods.ts';
