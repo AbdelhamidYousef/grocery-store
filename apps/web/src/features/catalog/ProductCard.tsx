@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Badge } from '../../components/ui/Badge';
+import { MemberPrice, MemberTeaser, memberBeatsSale } from '../../components/ui/MemberPrice';
 import { Price } from '../../components/ui/Price';
 import { ProductBadges } from '../../components/ui/ProductBadges';
 import { SalePrice } from '../../components/ui/SalePrice';
@@ -90,7 +91,15 @@ export function ProductCard({
               {product.name}
             </h3>
             <div className="mt-auto flex flex-col">
-              {product.sale ? (
+              {memberBeatsSale(product.member, product.sale) && product.member ? (
+                <MemberPrice
+                  member={product.member}
+                  regularCents={product.price.minCents}
+                  currency={product.price.currency}
+                  from={product.price.minCents !== product.price.maxCents}
+                  className="text-pet-strong"
+                />
+              ) : product.sale ? (
                 <SalePrice
                   sale={product.sale}
                   currency={product.price.currency}
@@ -108,6 +117,12 @@ export function ProductCard({
             </div>
           </div>
         </Link>
+        {/* Outside the product link: a link inside a link is invalid. */}
+        <MemberTeaser
+          show={product.hasMemberPrice}
+          returnTo={`/products/${product.slug}`}
+          className="px-3 pb-3 sm:px-4 sm:pb-4"
+        />
         {product.swatches.length > 0 && (
           <div
             role="group"

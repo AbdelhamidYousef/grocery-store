@@ -98,6 +98,18 @@ export const VariantFormSchema = z
         }
         return result;
       }),
+    // Optional: empty = no member price. Parsed from the string with integer maths (inputToCents).
+    memberPrice: z
+      .string()
+      .trim()
+      .transform((value, ctx) => {
+        if (value === '') return null;
+        const result = inputToCents(value);
+        if (result === null || result < 1) {
+          ctx.issues.push({ code: 'custom', message: 'Enter an amount like 9.99', input: value });
+        }
+        return result;
+      }),
     weight: wholeNumber('Enter the weight in whole grams').pipe(variantShape.weightGrams),
     stock: wholeNumber('Enter a whole number').pipe(variantShape.stock.unwrap()),
     lowStockThreshold: z
@@ -113,6 +125,10 @@ export const VariantFormSchema = z
       }),
     status: ProductStatusSchema,
   })
+  .refine((v) => v.memberPrice === null || v.memberPrice < v.price, {
+    message: 'The member price must be lower than the price',
+    path: ['memberPrice'],
+  })
   // Same rule as the server (and the same message), but on the field the person typed in.
   .refine((v) => v.compareAtPrice === null || v.compareAtPrice > v.price, {
     message: 'The strike-through price must be higher than the price',
@@ -127,6 +143,7 @@ export const emptyVariantForm: VariantFormInput = {
   options: '',
   price: '',
   compareAtPrice: '',
+  memberPrice: '',
   weight: '',
   stock: '0',
   lowStockThreshold: '',
@@ -141,6 +158,7 @@ export function variantToForm(variant: AdminVariant): VariantFormInput {
     price: centsToInput(variant.priceCents),
     compareAtPrice:
       variant.compareAtPriceCents === null ? '' : centsToInput(variant.compareAtPriceCents),
+    memberPrice: variant.memberPriceCents === null ? '' : centsToInput(variant.memberPriceCents),
     weight: String(variant.weightGrams),
     stock: String(variant.quantity),
     lowStockThreshold: String(variant.lowStockThreshold),
@@ -155,6 +173,7 @@ export function variantToCreate(v: VariantFormOutput, isDefault: boolean): Admin
     options: v.options,
     priceCents: v.price,
     compareAtPriceCents: v.compareAtPrice,
+    memberPriceCents: v.memberPrice,
     weightGrams: v.weight,
     isDefault,
     status: v.status,
@@ -172,6 +191,7 @@ export function variantToUpdate(v: VariantFormOutput): AdminVariantUpdate {
     options: v.options,
     priceCents: v.price,
     compareAtPriceCents: v.compareAtPrice,
+    memberPriceCents: v.memberPrice,
     weightGrams: v.weight,
     status: v.status,
     ...(v.lowStockThreshold !== undefined && { lowStockThreshold: v.lowStockThreshold }),

@@ -86,6 +86,15 @@ export const SaleOfferSchema = z.object({
 });
 export type SaleOffer = z.infer<typeof SaleOfferSchema>;
 
+// ---------- member prices (step 18.7) ----------
+
+// What a signed-in shopper pays as a member (on a card: the lowest among the product's variants).
+// ONLY signed-in responses carry it; an anonymous response has `member: null` and just the boolean
+// `hasMemberPrice` next to it, so the number never reaches a guest (hiding it in CSS would still
+// leak it in the payload).
+export const MemberOfferSchema = z.object({ priceCents: z.number().int().min(1) });
+export type MemberOffer = z.infer<typeof MemberOfferSchema>;
+
 export const BannerSaleSchema = z.object({
   id: z.string(),
   name: z.string(),

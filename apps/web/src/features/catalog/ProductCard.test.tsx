@@ -146,3 +146,29 @@ describe('ProductCard: flash sale (Omnibus)', () => {
     expect(screen.queryByTestId('sale-omnibus')).not.toBeInTheDocument();
   });
 });
+
+describe('ProductCard: member price', () => {
+  it('teases a guest outside the product link, returning to the product after login', () => {
+    renderCard(makeCard({ slug: 'rope-tug', hasMemberPrice: true }));
+    const teaser = screen.getByTestId('member-teaser');
+    expect(teaser).toHaveAttribute('href', '/login?next=%2Fproducts%2Frope-tug');
+    expect(screen.getByTestId('product-card')).not.toContainElement(teaser);
+  });
+
+  it('shows no teaser and no member price without a member offer', () => {
+    renderCard(makeCard({ hasMemberPrice: false }));
+    expect(screen.queryByTestId('member-teaser')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('member-price')).not.toBeInTheDocument();
+  });
+
+  it('shows the member price when the payload carries it', () => {
+    renderCard(
+      makeCard({
+        hasMemberPrice: true,
+        member: { priceCents: 900 },
+        price: { minCents: 1000, maxCents: 1000, currency: 'EUR' },
+      }),
+    );
+    expect(screen.getByTestId('member-price')).toHaveTextContent('Member price €9.00');
+  });
+});

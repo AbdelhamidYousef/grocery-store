@@ -341,6 +341,40 @@ export async function activeSales(
     .orderBy(flashSaleItems.variantId, asc(flashSaleItems.salePriceCents), asc(flashSales.endsAt));
 }
 
+export interface MemberPriceRow {
+  productId: string;
+  variantId: string;
+  memberPriceCents: number;
+}
+
+// Member prices that really are lower than the regular price (the engine ignores any other),
+// for active, non-trial variants (a trial size is fixed-price).
+export async function memberPrices(
+  run: Run,
+  by: { variantIds: string[] } | { productIds: string[] },
+): Promise<MemberPriceRow[]> {
+  const ids = 'variantIds' in by ? by.variantIds : by.productIds;
+  if (ids.length === 0) return [];
+  return run
+    .select({
+      productId: productVariants.productId,
+      variantId: productVariants.id,
+      memberPriceCents: sql<number>`${productVariants.memberPriceCents}`,
+    })
+    .from(productVariants)
+    .where(
+      and(
+        'variantIds' in by
+          ? inArray(productVariants.id, ids)
+          : inArray(productVariants.productId, ids),
+        eq(productVariants.isTrial, false),
+        eq(productVariants.status, 'active'),
+        sql`${productVariants.memberPriceCents} is not null`,
+        sql`${productVariants.memberPriceCents} < ${productVariants.priceCents}`,
+      ),
+    );
+}
+
 export async function bannerSale(run: Run, now: Date): Promise<FlashSaleRow | undefined> {
   const [active] = await run
     .select()

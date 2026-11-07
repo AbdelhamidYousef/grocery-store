@@ -39,3 +39,9 @@ export function useAuth(): AuthState {
   if (!value) throw new Error('useAuth must be used inside <AuthProvider>');
   return value;
 }
+
+// For components that may render outside a provider (a card in a unit test): no provider means
+// nobody is known to be signed in.
+export function useIsSignedIn(): boolean {
+  return useContext(AuthContext)?.user != null;
+}

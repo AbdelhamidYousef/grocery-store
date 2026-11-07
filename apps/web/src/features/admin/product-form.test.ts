@@ -27,6 +27,7 @@ function validForm(overrides: Partial<ProductFormInput> = {}): ProductFormInput 
         options: 'Colour=Yellow',
         price: '9,99',
         compareAtPrice: '',
+        memberPrice: '',
         weight: '120',
         stock: '5',
         lowStockThreshold: '',
@@ -38,6 +39,7 @@ function validForm(overrides: Partial<ProductFormInput> = {}): ProductFormInput 
         options: 'Colour=Pink',
         price: '10',
         compareAtPrice: '12.50',
+        memberPrice: '8.95',
         weight: '120',
         stock: '0',
         lowStockThreshold: '2',
@@ -75,6 +77,7 @@ describe('product form', () => {
         sku: 'DUCK-2',
         priceCents: 1000,
         compareAtPriceCents: 1250,
+        memberPriceCents: 895,
         isDefault: true,
         lowStockThreshold: 2,
       }),
@@ -119,6 +122,20 @@ describe('product form', () => {
     expect(result.success).toBe(false);
     if (result.success) return;
     expect(result.error.issues[0]?.path.join('.')).toBe('variants.0.compareAtPrice');
+  });
+
+  it('parses the member price into integer cents, and refuses one that is not below the price', () => {
+    const base = validForm().variants[0]!;
+    const ok = ProductFormSchema.safeParse(
+      validForm({ variants: [{ ...base, price: '10', memberPrice: '9.05' }] }),
+    );
+    expect(ok.success).toBe(true);
+    if (ok.success) expect(toCreatePayload(ok.data).variants[0]?.memberPriceCents).toBe(905);
+    const bad = ProductFormSchema.safeParse(
+      validForm({ variants: [{ ...base, price: '10', memberPrice: '10' }] }),
+    );
+    expect(bad.success).toBe(false);
+    if (!bad.success) expect(bad.error.issues[0]?.path.join('.')).toBe('variants.0.memberPrice');
   });
 
   it('rejects an attribute outside the allowed values', () => {

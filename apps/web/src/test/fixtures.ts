@@ -53,6 +53,8 @@ export function makeCard(overrides: Partial<ProductCard> = {}): ProductCard {
     unitPrice: null,
     swatches: [],
     sale: null,
+    hasMemberPrice: false,
+    member: null,
     ...overrides,
   };
 }
@@ -127,6 +129,8 @@ export function makeVariant(overrides: Partial<Variant> = {}): Variant {
     isTrial: false,
     swatchHex: null,
     sale: null,
+    hasMemberPrice: false,
+    member: null,
     ...overrides,
   };
 }
@@ -390,6 +394,7 @@ export function makeAdminVariant(overrides: Partial<AdminVariant> = {}): AdminVa
     options: { Colour: 'Red', Size: 'S' },
     priceCents: 1099,
     compareAtPriceCents: null,
+    memberPriceCents: null,
     currency: 'EUR',
     weightGrams: 250,
     isDefault: true,

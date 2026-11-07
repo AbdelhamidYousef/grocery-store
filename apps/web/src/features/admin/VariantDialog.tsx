@@ -83,6 +83,7 @@ function VariantForm({
           options: errors.options?.message,
           price: errors.price?.message,
           compareAtPrice: errors.compareAtPrice?.message,
+          memberPrice: errors.memberPrice?.message,
           weight: errors.weight?.message,
           stock: errors.stock?.message,
           lowStockThreshold: errors.lowStockThreshold?.message,

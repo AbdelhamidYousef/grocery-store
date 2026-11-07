@@ -48,6 +48,7 @@ const toAdminVariant = (v: repo.VariantWithStock): AdminVariant => {
     options: v.options,
     priceCents: v.priceCents,
     compareAtPriceCents: v.compareAtPriceCents,
+    memberPriceCents: v.memberPriceCents,
     currency: v.currency,
     weightGrams: v.weightGrams,
     isDefault: v.isDefault,
@@ -192,6 +193,7 @@ async function createVariant(
     options: input.options,
     priceCents: input.priceCents,
     compareAtPriceCents: input.compareAtPriceCents ?? null,
+    memberPriceCents: input.memberPriceCents ?? null,
     weightGrams: input.weightGrams,
     status: input.status,
     isDefault,
@@ -203,6 +205,9 @@ async function createVariant(
   // The first row of the variant's Omnibus price history (append-only).
   await insertPriceHistory(tx, [
     { variantId: variant.id, priceCents: variant.priceCents, kind: 'base' },
+    ...(variant.memberPriceCents !== null
+      ? [{ variantId: variant.id, priceCents: variant.memberPriceCents, kind: 'member' as const }]
+      : []),
   ]);
   await repo.insertInventory(tx, {
     variantId: variant.id,
@@ -398,6 +403,12 @@ export async function updateVariant(
         );
       }
 
+      const member =
+        input.memberPriceCents === undefined ? variant.memberPriceCents : input.memberPriceCents;
+      if (member !== null && member >= price) {
+        throw fieldError('memberPriceCents', 'The member price must be lower than the price');
+      }
+
       if (input.sku !== undefined && input.sku.toLowerCase() !== variant.sku.toLowerCase()) {
         const siblings = await repo.listVariants(tx, product.id);
         if (siblings.some((v) => v.sku.toLowerCase() === input.sku?.toLowerCase())) {
@@ -416,6 +427,12 @@ export async function updateVariant(
       if (fields.priceCents !== undefined && fields.priceCents !== variant.priceCents) {
         await insertPriceHistory(tx, [{ variantId, priceCents: fields.priceCents, kind: 'base' }]);
       }
+      // Same for a member price that is set or changed (excluded from the Omnibus reference).
+      if (fields.memberPriceCents != null && fields.memberPriceCents !== variant.memberPriceCents) {
+        await insertPriceHistory(tx, [
+          { variantId, priceCents: fields.memberPriceCents, kind: 'member' },
+        ]);
+      }
       await repo.updateVariant(tx, variantId, {
         ...(fields.sku !== undefined && { sku: fields.sku }),
         ...(fields.name !== undefined && { name: fields.name }),
@@ -423,6 +440,9 @@ export async function updateVariant(
         ...(fields.priceCents !== undefined && { priceCents: fields.priceCents }),
         ...(fields.compareAtPriceCents !== undefined && {
           compareAtPriceCents: fields.compareAtPriceCents,
+        }),
+        ...(fields.memberPriceCents !== undefined && {
+          memberPriceCents: fields.memberPriceCents,
         }),
         ...(fields.weightGrams !== undefined && { weightGrams: fields.weightGrams }),
         ...(fields.status !== undefined && { status: fields.status }),

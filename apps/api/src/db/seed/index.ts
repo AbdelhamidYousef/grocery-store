@@ -29,7 +29,13 @@ import { FORCED_STOCK, expandVariants, stockLevels } from './expand.ts';
 import { seedHomeContent } from './home.ts';
 import { imageRowsFor } from './images.ts';
 import { products } from './products.ts';
-import { bulkTierSeeds, discountCodeSeeds, giftRuleSeed } from './promotions.ts';
+import {
+  bulkTierSeeds,
+  discountCodeSeeds,
+  giftRuleSeed,
+  memberPriceCents,
+  pickMemberVariants,
+} from './promotions.ts';
 import { validateSeed } from './schema.ts';
 import { shippingMethods } from './shipping.ts';
 import { tags } from './tags.ts';
@@ -204,6 +210,25 @@ export async function runSeed(now = new Date()) {
       FROM product_variants v
       WHERE NOT EXISTS (SELECT 1 FROM price_history h WHERE h.variant_id = v.id)
     `);
+
+    // ---- member prices (step 18.7): a few variants ~10% below base, with a `member` history row
+    // (Omnibus ignores those). Re-running sets the same values and adds no second row. ----
+    for (const v of pickMemberVariants(variantValues)) {
+      const id = variantId.get(v.sku);
+      if (!id) throw new Error(`variant ${v.sku} was not inserted`);
+      const member = memberPriceCents(v.priceCents);
+      await tx
+        .update(productVariants)
+        .set({ memberPriceCents: member })
+        .where(eq(productVariants.id, id));
+      await tx.execute(sql`
+        INSERT INTO price_history (variant_id, price_cents, kind, valid_from)
+        SELECT ${id}, ${member}, 'member', now() - interval '60 days'
+        WHERE NOT EXISTS (
+          SELECT 1 FROM price_history h
+          WHERE h.variant_id = ${id} AND h.kind = 'member' AND h.price_cents = ${member})
+      `);
+    }
 
     // ---- inventory: insert only. A re-seed must not reset stock that has since been sold. ----
     const stock = stockLevels(variantValues.length);

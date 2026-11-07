@@ -23,6 +23,8 @@ export const TEST_IDS = {
   salePrice: 'sale-price',
   saleStrike: 'sale-strike',
   saleOmnibus: 'sale-omnibus',
+  memberPrice: 'member-price',
+  memberTeaser: 'member-teaser',
   swatch: 'swatch',
   swatchMore: 'swatch-more',
   trialPill: 'trial-pill',

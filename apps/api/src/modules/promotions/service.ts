@@ -104,6 +104,16 @@ export async function price(tx: Tx, req: PricingRequest): Promise<PricingResult>
       )
     ).map((s) => [s.variantId, s]),
   );
+  // Member prices only matter to a signed-in customer; guests never load them.
+  const members = new Map(
+    req.userId === null
+      ? []
+      : (
+          await repo.memberPrices(tx, {
+            variantIds: [...new Set(req.lines.map((l) => l.variantId))],
+          })
+        ).map((m) => [m.variantId, m.memberPriceCents]),
+  );
   const key = req.userId || req.email ? customerKey(req.userId, req.email ?? '') : null;
   // One after the other: queries on one transaction share a connection anyway.
   const tiers = await repo.activeTiers(tx);
@@ -132,12 +142,14 @@ export async function price(tx: Tx, req: PricingRequest): Promise<PricingResult>
     currency: req.currency,
     lines: req.lines.map((l) => {
       const sale = sales.get(l.variantId);
+      const member = members.get(l.variantId);
       return {
         variantId: l.variantId,
         productId: l.productId,
         qty: l.quantity,
         baseCents: l.unitPriceCents,
         fixedPrice: l.isTrial,
+        ...(member !== undefined && { memberCents: member }),
         ...(sale && { saleCents: sale.salePriceCents, onSale: true }),
       };
     }),
@@ -356,6 +368,25 @@ export async function saleOffersForProducts(
             endsAt: offer.endsAt < best.endsAt ? offer.endsAt : best.endsAt,
           },
     );
+  }
+  return { byProduct, byVariant };
+}
+
+export interface MemberPrices {
+  // The lowest member price per product (for a card) and the price per variant (detail page).
+  byProduct: Map<string, number>;
+  byVariant: Map<string, number>;
+}
+
+// Callers hand the result to a response only for a signed-in viewer (see catalog/service.ts).
+export async function memberPricesForProducts(productIds: string[]): Promise<MemberPrices> {
+  const byVariant = new Map<string, number>();
+  const byProduct = new Map<string, number>();
+  for (const r of await repo.memberPrices(db, { productIds })) {
+    byVariant.set(r.variantId, r.memberPriceCents);
+    const best = byProduct.get(r.productId);
+    if (best === undefined || r.memberPriceCents < best)
+      byProduct.set(r.productId, r.memberPriceCents);
   }
   return { byProduct, byVariant };
 }

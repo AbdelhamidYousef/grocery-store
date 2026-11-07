@@ -66,6 +66,31 @@ describe('seed', () => {
     expect(row?.recent).toBe(0);
   });
 
+  it('gives 6-8 variants a member price about 10% below base, one history row each, idempotently', async () => {
+    await runSeed();
+    await runSeed();
+    const rows = await db.execute<{
+      price_cents: number;
+      member_price_cents: number;
+      is_trial: boolean;
+      history: number;
+    }>(sql`
+      select v.price_cents, v.member_price_cents, v.is_trial,
+        (select count(*)::int from price_history h where h.variant_id = v.id and h.kind = 'member') as history
+      from product_variants v where v.member_price_cents is not null`);
+    expect(rows.length).toBeGreaterThanOrEqual(6);
+    expect(rows.length).toBeLessThanOrEqual(8);
+    for (const r of rows) {
+      expect(r.member_price_cents).toBeGreaterThan(0);
+      expect(r.member_price_cents).toBeLessThan(r.price_cents);
+      expect(r.member_price_cents).toBe(
+        r.price_cents - Math.floor((r.price_cents * 10 + 50) / 100),
+      );
+      expect(r.is_trial).toBe(false);
+      expect(r.history).toBe(1);
+    }
+  });
+
   it('gives every product a brand and links collections and tags', async () => {
     await runSeed();
     const rows = await db.execute<{ unbranded: number; eco: number; empty: number }>(sql`

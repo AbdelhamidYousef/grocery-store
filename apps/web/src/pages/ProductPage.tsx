@@ -1,6 +1,6 @@
 import type { ProductDetail } from '@store/shared';
 import { useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useParams, useSearchParams } from 'react-router-dom';
 
 import { ApiError } from '../api/client';
 import { Breadcrumbs, type Crumb } from '../components/layout/Breadcrumbs';
@@ -8,6 +8,7 @@ import { Container } from '../components/layout/Container';
 import { Seo } from '../components/Seo';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
+import { MemberPrice, MemberTeaser, memberBeatsSale } from '../components/ui/MemberPrice';
 import { Price } from '../components/ui/Price';
 import { ProductBadges } from '../components/ui/ProductBadges';
 import { SalePrice } from '../components/ui/SalePrice';
@@ -60,6 +61,7 @@ function ProductView({ product }: { product: ProductDetail }) {
   // exact colour and size that was shared. No parameter means the default variant.
   const [params, setParams] = useSearchParams();
   const variant = variantFromSku(product.variants, params.get('variant'));
+  const location = useLocation();
   const cart = useAddToCartAction(product);
   // Which photo is shown is derived, not synced with an effect: a thumbnail the shopper picked
   // wins for the variant it was picked on; otherwise a variant with its own photo shows it; else
@@ -128,7 +130,14 @@ function ProductView({ product }: { product: ProductDetail }) {
               <SafetyNoticeBox key={notice.id} notice={notice} />
             ))}
 
-            {variant?.sale ? (
+            {variant?.member && memberBeatsSale(variant.member, variant.sale) ? (
+              <MemberPrice
+                member={variant.member}
+                regularCents={variant.priceCents}
+                currency={variant.currency}
+                className="text-3xl text-pet-strong"
+              />
+            ) : variant?.sale ? (
               <SalePrice
                 sale={variant.sale}
                 currency={variant.currency}
@@ -147,6 +156,14 @@ function ProductView({ product }: { product: ProductDetail }) {
                 maxCents={product.price.maxCents}
                 currency={product.price.currency}
                 className="text-3xl text-pet-strong"
+              />
+            )}
+
+            {variant && (
+              <MemberTeaser
+                show={variant.hasMemberPrice}
+                returnTo={`${location.pathname}${location.search}`}
+                className="-mt-3"
               />
             )}
 

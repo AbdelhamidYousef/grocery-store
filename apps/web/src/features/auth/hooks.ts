@@ -13,6 +13,8 @@ function useSignedIn() {
     queryClient.setQueryData(keys.me, user);
     // Signed in again: the "your session expired" explanation has done its job.
     queryClient.setQueryData(keys.sessionExpired, false);
+    // Catalog responses differ by viewer (member prices), so the guest copies are stale too.
+    void queryClient.invalidateQueries({ queryKey: keys.products.all });
     return queryClient.invalidateQueries({ queryKey: keys.cart });
   };
 }
@@ -37,6 +39,8 @@ export function useLogout() {
       queryClient.removeQueries({ queryKey: keys.account.all });
       queryClient.removeQueries({ queryKey: keys.admin.all });
       queryClient.removeQueries({ queryKey: keys.cartNotices });
+      // Member prices must not linger on screen after signing out.
+      void queryClient.invalidateQueries({ queryKey: keys.products.all });
       return queryClient.invalidateQueries({ queryKey: keys.cart });
     },
   });

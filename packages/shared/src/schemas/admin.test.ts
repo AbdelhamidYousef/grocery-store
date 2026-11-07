@@ -62,6 +62,17 @@ describe('variant schemas', () => {
       AdminVariantUpdateSchema.safeParse({ priceCents: 500, compareAtPriceCents: 100 }).success,
     ).toBe(false);
   });
+
+  it('keeps a member price strictly below the price, and allows clearing it with null', () => {
+    expect(
+      AdminVariantUpdateSchema.safeParse({ priceCents: 500, memberPriceCents: 450 }).success,
+    ).toBe(true);
+    expect(
+      AdminVariantUpdateSchema.safeParse({ priceCents: 500, memberPriceCents: 500 }).success,
+    ).toBe(false);
+    expect(AdminVariantUpdateSchema.safeParse({ memberPriceCents: null }).success).toBe(true);
+    expect(AdminVariantUpdateSchema.safeParse({ memberPriceCents: 0 }).success).toBe(false);
+  });
 });
 
 describe('product schemas', () => {

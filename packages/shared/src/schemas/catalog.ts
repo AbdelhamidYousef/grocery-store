@@ -4,7 +4,7 @@ import { BADGES, BADGE_SLUGS } from '../badges.ts';
 import { NetUnitSchema } from '../pets.ts';
 
 import { PaginatedSchema, PaginationQuerySchema, DataSchema } from './common.ts';
-import { SaleOfferSchema } from './promotions.ts';
+import { MemberOfferSchema, SaleOfferSchema } from './promotions.ts';
 import { SafetyNoticeSchema } from './safety.ts';
 
 // Attribute keys the shop filters and builds facets on. A constant, not "whatever is in the
@@ -100,6 +100,10 @@ export const ProductCardSchema = z.object({
   swatches: z.array(SwatchSchema),
   // The best flash-sale offer among the product's variants right now; null when none.
   sale: SaleOfferSchema.nullable(),
+  // True when a variant has a member price below its regular one; the amount is in `member` and
+  // only for a signed-in shopper (null for guests).
+  hasMemberPrice: z.boolean(),
+  member: MemberOfferSchema.nullable(),
 });
 export type ProductCard = z.infer<typeof ProductCardSchema>;
 
@@ -148,6 +152,8 @@ export const VariantSchema = z.object({
   isTrial: z.boolean(),
   swatchHex: z.string().nullable(),
   sale: SaleOfferSchema.nullable(),
+  hasMemberPrice: z.boolean(),
+  member: MemberOfferSchema.nullable(),
 });
 export type Variant = z.infer<typeof VariantSchema>;
 

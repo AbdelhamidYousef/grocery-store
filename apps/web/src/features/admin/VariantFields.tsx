@@ -46,6 +46,13 @@ export function VariantFields({
         {...field('compareAtPrice')}
       />
       <Input
+        label="Member price (optional)"
+        inputMode="decimal"
+        hint="In euros, lower than the price; only signed-in shoppers get it"
+        error={errors.memberPrice}
+        {...field('memberPrice')}
+      />
+      <Input
         label="Weight (grams)"
         inputMode="numeric"
         error={errors.weight}

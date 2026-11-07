@@ -77,6 +77,8 @@ const VariantFields = {
   options: OptionsSchema,
   priceCents: z.number().int().min(0).max(MAX_PRICE_CENTS),
   compareAtPriceCents: z.number().int().min(0).max(MAX_PRICE_CENTS).nullish(),
+  // Price for signed-in shoppers; null/absent = none. Must stay below the regular price.
+  memberPriceCents: z.number().int().min(1).max(MAX_PRICE_CENTS).nullish(),
   weightGrams: z.number().int().min(1).max(100_000),
   isDefault: z.boolean().optional(),
   status: ProductStatusSchema.default('active'),
@@ -104,6 +106,11 @@ const compareAtAbovePrice = (v: {
   v.compareAtPriceCents == null ||
   v.priceCents === undefined ||
   v.compareAtPriceCents > v.priceCents;
+const memberBelowPrice = (v: {
+  priceCents?: number | undefined;
+  memberPriceCents?: number | null | undefined;
+}) => v.memberPriceCents == null || v.priceCents === undefined || v.memberPriceCents < v.priceCents;
+const MEMBER_MESSAGE = 'The member price must be lower than the price';
 const COMPARE_AT_MESSAGE = 'The strike-through price must be higher than the price';
 
 export const AdminVariantInputSchema = z
@@ -113,6 +120,7 @@ export const AdminVariantInputSchema = z
     stock: z.number().int().min(0).max(1_000_000).default(0),
   })
   .refine(compareAtAbovePrice, { message: COMPARE_AT_MESSAGE, path: ['compareAtPriceCents'] })
+  .refine(memberBelowPrice, { message: MEMBER_MESSAGE, path: ['memberPriceCents'] })
   .refine(netPair, { message: NET_PAIR_MESSAGE, path: ['netAmount'] });
 export type AdminVariantInput = z.input<typeof AdminVariantInputSchema>;
 
@@ -124,6 +132,7 @@ export const AdminVariantUpdateSchema = z
   .partial()
   .refine((v) => Object.values(v).some((x) => x !== undefined), 'Nothing to update')
   .refine(compareAtAbovePrice, { message: COMPARE_AT_MESSAGE, path: ['compareAtPriceCents'] })
+  .refine(memberBelowPrice, { message: MEMBER_MESSAGE, path: ['memberPriceCents'] })
   // On a PATCH, "set neither" means "leave both alone"; setting one alone would pair it with the
   // old other half, so it is refused.
   .refine(netPair, { message: NET_PAIR_MESSAGE, path: ['netAmount'] });
@@ -137,6 +146,7 @@ export const AdminVariantSchema = z.object({
   options: z.record(z.string(), z.string()),
   priceCents: z.number().int(),
   compareAtPriceCents: z.number().int().nullable(),
+  memberPriceCents: z.number().int().nullable(),
   currency: z.string().length(3),
   weightGrams: z.number().int(),
   isDefault: z.boolean(),

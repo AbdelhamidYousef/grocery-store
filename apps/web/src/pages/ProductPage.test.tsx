@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 import * as tracking from '../lib/track';
 import { makeProduct, makeVariant } from '../test/fixtures';
 import { renderApp } from '../test/render';
-import { API, server } from '../test/server';
+import { API, server, signedInAs } from '../test/server';
 
 describe('product page', () => {
   it('shows name, default variant price, breadcrumb, description and attributes', async () => {
@@ -187,5 +187,71 @@ describe('product page: flash sale (Omnibus)', () => {
     expect(await screen.findByTestId('sale-price')).toHaveTextContent('€7.99');
     expect(screen.queryByTestId('sale-strike')).not.toBeInTheDocument();
     expect(screen.queryByTestId('sale-omnibus')).not.toBeInTheDocument();
+  });
+});
+
+describe('product page: member price', () => {
+  const sale = {
+    priceCents: 1400,
+    referenceCents: 2000,
+    basePriceCents: 2000,
+    endsAt: '2030-01-01T00:00:00.000Z',
+  };
+  const serve = (variant: Partial<ReturnType<typeof makeVariant>>) =>
+    server.use(
+      http.get(`${API}/products/rope-tug`, () =>
+        HttpResponse.json({
+          data: makeProduct({
+            variants: [
+              makeVariant({ id: 'v1', sku: 'A', isDefault: true, priceCents: 2000, ...variant }),
+            ],
+          }),
+        }),
+      ),
+    );
+
+  it('teases a guest with a login link that returns to this product', async () => {
+    serve({ hasMemberPrice: true });
+    renderApp('/products/rope-tug');
+    const teaser = await screen.findByTestId('member-teaser');
+    expect(teaser).toHaveTextContent('Member price: log in to see');
+    expect(teaser).toHaveAttribute('href', '/login?next=%2Fproducts%2Frope-tug');
+    expect(screen.queryByTestId('member-price')).not.toBeInTheDocument();
+  });
+
+  it('shows no teaser when the variant has no member price', async () => {
+    serve({ hasMemberPrice: false });
+    renderApp('/products/rope-tug');
+    await screen.findByTestId('price-current');
+    expect(screen.queryByTestId('member-teaser')).not.toBeInTheDocument();
+  });
+
+  it('shows a member their price and no teaser', async () => {
+    server.use(signedInAs());
+    serve({ hasMemberPrice: true, member: { priceCents: 1743 } });
+    renderApp('/products/rope-tug');
+    expect(await screen.findByTestId('member-price')).toHaveTextContent('Member price €17.43');
+    expect(screen.getByText(/Regular price €20.00/)).toBeInTheDocument();
+    expect(screen.queryByTestId('member-teaser')).not.toBeInTheDocument();
+  });
+
+  it('shows the sale when it is lower than the member price', async () => {
+    server.use(signedInAs());
+    serve({ hasMemberPrice: true, member: { priceCents: 1743 }, sale });
+    renderApp('/products/rope-tug');
+    expect(await screen.findByTestId('sale-price')).toHaveTextContent('€14.00');
+    expect(screen.queryByTestId('member-price')).not.toBeInTheDocument();
+  });
+
+  it('shows the member price when it is lower than the sale price', async () => {
+    server.use(signedInAs());
+    serve({
+      hasMemberPrice: true,
+      member: { priceCents: 1743 },
+      sale: { ...sale, priceCents: 1800 },
+    });
+    renderApp('/products/rope-tug');
+    expect(await screen.findByTestId('member-price')).toHaveTextContent('€17.43');
+    expect(screen.queryByTestId('sale-price')).not.toBeInTheDocument();
   });
 });

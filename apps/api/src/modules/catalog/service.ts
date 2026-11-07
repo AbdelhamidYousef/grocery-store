@@ -15,7 +15,11 @@ import {
 
 import { db } from '../../db/client.ts';
 import { notFound } from '../../lib/errors.ts';
-import { saleOffersForProducts, syncFlashSales } from '../promotions/service.ts';
+import {
+  memberPricesForProducts,
+  saleOffersForProducts,
+  syncFlashSales,
+} from '../promotions/service.ts';
 import { noticesForVariants } from '../safety/service.ts';
 
 import { getBadgeIndex, type BadgeIndex } from './badge-index.ts';
@@ -66,12 +70,29 @@ export async function getCategory(slug: string): Promise<CategoryNode> {
 
 // ---------- product list ----------
 
+// The member price leaves the API only for a signed-in viewer; a guest gets the boolean alone.
+// Callers that never look up a user (guides) pass isMember=false, so their cards are anonymous.
+function memberFields(cents: number | undefined, isMember: boolean) {
+  return {
+    hasMemberPrice: cents !== undefined,
+    member: isMember && cents !== undefined ? { priceCents: cents } : null,
+  };
+}
+
+// Who is asking: only the id matters here (a member price is for any signed-in account).
+export interface Viewer {
+  isMember: boolean;
+}
+const GUEST: Viewer = { isMember: false };
+
 function toCard(
   row: repo.ProductCardRow,
   image: repo.ProductImageRow | undefined,
   badges: Badge[],
   swatches: ProductCard['swatches'],
   sale: ProductCard['sale'],
+  memberCents: number | undefined,
+  isMember: boolean,
 ): ProductCard {
   // Only the facet keys leave the API on a card: the jsonb may hold internal keys (optionKeys).
   const attributes: ProductCard['attributes'] = {};
@@ -107,6 +128,7 @@ function toCard(
         : null,
     swatches,
     sale,
+    ...memberFields(memberCents, isMember),
   };
 }
 
@@ -162,13 +184,15 @@ async function getFacets(query: ProductListQuery, index: BadgeIndex): Promise<Fa
 async function buildCards(
   rows: repo.ProductCardRow[],
   index: Awaited<ReturnType<typeof getBadgeIndex>>,
+  viewer: Viewer,
 ): Promise<ProductCard[]> {
   const ids = rows.map((r) => r.id);
   await syncFlashSales(db);
-  const [images, swatchRows, offers] = await Promise.all([
+  const [images, swatchRows, offers, members] = await Promise.all([
     repo.listPrimaryImages(ids),
     repo.listSwatches(ids),
     saleOffersForProducts(ids),
+    memberPricesForProducts(ids),
   ]);
   const imageByProduct = new Map(images.map((i) => [i.productId, i]));
   const swatchesByProduct = new Map<string, ProductCard['swatches']>();
@@ -199,11 +223,16 @@ async function buildCards(
       index.get(row.id) ?? [],
       swatchesByProduct.get(row.id) ?? [],
       offers.byProduct.get(row.id) ?? null,
+      members.byProduct.get(row.id),
+      viewer.isMember,
     ),
   );
 }
 
-export async function listProducts(query: ProductListQuery): Promise<ProductListResponse> {
+export async function listProducts(
+  query: ProductListQuery,
+  viewer: Viewer = GUEST,
+): Promise<ProductListResponse> {
   // `relevance` only means something with a search term; without one it would be an arbitrary
   // order, so it quietly becomes the default.
   // Inside a collection the editor's order is the default, otherwise newest first.
@@ -219,7 +248,7 @@ export async function listProducts(query: ProductListQuery): Promise<ProductList
     getFacets(query, index),
   ]);
   return {
-    data: await buildCards(rows, index),
+    data: await buildCards(rows, index, viewer),
     meta: {
       page: query.page,
       limit: query.limit,
@@ -241,7 +270,7 @@ export async function listCardsByIds(ids: string[]): Promise<ProductCard[]> {
     limit: ids.length,
     offset: 0,
   });
-  return buildCards(rows, await getBadgeIndex());
+  return buildCards(rows, await getBadgeIndex(), GUEST);
 }
 
 // The homepage bestsellers: products carrying the Bestseller badge (sales-derived or the editorial
@@ -256,7 +285,8 @@ export async function listBestsellerCards(limit: number): Promise<ProductCard[]>
     limit,
     offset: 0,
   });
-  let cards = await buildCards(rows, index);
+  // Built as a guest's: /home is public and cached, so it must never carry a member price.
+  let cards = await buildCards(rows, index, GUEST);
   if (cards.length < limit) {
     const taken = new Set(cards.map((c) => c.id));
     const fill = await repo.listProducts({
@@ -265,7 +295,7 @@ export async function listBestsellerCards(limit: number): Promise<ProductCard[]>
       limit: limit + taken.size,
       offset: 0,
     });
-    const extra = (await buildCards(fill.rows, index)).filter((c) => !taken.has(c.id));
+    const extra = (await buildCards(fill.rows, index, GUEST)).filter((c) => !taken.has(c.id));
     cards = [...cards, ...extra].slice(0, limit);
   }
   return cards;
@@ -273,7 +303,7 @@ export async function listBestsellerCards(limit: number): Promise<ProductCard[]>
 
 // ---------- product detail ----------
 
-export async function getProduct(slug: string): Promise<ProductDetail> {
+export async function getProduct(slug: string, viewer: Viewer = GUEST): Promise<ProductDetail> {
   const rows = await repo.getProductBySlug(slug);
   // A product with no active variant cannot be bought, so it is as good as missing (the list
   // hides it for the same reason).
@@ -281,6 +311,7 @@ export async function getProduct(slug: string): Promise<ProductDetail> {
 
   await syncFlashSales(db);
   const offers = await saleOffersForProducts([rows.product.id]);
+  const members = await memberPricesForProducts([rows.product.id]);
   const variants = rows.variants.map((v) => {
     const availableUnits = v.quantity - v.reserved;
     return {
@@ -301,6 +332,7 @@ export async function getProduct(slug: string): Promise<ProductDetail> {
       isTrial: v.isTrial,
       swatchHex: v.swatchHex,
       sale: offers.byVariant.get(v.id) ?? null,
+      ...memberFields(members.byVariant.get(v.id), viewer.isMember),
     };
   });
   // A sample size must not set the "from" price of the product.
