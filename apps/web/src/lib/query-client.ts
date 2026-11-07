@@ -90,6 +90,7 @@ export const keys = {
     brands: ['admin', 'brands'] as const,
     collections: ['admin', 'collections'] as const,
     tags: ['admin', 'tags'] as const,
+    menuPromos: ['admin', 'menu-promos'] as const,
     orders: ['admin', 'orders'] as const,
     orderList: (params: AdminOrderListParams) => ['admin', 'orders', 'list', params] as const,
     order: (number: string) => ['admin', 'orders', 'detail', number] as const,
@@ -127,6 +128,8 @@ export const keys = {
       ['guides', 'list', params] as const,
     detail: (slug: string) => ['guides', 'detail', slug] as const,
   },
+  // The mega-menu data (pets, categories, brands, promos): one cached call.
+  navigation: ['navigation'] as const,
   categories: {
     all: ['categories'] as const,
     detail: (slug: string) => ['categories', slug] as const,

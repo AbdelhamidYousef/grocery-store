@@ -28,6 +28,10 @@ export const server = setupServer(
       { status: 401 },
     ),
   ),
+  // A signed-in visitor has no pets unless a test says so.
+  http.get(`${API}/account/pets`, () => HttpResponse.json({ data: [] })),
+  // No menu data unless a test says so: the header then shows plain links to each pet's page.
+  http.get(`${API}/navigation`, () => HttpResponse.json({ data: { pets: [] } })),
   // No sale banner unless a test says so.
   http.get(`${API}/promotions/banner`, () =>
     HttpResponse.json({ data: { sale: null, serverNow: new Date().toISOString() } }),

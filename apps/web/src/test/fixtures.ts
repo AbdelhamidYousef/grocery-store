@@ -1,4 +1,5 @@
 import type {
+  Navigation,
   Address,
   AdminCollection,
   AdminOrderDetail,
@@ -650,5 +651,44 @@ export function makeHome(over: Partial<HomeResponse> = {}): HomeResponse {
     promoTile: null,
     bestsellers: [makeCard(), makeCard({ id: 'p2', slug: 'ball', name: 'Ball' })],
     ...over,
+  };
+}
+
+export function makeNavigation(): Navigation {
+  const brands = [
+    { slug: 'burrow-and-biscuit', name: 'Burrow & Biscuit' },
+    { slug: 'pawsome', name: 'Pawsome' },
+  ];
+  return {
+    pets: [
+      {
+        pet: 'dog',
+        name: 'Dogs',
+        categorySlug: 'dogs',
+        categories: [
+          { slug: 'dog-toys', name: 'Toys', productCount: 20 },
+          { slug: 'dog-beds', name: 'Beds & Housing', productCount: 9 },
+        ],
+        brands,
+        promo: {
+          title: 'Walkies, sorted',
+          subtitle: 'Leads and more.',
+          imageUrl: '/products/dog-toys/braided-tug-rope-1.webp',
+          imageAlt: 'A lead',
+          link: '/c/dog-walk',
+        },
+      },
+      {
+        pet: 'cat',
+        name: 'Cats',
+        categorySlug: 'cats',
+        categories: [
+          { slug: 'cat-scratch', name: 'Scratch posts', productCount: 4 },
+          { slug: 'cat-toys', name: 'Toys', productCount: 11 },
+        ],
+        brands,
+        promo: null,
+      },
+    ],
   };
 }

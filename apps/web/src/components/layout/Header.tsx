@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
+import { MegaMenu } from '../../features/navigation/MegaMenu';
 import { PetSwitcher } from '../../features/pets/PetSwitcher';
-import { PETS } from '../../lib/pets';
 import { TEST_IDS } from '../../lib/test-ids';
-import { CartIcon, MenuIcon, PawIcon, PetGlyph } from '../icons';
+import { CartIcon, MenuIcon, PawIcon } from '../icons';
 
 import { AccountMenu } from './AccountMenu';
 import { Container } from './Container';
@@ -98,31 +98,9 @@ export function Header({
         </div>
       </Container>
 
-      <nav aria-label="Shop by pet" className="hidden border-t border-line lg:block">
+      <nav aria-label="Shop by pet" className="relative hidden border-t border-line lg:block">
         <Container>
-          <ul className="flex items-center gap-2 py-2" data-testid="main-nav">
-            {PETS.map((pet) => (
-              <li key={pet.slug} data-pet={pet.accent}>
-                <NavLink
-                  to={`/c/${pet.slug}`}
-                  className="flex min-h-11 items-center gap-2 rounded-full px-4 font-display font-semibold hover:bg-pet-soft aria-[current=page]:bg-pet-soft"
-                >
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pet-accent text-ink">
-                    <PetGlyph icon={pet.icon} width={18} height={18} />
-                  </span>
-                  {pet.name}
-                </NavLink>
-              </li>
-            ))}
-            <li>
-              <NavLink
-                to="/brands"
-                className="flex min-h-11 items-center rounded-full px-4 font-display font-semibold hover:bg-pet-soft aria-[current=page]:bg-pet-soft"
-              >
-                Brands
-              </NavLink>
-            </li>
-          </ul>
+          <MegaMenu />
         </Container>
       </nav>
 

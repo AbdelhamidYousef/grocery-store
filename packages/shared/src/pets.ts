@@ -12,3 +12,14 @@ export type Pet = z.infer<typeof PetSchema>;
 export const NET_UNITS = ['g', 'ml'] as const;
 export const NetUnitSchema = z.enum(NET_UNITS);
 export type NetUnit = z.infer<typeof NetUnitSchema>;
+
+// The top-level category each pet shops in (`/c/<slug>`). The menu and the pet pages use it to go
+// from a pet to its category without guessing; `small` is the pet value, `small-pets` the slug.
+export const PET_CATEGORY_SLUGS: Record<Pet, string> = {
+  dog: 'dogs',
+  cat: 'cats',
+  bird: 'birds',
+  fish: 'fish',
+  small: 'small-pets',
+  reptile: 'reptiles',
+};

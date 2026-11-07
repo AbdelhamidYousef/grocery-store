@@ -28,6 +28,7 @@ import { loadContent, seedContent } from './content.ts';
 import { FORCED_STOCK, expandVariants, stockLevels } from './expand.ts';
 import { seedHomeContent } from './home.ts';
 import { imageRowsFor } from './images.ts';
+import { seedMenuPromos } from './menu-promos.ts';
 import { products } from './products.ts';
 import {
   bulkTierSeeds,
@@ -323,6 +324,7 @@ export async function runSeed(now = new Date()) {
     // ---- guides, help articles, testimonials (after products: guides link to them) ----
     await seedContent(tx, content, productId);
     await seedHomeContent(tx);
+    await seedMenuPromos(tx);
 
     // ---- shipping ----
     await tx

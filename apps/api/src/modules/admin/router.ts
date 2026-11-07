@@ -4,6 +4,7 @@ import type { PaymentGateway } from '../../lib/stripe.ts';
 import { requireAdmin } from '../../middleware/auth.ts';
 import type { Outbox } from '../mail/outbox.ts';
 import { createMerchandisingAdminRouter } from '../merchandising/admin-router.ts';
+import { createNavigationAdminRouter } from '../navigation/admin-router.ts';
 import { createPromotionsAdminRouter } from '../promotions/admin-router.ts';
 import { createSafetyAdminRouter } from '../safety/admin-router.ts';
 
@@ -29,6 +30,7 @@ export function createAdminRouter(deps: { payments: PaymentGateway; outbox: Outb
   admin.use(createSafetyAdminRouter(deps));
   admin.use(createAdminContentRouter());
   admin.use(createPromotionsAdminRouter());
+  admin.use(createNavigationAdminRouter());
   router.use('/admin', admin);
   return router;
 }
