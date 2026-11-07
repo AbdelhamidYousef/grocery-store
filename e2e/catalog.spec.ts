@@ -54,11 +54,13 @@ test('browse: home, category, filter by material, open a product, change variant
 
 test('search finds a product and keeps the query in the box', async ({ page }) => {
   await page.goto('/');
-  await page.getByTestId('header').getByRole('searchbox', { name: 'Search products' }).fill('rope');
+  await page.getByTestId('header').getByRole('combobox', { name: 'Search products' }).fill('rope');
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/search\?q=rope$/);
   await expect(page.getByTestId('product-card').first()).toBeVisible();
-  await expect(page.getByTestId('header').getByRole('searchbox')).toHaveValue('rope');
+  await expect(
+    page.getByTestId('header').getByRole('combobox', { name: 'Search products' }),
+  ).toHaveValue('rope');
 });
 
 test('a sold-out product cannot be added to the cart', async ({ page }) => {

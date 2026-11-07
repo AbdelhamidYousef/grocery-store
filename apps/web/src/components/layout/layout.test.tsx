@@ -83,7 +83,7 @@ describe('Header', () => {
   it('searches by navigating to /search?q= and ignores an empty query', async () => {
     const user = userEvent.setup();
     renderShell();
-    const box = within(screen.getByTestId('header')).getByRole('searchbox', {
+    const box = within(screen.getByTestId('header')).getByRole('combobox', {
       name: 'Search products',
     });
     await user.type(box, '   {Enter}');

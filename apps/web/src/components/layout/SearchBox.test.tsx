@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { renderApp } from '../../test/render';
 
 const box = () =>
-  within(screen.getByTestId('header')).getByRole('searchbox', { name: 'Search products' });
+  within(screen.getByTestId('header')).getByRole('combobox', { name: 'Search products' });
 
 describe('search box', () => {
   it('navigates to /search?q= with the typed words encoded', async () => {
