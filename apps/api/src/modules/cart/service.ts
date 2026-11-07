@@ -5,11 +5,15 @@ import {
   type Cart,
   type CartItem,
   type CartWarning,
+  type CartPricing,
   type OutOfStockDetails,
 } from '@store/shared';
 
 import { db, type Tx } from '../../db/client.ts';
 import { conflict, notFound } from '../../lib/errors.ts';
+import { listActiveShippingMethods } from '../checkout/repo.ts';
+import { estimateRule, priceBeforeThreshold } from '../checkout/shipping.ts';
+import * as promotions from '../promotions/service.ts';
 import { customerKey, isRedeemed, trialLimit } from '../trials/service.ts';
 
 import { getOrCreateUserCart, guestExpiry, userExpiry } from './identity.ts';
@@ -37,7 +41,7 @@ function pickImage(images: repo.ImageRow[], line: repo.LineRow): repo.ImageRow |
 // clamped and an archived variant stays gone, and the warning is shown once (in the response that
 // caused the repair), not forever.
 export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
-  await repo.lockCart(tx, cartId);
+  const cartRow = await repo.lockCart(tx, cartId);
   const lines = await repo.listLines(tx, cartId);
   const images = await repo.listImages(tx, [...new Set(lines.map((l) => l.productId))]);
 
@@ -46,6 +50,7 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
   const items: CartItem[] = [];
   let weightGrams = 0;
   const purchasableLines: { total: number; qty: number }[] = [];
+  const pricingLines: promotions.PricingLineInput[] = [];
 
   for (const line of lines) {
     const base = {
@@ -111,19 +116,41 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
     // Sold-out lines are shown but never counted: the subtotal is what can actually be bought.
     if (available > 0) {
       purchasableLines.push({ total: lineTotal, qty: quantity });
+      pricingLines.push({
+        variantId: line.variantId,
+        productId: line.productId,
+        quantity,
+        unitPriceCents: line.priceCents,
+        isTrial: line.isTrial,
+      });
       weightGrams += line.weightGrams * quantity;
     }
   }
 
   await repo.deleteItems(tx, removeIds);
 
+  const currency = lines[0]?.currency ?? DEFAULT_CURRENCY;
+  const rule = estimateRule(await listActiveShippingMethods(tx));
+  const { pricing } = await promotions.price(tx, {
+    currency,
+    lines: pricingLines,
+    userId: cartRow?.userId ?? null,
+    email: null,
+    code: cartRow?.discountCode ?? null,
+    shipping: {
+      methodCents: rule ? priceBeforeThreshold(rule, weightGrams) : 0,
+      freeOverCents: rule?.freeOverCents ?? null,
+    },
+  });
+
   return {
     items,
-    currency: lines[0]?.currency ?? DEFAULT_CURRENCY,
+    currency,
     subtotalCents: sumCents(purchasableLines.map((l) => l.total)),
     itemCount: purchasableLines.reduce((n, l) => n + l.qty, 0),
     weightGrams,
     warnings,
+    pricing,
   };
 }
 
@@ -136,8 +163,22 @@ export function emptyCart(): Cart {
     itemCount: 0,
     weightGrams: 0,
     warnings: [],
+    pricing: EMPTY_PRICING,
   };
 }
+
+const EMPTY_PRICING: CartPricing = {
+  code: null,
+  lines: [],
+  adjustments: [],
+  discountCents: 0,
+  merchandiseCents: 0,
+  shippingEstimateCents: 0,
+  totalEstimateCents: 0,
+  gift: null,
+  progress: { freeShipping: null, gift: null, nextTier: null },
+  notices: [],
+};
 
 export async function getCart(cartId: string): Promise<Cart> {
   return db.transaction((tx) => loadCart(tx, cartId));
@@ -236,6 +277,27 @@ export async function removeItem(cartId: string, itemId: string): Promise<Cart> 
     if (!item) throw notFound('Cart item not found');
     await repo.deleteItems(tx, [item.id]);
   });
+}
+
+// Applies a code only if it would really do something now; otherwise refuses with a kind reason
+// and leaves the cart as it was. A code that later stops applying (cart shrank, code expired)
+// stays on the cart and the pricing notices explain why it is not counted.
+export async function applyCode(cartId: string, code: string): Promise<Cart> {
+  return mutate(cartId, async (tx) => {
+    await repo.setDiscountCode(tx, cartId, code);
+    const trial = await loadCart(tx, cartId);
+    const refusal = promotions.codeRefusal(
+      trial.pricing,
+      await promotions.findCode(tx, code),
+      code,
+      trial.currency,
+    );
+    if (refusal) throw promotions.codeError(refusal);
+  });
+}
+
+export async function removeCode(cartId: string): Promise<Cart> {
+  return mutate(cartId, (tx) => repo.setDiscountCode(tx, cartId, null));
 }
 
 export async function clear(cartId: string): Promise<Cart> {

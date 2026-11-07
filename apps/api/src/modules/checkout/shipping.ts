@@ -30,7 +30,21 @@ export function shippingPriceCents(
   ctx: Pick<ShippingContext, 'weightGrams' | 'subtotalCents'>,
 ): number {
   if (rule.freeOverCents !== null && ctx.subtotalCents >= rule.freeOverCents) return 0;
-  return rule.baseCents + Math.ceil(ctx.weightGrams / 1000) * rule.perKgCents;
+  return priceBeforeThreshold(rule, ctx.weightGrams);
+}
+
+// The price ignoring the free threshold: what the pricing engine is given, since it applies the
+// threshold itself, to the merchandise total after discounts.
+export function priceBeforeThreshold(rule: ShippingRule, weightGrams: number): number {
+  return rule.baseCents + Math.ceil(weightGrams / 1000) * rule.perKgCents;
+}
+
+// The method the cart estimates with: standard delivery, or the cheapest one if it is switched off.
+export function estimateRule<T extends ShippingRule>(rules: T[]): T | undefined {
+  return (
+    rules.find((r) => r.code === 'standard') ??
+    [...rules].sort((a, b) => a.baseCents - b.baseCents || a.code.localeCompare(b.code))[0]
+  );
 }
 
 // Cheapest first, ties broken by code so the order never flickers between requests.

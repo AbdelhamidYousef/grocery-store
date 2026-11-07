@@ -99,6 +99,13 @@
       "when": 1794068340233,
       "tag": "0013_promotions",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1794070109278,
+      "tag": "0014_cart_discount_code",
+      "breakpoints": true
     }
   ]
 }

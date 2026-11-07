@@ -611,3 +611,10 @@ Learn: a Tailwind display class (`grid`, `flex`) overrides the browser's `hidden
 - Codes are `citext`, so `paws10` finds `PAWS10`. Redemptions are released, never deleted (same idea as trial redemptions), so the usage cap only counts live rows and history stays.
 - `order_promotions` copies type, label and cents as values and keeps the rule id as text, not a foreign key: editing or deleting a code later must not rewrite what an old order says.
 - Seed: PAWS10 (10%, min EUR 30, not on sale items), WELCOME5 (EUR 5, first order, once per customer), FREESHIP (min EUR 25), tiers 5% over EUR 75 and 10% over EUR 100, a free bag of Peanut Crunch Biscuits from EUR 40. Idempotent: codes and tiers upsert on their natural key.
+
+### Step 18.4 — discount codes and the priced cart
+- `GET /cart` (and every cart mutation) now carries `pricing`: the engine's adjustments, discount, gift, progress bars and notices. Shipping in the cart is an estimate with standard delivery; checkout prices the method actually chosen.
+- The promotions service only loads rules and calls `priceCart`; it adds the checks that need the database (unknown or archived code, global cap, per-customer cap) as notices of its own. Usage caps count live (unreleased) redemptions only.
+- `POST /cart/code` stores the code on the cart, re-prices, and refuses with one kind sentence ("Add EUR 15.00 more to use this code", "This code expired on 12 Oct", "You've already used this code") if the code would do nothing. A code the bulk tier beats is kept, with a `code_not_stackable` notice, because adding more items can still change which one wins.
+- The cart stores the code as text, not a foreign key: it is looked up again on every pricing, so an archived or edited code is never trusted from the moment it was applied (and it avoids a carts → promotions → orders → carts import cycle).
+- A guest's per-customer and first-order history is unknown until checkout asks for the email, so the cart accepts the code and checkout repeats the check with the email.

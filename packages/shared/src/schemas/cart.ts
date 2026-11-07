@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { IdParamsSchema } from './account.ts';
 import { DataSchema } from './common.ts';
+import { CartPricingSchema } from './promotions.ts';
 
 // Most of one line a shopper may hold; mirrors the cart_items check constraint.
 export const MAX_LINE_QUANTITY = 99;
@@ -81,6 +82,8 @@ export const CartSchema = z.object({
   weightGrams: z.number().int().min(0),
   // Things that changed since the shopper last looked; empty on a calm cart.
   warnings: z.array(CartWarningSchema),
+  // Promotions applied by the pricing engine (phase 18).
+  pricing: CartPricingSchema,
 });
 export type Cart = z.infer<typeof CartSchema>;
 

@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { index, pgEnum, pgTable, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 
-import { createdAt, id, updatedAt } from './columns.ts';
+import { citext, createdAt, id, updatedAt } from './columns.ts';
 import { users } from './users.ts';
 
 export const cartStatus = pgEnum('cart_status', ['active', 'merged', 'converted', 'abandoned']);
@@ -16,6 +16,9 @@ export const carts = pgTable(
     status: cartStatus('status').notNull().default('active'),
     // Guest carts live 30 days, user carts 90; set by the cart service, so no default here.
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    // The discount code the shopper applied (phase 18). Text, looked up on every pricing: a code
+    // archived or edited since is re-checked, never trusted from when it was applied.
+    discountCode: citext('discount_code'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

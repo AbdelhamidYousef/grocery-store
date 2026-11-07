@@ -438,3 +438,7 @@ Format: date · decision · why · alternatives rejected · revisit when.
 - 2026-11-07 · REVIEW · Percent codes and tiers store whole percents (integer 1..100) even though the engine accepts two decimals · simpler admin form and checks; nobody needs 12.5% in a demo · numeric(5,2).
 - 2026-11-07 · REVIEW · `order_promotions.ref_id` is text, not a foreign key · the snapshot must survive the rule being deleted or archived · FK with SET NULL.
 - 2026-11-07 · REVIEW · Seeded gift is a bag of Peanut Crunch Biscuits (dog) · dogs are the biggest category and it is the cheapest dog item; no seeded product suits every pet · a cat or bird treat.
+- 2026-11-07 · REVIEW · `carts.discount_code` is citext text, not a foreign key · re-checked on every pricing; avoids an import cycle between the carts, promotions and orders schemas · `discount_code_id` FK with SET NULL.
+- 2026-11-07 · REVIEW · Applying a code that would do nothing is refused (400 with a kind message); a code beaten by a bulk tier is kept with a notice · the shopper hears why at once, and the tier/code choice can flip as the cart grows · refusing tier-beaten codes too.
+- 2026-11-07 · REVIEW · The cart's shipping figure is an estimate with standard delivery (or the cheapest method) · the cart does not know the chosen method; the free-shipping bar needs a threshold · no shipping in the cart.
+- 2026-11-07 · REVIEW · The two-checkouts cap race test moves from 18.4 to 18.5, where the redemption row is written · the race only exists in the order-creation transaction · a repo-level race test in 18.4.

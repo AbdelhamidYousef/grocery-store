@@ -91,6 +91,7 @@ export type LineRow = {
   lastSeenPriceCents: number | null;
   currency: string;
   weightGrams: number;
+  isTrial: boolean;
   variantStatus: 'draft' | 'active' | 'archived';
   productId: string;
   productName: string;
@@ -115,6 +116,7 @@ export async function listLines(tx: Tx, cartId: string): Promise<LineRow[]> {
         lastSeenPriceCents: cartItems.lastSeenPriceCents,
         currency: productVariants.currency,
         weightGrams: productVariants.weightGrams,
+        isTrial: productVariants.isTrial,
         variantStatus: productVariants.status,
         productId: products.id,
         productName: products.name,
@@ -269,4 +271,8 @@ export async function listItems(tx: Tx, cartId: string): Promise<CartItemRow[]> 
     .from(cartItems)
     .where(eq(cartItems.cartId, cartId))
     .orderBy(asc(cartItems.createdAt), asc(cartItems.id));
+}
+
+export async function setDiscountCode(tx: Tx, cartId: string, code: string | null): Promise<void> {
+  await tx.update(carts).set({ discountCode: code }).where(eq(carts.id, cartId));
 }

@@ -245,6 +245,23 @@ export function makeCart(items: WebCartItem[] = [], warnings: WebCart['warnings'
     itemCount: buyable.reduce((n, i) => n + i.quantity, 0),
     weightGrams: 0,
     warnings,
+    pricing: makeCartPricing(),
+  };
+}
+
+export function makeCartPricing(overrides: Partial<WebCart['pricing']> = {}): WebCart['pricing'] {
+  return {
+    code: null,
+    lines: [],
+    adjustments: [],
+    discountCents: 0,
+    merchandiseCents: 0,
+    shippingEstimateCents: 0,
+    totalEstimateCents: 0,
+    gift: null,
+    progress: { freeShipping: null, gift: null, nextTier: null },
+    notices: [],
+    ...overrides,
   };
 }
 

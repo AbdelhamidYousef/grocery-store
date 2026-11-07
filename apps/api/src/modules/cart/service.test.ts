@@ -17,7 +17,8 @@ const rowsOf = (cartId: string) => db.select().from(cartItems).where(eq(cartItem
 describe('getCart', () => {
   it('returns an empty, calm cart', async () => {
     const { cart } = await createCart();
-    expect(await getCart(cart.id)).toEqual({
+    const empty = await getCart(cart.id);
+    expect(empty).toMatchObject({
       items: [],
       currency: 'EUR',
       subtotalCents: 0,
@@ -25,6 +26,7 @@ describe('getCart', () => {
       weightGrams: 0,
       warnings: [],
     });
+    expect(empty.pricing).toMatchObject({ code: null, discountCents: 0, totalEstimateCents: 0 });
   });
 
   it('prices lines from the catalog and totals them', async () => {

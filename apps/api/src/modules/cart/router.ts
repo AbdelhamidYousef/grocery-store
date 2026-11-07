@@ -1,5 +1,6 @@
 import {
   AddCartItemSchema,
+  ApplyCodeSchema,
   CartItemParamsSchema,
   CartResponseSchema,
   UpdateCartItemSchema,
@@ -46,6 +47,16 @@ const byId = { params: CartItemParamsSchema };
 cartRouter.delete('/cart/items/:id', validate(byId), async (req, res) => {
   const { params } = valid(req, byId);
   respond(res, CartResponseSchema, { data: await service.removeItem(cartIdOf(req), params.id) });
+});
+
+const applyCode = { body: ApplyCodeSchema };
+cartRouter.post('/cart/code', validate(applyCode), async (req, res) => {
+  const { body } = valid(req, applyCode);
+  respond(res, CartResponseSchema, { data: await service.applyCode(cartIdOf(req), body.code) });
+});
+
+cartRouter.delete('/cart/code', async (req, res) => {
+  respond(res, CartResponseSchema, { data: await service.removeCode(cartIdOf(req)) });
 });
 
 cartRouter.delete('/cart', async (req, res) => {
