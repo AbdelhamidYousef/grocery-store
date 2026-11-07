@@ -1,41 +1,50 @@
-import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, type ReactNode } from 'react';
 
 import { Container } from '../components/layout/Container';
 import { Seo } from '../components/Seo';
 import { PetTiles } from '../features/catalog/PetTiles';
 import { ProductGrid, ProductGridSkeleton } from '../features/catalog/ProductGrid';
-import { useProducts } from '../features/catalog/queries';
+import '../features/home/builtin-slots';
+import { HeroCarousel } from '../features/home/HeroCarousel';
+import {
+  GuidesTeaser,
+  HeroSkeleton,
+  PromoTile,
+  Testimonials,
+  TrustBar,
+} from '../features/home/HomeSections';
+import { useHome } from '../features/home/queries';
+import { getHomeSlots, type HomeSlot } from '../features/home/slots';
 import { SafetyBanner } from '../features/safety/SafetyBanner';
-import { image600 } from '../lib/images';
 import { TEST_IDS } from '../lib/test-ids';
 import { track } from '../lib/track';
 
-const NEW_ARRIVALS = { sort: 'newest', limit: 8 } as const;
+// Every section after the hero sits in a Container with a top margin. `empty:hidden` drops the
+// whole block (margin included) when its component rendered nothing, so an optional section that
+// has nothing to show never leaves a gap.
+function Section({ id, children }: { id: string; children: ReactNode }) {
+  return (
+    <Container className="mt-12 empty:hidden" data-home-section={id}>
+      {children}
+    </Container>
+  );
+}
 
-const WHY = [
-  {
-    title: 'Picked by pet people',
-    text: 'Every toy, bed and treat is chosen for how it holds up to real chewing, scratching and zooming.',
-  },
-  {
-    title: 'Kind to the little ones',
-    text: 'Safe materials, honest ingredient lists and no nasties, so you can relax while they play.',
-  },
-  {
-    title: 'Happy-tail promise',
-    text: 'Not a hit with your pet? Tell us and we will make it right. Their joy is our whole job.',
-  },
-] as const;
+function renderSlot(slot: HomeSlot) {
+  return (
+    <Section key={slot.id} id={slot.id}>
+      {slot.render()}
+    </Section>
+  );
+}
 
 export default function HomePage() {
-  const { data, isPending, isError } = useProducts(NEW_ARRIVALS);
+  const { data, isPending, isError } = useHome();
+  const slots = getHomeSlots();
 
   useEffect(() => {
     track({ name: 'view_home' });
   }, []);
-
-  const hero = data?.data.slice(0, 3) ?? [];
 
   return (
     <div data-testid={TEST_IDS.pageHome}>
@@ -46,86 +55,46 @@ export default function HomePage() {
 
       <SafetyBanner />
 
-      <section className="bg-primary-soft">
-        <Container className="grid grid-cols-1 items-center gap-8 py-10 md:grid-cols-2 md:py-16">
-          <div className="flex flex-col items-start gap-4">
-            <h1 className="font-display text-4xl font-bold leading-tight text-ink sm:text-5xl">
-              Happy tails start <span className="text-primary-strong">here</span>
-            </h1>
-            <p className="max-w-prose text-lg text-ink">
-              Bright, sturdy supplies for dogs, cats, birds, fish and small pets, made for play,
-              naps and snack time.
-            </p>
-            <Link
-              to="/c/dogs"
-              className="inline-flex min-h-12 items-center rounded-control bg-primary px-7 font-display text-lg font-semibold text-surface hover:bg-primary-hover"
-            >
-              Start shopping
-            </Link>
-          </div>
-          {/* Decorative collage of real catalogue photos; the same pictures are links below. */}
-          <div className="grid grid-cols-3 gap-3" aria-hidden="true">
-            {/* While the products load, three empty tiles hold the collage's place so the page
-                below does not jump when the photos arrive. */}
-            {isPending &&
-              [0, 1, 2].map((i) => (
-                <div
-                  key={i}
-                  className={`aspect-square w-full rounded-card bg-surface/60 ${i === 1 ? 'mt-6' : ''}`}
-                />
-              ))}
-            {hero.map((p, i) =>
-              p.image ? (
-                <img
-                  key={p.id}
-                  src={p.image.url}
-                  srcSet={`${image600(p.image.url)} 600w`}
-                  sizes="(min-width: 768px) 16vw, 30vw"
-                  width={p.image.width}
-                  height={p.image.height}
-                  alt=""
-                  loading="eager"
-                  className={`aspect-square w-full rounded-card object-cover shadow-card ${i === 1 ? 'mt-6' : ''}`}
-                />
-              ) : null,
-            )}
-          </div>
-        </Container>
-      </section>
+      <h1 className="sr-only">Happy tails start here</h1>
 
-      <Container className="mt-12">
+      {data ? <HeroCarousel slides={data.heroSlides} /> : <HeroSkeleton />}
+      <TrustBar />
+
+      <Section id="shop-by-pet">
         <h2 className="mb-5 text-2xl font-bold sm:text-3xl">Shop by pet</h2>
         <PetTiles />
-      </Container>
+      </Section>
 
-      <Container className="mt-12">
-        <h2 className="mb-5 text-2xl font-bold sm:text-3xl">New arrivals</h2>
+      <Section id="bestsellers">
+        <h2 className="mb-5 text-2xl font-bold sm:text-3xl">Bestsellers</h2>
         {isError ? (
           <p role="alert" className="rounded-card bg-danger-soft p-4 text-danger">
-            We could not load new arrivals just now. Please try again in a moment.
+            We could not load our bestsellers just now. Please try again in a moment.
           </p>
         ) : (
           <div aria-busy={isPending}>
             {isPending ? (
-              <ProductGridSkeleton />
+              <ProductGridSkeleton count={4} />
             ) : (
-              <ProductGrid products={data.data} listId="new-arrivals" />
+              <ProductGrid products={data.bestsellers} listId="bestsellers" />
             )}
           </div>
         )}
-      </Container>
+      </Section>
 
-      <Container className="mt-12">
-        <h2 className="mb-5 text-2xl font-bold sm:text-3xl">Why Pawsome</h2>
-        <ul className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {WHY.map((item) => (
-            <li key={item.title} className="rounded-card border border-line bg-surface p-6">
-              <h3 className="text-xl font-bold">{item.title}</h3>
-              <p className="mt-2 text-muted">{item.text}</p>
-            </li>
-          ))}
-        </ul>
-      </Container>
+      <Section id="promo">{data?.promoTile ? <PromoTile tile={data.promoTile} /> : null}</Section>
+
+      {slots.filter((s) => s.id === 'seasonal').map(renderSlot)}
+
+      <Section id="guides">
+        <GuidesTeaser />
+      </Section>
+
+      <Section id="testimonials">
+        <Testimonials />
+      </Section>
+
+      {slots.filter((s) => s.id !== 'seasonal').map(renderSlot)}
     </div>
   );
 }

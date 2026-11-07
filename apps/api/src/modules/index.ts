@@ -15,6 +15,7 @@ import { createTestRouter } from './checkout/test-router.ts';
 import { createContactRouter } from './contact/router.ts';
 import { guidesRouter } from './guides/router.ts';
 import { helpRouter } from './help/router.ts';
+import { homeRouter } from './home/router.ts';
 import type { Outbox } from './mail/outbox.ts';
 import { merchandisingRouter } from './merchandising/router.ts';
 import { safetyRouter } from './safety/router.ts';
@@ -42,6 +43,7 @@ export function createModulesRouter(opts: {
   router.use(merchandisingRouter);
   router.use(guidesRouter);
   router.use(helpRouter);
+  router.use(homeRouter);
   router.use(safetyRouter);
   // Exists only under NODE_ENV=test with a TEST_HOOK_SECRET (see test-router.ts): no way to fake a
   // payment anywhere else.

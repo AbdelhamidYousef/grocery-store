@@ -104,6 +104,7 @@ export const keys = {
     },
   },
   safety: { active: ['safety', 'active'] as const },
+  home: { all: ['home'] as const, testimonials: ['home', 'testimonials'] as const },
   help: {
     all: ['help'] as const,
     search: (params: { q?: string | undefined; topic?: string | undefined }) =>

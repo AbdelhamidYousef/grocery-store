@@ -14,6 +14,8 @@ import type {
   Facets,
   GuideCard,
   GuideDetail,
+  HeroSlide,
+  HomeResponse,
   Order,
   OrderSummary,
   ProductCard,
@@ -588,5 +590,33 @@ export function makeGuideDetail(overrides: Partial<GuideDetail> = {}): GuideDeta
     products: [makeCard()],
     related: [makeGuideCard({ slug: 'first-week-with-a-puppy', title: 'First week' })],
     ...overrides,
+  };
+}
+
+export function makeHero(over: Partial<HeroSlide> = {}): HeroSlide {
+  return {
+    title: 'Happy tails start here',
+    text: 'Colourful, tough supplies for every pet.',
+    ctaLabel: 'Shop dogs',
+    ctaHref: '/c/dogs',
+    imageUrl: null,
+    ...over,
+  };
+}
+
+export function makeHome(over: Partial<HomeResponse> = {}): HomeResponse {
+  return {
+    heroSlides: [
+      makeHero(),
+      makeHero({ title: 'Purr-fect playtime', ctaLabel: 'Shop cats', ctaHref: '/c/cats' }),
+      makeHero({
+        title: 'Little pets, big love',
+        ctaLabel: 'Shop small',
+        ctaHref: '/c/small-pets',
+      }),
+    ],
+    promoTile: null,
+    bestsellers: [makeCard(), makeCard({ id: 'p2', slug: 'ball', name: 'Ball' })],
+    ...over,
   };
 }

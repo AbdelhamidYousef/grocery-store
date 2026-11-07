@@ -237,6 +237,33 @@ export async function listCardsByIds(ids: string[]): Promise<ProductCard[]> {
   return buildCards(rows, await getBadgeIndex());
 }
 
+// The homepage bestsellers: products carrying the Bestseller badge (sales-derived or the editorial
+// override, both inside the badge index). Fewer than `limit` of them (a new shop with no orders
+// and no overrides) is topped up with the newest products so the section never looks half empty.
+export async function listBestsellerCards(limit: number): Promise<ProductCard[]> {
+  const index = await getBadgeIndex();
+  const ids = [...index].filter(([, badges]) => badges.includes('Bestseller')).map(([id]) => id);
+  const { rows } = await repo.listProducts({
+    filters: { attr: {}, ids },
+    sort: 'newest',
+    limit,
+    offset: 0,
+  });
+  let cards = await buildCards(rows, index);
+  if (cards.length < limit) {
+    const taken = new Set(cards.map((c) => c.id));
+    const fill = await repo.listProducts({
+      filters: { attr: {} },
+      sort: 'newest',
+      limit: limit + taken.size,
+      offset: 0,
+    });
+    const extra = (await buildCards(fill.rows, index)).filter((c) => !taken.has(c.id));
+    cards = [...cards, ...extra].slice(0, limit);
+  }
+  return cards;
+}
+
 // ---------- product detail ----------
 
 export async function getProduct(slug: string): Promise<ProductDetail> {

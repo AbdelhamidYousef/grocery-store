@@ -6,6 +6,8 @@ import {
   makeCard,
   makeCart,
   makeCategory,
+  makeGuideCard,
+  makeHome,
   makeList,
   makeOrder,
   makeQuote,
@@ -48,6 +50,21 @@ export const server = setupServer(
   ),
   // No safety notices unless a test says so.
   http.get(`${API}/safety-notices/active`, () => HttpResponse.json({ data: [] })),
+  http.get(`${API}/home`, () => HttpResponse.json({ data: makeHome() })),
+  http.get(`${API}/testimonials`, () =>
+    HttpResponse.json({
+      data: [
+        { id: 't1', name: 'Mara K.', pet: 'Biscuit the beagle', rating: 5, quote: 'Tough rope.' },
+      ],
+      meta: { count: 6, average: 4.8 },
+    }),
+  ),
+  http.get(`${API}/guides`, () =>
+    HttpResponse.json({
+      data: [makeGuideCard()],
+      meta: { page: 1, limit: 3, total: 1, totalPages: 1 },
+    }),
+  ),
   http.get(`${API}/categories`, () =>
     HttpResponse.json({
       data: [
