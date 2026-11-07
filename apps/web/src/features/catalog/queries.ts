@@ -28,8 +28,12 @@ export function useCategory(slug: string | undefined) {
   });
 }
 
-export function useProducts(params: ProductListParams, options: { keepPrevious?: boolean } = {}) {
+export function useProducts(
+  params: ProductListParams,
+  options: { keepPrevious?: boolean; enabled?: boolean } = {},
+) {
   return useQuery({
+    enabled: options.enabled ?? true,
     queryKey: keys.products.list(params),
     queryFn: ({ signal }) => fetchProducts(params, signal),
     // While the next page or filter loads, keep showing the last result (dimmed by the caller)

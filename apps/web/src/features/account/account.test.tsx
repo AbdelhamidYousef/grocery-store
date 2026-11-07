@@ -24,7 +24,7 @@ describe('account area', () => {
       'page',
     );
     expect(within(nav).getByRole('link', { name: 'Profile' })).not.toHaveAttribute('aria-current');
-    expect(within(nav).getAllByRole('link')).toHaveLength(4);
+    expect(within(nav).getAllByRole('link')).toHaveLength(5);
   });
 
   it('saves a changed name and updates the header', async () => {

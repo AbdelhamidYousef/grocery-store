@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 
+import { PetChoices } from '../../features/pets/PetSwitcher';
 import { PETS } from '../../lib/pets';
 import { PetGlyph } from '../icons';
 import { Dialog } from '../ui/Dialog';
@@ -44,6 +45,12 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
           </li>
         </ul>
       </nav>
+      <section aria-labelledby="drawer-pets" data-testid="mobile-pets">
+        <h3 id="drawer-pets" className="mb-1 font-display text-lg font-bold">
+          Shopping for
+        </h3>
+        <PetChoices onPick={onClose} />
+      </section>
     </Dialog>
   );
 }

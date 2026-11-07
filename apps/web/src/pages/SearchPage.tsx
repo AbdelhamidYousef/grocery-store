@@ -18,7 +18,7 @@ export default function SearchPage() {
       </h1>
       {q ? (
         <div className="mt-6">
-          <ProductListing listId="search" q={q} />
+          <ProductListing listId="search" q={q} petScope="any" />
         </div>
       ) : (
         <p className="mt-3 text-muted">Type what you are looking for in the search box above.</p>

@@ -10,6 +10,8 @@ import { Skeleton } from '../../components/ui/Skeleton';
 import { UnitPriceNote } from '../../components/ui/UnitPrice';
 import { PETS } from '../../lib/pets';
 import { TEST_IDS } from '../../lib/test-ids';
+import { ActivePetNote } from '../pets/ActivePetNote';
+import { usePetDefaults } from '../pets/use-pet-defaults';
 
 import { AppliedFilters } from './AppliedFilters';
 import { FilterPanel } from './FilterPanel';
@@ -30,14 +32,27 @@ interface ProductListingProps {
   collection?: string;
   /** Set on brand pages: the brand is the page, so it is fixed and its facet is hidden. */
   brand?: string;
+  /**
+   * Where the active pet may pre-filter this list: 'any' (search) or the pet attribute value of
+   * the category page ('dog'). Left out on brand and collection pages, which are curated lists.
+   */
+  petScope?: string;
 }
 
 // The listing shared by /c/:slug and /search: reads the URL, asks the API, and renders the
 // states (loading, error, empty, results, page out of range). Filters and sort controls attach
 // here: a sidebar on desktop, a drawer on phones, both built from the API's `facets`.
-export function ProductListing({ listId, category, q, collection, brand }: ProductListingProps) {
+export function ProductListing({
+  listId,
+  category,
+  q,
+  collection,
+  brand,
+  petScope,
+}: ProductListingProps) {
   const { query, search, update, clear } = useProductListParams();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { waiting: waitingForPet } = usePetDefaults(petScope);
 
   // The route decides category and query; a stray `?category=` or `?limit=` in the URL must not
   // override it, so those are set last.
@@ -51,6 +66,8 @@ export function ProductListing({ listId, category, q, collection, brand }: Produ
   };
   const { data, isPending, isError, isFetching, refetch } = useProducts(params, {
     keepPrevious: true,
+    // Hold the first request until the active pet's filters are in the URL: one request, not two.
+    enabled: !waitingForPet,
   });
 
   // New page of results: bring the top of the list into view. (Filter changes do not scroll,
@@ -78,7 +95,7 @@ export function ProductListing({ listId, category, q, collection, brand }: Produ
     );
   }
 
-  if (isPending) {
+  if (isPending || waitingForPet) {
     return (
       <div className="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8" aria-busy="true">
         <p className="sr-only" role="status">
@@ -169,6 +186,7 @@ export function ProductListing({ listId, category, q, collection, brand }: Produ
           </div>
         </div>
 
+        <ActivePetNote query={query} update={update} />
         <AppliedFilters
           query={query}
           facets={facets}

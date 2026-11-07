@@ -24,6 +24,8 @@ export type AnalyticsEvent =
   | { name: 'view_guide'; slug: string; category: string }
   | { name: 'add_to_cart'; item: TrackItem; quantity: number }
   | { name: 'remove_from_cart'; item: TrackItem; quantity: number }
+  | { name: 'pet_added'; species: string }
+  | { name: 'pet_activated'; species: string | null }
   | { name: 'promo_applied'; code: string }
   | { name: 'code_failed'; code: string }
   // Money fields are integer cents like everywhere else; a provider adapter converts if it must.

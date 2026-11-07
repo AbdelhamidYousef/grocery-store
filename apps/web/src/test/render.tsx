@@ -5,6 +5,7 @@ import { createMemoryRouter, RouterProvider, type RouteObject } from 'react-rout
 
 import { ToastProvider } from '../components/ui/Toast';
 import { AuthProvider } from '../features/auth/AuthProvider';
+import { ActivePetProvider } from '../features/pets/ActivePetProvider';
 import { routes } from '../routes';
 
 // The same provider stack as main.tsx. A fresh QueryClient per render so no test sees another's
@@ -14,7 +15,9 @@ export function TestProviders({ children, client }: { children: ReactNode; clien
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <ActivePetProvider>{children}</ActivePetProvider>
+        </AuthProvider>
       </ToastProvider>
     </QueryClientProvider>
   );

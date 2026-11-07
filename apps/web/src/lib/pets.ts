@@ -34,3 +34,8 @@ export function accentForPetAttribute(pet: string | undefined): PetAccent | unde
 export function petBySlug(slug: string | undefined): Pet | undefined {
   return PETS.find((p) => p.slug === slug);
 }
+
+/** The reverse lookup: a category page's pet accent -> the `attr.pet` value its products carry. */
+export function petAttributeForAccent(accent: PetAccent | undefined): string | undefined {
+  return Object.entries(ATTRIBUTE_TO_ACCENT).find(([, a]) => a === accent)?.[0];
+}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 
+import { PetSwitcher } from '../../features/pets/PetSwitcher';
 import { PETS } from '../../lib/pets';
 import { TEST_IDS } from '../../lib/test-ids';
 import { CartIcon, MenuIcon, PawIcon, PetGlyph } from '../icons';
@@ -69,6 +70,9 @@ export function Header({
         </div>
 
         <div className="flex items-center gap-1 lg:ml-auto">
+          <div className="hidden lg:block">
+            <PetSwitcher />
+          </div>
           <AccountMenu />
           {onOpenCart ? (
             <button

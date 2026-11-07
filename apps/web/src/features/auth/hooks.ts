@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { login, logout, register } from '../../api/auth';
 import { keys } from '../../lib/query-client';
+import { mergeGuestPets } from '../pets/queries';
 
 // After a login or registration the API has already merged the guest cart into the user's, so the
 // cached cart (the guest one) is stale: refetch it. The user comes straight from the response and
@@ -15,6 +16,8 @@ function useSignedIn() {
     queryClient.setQueryData(keys.sessionExpired, false);
     // Catalog responses differ by viewer (member prices), so the guest copies are stale too.
     void queryClient.invalidateQueries({ queryKey: keys.products.all });
+    // Pets typed in as a guest move to the account (fire and forget: a failure keeps them local).
+    void mergeGuestPets(queryClient);
     return queryClient.invalidateQueries({ queryKey: keys.cart });
   };
 }
