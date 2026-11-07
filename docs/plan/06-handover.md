@@ -56,12 +56,19 @@ Merged into `main` (all gates green on 2026-11-07: shared 180, web 607, API 951 
 | 18 Promotions | done, merged (engine, codes, tiers, gift, flash sales + Omnibus, member prices, admin, cart UI, sale banner, e2e) |
 | 23 grooming services | cut (decisions log, 2026-11-07) |
 | 15 Discovery | done, merged 2026-11-08 (pet profiles, price slider + chips, search autocomplete, mega-menu, gift finder; e2e 56 + 1 skipped). Menu promo tiles use catalogue photos until there is art |
-| 19 Loyalty | in progress: lane `feat/phase-19` (`../ecommerce-p15`, DB `ecommerce_p15`, API 3115, e2e 3215/5215) |
-| 16 PDP depth | in progress: lane `feat/phase-16` (`../ecommerce-p16`, DB `ecommerce_p16`, API 3116, e2e 3216/5216) |
+| 19 Loyalty | paused 2026-11-08: just started on `feat/phase-19` (`../ecommerce-p15`, DB `ecommerce_p15`, API 3115, e2e 3215/5215); 19.1 job runner half-built (`job_runs` table + migration `0018`), uncommitted; 19.2–19.12 to do |
+| 16 PDP depth | paused 2026-11-08: 16.1–16.6 committed on `feat/phase-16` (`../ecommerce-p16`, DB `ecommerce_p16`, API 3116, e2e 3216/5216); 16.7 delivery estimate half-built, uncommitted; 16.8 bundles and 16.9 e2e to do |
 | 17 Reviews | queued: after 16 in lane B |
 | 21, 22, 24 | not started |
 
 Lanes for wave 2 are listed in the table; everything else is on `main`. Tax stays out of scope ("Demo store: no tax is charged"), logged as a decision.
+
+Paused on 2026-11-08 at the owner's request. To resume:
+- Both builders were stopped mid-step; their unfinished work is uncommitted in the worktrees (`git -C ../ecommerce-p16 status`, `git -C ../ecommerce-p15 status`). Finish and commit that step first (gates below), then continue with the next step in the phase doc.
+- Phase 16 16.7 (in progress): shared `delivery.ts` + tests, a checkout/shipping API change, and `DeliveryEstimate` on the PDP. Its journal and decisions lines are staged in that worktree.
+- Phase 19 19.1 (in progress): only the `job_runs` table and its generated migration `0018_job_runs` exist. Phase 16's migrations will also need numbers: whichever of 16 and 19 merges second regenerates its migrations on top of `main` (drizzle-kit generate, re-append hand-written triggers, drop stale `_journal.json` entries).
+- Merge order stays 16, 17, 19. Review each phase's diff before it merges; update this table and the README test counts at each merge.
+- Gates before every commit: delete stale `*.tsbuildinfo` outside node_modules, `pnpm typecheck && pnpm lint && pnpm format:check`, then the unit suites one package at a time; before `pnpm e2e`, check the lane's e2e ports with `ss -ltnp`.
 
 Known follow-ups:
 - e2e specs create and buy products in the shared dev database, so local "Bestsellers" can show E2E test products. A deployed demo starts from the seed and is unaffected.
