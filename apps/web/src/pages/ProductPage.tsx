@@ -18,14 +18,18 @@ import { useAddToCartAction } from '../features/cart/queries';
 import { AddToCart } from '../features/catalog/AddToCart';
 import { formatFacetValue } from '../features/catalog/filters';
 import { Gallery } from '../features/catalog/Gallery';
+import { BoughtTogether } from '../features/catalog/pdp/BoughtTogether';
 import { faqJsonLd } from '../features/catalog/pdp/FaqAccordion';
 import { ProductTabs } from '../features/catalog/pdp/ProductTabs';
+import { RecentlyViewed } from '../features/catalog/pdp/RecentlyViewed';
+import { RelatedStrip } from '../features/catalog/pdp/RelatedStrip';
 import { SizeGuideButton } from '../features/catalog/pdp/SizeGuide';
 import { useProduct } from '../features/catalog/queries';
 import { variantFromSku } from '../features/catalog/resolve-variant';
 import { VariantPicker } from '../features/catalog/VariantPicker';
 import { SafetyNoticeBox } from '../features/safety/SafetyNoticeBox';
 import { accentForPetAttribute, petBySlug } from '../lib/pets';
+import { recordRecentlyViewed } from '../lib/recently-viewed';
 import { TEST_IDS } from '../lib/test-ids';
 import { track } from '../lib/track';
 
@@ -92,6 +96,8 @@ function ProductView({ product }: { product: ProductDetail }) {
       name: 'view_item',
       item: { id: product.id, name: product.name, price: variant?.priceCents },
     });
+    // Remembered for the "recently viewed" strips (this browser only).
+    recordRecentlyViewed(product.id);
     // One view per product, not per variant change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.id]);
@@ -260,6 +266,9 @@ function ProductView({ product }: { product: ProductDetail }) {
             </dl>
           }
         />
+        <BoughtTogether productSlug={product.slug} productName={product.name} variant={variant} />
+        <RelatedStrip productSlug={product.slug} />
+        <RecentlyViewed excludeId={product.id} />
       </Container>
     </div>
   );

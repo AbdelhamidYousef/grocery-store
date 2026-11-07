@@ -1,6 +1,7 @@
 import {
   AddCartItemSchema,
   ApplyCodeSchema,
+  BulkAddCartItemsSchema,
   CartItemParamsSchema,
   CartResponseSchema,
   UpdateCartItemSchema,
@@ -33,6 +34,13 @@ cartRouter.post('/cart/items', validate(add), async (req, res) => {
   respond(res, CartResponseSchema, {
     data: await service.addItem(cartIdOf(req), body.variantId, body.quantity),
   });
+});
+
+// Several lines at once (frequently bought together): all of them or none.
+const bulk = { body: BulkAddCartItemsSchema };
+cartRouter.post('/cart/items/bulk', validate(bulk), async (req, res) => {
+  const { body } = valid(req, bulk);
+  respond(res, CartResponseSchema, { data: await service.addItems(cartIdOf(req), body.items) });
 });
 
 const update = { params: CartItemParamsSchema, body: UpdateCartItemSchema };

@@ -25,11 +25,12 @@ const fieldErrors = (errors: Record<string, string>) =>
 export async function getContent(productId: string): Promise<AdminProductContent> {
   const product = await repo.findProduct(db, productId);
   if (!product) throw notFound('Product not found');
-  const [specs, faqs, feedingTable, variants] = await Promise.all([
+  const [specs, faqs, feedingTable, variants, relations] = await Promise.all([
     repo.listSpecs(db, productId),
     repo.listFaqs(db, productId),
     repo.listFeeding(db, productId),
     repo.listVariantIds(db, productId),
+    repo.listRelations(db, productId),
   ]);
   const rows = await repo.listConstituents(
     db,
@@ -48,6 +49,7 @@ export async function getContent(productId: string): Promise<AdminProductContent
     })),
     deliveryNote: product.deliveryNote,
     sizeGuideId: product.sizeGuideId,
+    relations,
   };
 }
 
@@ -77,9 +79,23 @@ export async function putContent(
       throw fieldErrors({ sizeGuideId: 'This size guide does not exist' });
     }
 
+    if (input.relations) {
+      const ids = input.relations.map((r) => r.relatedId);
+      const known = await repo.existingProductIds(tx, ids);
+      const errors: Record<string, string> = {};
+      input.relations.forEach((r, i) => {
+        if (r.relatedId === productId)
+          errors[`relations.${i}.relatedId`] = 'A product cannot recommend itself';
+        else if (!known.has(r.relatedId))
+          errors[`relations.${i}.relatedId`] = 'This product does not exist';
+      });
+      if (Object.keys(errors).length > 0) throw fieldErrors(errors);
+    }
+
     if (input.specs) await repo.replaceSpecs(tx, productId, input.specs);
     if (input.faqs) await repo.replaceFaqs(tx, productId, input.faqs);
     if (input.feedingTable) await repo.replaceFeeding(tx, productId, input.feedingTable);
+    if (input.relations) await repo.replaceRelations(tx, productId, input.relations);
     for (const c of input.constituents ?? []) {
       await repo.replaceConstituents(tx, c.variantId, c.values);
     }

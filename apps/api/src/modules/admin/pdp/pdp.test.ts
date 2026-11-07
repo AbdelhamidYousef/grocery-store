@@ -297,3 +297,65 @@ describe('admin size guides', () => {
     expect(row?.sizeGuideId).toBeNull();
   });
 });
+
+describe('admin product relations', () => {
+  type Rel = { relatedId: string; relatedName: string; kind: string };
+  const relations = (res: Parameters<typeof bodyOf>[0]) =>
+    data<Content & { relations: Rel[] }>(res).relations;
+
+  it('saves recommendations in list order, with names, and replaces them on the next save', async () => {
+    const main = await createProduct();
+    const a = await createProduct({ name: 'Alpha' });
+    const b = await createProduct({ name: 'Bravo' });
+    const path = `/admin/products/${main.product.id}/content`;
+    const res = await admin.call('put', path, {
+      relations: [
+        { relatedId: b.product.id, kind: 'bought_together' },
+        { relatedId: a.product.id, kind: 'bought_together' },
+        { relatedId: a.product.id, kind: 'related' },
+      ],
+    });
+    expect(res.status).toBe(200);
+    expect(relations(res).map((r) => [r.relatedName, r.kind])).toEqual([
+      ['Bravo', 'bought_together'],
+      ['Alpha', 'bought_together'],
+      ['Alpha', 'related'],
+    ]);
+    const cleared = await admin.call('put', path, { relations: [] });
+    expect(relations(cleared)).toEqual([]);
+  });
+
+  it('refuses itself, an unknown product, a repeat and too many in a list', async () => {
+    const main = await createProduct();
+    const others = [];
+    for (let i = 0; i < 4; i++) others.push(await createProduct());
+    const path = `/admin/products/${main.product.id}/content`;
+    expect(
+      (
+        await admin.call('put', path, {
+          relations: [{ relatedId: main.product.id, kind: 'related' }],
+        })
+      ).status,
+    ).toBe(400);
+    expect(
+      (
+        await admin.call('put', path, {
+          relations: [{ relatedId: '00000000-0000-4000-8000-000000000000', kind: 'related' }],
+        })
+      ).status,
+    ).toBe(400);
+    const dup = { relatedId: others[0]!.product.id, kind: 'related' };
+    expect((await admin.call('put', path, { relations: [dup, dup] })).status).toBe(400);
+    const four = others.map((o) => ({ relatedId: o.product.id, kind: 'bought_together' }));
+    expect((await admin.call('put', path, { relations: four })).status).toBe(400);
+  });
+
+  it('leaves relations alone when the request does not carry them', async () => {
+    const main = await createProduct();
+    const a = await createProduct();
+    const path = `/admin/products/${main.product.id}/content`;
+    await admin.call('put', path, { relations: [{ relatedId: a.product.id, kind: 'related' }] });
+    const res = await admin.call('put', path, { specs: [{ label: 'X', value: 'y' }] });
+    expect(relations(res)).toHaveLength(1);
+  });
+});

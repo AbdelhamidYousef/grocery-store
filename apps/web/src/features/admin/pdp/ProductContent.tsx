@@ -20,9 +20,10 @@ import {
 } from './content-form';
 import { ConstituentsEditor, FeedingEditor } from './NumberEditors';
 import { useAdminContent, useAdminSizeGuides, useSaveContent } from './queries';
+import { RelationsEditor } from './RelationsEditor';
 import { FaqEditor, SpecsEditor } from './TextEditors';
 
-type TabId = 'specs' | 'constituents' | 'faq' | 'feeding' | 'size';
+type TabId = 'specs' | 'constituents' | 'faq' | 'feeding' | 'size' | 'related';
 
 // The "page content" half of the product screen: five editors in tabs, one Save for all of them
 // (the API replaces the sections in one transaction, so there is no half-saved page).
@@ -122,6 +123,11 @@ function ContentEditor({ product, initial }: { product: AdminProduct; initial: C
             id: 'feeding',
             label: mark('Feeding', 'feeding.'),
             panel: <FeedingEditor form={form} errors={errors} onChange={setForm} />,
+          },
+          {
+            id: 'related',
+            label: 'Recommendations',
+            panel: <RelationsEditor productId={product.id} form={form} onChange={setForm} />,
           },
           {
             id: 'size',

@@ -7,6 +7,7 @@ import {
   fetchProducts,
   type ProductListParams,
 } from '../../api/catalog';
+import { fetchProductsByIds, fetchRecommendations } from '../../api/recommendations';
 import { keys } from '../../lib/query-client';
 
 // Query hooks: the only way components get catalog data. Each one pairs a cache key from
@@ -47,5 +48,23 @@ export function useProduct(slug: string | undefined) {
     queryKey: keys.products.detail(slug ?? ''),
     queryFn: ({ signal }) => fetchProduct(slug ?? '', signal),
     enabled: !!slug,
+  });
+}
+
+// "Frequently bought together" and "related" for one product.
+export function useRecommendations(slug: string | undefined) {
+  return useQuery({
+    queryKey: keys.products.recommendations(slug ?? ''),
+    queryFn: ({ signal }) => fetchRecommendations(slug ?? '', signal),
+    enabled: !!slug,
+  });
+}
+
+// Cards for a list of product ids, in that order (the recently viewed strip).
+export function useProductsByIds(ids: readonly string[]) {
+  return useQuery({
+    queryKey: keys.products.byIds(ids),
+    queryFn: ({ signal }) => fetchProductsByIds(ids, signal),
+    enabled: ids.length > 0,
   });
 }

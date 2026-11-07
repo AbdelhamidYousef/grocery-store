@@ -267,15 +267,31 @@ export async function listProducts(
 // The same cards the list shows (price range, stock, first image) for a given set of products, so
 // other modules (guides) never rebuild them. Inactive or unbuyable products are left out, exactly
 // as in the list.
-export async function listCardsByIds(ids: string[]): Promise<ProductCard[]> {
+export async function listCardsByIds(
+  ids: string[],
+  viewer: Viewer = GUEST,
+  opts: { inStockOnly?: boolean } = {},
+): Promise<ProductCard[]> {
   if (ids.length === 0) return [];
   const { rows } = await repo.listProducts({
-    filters: { attr: {}, ids },
+    filters: { attr: {}, ids, ...(opts.inStockOnly && { inStock: true }) },
     sort: 'name',
     limit: ids.length,
     offset: 0,
   });
-  return buildCards(rows, await getBadgeIndex(), GUEST);
+  return buildCards(rows, await getBadgeIndex(), viewer);
+}
+
+// The same cards in the order the caller asked for (recently viewed, recommendations); ids that
+// are not on sale (archived, draft, unbuyable) are simply absent from the answer.
+export async function listCardsInOrder(
+  ids: string[],
+  viewer: Viewer = GUEST,
+  opts: { inStockOnly?: boolean } = {},
+): Promise<ProductCard[]> {
+  const cards = await listCardsByIds(ids, viewer, opts);
+  const position = new Map(ids.map((id, i) => [id, i]));
+  return cards.sort((a, b) => (position.get(a.id) ?? 0) - (position.get(b.id) ?? 0));
 }
 
 // The homepage bestsellers: products carrying the Bestseller badge (sales-derived or the editorial

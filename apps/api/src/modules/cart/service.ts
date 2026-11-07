@@ -2,6 +2,7 @@ import {
   ErrorCode,
   MAX_LINE_QUANTITY,
   sumCents,
+  type BulkAddFailure,
   type Cart,
   type CartItem,
   type CartWarning,
@@ -10,7 +11,7 @@ import {
 } from '@store/shared';
 
 import { db, type Tx } from '../../db/client.ts';
-import { conflict, notFound } from '../../lib/errors.ts';
+import { AppError, conflict, notFound } from '../../lib/errors.ts';
 import { listActiveShippingMethods } from '../checkout/repo.ts';
 import { estimateRule, priceBeforeThreshold } from '../checkout/shipping.ts';
 import * as promotions from '../promotions/service.ts';
@@ -229,23 +230,66 @@ async function assertTrialAddable(tx: Tx, cart: repo.CartRow, variantId: string,
   }
 }
 
-export async function addItem(cartId: string, variantId: string, quantity: number): Promise<Cart> {
-  return mutate(cartId, async (tx, cart) => {
-    const stock = await repo.findPurchasable(tx, variantId);
-    if (!stock) throw notFound('Product variant not found');
-    const maxQty = Math.min(MAX_LINE_QUANTITY, stock.available);
+// One line of an add, inside the caller's transaction. Throws the same errors for a single add and
+// for each line of a bulk add.
+async function addLine(
+  tx: Tx,
+  cart: repo.CartRow,
+  cartId: string,
+  variantId: string,
+  quantity: number,
+): Promise<void> {
+  const stock = await repo.findPurchasable(tx, variantId);
+  if (!stock) throw notFound('Product variant not found');
+  const maxQty = Math.min(MAX_LINE_QUANTITY, stock.available);
 
-    const existing = await repo.findItemByVariant(tx, cartId, variantId);
-    const inCart = existing?.quantity ?? 0;
-    if (stock.isTrial) await assertTrialAddable(tx, cart, variantId, inCart + quantity);
-    // Adding is cumulative (the contract says "adds to existing qty"), and the total is what is
-    // checked: 3 in the cart plus 3 more must fit in stock together.
-    if (inCart + quantity > maxQty) {
-      throw outOfStock({ variantId, maxQty, inCart, requested: quantity });
+  const existing = await repo.findItemByVariant(tx, cartId, variantId);
+  const inCart = existing?.quantity ?? 0;
+  if (stock.isTrial) await assertTrialAddable(tx, cart, variantId, inCart + quantity);
+  // Adding is cumulative (the contract says "adds to existing qty"), and the total is what is
+  // checked: 3 in the cart plus 3 more must fit in stock together.
+  if (inCart + quantity > maxQty) {
+    throw outOfStock({ variantId, maxQty, inCart, requested: quantity });
+  }
+  if (existing) {
+    await repo.setItemQuantity(tx, existing.id, inCart + quantity, stock.priceCents);
+  } else await repo.insertItem(tx, cartId, variantId, quantity, stock.priceCents);
+}
+
+export async function addItem(cartId: string, variantId: string, quantity: number): Promise<Cart> {
+  return mutate(cartId, (tx, cart) => addLine(tx, cart, cartId, variantId, quantity));
+}
+
+// All or nothing: every line is tried inside ONE transaction and the problems of every line are
+// collected, so the shopper hears about all of them at once, and if any line fails the throw rolls
+// the whole transaction back (no half-filled cart). Each failure keeps its own code, so the web can
+// say "sold out" for one line and "one per customer" for another.
+export async function addItems(
+  cartId: string,
+  lines: { variantId: string; quantity: number }[],
+): Promise<Cart> {
+  return mutate(cartId, async (tx, cart) => {
+    const failures: BulkAddFailure[] = [];
+    for (const line of lines) {
+      try {
+        await addLine(tx, cart, cartId, line.variantId, line.quantity);
+      } catch (err) {
+        if (!(err instanceof AppError)) throw err;
+        const details = err.details as { maxQty?: number } | undefined;
+        failures.push({
+          variantId: line.variantId,
+          code:
+            err.code === ErrorCode.OUT_OF_STOCK || err.code === ErrorCode.TRIAL_LIMIT
+              ? err.code
+              : 'NOT_FOUND',
+          message: err.message,
+          ...(typeof details?.maxQty === 'number' && { maxQty: details.maxQty }),
+        });
+      }
     }
-    if (existing) {
-      await repo.setItemQuantity(tx, existing.id, inCart + quantity, stock.priceCents);
-    } else await repo.insertItem(tx, cartId, variantId, quantity, stock.priceCents);
+    if (failures.length > 0) {
+      throw conflict(ErrorCode.CONFLICT, 'Some items could not be added', { failures });
+    }
   });
 }
 

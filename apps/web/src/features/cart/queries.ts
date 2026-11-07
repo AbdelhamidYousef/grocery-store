@@ -1,4 +1,4 @@
-import { ApplyCodeSchema, type Variant } from '@store/shared';
+import { ApplyCodeSchema, type BulkAddFailure, type Variant } from '@store/shared';
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,6 +14,7 @@ import {
   type WebCart,
   type WebCartItem,
 } from '../../api/cart';
+import { bulkAddCartItems, bulkFailures } from '../../api/recommendations';
 import { useToast } from '../../components/ui/Toast';
 import { keys } from '../../lib/query-client';
 import { track } from '../../lib/track';
@@ -181,7 +182,7 @@ export function useAddToCartAction(product: { id: string; name: string }) {
   const navigate = useNavigate();
   return {
     pending: add.isPending,
-    add: (variant: Variant, quantity: number) =>
+    add: (variant: Pick<Variant, 'id' | 'sku' | 'priceCents'>, quantity: number) =>
       add.mutate(
         { variantId: variant.id, quantity },
         {
@@ -204,6 +205,55 @@ export function useAddToCartAction(product: { id: string; name: string }) {
           onError: (error) => toast.show(cartErrorMessage(error), 'error'),
         },
       ),
+  };
+}
+
+// ---------- several lines at once (frequently bought together) ----------
+// One request, all or nothing. A refusal comes back line by line (`failures`), so the block can
+// say which item is the problem instead of a vague "something went wrong".
+export function useBulkAdd() {
+  const queryClient = useQueryClient();
+  const toast = useToast();
+  const navigate = useNavigate();
+  const add = useMutation({
+    scope: CART_SCOPE,
+    mutationFn: bulkAddCartItems,
+    onSuccess: (cart) => setCart(queryClient, cart),
+  });
+  return {
+    pending: add.isPending,
+    // Resolves with the failures (empty when everything was added).
+    addAll: async (
+      lines: {
+        variantId: string;
+        quantity: number;
+        name: string;
+        sku: string;
+        priceCents: number;
+      }[],
+    ): Promise<BulkAddFailure[]> => {
+      try {
+        await add.mutateAsync({
+          items: lines.map((l) => ({ variantId: l.variantId, quantity: l.quantity })),
+        });
+        for (const l of lines) {
+          track({
+            name: 'add_to_cart',
+            item: { id: l.variantId, name: l.name, price: l.priceCents, variant: l.sku },
+            quantity: l.quantity,
+          });
+        }
+        toast.show(`Added ${lines.length} items to your cart`, 'success', {
+          label: 'View cart',
+          onAction: () => void navigate('/cart'),
+        });
+        return [];
+      } catch (error) {
+        const failures = bulkFailures(error);
+        if (failures.length === 0) toast.show(cartErrorMessage(error), 'error');
+        return failures;
+      }
+    },
   };
 }
 

@@ -21,7 +21,7 @@ const WebCartSchema = CartSchema.extend({ warnings: z.array(WarningSchema) });
 export type WebCart = z.infer<typeof WebCartSchema>;
 export type WebCartItem = WebCart['items'][number];
 
-const CartResponse = z.object({ data: WebCartSchema });
+export const CartResponse = z.object({ data: WebCartSchema });
 
 export async function fetchCart(signal?: AbortSignal): Promise<WebCart> {
   return (await apiFetch('/cart', { schema: CartResponse, ...(signal && { signal }) })).data;

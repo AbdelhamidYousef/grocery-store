@@ -7,6 +7,7 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { CartContents } from '../features/cart/CartContents';
 import { CartSummary } from '../features/cart/CartSummary';
 import { useCart } from '../features/cart/queries';
+import { RecentlyViewed } from '../features/catalog/pdp/RecentlyViewed';
 import { TEST_IDS } from '../lib/test-ids';
 
 export default function CartPage() {
@@ -61,6 +62,7 @@ export default function CartPage() {
           </aside>
         </div>
       )}
+      {cart && <RecentlyViewed max={6} />}
     </Container>
   );
 }

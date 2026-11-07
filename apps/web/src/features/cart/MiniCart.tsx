@@ -8,6 +8,7 @@ import { TEST_IDS } from '../../lib/test-ids';
 import { CartContents } from './CartContents';
 import { CartSummary } from './CartSummary';
 import { useCart } from './queries';
+import { YouMightNeed } from './YouMightNeed';
 
 // The cart in a side drawer, opened from the header icon. It is the same lines and summary as the
 // cart page in compact form, so a fix to one is a fix to both.
@@ -33,6 +34,7 @@ function MiniCartBody({ onClose }: { onClose: () => void }) {
         <p data-testid={TEST_IDS.cartEmpty}>Your cart is empty.</p>
       )}
       {cart && cart.items.length > 0 && <CartContents cart={cart} compact onNavigate={onClose} />}
+      {cart && cart.items.length > 0 && <YouMightNeed onNavigate={onClose} />}
       {/* Pinned to the bottom of the drawer: with 15 lines the total and the checkout button
           would otherwise sit 3000px down. The negative margins cancel the dialog's padding so the
           bar spans the full drawer width. */}

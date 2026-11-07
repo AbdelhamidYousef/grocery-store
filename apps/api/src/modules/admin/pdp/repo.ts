@@ -4,6 +4,7 @@ import { db, type Tx } from '../../../db/client.ts';
 import {
   feedingRows,
   productFaqs,
+  productRelations,
   productSpecs,
   productVariants,
   products,
@@ -171,4 +172,41 @@ export async function updateSizeGuide(id: string, values: Partial<typeof sizeGui
 
 export async function deleteSizeGuide(id: string) {
   await db.delete(sizeGuides).where(and(eq(sizeGuides.id, id)));
+}
+
+// ---------- relations ----------
+
+export const listRelations = (run: Run, productId: string) =>
+  run
+    .select({
+      relatedId: productRelations.relatedId,
+      relatedName: products.name,
+      kind: productRelations.kind,
+    })
+    .from(productRelations)
+    .innerJoin(products, eq(products.id, productRelations.relatedId))
+    .where(eq(productRelations.productId, productId))
+    .orderBy(asc(productRelations.kind), asc(productRelations.sortOrder));
+
+export async function existingProductIds(run: Run, ids: string[]): Promise<Set<string>> {
+  if (ids.length === 0) return new Set();
+  const rows = await run
+    .select({ id: products.id })
+    .from(products)
+    .where(inArray(products.id, ids));
+  return new Set(rows.map((r) => r.id));
+}
+
+export async function replaceRelations(
+  tx: Tx,
+  productId: string,
+  relations: { relatedId: string; kind: 'bought_together' | 'related' }[],
+) {
+  await tx.delete(productRelations).where(eq(productRelations.productId, productId));
+  const next = { bought_together: 0, related: 0 };
+  if (relations.length > 0) {
+    await tx
+      .insert(productRelations)
+      .values(relations.map((r) => ({ productId, ...r, sortOrder: next[r.kind]++ })));
+  }
 }

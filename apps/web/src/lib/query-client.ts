@@ -149,5 +149,7 @@ export const keys = {
     all: ['products'] as const,
     list: (params: ProductListParams) => ['products', 'list', params] as const,
     detail: (slug: string) => ['products', 'detail', slug] as const,
+    recommendations: (slug: string) => ['products', 'recommendations', slug] as const,
+    byIds: (ids: readonly string[]) => ['products', 'by-ids', ...ids] as const,
   },
 };

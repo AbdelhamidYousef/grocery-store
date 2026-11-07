@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { makeAdminProduct } from '../../../test/fixtures';
+import { makeAdminProduct, makeAdminRow } from '../../../test/fixtures';
 import { renderApp } from '../../../test/render';
 import { API, server, signedInAs } from '../../../test/server';
 
@@ -26,6 +26,7 @@ const content = (over: Record<string, unknown> = {}) => ({
   ],
   deliveryNote: null,
   sizeGuideId: null,
+  relations: [],
   ...over,
 });
 
@@ -54,6 +55,7 @@ describe('product content editor', () => {
       'Constituents',
       'FAQ',
       'Feeding',
+      'Recommendations',
       'Size guide and delivery',
     ]);
     tabs[0]?.focus();
@@ -192,5 +194,52 @@ describe('size guides screen', () => {
         rows: [{ size: 'S', label: 'Small', values: ['55 to 70'] }],
       },
     });
+  });
+});
+
+describe('recommendations editor', () => {
+  it('adds a searched product to a list, once, and saves ids in list order', async () => {
+    const user = userEvent.setup();
+    let saved: { relations?: { relatedId: string; kind: string }[] } = {};
+    server.use(
+      http.get(`${API}/admin/products/p1/content`, () =>
+        HttpResponse.json({
+          data: content({
+            relations: [{ relatedId: 'p9', relatedName: 'Old pick', kind: 'related' }],
+          }),
+        }),
+      ),
+      http.get(`${API}/admin/products`, ({ request }) => {
+        const q = new URL(request.url).searchParams.get('q');
+        return HttpResponse.json({
+          data: q ? [makeAdminRow({ id: 'p2', name: 'Chew Ball' })] : [],
+          meta: { page: 1, limit: 6, total: 1, totalPages: 1 },
+        });
+      }),
+      http.put(`${API}/admin/products/p1/content`, async ({ request }) => {
+        saved = (await request.json()) as typeof saved;
+        return HttpResponse.json({ data: content() });
+      }),
+    );
+    renderApp('/admin/products/p1');
+    const section = await screen.findByTestId('product-content');
+    await user.click(within(section).getByRole('tab', { name: 'Recommendations' }));
+    expect(within(section).getByText('Old pick')).toBeInTheDocument();
+    await user.type(
+      within(section).getByLabelText('Find a product for Frequently bought together'),
+      'chew',
+    );
+    await user.click(
+      await within(section).findByRole('button', {
+        name: /Add Chew Ball to Frequently bought together/,
+      }),
+    );
+    expect(within(section).getByText('Chew Ball')).toBeInTheDocument();
+    await user.click(within(section).getByRole('button', { name: 'Save page content' }));
+    await waitFor(() => expect(saved.relations).toBeTruthy());
+    expect(saved.relations).toEqual([
+      { relatedId: 'p9', kind: 'related' },
+      { relatedId: 'p2', kind: 'bought_together' },
+    ]);
   });
 });

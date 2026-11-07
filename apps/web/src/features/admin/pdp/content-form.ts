@@ -4,6 +4,7 @@ import {
   type AdminProductContentInput,
   type ConstituentKey,
   type LifeStage,
+  type RelationKind,
 } from '@store/shared';
 
 import { bpToPercent, gramsToKg, kgToGrams } from '../../../lib/units';
@@ -40,6 +41,8 @@ export interface ContentForm {
   constituents: ConstituentFormRow[];
   deliveryNote: string;
   sizeGuideId: string;
+  /** Recommendations: list order is display order within each kind. */
+  relations: { relatedId: string; relatedName: string; kind: RelationKind }[];
 }
 
 /** "26.5" or "26,50" -> 2650 basis points; anything that is not 0 to 100 with two decimals -> null. */
@@ -75,6 +78,7 @@ export function toForm(content: AdminProductContent): ContentForm {
     }),
     deliveryNote: content.deliveryNote ?? '',
     sizeGuideId: content.sizeGuideId ?? '',
+    relations: content.relations.map((r) => ({ ...r })),
   };
 }
 
@@ -151,6 +155,7 @@ export function toInput(form: ContentForm): {
       constituents,
       deliveryNote: form.deliveryNote.trim() === '' ? null : form.deliveryNote.trim(),
       sizeGuideId: form.sizeGuideId === '' ? null : form.sizeGuideId,
+      relations: form.relations.map((r) => ({ relatedId: r.relatedId, kind: r.kind })),
     },
     errors,
   };

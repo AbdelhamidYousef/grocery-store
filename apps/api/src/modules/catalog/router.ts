@@ -1,9 +1,12 @@
 import {
+  ByIdsQuerySchema,
+  ByIdsResponseSchema,
   CategoryResponseSchema,
   CategoryTreeResponseSchema,
   ProductDetailResponseSchema,
   ProductListQuerySchema,
   ProductListResponseSchema,
+  RecommendationsResponseSchema,
   SlugParamsSchema,
 } from '@store/shared';
 import { Router as ExpressRouter, type Router } from 'express';
@@ -12,6 +15,7 @@ import { respond, valid, validate } from '../../lib/validate.ts';
 import { attachUser } from '../../middleware/auth.ts';
 import { catalogCache } from '../../middleware/cache.ts';
 
+import * as recommendations from './recommendations.ts';
 import * as service from './service.ts';
 
 export const catalogRouter: Router = ExpressRouter();
@@ -39,6 +43,22 @@ catalogRouter.get('/products', validate(listProducts), async (req, res) => {
     ProductListResponseSchema,
     await service.listProducts(query, { isMember: req.user !== null }),
   );
+});
+
+// Registered before `/products/:slug`, or "by-ids" would be read as a slug.
+const byIds = { query: ByIdsQuerySchema };
+catalogRouter.get('/products/by-ids', validate(byIds), async (req, res) => {
+  const { query } = valid(req, byIds);
+  respond(res, ByIdsResponseSchema, {
+    data: await recommendations.getByIds(query.ids, { isMember: req.user !== null }),
+  });
+});
+
+catalogRouter.get('/products/:slug/recommendations', validate(bySlug), async (req, res) => {
+  const { params } = valid(req, bySlug);
+  respond(res, RecommendationsResponseSchema, {
+    data: await recommendations.getRecommendations(params.slug, { isMember: req.user !== null }),
+  });
 });
 
 catalogRouter.get('/products/:slug', validate(bySlug), async (req, res) => {

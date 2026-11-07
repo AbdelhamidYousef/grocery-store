@@ -57,6 +57,7 @@ const empty = (over: Partial<ContentForm> = {}): ContentForm => ({
   constituents: [],
   deliveryNote: '',
   sizeGuideId: '',
+  relations: [],
   ...over,
 });
 
@@ -172,6 +173,7 @@ describe('toInput', () => {
       ],
       deliveryNote: 'Note',
       sizeGuideId: 'g1',
+      relations: [{ relatedId: 'p2', relatedName: 'Ball', kind: 'bought_together' }],
     });
     expect(form.constituents[0]).toMatchObject({ protein: '26.5', fat: '', kcal: '365' });
     expect(form.feeding[0]).toEqual({ minKg: '0', maxKg: '5', dailyG: '40', lifeStage: 'adult' });
@@ -182,5 +184,6 @@ describe('toInput', () => {
       { key: 'kcal', valueBp: 365 },
     ]);
     expect(back.input.deliveryNote).toBe('Note');
+    expect(back.input.relations).toEqual([{ relatedId: 'p2', kind: 'bought_together' }]);
   });
 });
