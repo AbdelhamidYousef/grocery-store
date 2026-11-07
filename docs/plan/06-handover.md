@@ -55,9 +55,12 @@ Merged into `main` (all gates green on 2026-11-07: shared 180, web 607, API 951 
 | 20 Content & trust | done, merged (20.7 homepage: home CLS ~0.22 → ~0.03; 20.9 e2e) |
 | 18 Promotions | done, merged (engine, codes, tiers, gift, flash sales + Omnibus, member prices, admin, cart UI, sale banner, e2e) |
 | 23 grooming services | cut (decisions log, 2026-11-07) |
-| 15–17, 19, 21, 22, 24 | not started; follow the wave order above |
+| 15 Discovery | in progress: lane `feat/phase-15` (`../ecommerce-p15`, DB `ecommerce_p15`, API 3115, e2e 3215/5215) |
+| 16 PDP depth | in progress: lane `feat/phase-16` (`../ecommerce-p16`, DB `ecommerce_p16`, API 3116, e2e 3216/5216) |
+| 17 Reviews, 19 Loyalty | queued: 17 after 16 in lane B, 19 after 15 in lane A |
+| 21, 22, 24 | not started |
 
-No worktrees or lane databases are left; `main` is the only branch. Tax stays out of scope ("Demo store: no tax is charged"), logged as a decision.
+Lanes for wave 2 are listed in the table; everything else is on `main`. Tax stays out of scope ("Demo store: no tax is charged"), logged as a decision.
 
 Known follow-ups:
 - e2e specs create and buy products in the shared dev database, so local "Bestsellers" can show E2E test products. A deployed demo starts from the seed and is unaffected.
