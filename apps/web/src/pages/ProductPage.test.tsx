@@ -255,3 +255,143 @@ describe('product page: member price', () => {
     expect(screen.queryByTestId('sale-price')).not.toBeInTheDocument();
   });
 });
+
+describe('product tabs', () => {
+  const withContent = () =>
+    http.get(`${API}/products/rope-tug`, () =>
+      HttpResponse.json({
+        data: makeProduct({
+          specs: [{ label: 'Origin', value: 'Nowhere' }],
+          faqs: [
+            { id: 'f1', question: 'Is it washable?', answer: 'Yes, at 30 degrees.' },
+            { id: 'f2', question: 'Does it float?', answer: 'No.' },
+          ],
+          feedingTable: [
+            { petWeightGMin: 0, petWeightGMax: 5000, dailyG: 40, lifeStage: 'any' },
+            { petWeightGMin: 5000, petWeightGMax: 10000, dailyG: 70, lifeStage: 'any' },
+          ],
+          deliveryNote: 'Ships in its own box.',
+          variants: [
+            makeVariant({
+              id: 'v1',
+              sku: 'TUG-RED-S',
+              name: 'Small',
+              isDefault: true,
+              constituents: [
+                { key: 'protein', valueBp: 2650 },
+                { key: 'kcal', valueBp: 365 },
+              ],
+            }),
+            makeVariant({
+              id: 'v2',
+              sku: 'TUG-RED-L',
+              name: 'Large',
+              options: { color: 'red', size: 'L' },
+              priceCents: 1899,
+              constituents: [{ key: 'protein', valueBp: 2700 }],
+            }),
+          ],
+        }),
+      }),
+    );
+
+  it('shows Description first and leaves out tabs with nothing to show', async () => {
+    renderApp('/products/rope-tug');
+    const tabs = await screen.findAllByRole('tab');
+    // The fixture has no specs, FAQs or feeding table: only Description and Delivery remain.
+    expect(tabs.map((t) => t.textContent)).toEqual(['Description', 'Delivery & returns']);
+    expect(screen.getByRole('tab', { name: 'Description' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(screen.getByText('A sturdy braided tug for happy games.')).toBeInTheDocument();
+  });
+
+  it('lists all four tabs for a product with content, and switches with the arrow keys', async () => {
+    server.use(withContent());
+    const user = userEvent.setup();
+    const router = renderApp('/products/rope-tug');
+    const first = await screen.findByRole('tab', { name: 'Description' });
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual([
+      'Description',
+      'Specs',
+      'Feeding guide',
+      'Delivery & returns',
+    ]);
+    first.focus();
+    await user.keyboard('{ArrowRight}');
+    expect(screen.getByRole('tab', { name: 'Specs' })).toHaveFocus();
+    expect(screen.getByTestId('specs-table')).toHaveTextContent('Nowhere');
+    // The tab is in the URL, so a link opens it.
+    expect(router.state.location.hash).toBe('#specs');
+    await user.keyboard('{End}');
+    expect(screen.getByTestId('delivery-note')).toHaveTextContent('Ships in its own box.');
+  });
+
+  it('opens the tab named by the hash and falls back for an unknown one', async () => {
+    server.use(withContent());
+    renderApp('/products/rope-tug#feeding');
+    expect(await screen.findByTestId('feeding-table')).toHaveTextContent('5 to 10 kg');
+    expect(screen.getByRole('tab', { name: 'Feeding guide' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+  });
+
+  it('ignores a hash for a tab the product does not have', async () => {
+    renderApp('/products/rope-tug#feeding');
+    expect(await screen.findByRole('tab', { name: 'Description' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+  });
+
+  it('switches the constituents with the selected variant and keeps the open tab', async () => {
+    server.use(withContent());
+    const user = userEvent.setup();
+    const router = renderApp('/products/rope-tug#specs');
+    const table = await screen.findByTestId('constituents-table');
+    expect(table).toHaveTextContent('26.5 %');
+    expect(table).toHaveTextContent('365 kcal');
+    await user.click(screen.getByRole('radio', { name: /Large/ }));
+    expect(screen.getByTestId('constituents-table')).toHaveTextContent('27 %');
+    expect(screen.getByTestId('constituents-table')).not.toHaveTextContent('kcal');
+    expect(router.state.location.hash).toBe('#specs');
+    expect(router.state.location.search).toContain('variant=TUG-RED-L');
+  });
+
+  it('shows the FAQ as an accordion and writes FAQPage JSON-LD', async () => {
+    server.use(withContent());
+    renderApp('/products/rope-tug#specs');
+    const faq = await screen.findByTestId('faq');
+    const items = faq.querySelectorAll('details');
+    expect(items).toHaveLength(2);
+    await userEvent.click(within(faq).getByText('Is it washable?'));
+    expect(items[0]).toHaveProperty('open', true);
+    const ld = JSON.parse(
+      document.head.querySelector('script[type="application/ld+json"]')?.textContent ?? '{}',
+    ) as { '@type': string; mainEntity: { name: string }[] };
+    expect(ld['@type']).toBe('FAQPage');
+    expect(ld.mainEntity.map((q) => q.name)).toEqual(['Is it washable?', 'Does it float?']);
+  });
+
+  it('writes no JSON-LD for a product without FAQs', async () => {
+    renderApp('/products/rope-tug');
+    await screen.findByRole('tab', { name: 'Description' });
+    expect(document.head.querySelector('script[type="application/ld+json"]')).toBeNull();
+  });
+
+  it('links the delivery tab to the shipping and returns pages', async () => {
+    renderApp('/products/rope-tug#delivery');
+    await screen.findByRole('tab', { name: 'Delivery & returns' });
+    expect(screen.getByRole('link', { name: 'shipping page' })).toHaveAttribute(
+      'href',
+      '/shipping',
+    );
+    expect(screen.getByRole('link', { name: 'returns and withdrawal' })).toHaveAttribute(
+      'href',
+      '/returns',
+    );
+    expect(screen.queryByTestId('delivery-note')).toBeNull();
+  });
+});

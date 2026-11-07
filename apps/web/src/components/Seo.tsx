@@ -13,6 +13,8 @@ interface SeoProps {
   /** ISO date; only meaningful for `article`. */
   publishedAt?: string;
   image?: string;
+  /** Structured data (schema.org) for this page, written as one JSON-LD script. */
+  jsonLd?: Record<string, unknown>;
 }
 
 // Sets <title>, meta description, canonical link and robots through the DOM in an effect: a
@@ -35,6 +37,7 @@ export function Seo({
   type = 'website',
   publishedAt,
   image,
+  jsonLd,
 }: SeoProps) {
   useEffect(() => {
     const previousTitle = document.title;
@@ -103,6 +106,20 @@ export function Seo({
     }
     return () => added.forEach((el) => el.remove());
   }, [type, title, description, image, publishedAt]);
+
+  // Serialised first so the effect depends on a string, not on an object that is new every render.
+  const jsonText = jsonLd ? JSON.stringify(jsonLd) : null;
+  useEffect(() => {
+    if (!jsonText) return;
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.dataset.seo = 'json-ld';
+    // textContent, never innerHTML: the JSON is data, and a "</script>" inside an answer must not
+    // be able to end the element (JSON.stringify leaves "<" alone, and textContent is not parsed).
+    script.textContent = jsonText;
+    document.head.appendChild(script);
+    return () => script.remove();
+  }, [jsonText]);
 
   return null;
 }

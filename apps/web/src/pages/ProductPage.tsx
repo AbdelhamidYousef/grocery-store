@@ -1,6 +1,6 @@
 import type { ProductDetail } from '@store/shared';
 import { useEffect, useState } from 'react';
-import { useLocation, useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { ApiError } from '../api/client';
 import { Breadcrumbs, type Crumb } from '../components/layout/Breadcrumbs';
@@ -18,6 +18,8 @@ import { useAddToCartAction } from '../features/cart/queries';
 import { AddToCart } from '../features/catalog/AddToCart';
 import { formatFacetValue } from '../features/catalog/filters';
 import { Gallery } from '../features/catalog/Gallery';
+import { faqJsonLd } from '../features/catalog/pdp/FaqAccordion';
+import { ProductTabs } from '../features/catalog/pdp/ProductTabs';
 import { useProduct } from '../features/catalog/queries';
 import { variantFromSku } from '../features/catalog/resolve-variant';
 import { VariantPicker } from '../features/catalog/VariantPicker';
@@ -59,7 +61,8 @@ export default function ProductPage() {
 function ProductView({ product }: { product: ProductDetail }) {
   // The chosen variant lives in the URL (`?variant=<sku>`), so a link is precise: it opens the
   // exact colour and size that was shared. No parameter means the default variant.
-  const [params, setParams] = useSearchParams();
+  const [params] = useSearchParams();
+  const navigate = useNavigate();
   const variant = variantFromSku(product.variants, params.get('variant'));
   const location = useLocation();
   const cart = useAddToCartAction(product);
@@ -100,6 +103,7 @@ function ProductView({ product }: { product: ProductDetail }) {
         title={product.name}
         description={product.description.slice(0, 155)}
         canonical={`/products/${product.slug}`}
+        {...(faqJsonLd(product.faqs) && { jsonLd: faqJsonLd(product.faqs) })}
       />
       <Container className="py-6">
         <Breadcrumbs items={crumbs} />
@@ -190,18 +194,16 @@ function ProductView({ product }: { product: ProductDetail }) {
                 optionKeys={product.optionKeys}
                 variants={product.variants}
                 selected={variant}
-                onSelect={(next) =>
+                onSelect={(next) => {
                   // replace: choosing colours is exploring, not navigating, so Back should leave
-                  // the product rather than step through every swatch.
-                  setParams(
-                    (current) => {
-                      const nextParams = new URLSearchParams(current);
-                      nextParams.set('variant', next.sku);
-                      return nextParams;
-                    },
+                  // the product rather than step through every swatch. The hash (open tab) stays.
+                  const nextParams = new URLSearchParams(location.search);
+                  nextParams.set('variant', next.sku);
+                  navigate(
+                    { pathname: location.pathname, search: `?${nextParams}`, hash: location.hash },
                     { replace: true, preventScrollReset: true },
-                  )
-                }
+                  );
+                }}
               />
             )}
 
@@ -226,9 +228,12 @@ function ProductView({ product }: { product: ProductDetail }) {
                 onAdd={(quantity) => cart.add(variant, quantity)}
               />
             )}
-
-            <p className="max-w-prose text-lg">{product.description}</p>
-
+          </div>
+        </div>
+        <ProductTabs
+          product={product}
+          variant={variant}
+          attributes={
             <dl
               data-testid={TEST_IDS.productAttributes}
               className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 rounded-card bg-pet-soft p-4"
@@ -248,8 +253,8 @@ function ProductView({ product }: { product: ProductDetail }) {
                 </div>
               )}
             </dl>
-          </div>
-        </div>
+          }
+        />
       </Container>
     </div>
   );

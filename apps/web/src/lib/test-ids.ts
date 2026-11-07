@@ -17,6 +17,7 @@ export const TEST_IDS = {
   pageCategory: 'page-category',
   pageSearch: 'page-search',
   pageProduct: 'page-product',
+  productTabs: 'product-tabs',
   productGrid: 'product-grid',
   productCard: 'product-card',
   productCardName: 'product-card-name',

@@ -33,4 +33,22 @@ describe('Seo', () => {
     expect(document.title).toBe('Pawsome');
     expect(document.head.querySelector('meta[name="robots"]')).toBeNull();
   });
+
+  it('writes JSON-LD as one script, replaces it when the data changes and removes it on unmount', () => {
+    const { rerender, unmount } = render(
+      <Seo title="P" jsonLd={{ '@type': 'FAQPage', name: 'a</script><b>' }} />,
+    );
+    const script = () => document.head.querySelectorAll('script[type="application/ld+json"]');
+    expect(script()).toHaveLength(1);
+    // The text is data: a closing script tag inside it is not parsed as markup.
+    expect(JSON.parse(script()[0]?.textContent ?? '')).toEqual({
+      '@type': 'FAQPage',
+      name: 'a</script><b>',
+    });
+    rerender(<Seo title="P" jsonLd={{ '@type': 'FAQPage', name: 'b' }} />);
+    expect(script()).toHaveLength(1);
+    expect(script()[0]?.textContent).toContain('"b"');
+    unmount();
+    expect(script()).toHaveLength(0);
+  });
 });

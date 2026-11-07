@@ -757,3 +757,11 @@ Learn: put a rule that several callers share (admin form, API, calculator) in on
 - New `Tabs` UI component (WAI-ARIA tabs: roving tabindex, Left/Right with wrap, Home/End, `aria-selected`, `aria-controls`, a focusable panel). The storefront product tabs in 16.3 use it too.
 - Size guide library at `/admin/size-guides`: columns, rows keyed by the variant's size option, how-to text, tip; rows must match the column count and sizes must be unique. Deleting a guide detaches its products.
 Learn: convert units at the edge of the form, on text, and send the API one unit (integers) so every layer after the form agrees; a response schema that reuses an input schema must not demand more than the data has (uuid-shaped ids in tests).
+
+### 16.3 — PDP tabs
+- Four tabs under the gallery (Description, Specs, Feeding guide, Delivery & returns) built on the shared `Tabs`. A tab with nothing to show is left out, so a toy shows two tabs and a food shows four. The open tab is in the URL hash and changes with `replace`; picking a variant keeps both the hash and `?variant=` (a plain `setSearchParams` would have dropped the hash).
+- Specs tab: key/value table, the guaranteed analysis of the SELECTED variant (basis points shown as "26.5 %", kcal as plain "365 kcal"; it switches when the size does), then the FAQ accordion (native `<details>`). The same questions are written as `FAQPage` JSON-LD by `<Seo jsonLd>`.
+- The description and attribute list moved from the buy column into the Description tab, so the buy column stays short on a phone.
+- Delivery tab: shared copy with no figures (they live on the Shipping page and at checkout) plus the product's own delivery note.
+- Tests: tab list per product, keyboard (arrows, End), hash open and fallback, constituents per variant with the tab kept, FAQ accordion and JSON-LD (and none without FAQs), delivery links; Seo JSON-LD (replace, cleanup, `</script>` inside data stays data).
+Learn: a URL hash is state the router does not touch unless you carry it, and a tab strip should be derived from the data so empty panels cannot exist.
