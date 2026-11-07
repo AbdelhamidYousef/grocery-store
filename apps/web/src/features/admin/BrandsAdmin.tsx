@@ -127,7 +127,7 @@ export function BrandsAdmin() {
       ) : isPending ? (
         <Skeleton className="h-40 w-full rounded-card" />
       ) : (
-        <div className="overflow-x-auto rounded-card border border-line">
+        <div className="relative overflow-x-auto rounded-card border border-line">
           <table className="w-full text-left">
             <thead className="bg-bg text-sm">
               <tr>

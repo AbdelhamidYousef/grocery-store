@@ -37,7 +37,7 @@ export function GuidesList() {
         </p>
       )}
       {data && data.length > 0 && (
-        <div className="mt-4 overflow-x-auto rounded-card border border-line">
+        <div className="relative mt-4 overflow-x-auto rounded-card border border-line">
           <table className="w-full min-w-[34rem] text-left" data-testid={TEST_IDS.adminTable}>
             <caption className="sr-only">Guides</caption>
             <thead className="bg-pet-soft">

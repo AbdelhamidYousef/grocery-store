@@ -102,7 +102,7 @@ export function OrdersList() {
           </p>
           {/* The table scrolls sideways inside this box; the page itself never does. */}
           <div
-            className="mt-2 overflow-x-auto rounded-card border-2 border-line bg-surface"
+            className="relative mt-2 overflow-x-auto rounded-card border-2 border-line bg-surface"
             data-testid={TEST_IDS.adminTable}
           >
             <table className="w-full min-w-[42rem] border-collapse text-left text-sm">

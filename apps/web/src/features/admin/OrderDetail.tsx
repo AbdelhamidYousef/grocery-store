@@ -82,7 +82,7 @@ function Body({ detail }: { detail: AdminOrderDetail }) {
           Items
         </h3>
         <div
-          className="overflow-x-auto rounded-card border-2 border-line bg-surface"
+          className="relative overflow-x-auto rounded-card border-2 border-line bg-surface"
           data-testid={TEST_IDS.adminTable}
         >
           <table className="w-full min-w-[36rem] border-collapse text-left text-sm">
