@@ -58,6 +58,7 @@ export function makeTestApp(
       authRateLimit: { windowMs: 60_000, limit: 100_000 },
       lookupRateLimit: { windowMs: 60_000, limit: 100_000 },
       contactRateLimit: { windowMs: 60_000, limit: 100_000 },
+      suggestRateLimit: { windowMs: 60_000, limit: 100_000 },
       testHooks: { secret: TEST_HOOK_SECRET, realStripe: false },
       ...opts.config,
     },

@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import { index, integer, jsonb, pgTable, text, uuid } from 'drizzle-orm/pg-core';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 
@@ -22,5 +23,8 @@ export const categories = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index('categories_parent_id_idx').on(t.parentId)],
+  (t) => [
+    index('categories_parent_id_idx').on(t.parentId),
+    index('categories_name_trgm_idx').using('gin', sql`${t.name} gin_trgm_ops`),
+  ],
 );

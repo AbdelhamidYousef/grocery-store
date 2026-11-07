@@ -68,5 +68,8 @@ export const products = pgTable(
     index('products_brand_id_idx').on(t.brandId),
     index('products_search_vector_idx').using('gin', t.searchVector),
     index('products_attributes_idx').using('gin', t.attributes),
+    // Typo-tolerant and substring search on the name for the autocomplete (needs pg_trgm, created
+    // in the migration just before this index).
+    index('products_name_trgm_idx').using('gin', sql`${t.name} gin_trgm_ops`),
   ],
 );

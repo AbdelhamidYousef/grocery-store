@@ -29,6 +29,7 @@ export interface AppConfig {
   lookupRateLimit?: RateLimitOptions;
   /** Public contact form: 5 per hour per IP when omitted. */
   contactRateLimit?: RateLimitOptions;
+  suggestRateLimit?: RateLimitOptions;
   /**
    * Switches on POST /test/webhooks/simulate (only ever mounted when `nodeEnv` is `test`).
    * `secret` is what the caller must send; `realStripe` says the payment gateway is the real
@@ -102,6 +103,7 @@ export function createApp({ logger, pingDb, payments, outbox, config }: AppDeps)
       authRateLimit: config.authRateLimit,
       ...(config.lookupRateLimit && { lookupRateLimit: config.lookupRateLimit }),
       ...(config.contactRateLimit && { contactRateLimit: config.contactRateLimit }),
+      ...(config.suggestRateLimit && { suggestRateLimit: config.suggestRateLimit }),
       payments,
       outbox,
       nodeEnv: config.nodeEnv,

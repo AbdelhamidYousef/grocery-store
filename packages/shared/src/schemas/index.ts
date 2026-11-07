@@ -19,3 +19,4 @@ export * from './shipping.ts';
 export * from './tracking.ts';
 export * from './withdrawals.ts';
 export * from './pet-profiles.ts';
+export * from './search.ts';

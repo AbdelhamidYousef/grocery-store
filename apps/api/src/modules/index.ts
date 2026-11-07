@@ -22,6 +22,7 @@ import { createPetsRouter } from './pets/router.ts';
 import { promotionsRouter } from './promotions/router.ts';
 import { registerPromotionSubscribers } from './promotions/service.ts';
 import { safetyRouter } from './safety/router.ts';
+import { createSearchRouter } from './search/router.ts';
 import { createTrackingRouter } from './tracking/router.ts';
 import { registerTrialSubscribers } from './trials/service.ts';
 import { createWithdrawalsRouter } from './withdrawals/router.ts';
@@ -34,6 +35,7 @@ export function createModulesRouter(opts: {
   authRateLimit: RateLimitOptions;
   lookupRateLimit?: RateLimitOptions;
   contactRateLimit?: RateLimitOptions;
+  suggestRateLimit?: RateLimitOptions;
   payments: PaymentGateway;
   outbox: Outbox;
   nodeEnv: 'development' | 'test' | 'production';
@@ -50,6 +52,8 @@ export function createModulesRouter(opts: {
   router.use(homeRouter);
   router.use(safetyRouter);
   router.use(promotionsRouter);
+  // Public and identical for everyone, so it sits before the session middleware like the catalog.
+  router.use(createSearchRouter(opts));
   // Exists only under NODE_ENV=test with a TEST_HOOK_SECRET (see test-router.ts): no way to fake a
   // payment anywhere else.
   if (opts.nodeEnv === 'test' && opts.testHooks) {

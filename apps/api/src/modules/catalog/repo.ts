@@ -127,7 +127,7 @@ export interface ProductListParams {
 // every card's "from" price into 0.99), computed once and joined: cheapest and dearest
 // price for the "from" line, and whether any variant has stock left. Products with no active
 // variant have no row here, so an inner join also hides products nobody could buy.
-function variantSummary() {
+export function variantSummary() {
   return db
     .select({
       productId: productVariants.productId,
