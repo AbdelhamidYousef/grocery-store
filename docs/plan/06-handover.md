@@ -45,26 +45,25 @@ account was created, nothing is deployed.
 - A leftover `tsx watch` dev API from a builder may still hold port 3000; the build session was not
   allowed to kill it. Stop it before `pnpm dev` if the port is busy (a reboot also clears it).
 
-## Expansion build status (phases 14–24, as of 2026-11-01)
+## Expansion build status (phases 14–24, as of 2026-11-07)
 
-The expansion session stopped mid-run on 2026-10-31 (~21:20). Nothing from phases 14–24 is merged
-into `main` yet; each phase lives on its own branch in a sibling worktree, all committed, none dirty.
+Merged into `main` (all gates green on 2026-11-07: shared 180, web 607, API 951 + 2 skipped, e2e 49 + 1 skipped):
 
-| Phase | Branch / worktree | Steps done | Still to do |
-|---|---|---|---|
-| 14 Catalogue depth | `feat/phase-14` · `../ecommerce-p14` | 14.1–14.10 (10 commits) | merge into `main` (wave 1, first) |
-| 20 Content & trust | `feat/phase-20` · `../ecommerce-p20` | 20.1–20.6, 20.8 (7 commits) | 20.7 richer homepage, 20.9 e2e; rebase on 14 after it merges |
-| 18 Promotions | `feat/phase-18` · `../ecommerce-p18` | 18.1–18.2 (pure pricing engine in `packages/shared`) | 18.3–18.10 (schema, API, checkout, flash sales, member prices, admin, UI, e2e) |
-| 15–17, 19, 21–24 | — | not started | follow the wave order above |
+| Phase | State |
+|---|---|
+| 14 Catalogue depth | done, merged |
+| 20 Content & trust | done, merged (20.7 homepage: home CLS ~0.22 → ~0.03; 20.9 e2e) |
+| 18 Promotions | done, merged (engine, codes, tiers, gift, flash sales + Omnibus, member prices, admin, cart UI, sale banner, e2e) |
+| 23 grooming services | cut (decisions log, 2026-11-07) |
+| 15–17, 19, 21, 22, 24 | not started; follow the wave order above |
 
-Each lane has its own DB (`ecommerce_pNN`, `ecommerce_pNN_test`) and ports (API 31N0, e2e 32N0/52N3) in
-its `.env`.
+No worktrees or lane databases are left; `main` is the only branch. Tax stays out of scope ("Demo store: no tax is charged"), logged as a decision.
 
-Checks on 2026-11-01: typecheck, lint and format pass on all three branches. Unit/integration tests
-and e2e were **not** re-run. The last runs from the stopped session were unclear: one run of
-`pnpm test` failed in `apps/api` (probably phase 18), and one e2e run had 3 failures in
-`cart.spec.ts` / `catalog.spec.ts` (lane unknown, possibly 14's bigger catalogue changing seed
-assumptions). Re-run `pnpm test` and `pnpm e2e` in each worktree before merging.
+Known follow-ups:
+- e2e specs create and buy products in the shared dev database, so local "Bestsellers" can show E2E test products. A deployed demo starts from the seed and is unaffected.
+- Playwright reuses any server already on the e2e ports (`reuseExistingServer: true`). Check `ss -ltnp` before `pnpm e2e`: a leftover dev API there makes many tests fail for no code reason.
+- `pnpm typecheck` can pass on a stale `*.tsbuildinfo`; delete those first when in doubt.
+- Hero slides still use catalogue photos; generated hero art is a later image task.
 
 Remote viewing: the screenshot tour of the current `main` (phases 0–13) is a private page at
 https://claude.ai/artifact/GPjeWpRVGZNQeZVcmnvdz1. For the live dev site on your tailnet, run
