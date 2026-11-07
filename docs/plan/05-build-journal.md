@@ -772,3 +772,10 @@ Learn: a URL hash is state the router does not touch unless you carry it, and a 
 - UI: a number box (kg as text, parsed to grams from the characters), a 100 g slider, meals a day, a life stage select when there is more than one table, then the answer as a sentence ("About 280 g a day, two meals of 140 g"), "This bag lasts about 21 days, about EUR 0.84 a day", a "Pick the bag size that lasts a month" button that changes `?variant=` and keeps the tab, and the disclaimer. The cup is CSS only and respects reduced motion.
 - The feeding table sits under the calculator, so the numbers are readable without using it.
 Learn: write the rounding rule once, as a function, and test its edges (halves, negative slopes, exclusive upper bound); the UI then only formats what the function returns.
+
+### 16.5 — size guide modal
+- A "Size guide" button sits under the size picker whenever the product has a guide. It opens the shop's native-`<dialog>` modal: the browser makes everything behind it inert (that is the focus trap), Escape closes it, focus goes back to the button, and the page does not scroll behind it.
+- The table comes from the guide's rows. The selected variant's row is found by matching its size code against the variant's options, and is shown with a tinted background and the text "(your size)", so it never relies on colour alone. The tip ("In between sizes? Size up.") shows when the guide has one.
+- "How to measure": numbered lines become an ordered list; above it three small original SVG drawings (neck, chest, length) with text captions, hidden from screen readers because the words say the same. Credited in `apps/web/public/products/CREDITS.md`.
+- Tests: how-to parsing, row matching (including a size the guide lacks), table and highlight, tip, steps and captions, empty how-to/tip, close; plus the product page (button only with a guide, Large highlighted from `?variant=`).
+Learn: a native `<dialog>` is the accessible modal; the job is to feed it content, not to rebuild the trap.

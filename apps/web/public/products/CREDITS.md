@@ -80,3 +80,9 @@ reproduced or replaced. Files live in `<category-slug>/<product-slug>-<n>.webp` 
 accent colour) drawn for this project, with no third-party source. A product without a processed
 photo shows its pet's placeholder until the real image is generated, processed and the seed re-run.
 New products' photos are generated from `docs/images-brief.csv`.
+
+## Size guide illustrations
+
+The three "How to measure" drawings (neck, chest, length) are inline SVG written for this project in
+`apps/web/src/features/catalog/pdp/MeasureIllustrations.tsx`. They are original line art, not traced
+from or based on any third-party artwork, and may be reused with the rest of the project.

@@ -20,6 +20,7 @@ import { formatFacetValue } from '../features/catalog/filters';
 import { Gallery } from '../features/catalog/Gallery';
 import { faqJsonLd } from '../features/catalog/pdp/FaqAccordion';
 import { ProductTabs } from '../features/catalog/pdp/ProductTabs';
+import { SizeGuideButton } from '../features/catalog/pdp/SizeGuide';
 import { useProduct } from '../features/catalog/queries';
 import { variantFromSku } from '../features/catalog/resolve-variant';
 import { VariantPicker } from '../features/catalog/VariantPicker';
@@ -207,6 +208,8 @@ function ProductView({ product }: { product: ProductDetail }) {
                 onSelect={selectVariant}
               />
             )}
+
+            {product.sizeGuide && <SizeGuideButton guide={product.sizeGuide} variant={variant} />}
 
             {variant && (
               <p className="text-sm text-muted" data-testid="variant-sku">
