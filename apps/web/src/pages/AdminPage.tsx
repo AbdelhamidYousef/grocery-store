@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { Seo } from '../components/Seo';
 import { AdminLayout } from '../features/admin/AdminLayout';
@@ -19,6 +19,10 @@ import { OrdersList } from '../features/admin/OrdersList';
 import { ProductEdit } from '../features/admin/ProductEdit';
 import { ProductNew } from '../features/admin/ProductNew';
 import { ProductsList } from '../features/admin/ProductsList';
+import { CodesAdmin } from '../features/admin/promotions/CodesAdmin';
+import { GiftAdmin } from '../features/admin/promotions/GiftAdmin';
+import { PromotionsLayout } from '../features/admin/promotions/PromotionsLayout';
+import { TiersAdmin } from '../features/admin/promotions/TiersAdmin';
 import { TagsAdmin } from '../features/admin/TagsAdmin';
 
 // One lazy chunk for the whole back office, with its own small route table underneath
@@ -47,6 +51,12 @@ export default function AdminPage() {
         <Route path="withdrawals" element={<WithdrawalsAdmin />} />
         <Route path="messages" element={<MessagesAdmin />} />
         <Route path="home" element={<HomeAdmin />} />
+        <Route path="promotions" element={<PromotionsLayout />}>
+          <Route index element={<Navigate to="codes" replace />} />
+          <Route path="codes" element={<CodesAdmin />} />
+          <Route path="tiers" element={<TiersAdmin />} />
+          <Route path="gift" element={<GiftAdmin />} />
+        </Route>
         <Route path="*" element={<AdminNotFound />} />
       </Route>
     </Routes>

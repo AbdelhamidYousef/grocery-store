@@ -56,6 +56,7 @@ describe('admin shell', () => {
       'Brands',
       'Collections',
       'Tags',
+      'Promotions',
       'Guides',
       'Help articles',
       'Testimonials',

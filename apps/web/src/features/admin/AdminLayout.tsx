@@ -11,6 +11,7 @@ const LINKS = [
   { to: '/admin/brands', label: 'Brands', end: false },
   { to: '/admin/collections', label: 'Collections', end: false },
   { to: '/admin/tags', label: 'Tags', end: false },
+  { to: '/admin/promotions', label: 'Promotions', end: false },
   { to: '/admin/guides', label: 'Guides', end: false },
   { to: '/admin/help', label: 'Help articles', end: false },
   { to: '/admin/testimonials', label: 'Testimonials', end: false },
