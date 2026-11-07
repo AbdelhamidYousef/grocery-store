@@ -50,11 +50,12 @@ export default function CartPage() {
           <div className="min-w-0">
             <CartContents cart={cart} />
           </div>
-          {/* Sticks to the bottom edge on phones (so the total and the checkout button stay in
-              reach however long the cart is) and to the top on desktop. */}
+          {/* Sticks to the top on desktop only. It used to stick to the bottom edge on phones, but
+              with the code box, bars and rules it can be taller than a phone screen and would
+              cover the lines; on a phone it now simply follows them. */}
           <aside
             aria-label="Order summary"
-            className="sticky bottom-0 z-10 -mx-4 border-t-2 border-line bg-surface p-4 shadow-card sm:-mx-6 sm:px-6 lg:bottom-auto lg:top-32 lg:mx-0 lg:rounded-card lg:border-2 lg:p-5"
+            className="rounded-card border-2 border-line bg-surface p-4 shadow-card lg:sticky lg:top-32 lg:max-h-[calc(100dvh-9rem)] lg:overflow-y-auto lg:p-5"
           >
             <CartSummary cart={cart} />
           </aside>

@@ -1,4 +1,5 @@
 import type { ShippingQuote } from '@store/shared';
+import { Link } from 'react-router-dom';
 
 import type { WebCart } from '../../api/cart';
 import type { PlacedOrder } from '../../api/checkout';
@@ -15,10 +16,13 @@ export function CheckoutSummary({
   cart,
   quote,
   placed,
+  codeProblem = null,
 }: {
   cart: WebCart;
   quote: ShippingQuote | null;
   placed: PlacedOrder | null;
+  /** Why the discount code stopped applying, when checkout refused it. */
+  codeProblem?: string | null;
 }) {
   const lines = cart.items
     .filter((i) => i.available > 0)
@@ -38,6 +42,22 @@ export function CheckoutSummary({
       className="flex flex-col gap-4 rounded-card border-2 border-line bg-surface p-4 sm:p-5 lg:sticky lg:top-32"
     >
       <h2 className="font-display text-xl font-bold">Order summary</h2>
+      {codeProblem && (
+        // The same sentence is already in the step's alert; this one sits by the money with the
+        // way out, so it is plain text (one alert is enough).
+        <div
+          data-testid={TEST_IDS.checkoutCodeProblem}
+          className="rounded-control border-2 border-danger bg-danger-soft p-3 text-danger"
+        >
+          <p className="font-semibold">{codeProblem}</p>
+          <Link
+            to="/cart"
+            className="mt-1 inline-flex min-h-11 items-center font-semibold underline"
+          >
+            Back to your cart to change the code
+          </Link>
+        </div>
+      )}
       {lines.length > LONG_LIST ? (
         // 20 lines would push the totals 17 screens down on a phone. Past a handful the list
         // scrolls inside its own box; it is focusable so a keyboard can scroll it too.

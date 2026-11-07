@@ -21,6 +21,16 @@ import { StepCard } from './StepCard';
 
 type Step = 1 | 2 | 3;
 
+// The 400 for a code that stopped applying (for this email) carries the sentence in
+// fieldErrors.code; null for every other error.
+function codeProblem(error: unknown): string | null {
+  if (!(error instanceof ApiError) || error.code !== 'VALIDATION_ERROR') return null;
+  const messages = (error.details as { fieldErrors?: { code?: unknown } } | undefined)?.fieldErrors
+    ?.code;
+  const message = Array.isArray(messages) ? messages.find((m) => typeof m === 'string') : null;
+  return typeof message === 'string' ? message : null;
+}
+
 function placeErrorMessage(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.code === 'CART_CHANGED') {
@@ -51,6 +61,7 @@ export function CheckoutFlow({
   const [placed, setPlaced] = useState<PlacedOrder | null>(null);
   const [saveAddress, setSaveAddress] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [codeError, setCodeError] = useState<string | null>(null);
 
   const place = usePlaceOrder();
   const createAddress = useCreateAddress();
@@ -62,11 +73,13 @@ export function CheckoutFlow({
     setStep(target);
     setPlaced(null);
     setError(null);
+    setCodeError(null);
   };
 
   const continueToPayment = (quote: ShippingQuote) => {
     if (!details) return;
     setError(null);
+    setCodeError(null);
     setShippingCode(quote.code);
     // No publishable key: show the "not configured" state and never create an order that nobody
     // could pay for (it would reserve stock for 30 minutes for nothing).
@@ -101,7 +114,10 @@ export function CheckoutFlow({
             });
           }
         },
-        onError: (e) => setError(placeErrorMessage(e)),
+        onError: (e) => {
+          setError(placeErrorMessage(e));
+          setCodeError(codeProblem(e));
+        },
       },
     );
   };
@@ -175,7 +191,7 @@ export function CheckoutFlow({
         </StepCard>
       </div>
 
-      <CheckoutSummary cart={cart} quote={selectedQuote} placed={placed} />
+      <CheckoutSummary cart={cart} quote={selectedQuote} placed={placed} codeProblem={codeError} />
     </div>
   );
 }

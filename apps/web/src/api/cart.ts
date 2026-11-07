@@ -1,5 +1,6 @@
 import {
   AddCartItemSchema,
+  type ApplyCodeInput,
   CartSchema,
   CartWarningSchema,
   OutOfStockDetailsSchema,
@@ -51,6 +52,14 @@ export async function removeCartItem(id: string): Promise<WebCart> {
       schema: CartResponse,
     })
   ).data;
+}
+
+export async function applyCartCode(input: ApplyCodeInput): Promise<WebCart> {
+  return (await apiFetch('/cart/code', { method: 'POST', body: input, schema: CartResponse })).data;
+}
+
+export async function removeCartCode(): Promise<WebCart> {
+  return (await apiFetch('/cart/code', { method: 'DELETE', schema: CartResponse })).data;
 }
 
 // `details` of a 409 OUT_OF_STOCK, or null when the error is something else.

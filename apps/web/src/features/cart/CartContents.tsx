@@ -2,6 +2,7 @@ import type { WebCart } from '../../api/cart';
 
 import { CartLine } from './CartLine';
 import { CartNotices, useBannerNotices } from './CartNotices';
+import { GiftLine } from './GiftLine';
 import { useCartActions } from './queries';
 
 // The notices and the list of lines, shared by the cart page and the mini cart (`compact`).
@@ -33,6 +34,7 @@ export function CartContents({
             {...(onNavigate ? { onNavigate } : {})}
           />
         ))}
+        <GiftLine pricing={cart.pricing} currency={cart.currency} />
       </ul>
     </>
   );

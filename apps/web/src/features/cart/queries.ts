@@ -1,9 +1,11 @@
-import type { Variant } from '@store/shared';
+import { ApplyCodeSchema, type Variant } from '@store/shared';
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 
 import {
   addCartItem,
+  applyCartCode,
+  removeCartCode,
   fetchCart,
   outOfStockDetails,
   removeCartItem,
@@ -202,5 +204,44 @@ export function useAddToCartAction(product: { id: string; name: string }) {
           onError: (error) => toast.show(cartErrorMessage(error), 'error'),
         },
       ),
+  };
+}
+
+// ---------- discount code ----------
+// The code is a cart write like any other (same scope, so it queues behind quantity changes), but
+// its refusal is not a toast: it belongs next to the input, so the hook hands the message back.
+export function useCartCode() {
+  const queryClient = useQueryClient();
+  const apply = useMutation({
+    scope: CART_SCOPE,
+    mutationFn: applyCartCode,
+    onSuccess: (cart) => setCart(queryClient, cart),
+  });
+  const remove = useMutation({
+    scope: CART_SCOPE,
+    mutationFn: removeCartCode,
+    onSuccess: (cart) => setCart(queryClient, cart),
+  });
+  return {
+    pending: apply.isPending,
+    removing: remove.isPending,
+    // Resolves with null when applied, or the sentence to show when refused. The same schema as
+    // the API checks the shape first, so a typo costs no request.
+    apply: async (raw: string): Promise<string | null> => {
+      const parsed = ApplyCodeSchema.safeParse({ code: raw });
+      if (!parsed.success) {
+        track({ name: 'code_failed', code: raw.trim().slice(0, 40) });
+        return parsed.error.issues[0]?.message ?? 'Enter a valid code';
+      }
+      try {
+        await apply.mutateAsync(parsed.data);
+        track({ name: 'promo_applied', code: parsed.data.code });
+        return null;
+      } catch (error) {
+        track({ name: 'code_failed', code: parsed.data.code });
+        return cartErrorMessage(error);
+      }
+    },
+    remove: () => remove.mutate(undefined),
   };
 }

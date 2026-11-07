@@ -1,4 +1,4 @@
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import type { ReactNode } from 'react';
@@ -100,6 +100,33 @@ describe('checkout payment step with a Stripe key', () => {
     expect(JSON.stringify(body)).not.toMatch(/cents|total|price/i);
     expect(spy).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'add_payment_info', valueCents: 2688 }),
+    );
+  });
+
+  it('tells the shopper a code stopped applying and offers the way back to the cart', async () => {
+    const message = 'You have already used this code';
+    server.use(
+      http.post(`${API}/checkout`, () =>
+        HttpResponse.json(
+          {
+            error: {
+              code: 'VALIDATION_ERROR',
+              message,
+              details: { formErrors: [], fieldErrors: { code: [message] } },
+            },
+          },
+          { status: 400 },
+        ),
+      ),
+    );
+    renderApp('/checkout');
+    await reachPayment();
+    expect(await screen.findByTestId('checkout-error')).toHaveTextContent(message);
+    const problem = screen.getByTestId('checkout-code-problem');
+    expect(problem).toHaveTextContent(message);
+    expect(within(problem).getByRole('link', { name: /Back to your cart/ })).toHaveAttribute(
+      'href',
+      '/cart',
     );
   });
 
