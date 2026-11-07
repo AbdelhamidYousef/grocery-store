@@ -41,6 +41,9 @@ function pickImage(images: repo.ImageRow[], line: repo.LineRow): repo.ImageRow |
 // clamped and an archived variant stays gone, and the warning is shown once (in the response that
 // caused the repair), not forever.
 export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
+  // Flash sales activate lazily on read (before the cart lock, so the sale rows are never locked
+  // while holding it).
+  await promotions.syncFlashSales(tx);
   const cartRow = await repo.lockCart(tx, cartId);
   const lines = await repo.listLines(tx, cartId);
   const images = await repo.listImages(tx, [...new Set(lines.map((l) => l.productId))]);

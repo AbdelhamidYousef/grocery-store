@@ -10,6 +10,7 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Price } from '../components/ui/Price';
 import { ProductBadges } from '../components/ui/ProductBadges';
+import { SalePrice } from '../components/ui/SalePrice';
 import { Skeleton } from '../components/ui/Skeleton';
 import { UnitPrice, UnitPriceNote } from '../components/ui/UnitPrice';
 import { useAddToCartAction } from '../features/cart/queries';
@@ -127,7 +128,13 @@ function ProductView({ product }: { product: ProductDetail }) {
               <SafetyNoticeBox key={notice.id} notice={notice} />
             ))}
 
-            {variant ? (
+            {variant?.sale ? (
+              <SalePrice
+                sale={variant.sale}
+                currency={variant.currency}
+                className="text-3xl text-pet-strong"
+              />
+            ) : variant ? (
               <Price
                 cents={variant.priceCents}
                 compareAtCents={variant.compareAtPriceCents}

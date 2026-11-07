@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Badge } from '../../components/ui/Badge';
 import { Price } from '../../components/ui/Price';
 import { ProductBadges } from '../../components/ui/ProductBadges';
+import { SalePrice } from '../../components/ui/SalePrice';
 import { UnitPrice } from '../../components/ui/UnitPrice';
 import { productSrcSet } from '../../lib/images';
 import { accentForPetAttribute } from '../../lib/pets';
@@ -89,12 +90,20 @@ export function ProductCard({
               {product.name}
             </h3>
             <div className="mt-auto flex flex-col">
-              <Price
-                cents={product.price.minCents}
-                maxCents={product.price.maxCents}
-                currency={product.price.currency}
-                className="text-pet-strong"
-              />
+              {product.sale ? (
+                <SalePrice
+                  sale={product.sale}
+                  currency={product.price.currency}
+                  className="text-pet-strong"
+                />
+              ) : (
+                <Price
+                  cents={product.price.minCents}
+                  maxCents={product.price.maxCents}
+                  currency={product.price.currency}
+                  className="text-pet-strong"
+                />
+              )}
               <UnitPrice unitPrice={product.unitPrice} currency={product.price.currency} />
             </div>
           </div>

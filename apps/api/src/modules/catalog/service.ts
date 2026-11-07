@@ -13,7 +13,9 @@ import {
   type ProductListResponse,
 } from '@store/shared';
 
+import { db } from '../../db/client.ts';
 import { notFound } from '../../lib/errors.ts';
+import { saleOffersForProducts, syncFlashSales } from '../promotions/service.ts';
 import { noticesForVariants } from '../safety/service.ts';
 
 import { getBadgeIndex, type BadgeIndex } from './badge-index.ts';
@@ -69,6 +71,7 @@ function toCard(
   image: repo.ProductImageRow | undefined,
   badges: Badge[],
   swatches: ProductCard['swatches'],
+  sale: ProductCard['sale'],
 ): ProductCard {
   // Only the facet keys leave the API on a card: the jsonb may hold internal keys (optionKeys).
   const attributes: ProductCard['attributes'] = {};
@@ -103,6 +106,7 @@ function toCard(
         ? { cents: row.unitCents, per: row.unitPer === 'g' ? 'kg' : 'L' }
         : null,
     swatches,
+    sale,
   };
 }
 
@@ -160,9 +164,11 @@ async function buildCards(
   index: Awaited<ReturnType<typeof getBadgeIndex>>,
 ): Promise<ProductCard[]> {
   const ids = rows.map((r) => r.id);
-  const [images, swatchRows] = await Promise.all([
+  await syncFlashSales(db);
+  const [images, swatchRows, offers] = await Promise.all([
     repo.listPrimaryImages(ids),
     repo.listSwatches(ids),
+    saleOffersForProducts(ids),
   ]);
   const imageByProduct = new Map(images.map((i) => [i.productId, i]));
   const swatchesByProduct = new Map<string, ProductCard['swatches']>();
@@ -192,6 +198,7 @@ async function buildCards(
       imageByProduct.get(row.id),
       index.get(row.id) ?? [],
       swatchesByProduct.get(row.id) ?? [],
+      offers.byProduct.get(row.id) ?? null,
     ),
   );
 }
@@ -272,6 +279,8 @@ export async function getProduct(slug: string): Promise<ProductDetail> {
   // hides it for the same reason).
   if (!rows || rows.variants.length === 0) throw notFound('Product not found');
 
+  await syncFlashSales(db);
+  const offers = await saleOffersForProducts([rows.product.id]);
   const variants = rows.variants.map((v) => {
     const availableUnits = v.quantity - v.reserved;
     return {
@@ -291,6 +300,7 @@ export async function getProduct(slug: string): Promise<ProductDetail> {
       unitPrice: unitPriceCents(v.priceCents, v.netAmount, v.netUnit),
       isTrial: v.isTrial,
       swatchHex: v.swatchHex,
+      sale: offers.byVariant.get(v.id) ?? null,
     };
   });
   // A sample size must not set the "from" price of the product.

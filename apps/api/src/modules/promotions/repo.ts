@@ -1,15 +1,18 @@
-import { and, asc, count, eq, inArray, isNull, ne } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, inArray, isNull, lt, lte, ne, or, sql } from 'drizzle-orm';
 
 import { db, type Tx } from '../../db/client.ts';
 import {
   bulkTiers,
   discountCodes,
   discountRedemptions,
+  flashSaleItems,
+  flashSales,
   giftRules,
   inventory,
   orderPromotions,
   orders,
   payments,
+  priceHistory,
   productImages,
   productVariants,
   products,
@@ -166,4 +169,197 @@ export async function wasPaid(run: Run, orderId: string): Promise<boolean> {
     .from(payments)
     .where(and(eq(payments.orderId, orderId), eq(payments.status, 'succeeded')));
   return (row?.n ?? 0) > 0;
+}
+
+// ---------- flash sales ----------
+
+export type FlashSaleRow = typeof flashSales.$inferSelect;
+
+// A cheap read-only check, so a request with nothing to sync costs one indexed SELECT and no
+// transaction.
+export async function hasSalesToSync(run: Run, now: Date): Promise<boolean> {
+  const [row] = await run
+    .select({ id: flashSales.id })
+    .from(flashSales)
+    .where(
+      or(
+        and(eq(flashSales.status, 'scheduled'), lte(flashSales.startsAt, now)),
+        and(inArray(flashSales.status, ['scheduled', 'active']), lte(flashSales.endsAt, now)),
+      ),
+    )
+    .limit(1);
+  return row !== undefined;
+}
+
+// UPDATE ... RETURNING: a row flips exactly once, so with two concurrent callers only one gets it
+// back and only that one writes its history. A sale whose whole window has already passed is not
+// activated (it was never offered, so its price must not enter the Omnibus history); the end
+// step below closes it.
+export async function activateDueSales(run: Run, now: Date): Promise<FlashSaleRow[]> {
+  return run
+    .update(flashSales)
+    .set({ status: 'active', updatedAt: sql`now()` })
+    .where(
+      and(
+        eq(flashSales.status, 'scheduled'),
+        lte(flashSales.startsAt, now),
+        gt(flashSales.endsAt, now),
+      ),
+    )
+    .returning();
+}
+
+// Returns the sales that were ACTIVE and are now ended (their prices went back to normal, which
+// the history must record). A scheduled sale that is closed unopened returns nothing.
+export async function endDueSales(run: Run, now: Date): Promise<FlashSaleRow[]> {
+  const ended = await run
+    .update(flashSales)
+    .set({ status: 'ended', updatedAt: sql`now()` })
+    .where(and(eq(flashSales.status, 'active'), lte(flashSales.endsAt, now)))
+    .returning();
+  await run
+    .update(flashSales)
+    .set({ status: 'ended', updatedAt: sql`now()` })
+    .where(and(eq(flashSales.status, 'scheduled'), lte(flashSales.endsAt, now)));
+  return ended;
+}
+
+export async function basePrices(run: Run, variantIds: string[]): Promise<Map<string, number>> {
+  if (variantIds.length === 0) return new Map();
+  const rows = await run
+    .select({ id: productVariants.id, priceCents: productVariants.priceCents })
+    .from(productVariants)
+    .where(inArray(productVariants.id, variantIds));
+  return new Map(rows.map((r) => [r.id, r.priceCents]));
+}
+
+export async function listSaleItems(run: Run, saleIds: string[]) {
+  if (saleIds.length === 0) return [];
+  return run.select().from(flashSaleItems).where(inArray(flashSaleItems.saleId, saleIds));
+}
+
+export type HistoryPoint = { priceCents: number; validFrom: Date };
+
+// Base and sale prices strictly before `before` (member prices are not a price the public saw).
+// Newest first, so the first row is the price in effect.
+export async function priceHistoryBefore(
+  run: Run,
+  variantIds: string[],
+  before: Date,
+): Promise<Map<string, HistoryPoint[]>> {
+  const out = new Map<string, HistoryPoint[]>();
+  if (variantIds.length === 0) return out;
+  const rows = await run
+    .select({
+      variantId: priceHistory.variantId,
+      priceCents: priceHistory.priceCents,
+      validFrom: priceHistory.validFrom,
+    })
+    .from(priceHistory)
+    .where(
+      and(
+        inArray(priceHistory.variantId, variantIds),
+        inArray(priceHistory.kind, ['base', 'sale']),
+        lt(priceHistory.validFrom, before),
+      ),
+    )
+    .orderBy(desc(priceHistory.validFrom), desc(priceHistory.createdAt));
+  for (const r of rows) {
+    const list = out.get(r.variantId) ?? [];
+    list.push({ priceCents: r.priceCents, validFrom: r.validFrom });
+    out.set(r.variantId, list);
+  }
+  return out;
+}
+
+export async function insertPriceHistory(
+  run: Run,
+  rows: (typeof priceHistory.$inferInsert)[],
+): Promise<void> {
+  if (rows.length > 0) await run.insert(priceHistory).values(rows);
+}
+
+export async function setReference(run: Run, itemId: string, referenceCents: number | null) {
+  await run
+    .update(flashSaleItems)
+    .set({ referenceCents, updatedAt: sql`now()` })
+    .where(eq(flashSaleItems.id, itemId));
+}
+
+export interface ActiveSaleRow {
+  productId: string;
+  variantId: string;
+  saleId: string;
+  salePriceCents: number;
+  referenceCents: number | null;
+  basePriceCents: number;
+  endsAt: Date;
+}
+
+// The sale price that applies right now to each variant. Status alone is not trusted: the window
+// is checked too, so a sale is over at exactly its ends_at even if no sync has run yet. Trial
+// sizes are left out (they are fixed-price in the engine) and so is any "sale" that is not lower
+// than the regular price. Overlapping sales: the lowest price wins, then the earliest end.
+export async function activeSales(
+  run: Run,
+  by: { variantIds: string[] } | { productIds: string[] },
+  now: Date,
+): Promise<ActiveSaleRow[]> {
+  const scope =
+    'variantIds' in by
+      ? by.variantIds.length > 0
+        ? inArray(productVariants.id, by.variantIds)
+        : undefined
+      : by.productIds.length > 0
+        ? inArray(productVariants.productId, by.productIds)
+        : undefined;
+  if (!scope) return [];
+  return run
+    .selectDistinctOn([flashSaleItems.variantId], {
+      productId: productVariants.productId,
+      variantId: flashSaleItems.variantId,
+      saleId: flashSales.id,
+      salePriceCents: flashSaleItems.salePriceCents,
+      referenceCents: flashSaleItems.referenceCents,
+      basePriceCents: productVariants.priceCents,
+      endsAt: flashSales.endsAt,
+    })
+    .from(flashSaleItems)
+    .innerJoin(flashSales, eq(flashSales.id, flashSaleItems.saleId))
+    .innerJoin(productVariants, eq(productVariants.id, flashSaleItems.variantId))
+    .where(
+      and(
+        scope,
+        eq(flashSales.status, 'active'),
+        lte(flashSales.startsAt, now),
+        gt(flashSales.endsAt, now),
+        eq(productVariants.isTrial, false),
+        eq(productVariants.status, 'active'),
+        sql`${flashSaleItems.salePriceCents} < ${productVariants.priceCents}`,
+      ),
+    )
+    .orderBy(flashSaleItems.variantId, asc(flashSaleItems.salePriceCents), asc(flashSales.endsAt));
+}
+
+export async function bannerSale(run: Run, now: Date): Promise<FlashSaleRow | undefined> {
+  const [active] = await run
+    .select()
+    .from(flashSales)
+    .where(
+      and(
+        eq(flashSales.status, 'active'),
+        lte(flashSales.startsAt, now),
+        gt(flashSales.endsAt, now),
+      ),
+    )
+    .orderBy(asc(flashSales.endsAt), asc(flashSales.id))
+    .limit(1);
+  if (active) return active;
+  const [next] = await run
+    .select()
+    .from(flashSales)
+    .where(and(eq(flashSales.status, 'scheduled'), gt(flashSales.startsAt, now)))
+    .orderBy(asc(flashSales.startsAt), asc(flashSales.id))
+    .limit(1);
+  return next;
 }

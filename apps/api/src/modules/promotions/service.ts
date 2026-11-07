@@ -3,11 +3,16 @@ import {
   priceCart,
   type CartPricing,
   type PricedCart,
+  type BannerResponse,
   type PricingCode,
+  type PromotionRulesResponse,
+  type SaleOffer,
 } from '@store/shared';
 
-import type { Tx } from '../../db/client.ts';
+import { db, type Tx } from '../../db/client.ts';
 import { validation } from '../../lib/errors.ts';
+import { listActiveShippingMethods } from '../checkout/repo.ts';
+import { estimateRule } from '../checkout/shipping.ts';
 import { onOrderCancelled, type OrderCancelledEvent } from '../orders/events.ts';
 import { customerKey } from '../trials/service.ts';
 
@@ -89,6 +94,16 @@ function toEngineCode(code: repo.CodeRow): PricingCode {
 
 export async function price(tx: Tx, req: PricingRequest): Promise<PricingResult> {
   const now = req.now ?? new Date();
+  // The sale price in force right now, per variant (the engine picks the best of base, sale, member).
+  const sales = new Map(
+    (
+      await repo.activeSales(
+        tx,
+        { variantIds: [...new Set(req.lines.map((l) => l.variantId))] },
+        now,
+      )
+    ).map((s) => [s.variantId, s]),
+  );
   const key = req.userId || req.email ? customerKey(req.userId, req.email ?? '') : null;
   // One after the other: queries on one transaction share a connection anyway.
   const tiers = await repo.activeTiers(tx);
@@ -115,13 +130,17 @@ export async function price(tx: Tx, req: PricingRequest): Promise<PricingResult>
   const priced = priceCart({
     now,
     currency: req.currency,
-    lines: req.lines.map((l) => ({
-      variantId: l.variantId,
-      productId: l.productId,
-      qty: l.quantity,
-      baseCents: l.unitPriceCents,
-      fixedPrice: l.isTrial,
-    })),
+    lines: req.lines.map((l) => {
+      const sale = sales.get(l.variantId);
+      return {
+        variantId: l.variantId,
+        productId: l.productId,
+        qty: l.quantity,
+        baseCents: l.unitPriceCents,
+        fixedPrice: l.isTrial,
+        ...(sale && { saleCents: sale.salePriceCents, onSale: true }),
+      };
+    }),
     customer: { isMember: req.userId !== null, orderCount },
     code: code ? toEngineCode(code) : undefined,
     tiers,
@@ -222,4 +241,157 @@ async function releaseOnCancelled(tx: Tx, { orderId }: OrderCancelledEvent): Pro
 // Called once at start-up (modules/index.ts); safe to call again (the registry is a set).
 export function registerPromotionSubscribers(): void {
   onOrderCancelled(releaseOnCancelled);
+}
+
+// ---------- flash sales (step 18.6) ----------
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const OMNIBUS_DAYS = 30;
+
+// EU Omnibus reference price for a sale starting at `startsAt`: the lowest price charged in the 30
+// days before it. `history` is newest first and holds only prices strictly before `startsAt`
+// (base and sale kinds), so the sale's own price can never be its own reference. The price in
+// effect when the window opens counts too (a price set 90 days ago and never changed was charged
+// the whole window). Null = no history, and then nothing may be struck through.
+export function omnibusReference(history: repo.HistoryPoint[], startsAt: Date): number | null {
+  const windowStart = startsAt.getTime() - OMNIBUS_DAYS * DAY_MS;
+  const inWindow = history.filter((h) => h.validFrom.getTime() > windowStart);
+  const inEffect = history.find((h) => h.validFrom.getTime() <= windowStart);
+  const prices = [...inWindow, ...(inEffect ? [inEffect] : [])].map((h) => h.priceCents);
+  return prices.length === 0 ? null : Math.min(...prices);
+}
+
+async function activate(tx: Tx, sale: repo.FlashSaleRow): Promise<void> {
+  const items = await repo.listSaleItems(tx, [sale.id]);
+  const history = await repo.priceHistoryBefore(
+    tx,
+    items.map((i) => i.variantId),
+    sale.startsAt,
+  );
+  for (const item of items) {
+    await repo.setReference(
+      tx,
+      item.id,
+      omnibusReference(history.get(item.variantId) ?? [], sale.startsAt),
+    );
+  }
+  // The sale price itself enters the history at the moment the sale starts: a later sale's
+  // reference must see what this one charged.
+  await repo.insertPriceHistory(
+    tx,
+    items.map((i) => ({
+      variantId: i.variantId,
+      priceCents: i.salePriceCents,
+      kind: 'sale' as const,
+      validFrom: sale.startsAt,
+    })),
+  );
+}
+
+// Lazy stand-in for the activate-sales job (the job runner arrives in phase 19): called at the
+// start of cart loads, catalog reads and the banner. Each due sale is activated by exactly one
+// caller (UPDATE ... RETURNING), in the same transaction that writes its reference prices and
+// history rows, so no reader sees an active sale without them. With nothing due it costs one
+// indexed SELECT.
+export async function syncFlashSales(run: typeof db | Tx, now: Date = new Date()): Promise<void> {
+  if (!(await repo.hasSalesToSync(run, now))) return;
+  await run.transaction(async (tx) => {
+    for (const sale of await repo.activateDueSales(tx, now)) await activate(tx, sale);
+    // When a sale ends its variants are back at their regular price from `ends_at` on: record
+    // that, or a later sale's Omnibus reference would treat the old sale price as still in effect.
+    const ended = await repo.endDueSales(tx, now);
+    const items = await repo.listSaleItems(
+      tx,
+      ended.map((s) => s.id),
+    );
+    const base = await repo.basePrices(
+      tx,
+      items.map((i) => i.variantId),
+    );
+    const endsAt = new Map(ended.map((s) => [s.id, s.endsAt]));
+    await repo.insertPriceHistory(
+      tx,
+      items.flatMap((i) => {
+        const priceCents = base.get(i.variantId);
+        const validFrom = endsAt.get(i.saleId);
+        return priceCents === undefined || !validFrom
+          ? []
+          : [{ variantId: i.variantId, priceCents, kind: 'base' as const, validFrom }];
+      }),
+    );
+  });
+}
+
+export interface SaleOffers {
+  // By product (the best offer, for a card) and by variant (for the detail page).
+  byProduct: Map<string, SaleOffer>;
+  byVariant: Map<string, SaleOffer>;
+}
+
+// Offers for a set of products, for catalog cards and the product page.
+export async function saleOffersForProducts(
+  productIds: string[],
+  now: Date = new Date(),
+): Promise<SaleOffers> {
+  const rows = await repo.activeSales(db, { productIds }, now);
+  const byVariant = new Map<string, SaleOffer>();
+  const byProduct = new Map<string, SaleOffer>();
+  for (const r of rows) {
+    const offer: SaleOffer = {
+      priceCents: r.salePriceCents,
+      referenceCents: r.referenceCents,
+      basePriceCents: r.basePriceCents,
+      endsAt: r.endsAt.toISOString(),
+    };
+    byVariant.set(r.variantId, offer);
+    const best = byProduct.get(r.productId);
+    byProduct.set(
+      r.productId,
+      !best
+        ? offer
+        : {
+            // The lowest sale price decides which variant's reference and base are shown; the
+            // countdown shows the earliest end.
+            ...(offer.priceCents < best.priceCents ? offer : best),
+            endsAt: offer.endsAt < best.endsAt ? offer.endsAt : best.endsAt,
+          },
+    );
+  }
+  return { byProduct, byVariant };
+}
+
+export async function getBanner(now: Date = new Date()): Promise<BannerResponse['data']> {
+  await syncFlashSales(db, now);
+  const sale = await repo.bannerSale(db, now);
+  return {
+    sale: sale
+      ? {
+          id: sale.id,
+          name: sale.name,
+          startsAt: sale.startsAt.toISOString(),
+          endsAt: sale.endsAt.toISOString(),
+          status: sale.status === 'active' ? 'active' : 'scheduled',
+        }
+      : null,
+    serverNow: now.toISOString(),
+  };
+}
+
+export async function getRules(): Promise<PromotionRulesResponse['data']> {
+  const [tiers, gift, methods] = await Promise.all([
+    repo.activeTiers(db),
+    repo.activeGift(db),
+    listActiveShippingMethods(db),
+  ]);
+  return {
+    tiers: tiers.map((t) => ({ minCents: t.minCents, percent: t.percent })),
+    gift: gift
+      ? {
+          thresholdCents: gift.thresholdCents,
+          productName: gift.productName,
+          variantName: gift.variantName,
+        }
+      : null,
+    freeDeliveryThresholdCents: estimateRule(methods)?.freeOverCents ?? null,
+  };
 }

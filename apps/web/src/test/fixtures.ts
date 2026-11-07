@@ -52,6 +52,7 @@ export function makeCard(overrides: Partial<ProductCard> = {}): ProductCard {
     badges: [],
     unitPrice: null,
     swatches: [],
+    sale: null,
     ...overrides,
   };
 }
@@ -125,6 +126,7 @@ export function makeVariant(overrides: Partial<Variant> = {}): Variant {
     unitPrice: null,
     isTrial: false,
     swatchHex: null,
+    sale: null,
     ...overrides,
   };
 }

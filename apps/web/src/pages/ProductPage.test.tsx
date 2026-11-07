@@ -144,3 +144,48 @@ describe('product page: unit price, badges and trial size', () => {
     expect(await screen.findByText('You have already had this trial size')).toBeInTheDocument();
   });
 });
+
+describe('product page: flash sale (Omnibus)', () => {
+  const serveSale = (referenceCents: number | null) =>
+    server.use(
+      http.get(`${API}/products/rope-tug`, () =>
+        HttpResponse.json({
+          data: makeProduct({
+            variants: [
+              makeVariant({
+                id: 'v1',
+                sku: 'S',
+                isDefault: true,
+                options: { color: 'red', size: 'S' },
+                priceCents: 1099,
+                sale: {
+                  priceCents: 799,
+                  referenceCents,
+                  basePriceCents: 1099,
+                  endsAt: '2026-11-08T10:00:00.000Z',
+                },
+              }),
+            ],
+          }),
+        }),
+      ),
+    );
+
+  it('shows the sale price with the lowest price of the last 30 days', async () => {
+    serveSale(999);
+    renderApp('/products/rope-tug');
+    expect(await screen.findByTestId('sale-price')).toHaveTextContent('€7.99');
+    expect(screen.getByTestId('sale-strike')).toHaveTextContent('Was €9.99');
+    expect(screen.getByTestId('sale-omnibus')).toHaveTextContent(
+      'Lowest price in the last 30 days: €9.99',
+    );
+  });
+
+  it('shows no strike-through without a reference price', async () => {
+    serveSale(null);
+    renderApp('/products/rope-tug');
+    expect(await screen.findByTestId('sale-price')).toHaveTextContent('€7.99');
+    expect(screen.queryByTestId('sale-strike')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('sale-omnibus')).not.toBeInTheDocument();
+  });
+});

@@ -21,6 +21,7 @@ import { uniqueViolation } from '../../../lib/db-errors.ts';
 import { conflict, notFound, validation } from '../../../lib/errors.ts';
 import { slugify } from '../../../lib/slug.ts';
 import * as checkoutRepo from '../../checkout/repo.ts';
+import { insertPriceHistory } from '../../promotions/repo.ts';
 
 import * as repo from './repo.ts';
 
@@ -199,6 +200,10 @@ async function createVariant(
     isTrial: input.isTrial ?? false,
     swatchHex: input.swatchHex ?? null,
   });
+  // The first row of the variant's Omnibus price history (append-only).
+  await insertPriceHistory(tx, [
+    { variantId: variant.id, priceCents: variant.priceCents, kind: 'base' },
+  ]);
   await repo.insertInventory(tx, {
     variantId: variant.id,
     quantity: input.stock,
@@ -407,6 +412,10 @@ export async function updateVariant(
       }
 
       const { lowStockThreshold, ...fields } = input;
+      // A price change is a new history row (never an edit of an old one), in this transaction.
+      if (fields.priceCents !== undefined && fields.priceCents !== variant.priceCents) {
+        await insertPriceHistory(tx, [{ variantId, priceCents: fields.priceCents, kind: 'base' }]);
+      }
       await repo.updateVariant(tx, variantId, {
         ...(fields.sku !== undefined && { sku: fields.sku }),
         ...(fields.name !== undefined && { name: fields.name }),

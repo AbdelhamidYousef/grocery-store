@@ -196,6 +196,15 @@ export async function runSeed(now = new Date()) {
       .returning({ id: productVariants.id, sku: productVariants.sku });
     const variantId = new Map(variantRows.map((r) => [r.sku, r.id]));
 
+    // ---- price history (Omnibus): every variant without history gets one base row, backdated 60
+    // days so a sale seeded or created today has a reference window to look at. Idempotent. ----
+    await tx.execute(sql`
+      INSERT INTO price_history (variant_id, price_cents, kind, valid_from)
+      SELECT v.id, v.price_cents, 'base', now() - interval '60 days'
+      FROM product_variants v
+      WHERE NOT EXISTS (SELECT 1 FROM price_history h WHERE h.variant_id = v.id)
+    `);
+
     // ---- inventory: insert only. A re-seed must not reset stock that has since been sold. ----
     const stock = stockLevels(variantValues.length);
     await tx

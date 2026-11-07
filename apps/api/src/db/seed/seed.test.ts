@@ -45,6 +45,27 @@ describe('seed', () => {
     });
   });
 
+  it('gives every variant exactly one base price-history row, backdated, even after a re-seed', async () => {
+    await runSeed();
+    await runSeed();
+    const [row] = await db.execute<{
+      variants: number;
+      without: number;
+      rows: number;
+      recent: number;
+    }>(
+      sql`select
+        (select count(*)::int from product_variants) as variants,
+        (select count(*)::int from product_variants v
+          where not exists (select 1 from price_history h where h.variant_id = v.id)) as without,
+        (select count(*)::int from price_history where kind = 'base') as rows,
+        (select count(*)::int from price_history where valid_from > now() - interval '59 days') as recent`,
+    );
+    expect(row?.without).toBe(0);
+    expect(row?.rows).toBe(row?.variants);
+    expect(row?.recent).toBe(0);
+  });
+
   it('gives every product a brand and links collections and tags', async () => {
     await runSeed();
     const rows = await db.execute<{ unbranded: number; eco: number; empty: number }>(sql`

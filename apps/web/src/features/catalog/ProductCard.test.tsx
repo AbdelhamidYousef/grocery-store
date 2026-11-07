@@ -114,3 +114,35 @@ describe('ProductCard: colour swatches', () => {
     expect(screen.getByRole('img')).toHaveAttribute('src', before);
   });
 });
+
+describe('ProductCard: flash sale (Omnibus)', () => {
+  const offer = (referenceCents: number | null) => ({
+    priceCents: 799,
+    referenceCents,
+    basePriceCents: 1099,
+    endsAt: '2026-11-08T10:00:00.000Z',
+  });
+
+  it('strikes through the lowest price of the last 30 days, never the regular price', () => {
+    renderCard(makeCard({ sale: offer(999) }));
+    expect(screen.getByTestId('sale-price')).toHaveTextContent('€7.99');
+    expect(screen.getByTestId('sale-strike')).toHaveTextContent('Was €9.99');
+    expect(screen.getByTestId('sale-strike')).not.toHaveTextContent('€10.99');
+    expect(screen.getByTestId('sale-omnibus')).toHaveTextContent(
+      'Lowest price in the last 30 days: €9.99',
+    );
+  });
+
+  it('shows no strike-through when the reference is not above the sale price', () => {
+    renderCard(makeCard({ sale: offer(799) }));
+    expect(screen.queryByTestId('sale-strike')).not.toBeInTheDocument();
+    expect(screen.getByTestId('sale-omnibus')).toHaveTextContent('€7.99');
+  });
+
+  it('shows no strike-through and no Omnibus line when there is no reference', () => {
+    renderCard(makeCard({ sale: offer(null) }));
+    expect(screen.getByTestId('sale-price')).toHaveTextContent('€7.99');
+    expect(screen.queryByTestId('sale-strike')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('sale-omnibus')).not.toBeInTheDocument();
+  });
+});
