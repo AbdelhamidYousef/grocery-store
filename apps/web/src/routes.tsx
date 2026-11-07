@@ -10,6 +10,8 @@ import CartPage from './pages/CartPage';
 import CategoryPage from './pages/CategoryPage';
 import CollectionPage from './pages/CollectionPage';
 import ContactPage from './pages/ContactPage';
+import GiftFinderPage from './pages/GiftFinderPage';
+import GiftResultPage from './pages/GiftResultPage';
 import GuidePage from './pages/GuidePage';
 import GuidesPage from './pages/GuidesPage';
 import HelpPage from './pages/HelpPage';
@@ -50,6 +52,8 @@ export const routes: RouteObject[] = [
           { path: 'brands/:slug', element: <BrandPage /> },
           { path: 'collections/:slug', element: <CollectionPage /> },
           { path: 'search', element: <SearchPage /> },
+          { path: 'gift-finder', element: <GiftFinderPage /> },
+          { path: 'gift-finder/result', element: <GiftResultPage /> },
           { path: 'contact', element: <ContactPage /> },
           { path: 'withdraw', element: <WithdrawPage /> },
           // Static pages: one component, one route per Markdown file.

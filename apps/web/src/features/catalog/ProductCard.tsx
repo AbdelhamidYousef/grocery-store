@@ -1,5 +1,5 @@
 import type { ProductCard as ProductCardData } from '@store/shared';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Badge } from '../../components/ui/Badge';
@@ -18,6 +18,8 @@ interface ProductCardProps {
   priority?: boolean;
   /** Width the card occupies, for the browser's srcset choice. */
   sizes?: string;
+  /** Extra content under the card (the gift finder's "why this gift" line). */
+  footer?: ReactNode;
 }
 
 // Past this many colours the rest collapse into "+N colours".
@@ -33,6 +35,7 @@ export function ProductCard({
   product,
   priority = false,
   sizes = '(min-width: 1280px) 25vw, (min-width: 640px) 33vw, 50vw',
+  footer,
 }: ProductCardProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [picked, setPicked] = useState<string | null>(null);
@@ -160,6 +163,7 @@ export function ProductCard({
           </div>
         )}
       </div>
+      {footer}
     </li>
   );
 }

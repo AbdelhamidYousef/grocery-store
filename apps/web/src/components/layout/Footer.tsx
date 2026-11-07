@@ -34,6 +34,7 @@ const GROUPS: FooterGroup[] = [
     links: [
       ...PETS.map((pet) => ({ label: pet.name, to: `/c/${pet.slug}` })),
       { label: 'Brands', to: '/brands' },
+      { label: 'Gift finder', to: '/gift-finder' },
     ],
   },
   {
