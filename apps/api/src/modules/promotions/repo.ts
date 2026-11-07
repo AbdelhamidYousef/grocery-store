@@ -1,4 +1,4 @@
-import { and, asc, count, eq, inArray, isNull } from 'drizzle-orm';
+import { and, asc, count, eq, inArray, isNull, ne } from 'drizzle-orm';
 
 import { db, type Tx } from '../../db/client.ts';
 import {
@@ -7,7 +7,9 @@ import {
   discountRedemptions,
   giftRules,
   inventory,
+  orderPromotions,
   orders,
+  payments,
   productImages,
   productVariants,
   products,
@@ -49,6 +51,8 @@ export async function activeGift(run: Run) {
       productId: products.id,
       productName: products.name,
       variantName: productVariants.name,
+      sku: productVariants.sku,
+      priceCents: productVariants.priceCents,
       variantStatus: productVariants.status,
       productStatus: products.status,
       stock: inventory.quantity,
@@ -75,12 +79,19 @@ export async function activeGift(run: Run) {
 }
 
 // Live (not released) redemptions of a code, in total and for one customer.
+// `exceptOrderId`: a pending order being re-placed (a second "pay" click) must not count its own
+// earlier redemption against the cap.
 export async function countRedemptions(
   run: Run,
   codeId: string,
   customerKey: string,
+  exceptOrderId?: string,
 ): Promise<{ total: number; mine: number }> {
-  const live = and(eq(discountRedemptions.codeId, codeId), isNull(discountRedemptions.releasedAt));
+  const live = and(
+    eq(discountRedemptions.codeId, codeId),
+    isNull(discountRedemptions.releasedAt),
+    exceptOrderId ? ne(discountRedemptions.orderId, exceptOrderId) : undefined,
+  );
   const [total] = await run.select({ n: count() }).from(discountRedemptions).where(live);
   const [mine] = await run
     .select({ n: count() })
@@ -100,4 +111,59 @@ export async function countPlacedOrders(run: Run, userId: string | null, email: 
     .from(orders)
     .where(and(who, inArray(orders.status, [...PLACED])));
   return row?.n ?? 0;
+}
+
+export async function activeGiftVariantId(run: Run): Promise<string | undefined> {
+  const [row] = await run
+    .select({ variantId: giftRules.variantId })
+    .from(giftRules)
+    .where(eq(giftRules.active, true))
+    .limit(1);
+  return row?.variantId;
+}
+
+// ---------- order snapshot ----------
+
+export async function replaceOrderPromotions(
+  tx: Tx,
+  orderId: string,
+  rows: Omit<typeof orderPromotions.$inferInsert, 'orderId'>[],
+): Promise<void> {
+  await tx.delete(orderPromotions).where(eq(orderPromotions.orderId, orderId));
+  if (rows.length > 0) {
+    await tx.insert(orderPromotions).values(rows.map((r) => ({ ...r, orderId })));
+  }
+}
+
+export async function listOrderPromotions(run: Run, orderId: string) {
+  return run
+    .select()
+    .from(orderPromotions)
+    .where(eq(orderPromotions.orderId, orderId))
+    .orderBy(asc(orderPromotions.createdAt), asc(orderPromotions.id));
+}
+
+// The order's redemption, rewritten with the order: none if the code no longer applies.
+export async function replaceRedemption(
+  tx: Tx,
+  orderId: string,
+  redemption: { codeId: string; customerKey: string } | null,
+): Promise<void> {
+  await tx.delete(discountRedemptions).where(eq(discountRedemptions.orderId, orderId));
+  if (redemption) await tx.insert(discountRedemptions).values({ ...redemption, orderId });
+}
+
+export async function releaseRedemptions(tx: Tx, orderId: string): Promise<void> {
+  await tx
+    .update(discountRedemptions)
+    .set({ releasedAt: new Date() })
+    .where(and(eq(discountRedemptions.orderId, orderId), isNull(discountRedemptions.releasedAt)));
+}
+
+export async function wasPaid(run: Run, orderId: string): Promise<boolean> {
+  const [row] = await run
+    .select({ n: count() })
+    .from(payments)
+    .where(and(eq(payments.orderId, orderId), eq(payments.status, 'succeeded')));
+  return (row?.n ?? 0) > 0;
 }

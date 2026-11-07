@@ -8,6 +8,7 @@ import {
 
 import type { Tx } from '../../db/client.ts';
 import { validation } from '../../lib/errors.ts';
+import { onOrderCancelled, type OrderCancelledEvent } from '../orders/events.ts';
 import { customerKey } from '../trials/service.ts';
 
 import * as repo from './repo.ts';
@@ -35,6 +36,10 @@ export interface PricingRequest {
   // merchandise total after discounts.
   shipping: { methodCents: number; freeOverCents: number | null };
   now?: Date;
+  // Checkout only: lock the code row before counting its uses (the cap race), and leave out the
+  // redemption of the pending order being re-placed.
+  lockCode?: boolean;
+  exceptOrderId?: string;
 }
 
 // Codes the service refuses before the engine sees them (the engine only knows the cart).
@@ -44,6 +49,8 @@ export interface PricingResult {
   priced: PricedCart;
   // The code row the engine was given, if any (checkout needs its id for the redemption row).
   code: repo.CodeRow | null;
+  // The active gift rule as loaded (checkout snapshots the gift line from it).
+  gift: Awaited<ReturnType<typeof repo.activeGift>>;
   pricing: CartPricing;
 }
 
@@ -55,9 +62,10 @@ async function usageProblem(
   run: Tx,
   code: repo.CodeRow,
   key: string | null,
+  exceptOrderId: string | undefined,
 ): Promise<ServiceNotice | null> {
   if (code.maxUses === null && (code.perCustomerMax === null || key === null)) return null;
-  const used = await repo.countRedemptions(run, code.id, key ?? '');
+  const used = await repo.countRedemptions(run, code.id, key ?? '', exceptOrderId);
   if (code.maxUses !== null && used.total >= code.maxUses) return 'code_used_up';
   if (key !== null && code.perCustomerMax !== null && used.mine >= code.perCustomerMax) {
     return 'code_already_used';
@@ -93,7 +101,8 @@ export async function price(tx: Tx, req: PricingRequest): Promise<PricingResult>
     if (!codeRow || !codeRow.active || codeRow.archivedAt !== null) {
       serviceNotices.push({ key: 'code_unknown' });
     } else {
-      const problem = await usageProblem(tx, codeRow, key);
+      if (req.lockCode) await repo.lockCode(tx, codeRow.id);
+      const problem = await usageProblem(tx, codeRow, key, req.exceptOrderId);
       if (problem) serviceNotices.push({ key: problem, refId: codeRow.id });
       else code = codeRow;
     }
@@ -133,6 +142,7 @@ export async function price(tx: Tx, req: PricingRequest): Promise<PricingResult>
   return {
     priced,
     code,
+    gift,
     pricing: {
       code: req.code ? (codeRow?.code ?? req.code) : null,
       lines: priced.lines.map((l) => ({
@@ -200,3 +210,16 @@ export const codeError = (message: string) =>
   validation({ formErrors: [], fieldErrors: { code: [message] } }, message);
 
 export const findCode = (tx: Tx, code: string) => repo.findCode(tx, code);
+
+// ---------- order event subscribers ----------
+
+// An order that never got paid gives its code use back. A paid order that is cancelled later
+// keeps it: the code was consumed (phase 18 plan, step 18.4).
+async function releaseOnCancelled(tx: Tx, { orderId }: OrderCancelledEvent): Promise<void> {
+  if (!(await repo.wasPaid(tx, orderId))) await repo.releaseRedemptions(tx, orderId);
+}
+
+// Called once at start-up (modules/index.ts); safe to call again (the registry is a set).
+export function registerPromotionSubscribers(): void {
+  onOrderCancelled(releaseOnCancelled);
+}

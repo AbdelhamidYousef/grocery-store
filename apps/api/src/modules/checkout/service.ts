@@ -16,11 +16,13 @@ import type { AuthUser } from '../auth/sessions.ts';
 import * as cartRepo from '../cart/repo.ts';
 import { getCart, loadCart } from '../cart/service.ts';
 import { toOrderDto, totalsOf } from '../orders/view.ts';
+import * as promotionsRepo from '../promotions/repo.ts';
+import * as promotions from '../promotions/service.ts';
 import { assertTrialAllowed, customerKey } from '../trials/service.ts';
 
 import { cancelPendingOrder, releaseReservations } from './orders.ts';
 import * as repo from './repo.ts';
-import { quote, shippingPriceCents } from './shipping.ts';
+import { priceBeforeThreshold, quote } from './shipping.ts';
 
 // Prices every active method for the caller's current cart. Weight and subtotal come from the
 // re-priced cart (never from the client), and sold-out lines are already excluded from both.
@@ -29,7 +31,8 @@ export async function getShippingQuotes(cartId: string, country: string): Promis
   return quote(methods, {
     country,
     weightGrams: cart.weightGrams,
-    subtotalCents: cart.subtotalCents,
+    // The free-delivery threshold counts the merchandise after discounts, like the engine does.
+    subtotalCents: cart.pricing.merchandiseCents,
     currency: cart.currency,
   });
 }
@@ -82,16 +85,21 @@ async function reserveAndSave(
   user: AuthUser | null,
 ): Promise<{ order: repo.OrderRow; payment: repo.PaymentRow }> {
   return db.transaction(async (tx) => {
-    if (!(await cartRepo.lockCart(tx, cartId))) throw notFound('Cart not found');
+    const cartRow = await cartRepo.lockCart(tx, cartId);
+    if (!cartRow) throw notFound('Cart not found');
     const pending = await repo.findPendingOrderByCart(tx, cartId);
     const pendingItems = pending ? await repo.listOrderItems(tx, pending.id) : [];
 
     const lines = await cartRepo.listItems(tx, cartId);
     if (lines.length === 0) throw fieldError('cart', 'Your cart is empty');
 
+    // The free gift's stock row joins the same ordered lock set, so gift and lines are locked in
+    // one variant-id order (no deadlock with another checkout holding the gift in its cart).
+    const giftVariantId = await promotionsRepo.activeGiftVariantId(tx);
     const variantIds = [
       ...lines.map((l) => l.variantId),
       ...pendingItems.flatMap((i) => (i.variantId === null ? [] : [i.variantId])),
+      ...(giftVariantId ? [giftVariantId] : []),
     ];
     await repo.lockInventory(tx, [...new Set(variantIds)]);
 
@@ -124,14 +132,50 @@ async function reserveAndSave(
 
     const method = await repo.findActiveShippingMethod(input.shippingMethodCode, tx);
     if (!method) throw fieldError('shippingMethodCode', 'Unknown shipping method');
-    const subtotalCents = cart.subtotalCents;
-    const shippingCents = shippingPriceCents(method, {
-      weightGrams: cart.weightGrams,
-      subtotalCents,
+
+    // The engine decides every amount, now with the chosen method and the customer's email (a
+    // guest's per-customer and first-order history is only known from here on). The code row is
+    // locked before its uses are counted, so two checkouts racing for a capped code queue up.
+    const email = user?.email ?? input.email;
+    const key = customerKey(user?.id ?? null, email);
+    const result = await promotions.price(tx, {
+      currency: cart.currency,
+      lines: cart.items
+        .filter((i) => i.available > 0)
+        .map((i) => ({
+          variantId: i.variantId,
+          productId: i.productId,
+          quantity: i.quantity,
+          unitPriceCents: i.unitPriceCents,
+          isTrial:
+            cart.pricing.lines.find((l) => l.variantId === i.variantId)?.priceSource === 'fixed',
+        })),
+      userId: user?.id ?? null,
+      email,
+      code: cartRow.discountCode,
+      shipping: {
+        methodCents: priceBeforeThreshold(method, cart.weightGrams),
+        freeOverCents: method.freeOverCents,
+      },
+      lockCode: true,
+      exceptOrderId: pending?.id,
     });
+    if (cartRow.discountCode) {
+      const refusal = promotions.codeRefusal(
+        result.pricing,
+        result.code ?? undefined,
+        cartRow.discountCode,
+        cart.currency,
+      );
+      if (refusal) throw promotions.codeError(refusal);
+    }
+    const { priced } = result;
+    const subtotalCents = priced.subtotalCents;
+    const discountCents = priced.discountCents;
+    const shippingCents = priced.shippingCents;
     // Tax is out of scope for this project; the column stays so orders look like real ones.
     const taxCents = 0;
-    const totalCents = sumCents([subtotalCents, shippingCents, taxCents]);
+    const totalCents = sumCents([priced.totalCents, taxCents]);
 
     // Variant-id order again for the writes (locks are already held, but one order everywhere is
     // easier to reason about).
@@ -144,12 +188,20 @@ async function reserveAndSave(
       }
     }
 
+    // The gift last: if its final unit went to one of this cart's own lines, the order simply has
+    // no gift (it is free, so no amount changes).
+    const gift =
+      priced.gift && result.gift && (await repo.reserveStock(tx, priced.gift.variantId, 1))
+        ? result.gift
+        : null;
+
     const values = {
       userId: user?.id ?? null,
       // A signed-in user's order carries their account email, not whatever the form held.
-      email: user?.email ?? input.email,
+      email,
       currency: cart.currency,
       subtotalCents,
+      discountCents,
       shippingCents,
       taxCents,
       totalCents,
@@ -172,19 +224,65 @@ async function reserveAndSave(
       });
     }
 
-    await repo.replaceOrderItems(
+    const pricedLine = new Map(priced.lines.map((l) => [l.variantId, l]));
+    await repo.replaceOrderItems(tx, order.id, [
+      ...cart.items.map((i) => {
+        const line = pricedLine.get(i.variantId);
+        const unitPriceCents = line?.unitCents ?? i.unitPriceCents;
+        return {
+          variantId: i.variantId,
+          productName: i.productName,
+          variantName: i.variantName,
+          sku: i.sku,
+          imageUrl: i.imageUrl,
+          unitPriceCents,
+          quantity: i.quantity,
+          lineTotalCents: unitPriceCents * i.quantity,
+          discountCents: line?.lineDiscountCents ?? 0,
+        };
+      }),
+      ...(gift
+        ? [
+            {
+              variantId: gift.variantId,
+              productName: gift.productName,
+              variantName: gift.variantName,
+              sku: gift.sku,
+              imageUrl: gift.imageUrl,
+              unitPriceCents: 0,
+              quantity: 1,
+              lineTotalCents: 0,
+            },
+          ]
+        : []),
+    ]);
+
+    // What the engine decided, as values (editing a code later must not rewrite this order), and
+    // the code's redemption, reserved with the order and released if it is never paid.
+    await promotionsRepo.replaceOrderPromotions(tx, order.id, [
+      ...priced.adjustments.map((a) => ({
+        type: a.type,
+        refId: a.refId,
+        label: a.label,
+        cents: a.cents,
+      })),
+      ...(gift
+        ? [
+            {
+              type: 'gift' as const,
+              refId: gift.id,
+              label: `Free gift: ${gift.productName}`,
+              cents: gift.priceCents,
+            },
+          ]
+        : []),
+    ]);
+    const codeUsed =
+      result.code !== null && priced.adjustments.some((a) => a.refId === result.code?.id);
+    await promotionsRepo.replaceRedemption(
       tx,
       order.id,
-      cart.items.map((i) => ({
-        variantId: i.variantId,
-        productName: i.productName,
-        variantName: i.variantName,
-        sku: i.sku,
-        imageUrl: i.imageUrl,
-        unitPriceCents: i.unitPriceCents,
-        quantity: i.quantity,
-        lineTotalCents: i.lineTotalCents,
-      })),
+      codeUsed && result.code ? { codeId: result.code.id, customerKey: key } : null,
     );
 
     // The payments row exists before Stripe is called (its intent id is filled in afterwards), so

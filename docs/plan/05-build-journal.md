@@ -618,3 +618,12 @@ Learn: a Tailwind display class (`grid`, `flex`) overrides the browser's `hidden
 - `POST /cart/code` stores the code on the cart, re-prices, and refuses with one kind sentence ("Add EUR 15.00 more to use this code", "This code expired on 12 Oct", "You've already used this code") if the code would do nothing. A code the bulk tier beats is kept, with a `code_not_stackable` notice, because adding more items can still change which one wins.
 - The cart stores the code as text, not a foreign key: it is looked up again on every pricing, so an archived or edited code is never trusted from the moment it was applied (and it avoids a carts → promotions → orders → carts import cycle).
 - A guest's per-customer and first-order history is unknown until checkout asks for the email, so the cart accepts the code and checkout repeats the check with the email.
+
+### Step 18.5 — checkout priced by the engine
+- `placeOrder` now asks the engine for every amount, with the method actually chosen and the customer's email, inside the same transaction that reserves stock. Subtotal, discount, shipping and total on the order are the engine's; the PaymentIntent amount is the order total, as before.
+- Each order line stores its share of the order discount (`discount_cents`, largest-remainder split): the column refunds will read. `order_promotions` copies what was applied as values, so editing PAWS10 tomorrow does not change today's order.
+- The cap race: the code row is locked `FOR UPDATE` before its live redemptions are counted, and the redemption is written in the same transaction. Two checkouts for the last use queue on that lock; the second one counts the first one's row and is refused. Lock order is cart → inventory (variant-id order, the gift's row included) → code, the same in every checkout, so no deadlock.
+- Re-placing the same pending order (a second "pay" click) leaves its own earlier redemption out of the count, so a one-use code does not refuse its own retry.
+- The free gift is a zero-priced order line with one unit reserved. It is reserved last: if this cart's own lines took the final unit, the order just has no gift (it costs nothing, so no amount changes).
+- A cancelled order that was never paid releases its redemption (an order-events subscriber, in the cancel transaction); a paid-then-cancelled order keeps it, because the code was consumed.
+- Shipping quotes now use the merchandise after discounts for the free-delivery threshold, like the engine, so the quote and the order agree.

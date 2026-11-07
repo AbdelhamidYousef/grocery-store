@@ -18,6 +18,7 @@ import { helpRouter } from './help/router.ts';
 import { homeRouter } from './home/router.ts';
 import type { Outbox } from './mail/outbox.ts';
 import { merchandisingRouter } from './merchandising/router.ts';
+import { registerPromotionSubscribers } from './promotions/service.ts';
 import { safetyRouter } from './safety/router.ts';
 import { createTrackingRouter } from './tracking/router.ts';
 import { registerTrialSubscribers } from './trials/service.ts';
@@ -39,6 +40,7 @@ export function createModulesRouter(opts: {
   const router = Router();
   // Features that react to an order changing register here, once (see orders/events.ts).
   registerTrialSubscribers();
+  registerPromotionSubscribers();
   router.use(catalogRouter);
   router.use(merchandisingRouter);
   router.use(guidesRouter);
