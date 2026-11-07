@@ -57,6 +57,8 @@ export const keys = {
   cart: ['cart'] as const,
   // The API's own health check, polled by the "server unreachable" banner.
   health: ['health'] as const,
+  // The site-wide flash-sale banner (active or next scheduled sale, plus the server's clock).
+  saleBanner: ['promotions', 'banner'] as const,
   // True once a request came back 401 while the shopper looked signed in (see createQueryClient).
   sessionExpired: ['session-expired'] as const,
   // Warnings the cart reported, kept until dismissed (see features/cart/queries.ts).
@@ -94,6 +96,8 @@ export const keys = {
       codes: ['admin', 'promotions', 'codes'] as const,
       tiers: ['admin', 'promotions', 'tiers'] as const,
       gift: ['admin', 'promotions', 'gift'] as const,
+      flashSales: ['admin', 'promotions', 'flash-sales'] as const,
+      variant: (sku: string) => ['admin', 'promotions', 'variant', sku] as const,
     },
     // Content management (guides, help, testimonials, safety notices, withdrawals, messages).
     content: {

@@ -28,6 +28,10 @@ export const server = setupServer(
       { status: 401 },
     ),
   ),
+  // No sale banner unless a test says so.
+  http.get(`${API}/promotions/banner`, () =>
+    HttpResponse.json({ data: { sale: null, serverNow: new Date().toISOString() } }),
+  ),
   // An empty cart unless a test says otherwise.
   http.get(`${API}/cart`, () => HttpResponse.json({ data: makeCart() })),
   // Standard shipping is free from 49 EUR, like the seeded method.

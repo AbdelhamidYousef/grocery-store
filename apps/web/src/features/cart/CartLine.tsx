@@ -1,8 +1,9 @@
 import { formatMoney } from '@store/shared';
 import { Link } from 'react-router-dom';
 
-import type { CartWarning, WebCartItem } from '../../api/cart';
+import type { CartWarning, WebCart, WebCartItem } from '../../api/cart';
 import { Badge } from '../../components/ui/Badge';
+import { SalePrice } from '../../components/ui/SalePrice';
 import { cn } from '../../lib/cn';
 import { image600 } from '../../lib/images';
 import { TEST_IDS } from '../../lib/test-ids';
@@ -36,6 +37,8 @@ export function noticeText(w: CartWarning, currency: string): string {
 
 interface CartLineProps {
   item: WebCartItem;
+  /** The engine's line for this item (the price it really pays). */
+  priced?: WebCart['pricing']['lines'][number] | undefined;
   currency: string;
   compact?: boolean;
   notices: CartWarning[];
@@ -48,6 +51,7 @@ interface CartLineProps {
 
 export function CartLine({
   item,
+  priced,
   currency,
   compact = false,
   notices,
@@ -57,6 +61,14 @@ export function CartLine({
   onNavigate,
 }: CartLineProps) {
   const soldOut = item.available === 0;
+  // The price a line really pays is the engine's (sale, member or base), not the catalog price on
+  // the item; a line the engine did not price (sold out) falls back to the item's own figures.
+  const engine = soldOut ? undefined : priced;
+  const unitCents = engine?.unitCents ?? item.unitPriceCents;
+  const lineTotal = engine ? engine.unitCents * item.quantity : item.lineTotalCents;
+  // A flash-sale line also shows the EU Omnibus reference next to its price.
+  const onSale = engine?.priceSource === 'sale';
+  const isMember = engine?.priceSource === 'member';
   const imageSize = compact ? 'h-16 w-16' : 'h-20 w-20 sm:h-24 sm:w-24';
   return (
     <li
@@ -95,7 +107,25 @@ export function CartLine({
             {item.productName}
           </Link>
           <p className="break-words text-sm text-muted">{item.variantName}</p>
-          <p className="text-sm text-muted">{formatMoney(item.unitPriceCents, currency)} each</p>
+          {onSale ? (
+            <p className="text-sm text-muted" data-testid="cart-line-sale">
+              <SalePrice
+                sale={{ priceCents: engine.unitCents, referenceCents: engine.referenceCents }}
+                currency={currency}
+                className="[&_[data-testid=sale-price]]:text-base"
+              />
+              <span className="sr-only">each</span>
+            </p>
+          ) : (
+            <p className="text-sm text-muted">
+              {formatMoney(unitCents, currency)} each
+              {isMember && (
+                <Badge tone="primary" className="ml-2" data-testid="cart-line-member">
+                  Member price
+                </Badge>
+              )}
+            </p>
+          )}
         </div>
 
         {soldOut && (
@@ -157,7 +187,7 @@ export function CartLine({
               )}
               data-testid="cart-line-total"
             >
-              {formatMoney(item.lineTotalCents, currency)}
+              {formatMoney(lineTotal, currency)}
             </span>
           </div>
         </div>

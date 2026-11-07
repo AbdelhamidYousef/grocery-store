@@ -6,9 +6,10 @@ const TABS = [
   { to: '/admin/promotions/codes', label: 'Codes' },
   { to: '/admin/promotions/tiers', label: 'Bulk tiers' },
   { to: '/admin/promotions/gift', label: 'Gift' },
+  { to: '/admin/promotions/flash-sales', label: 'Flash sales' },
 ] as const;
 
-// One nav item in the back office; the three rule screens are tabs inside it. The tab row wraps
+// One nav item in the back office; the four rule screens are tabs inside it. The tab row wraps
 // on a phone instead of scrolling, so it can never widen the page.
 export function PromotionsLayout() {
   return (

@@ -181,6 +181,8 @@ export async function price(tx: Tx, req: PricingRequest): Promise<PricingResult>
         unitCents: l.unitCents,
         priceSource: l.priceSource,
         lineDiscountCents: l.lineDiscountCents,
+        referenceCents:
+          l.priceSource === 'sale' ? (sales.get(l.variantId)?.referenceCents ?? null) : null,
       })),
       adjustments: priced.adjustments,
       discountCents: priced.discountCents,

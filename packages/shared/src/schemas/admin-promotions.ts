@@ -128,3 +128,80 @@ export const AdminGiftRuleSchema = z.object({
 });
 export type AdminGiftRule = z.infer<typeof AdminGiftRuleSchema>;
 export const AdminGiftRuleResponseSchema = DataSchema(AdminGiftRuleSchema.nullable());
+
+// ----- flash sales (step 18.8b) -----
+export const AdminFlashSaleStatusSchema = z.enum(['scheduled', 'active', 'ended']);
+export type AdminFlashSaleStatus = z.infer<typeof AdminFlashSaleStatusSchema>;
+
+export const AdminFlashSaleItemInputSchema = z.object({
+  // A SKU or a variant id.
+  variant: z.string().trim().min(1, 'Enter the SKU').max(80),
+  salePriceCents: Cents.positive('The sale price must be above 0'),
+});
+export type AdminFlashSaleItemInput = z.input<typeof AdminFlashSaleItemInputSchema>;
+
+export const AdminFlashSaleInputSchema = z
+  .object({
+    name: z.string().trim().min(1, 'Give the sale a name').max(80, 'At most 80 characters'),
+    startsAt: Iso,
+    endsAt: Iso,
+    items: z
+      .array(AdminFlashSaleItemInputSchema)
+      .min(1, 'Add at least one item')
+      .max(100, 'A sale can have at most 100 items'),
+  })
+  .superRefine((v, ctx) => {
+    if (Date.parse(v.endsAt) <= Date.parse(v.startsAt)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['endsAt'],
+        message: 'The end must be after the start',
+      });
+    }
+  });
+export type AdminFlashSaleInput = z.input<typeof AdminFlashSaleInputSchema>;
+export type AdminFlashSaleInputParsed = z.output<typeof AdminFlashSaleInputSchema>;
+
+// An active sale may only get an earlier end (ending it now is POST .../end).
+export const AdminFlashSaleEndInputSchema = z.object({ endsAt: Iso });
+export type AdminFlashSaleEndInput = z.input<typeof AdminFlashSaleEndInputSchema>;
+
+export const AdminFlashSaleItemSchema = z.object({
+  id: z.string(),
+  variantId: z.string(),
+  sku: z.string(),
+  productName: z.string(),
+  variantName: z.string(),
+  // The variant's regular price now (the % off is measured against it).
+  regularCents: Cents,
+  salePriceCents: Cents,
+  // Omnibus reference fixed at activation; null before that or when there was no price history.
+  referenceCents: Cents.nullable(),
+});
+export type AdminFlashSaleItem = z.infer<typeof AdminFlashSaleItemSchema>;
+
+export const AdminFlashSaleSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  startsAt: Iso,
+  endsAt: Iso,
+  status: AdminFlashSaleStatusSchema,
+  itemCount: Cents,
+  items: z.array(AdminFlashSaleItemSchema),
+  createdAt: Iso,
+});
+export type AdminFlashSale = z.infer<typeof AdminFlashSaleSchema>;
+export const AdminFlashSaleListResponseSchema = DataSchema(z.array(AdminFlashSaleSchema));
+export const AdminFlashSaleResponseSchema = DataSchema(AdminFlashSaleSchema);
+
+// The variant behind a SKU, for the form's "regular price" and % off before saving.
+export const AdminVariantLookupResponseSchema = DataSchema(
+  z.object({
+    variantId: z.string(),
+    sku: z.string(),
+    productName: z.string(),
+    variantName: z.string(),
+    regularCents: Cents,
+  }),
+);
+export type AdminVariantLookup = z.infer<typeof AdminVariantLookupResponseSchema>['data'];

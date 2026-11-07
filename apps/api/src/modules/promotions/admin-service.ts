@@ -1,16 +1,21 @@
 import {
   ErrorCode,
+  formatMoney,
   type AdminBulkTier,
   type AdminBulkTierInput,
   type AdminDiscountCode,
   type AdminDiscountCodeParsed,
+  type AdminFlashSale,
+  type AdminFlashSaleInputParsed,
   type AdminGiftRule,
 } from '@store/shared';
 
+import { db } from '../../db/client.ts';
 import { uniqueViolation } from '../../lib/db-errors.ts';
 import { conflict, notFound, validation } from '../../lib/errors.ts';
 
 import * as repo from './admin-repo.ts';
+import { syncFlashSales } from './service.ts';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -142,4 +147,166 @@ export async function setGiftRule(input: {
 
 export async function clearGiftRule(): Promise<void> {
   if ((await repo.clearGiftRule()) === 0) throw notFound('There is no active gift rule');
+}
+
+// ----- flash sales (step 18.8b) -----
+// Editing rules: a scheduled sale is edited freely; once it is active its prices and items are
+// frozen (shoppers are paying them, and its Omnibus references are fixed), so the only changes are
+// an earlier end or ending it now; an ended sale is history. Status is brought up to date first
+// (syncFlashSales) so "scheduled" really means it has not started.
+
+type SaleRowShape = NonNullable<Awaited<ReturnType<typeof repo.getSale>>>;
+
+const toSale = (s: SaleRowShape): AdminFlashSale => ({
+  id: s.id,
+  name: s.name,
+  startsAt: s.startsAt.toISOString(),
+  endsAt: s.endsAt.toISOString(),
+  status: s.status,
+  itemCount: s.items.length,
+  items: s.items.map(({ saleId: _saleId, ...item }) => item),
+  createdAt: s.createdAt.toISOString(),
+});
+
+export async function listSales(): Promise<AdminFlashSale[]> {
+  await syncFlashSales(db);
+  return (await repo.listSales()).map(toSale);
+}
+
+export async function getSale(id: string): Promise<AdminFlashSale> {
+  const row = await repo.getSale(db, id);
+  if (!row) throw notFound('Flash sale not found');
+  return toSale(row);
+}
+
+const fieldError = (field: string, message: string) =>
+  validation({ formErrors: [], fieldErrors: { [field]: [message] } });
+
+// Resolves each item's SKU/id and applies the price rules, collecting every problem at once so
+// the form can mark all the rows (keys like "items.2.variant").
+async function resolveItems(items: AdminFlashSaleInputParsed['items']) {
+  const ids = items.map((i) => i.variant).filter((v) => UUID.test(v));
+  const skus = items.map((i) => i.variant).filter((v) => !UUID.test(v));
+  const found = await repo.findVariantsWithPrice(db, ids, skus);
+  const byKey = new Map<string, (typeof found)[number]>();
+  for (const v of found) {
+    byKey.set(v.id.toLowerCase(), v);
+    byKey.set(v.sku.toLowerCase(), v);
+  }
+  const fieldErrors: Record<string, string[]> = {};
+  const seen = new Set<string>();
+  const out: { variantId: string; salePriceCents: number }[] = [];
+  items.forEach((item, i) => {
+    const v = byKey.get(item.variant.toLowerCase());
+    if (!v) {
+      fieldErrors[`items.${i}.variant`] = ['No variant has that SKU or id'];
+      return;
+    }
+    if (v.status !== 'active' || v.productStatus !== 'active') {
+      fieldErrors[`items.${i}.variant`] = ['That variant is not active, so it cannot go on sale'];
+    } else if (seen.has(v.id)) {
+      fieldErrors[`items.${i}.variant`] = ['This variant is already in the sale'];
+    } else if (item.salePriceCents >= v.priceCents) {
+      fieldErrors[`items.${i}.salePriceCents`] = [
+        `The sale price must be below the regular price (${formatMoney(v.priceCents, 'EUR')})`,
+      ];
+    }
+    seen.add(v.id);
+    out.push({ variantId: v.id, salePriceCents: item.salePriceCents });
+  });
+  if (Object.keys(fieldErrors).length > 0) throw validation({ formErrors: [], fieldErrors });
+  return out;
+}
+
+const notEditable = (status: string) =>
+  conflict(
+    ErrorCode.CONFLICT,
+    status === 'active'
+      ? 'This sale is running. Its items and prices are locked: you can end it earlier or end it now.'
+      : 'This sale has ended and stays as history.',
+  );
+
+export async function createSale(input: AdminFlashSaleInputParsed): Promise<AdminFlashSale> {
+  const items = await resolveItems(input.items);
+  const id = await repo.insertSale(
+    { name: input.name, startsAt: new Date(input.startsAt), endsAt: new Date(input.endsAt) },
+    items,
+  );
+  return getSale(id);
+}
+
+export async function updateSale(
+  id: string,
+  input: AdminFlashSaleInputParsed,
+): Promise<AdminFlashSale> {
+  await syncFlashSales(db);
+  const items = await resolveItems(input.items);
+  const result = await repo.replaceScheduledSale(
+    id,
+    { name: input.name, startsAt: new Date(input.startsAt), endsAt: new Date(input.endsAt) },
+    items,
+  );
+  if (result === 'missing') throw notFound('Flash sale not found');
+  if (result !== 'ok') throw notEditable(result.status);
+  return getSale(id);
+}
+
+export async function deleteSale(id: string): Promise<void> {
+  await syncFlashSales(db);
+  const result = await repo.deleteScheduledSale(id);
+  if (result === 'missing') throw notFound('Flash sale not found');
+  if (result !== 'ok') {
+    throw conflict(
+      ErrorCode.CONFLICT,
+      result.status === 'active'
+        ? 'A running sale cannot be deleted. End it instead.'
+        : 'An ended sale stays as history and cannot be deleted.',
+    );
+  }
+}
+
+// Moves an active sale's end earlier. Ending "now" reuses it with the current time; the sync then
+// closes the sale and records the price going back to regular, exactly as a natural end does.
+async function moveEnd(id: string, requested: Date | 'now'): Promise<AdminFlashSale> {
+  await syncFlashSales(db);
+  const now = new Date();
+  let at = now;
+  const result = await repo.moveActiveEnd(id, (row) => {
+    // A sale that started this very millisecond still needs an end after its start.
+    at =
+      requested === 'now'
+        ? new Date(Math.max(now.getTime(), row.startsAt.getTime() + 1))
+        : requested;
+    if (at.getTime() >= row.endsAt.getTime())
+      return { refuse: 'A running sale can only end earlier, not later.' };
+    if (requested !== 'now' && at.getTime() <= now.getTime()) {
+      return { refuse: 'That time has passed. Use "End now" to stop the sale.' };
+    }
+    return at;
+  });
+  if (result.kind === 'missing') throw notFound('Flash sale not found');
+  if (result.kind === 'refused') throw fieldError('endsAt', result.message);
+  if (result.kind === 'status') throw notEditable(result.status);
+  // Only ending now closes the sale here; an earlier (future) end is left to its time.
+  if (requested === 'now') await syncFlashSales(db, new Date(Math.max(at.getTime(), Date.now())));
+  return getSale(id);
+}
+
+export const shortenSale = (id: string, endsAt: string) => moveEnd(id, new Date(endsAt));
+export const endSaleNow = (id: string) => moveEnd(id, 'now');
+
+export async function lookupVariant(sku: string) {
+  const [v] = await repo.findVariantsWithPrice(
+    db,
+    UUID.test(sku) ? [sku] : [],
+    UUID.test(sku) ? [] : [sku],
+  );
+  if (!v) throw notFound('No variant has that SKU or id');
+  return {
+    variantId: v.id,
+    sku: v.sku,
+    productName: v.productName,
+    variantName: v.variantName,
+    regularCents: v.priceCents,
+  };
 }

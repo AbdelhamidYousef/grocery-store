@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { renderApp } from '../../../test/render';
 import { API, server, signedInAs } from '../../../test/server';
@@ -30,13 +30,13 @@ const code = (over: Record<string, unknown> = {}) => ({
 });
 
 describe('promotions navigation', () => {
-  it('adds one Promotions item to the admin nav, with Codes, Bulk tiers and Gift tabs inside', async () => {
+  it('adds one Promotions item to the admin nav, with Codes, Bulk tiers, Gift and Flash sales tabs inside', async () => {
     server.use(http.get(`${API}/admin/discount-codes`, () => HttpResponse.json({ data: [] })));
     renderApp('/admin/promotions');
     const nav = await screen.findByTestId('admin-nav');
     expect(within(nav).getAllByRole('link', { name: /promotions/i })).toHaveLength(1);
     const tabs = await screen.findByTestId('promotions-tabs');
-    for (const name of ['Codes', 'Bulk tiers', 'Gift'])
+    for (const name of ['Codes', 'Bulk tiers', 'Gift', 'Flash sales'])
       expect(within(tabs).getByRole('link', { name })).toBeInTheDocument();
     // The index redirects to the codes tab.
     expect(await screen.findByTestId('admin-codes')).toBeInTheDocument();
@@ -277,5 +277,204 @@ describe('gift screen', () => {
       await within(screen.getByTestId('admin-gift-form')).findByTestId('form-error'),
     ).toHaveTextContent('No variant has that SKU');
     expect(put).toEqual({ thresholdCents: 4000, variant: 'NOPE' });
+  });
+});
+
+describe('flash sales screen', () => {
+  const item = (over: Record<string, unknown> = {}) => ({
+    id: 'i1',
+    variantId: 'v1',
+    sku: 'PW-ROPE-S',
+    productName: 'Rope Tug',
+    variantName: 'Small',
+    regularCents: 2000,
+    salePriceCents: 1500,
+    referenceCents: null,
+    ...over,
+  });
+  const sale = (over: Record<string, unknown> = {}) => ({
+    id: 'f1',
+    name: 'Weekend Woof',
+    startsAt: '2026-11-20T10:00:00.000Z',
+    endsAt: '2026-11-21T10:00:00.000Z',
+    status: 'scheduled',
+    itemCount: 1,
+    items: [item()],
+    createdAt: '2026-11-01T10:00:00.000Z',
+    ...over,
+  });
+  const lookup = () =>
+    http.get(`${API}/admin/flash-sales/variant-lookup`, () =>
+      HttpResponse.json({
+        data: {
+          variantId: 'v1',
+          sku: 'PW-ROPE-S',
+          productName: 'Rope Tug',
+          variantName: 'Small',
+          regularCents: 2000,
+        },
+      }),
+    );
+
+  it('lists sales with status and item count, as a tab inside Promotions', async () => {
+    server.use(
+      http.get(`${API}/admin/flash-sales`, () =>
+        HttpResponse.json({
+          data: [sale(), sale({ id: 'f2', name: 'Old', status: 'ended', itemCount: 3 })],
+        }),
+      ),
+    );
+    renderApp('/admin/promotions/flash-sales');
+    const rows = await screen.findAllByTestId('admin-flash-row');
+    expect(rows[0]).toHaveTextContent('Weekend Woof');
+    expect(rows[0]).toHaveTextContent('Scheduled');
+    expect(rows[1]).toHaveTextContent('Ended');
+    expect(rows[1]).toHaveTextContent('3');
+    // An ended sale cannot be deleted.
+    expect(within(rows[1]!).queryByRole('button', { name: /Delete/ })).not.toBeInTheDocument();
+    expect(within(rows[0]!).getByRole('button', { name: /Delete/ })).toBeInTheDocument();
+  });
+
+  it('shows the regular price and % off for a typed SKU, and sends cents', async () => {
+    let posted: unknown;
+    server.use(
+      http.get(`${API}/admin/flash-sales`, () => HttpResponse.json({ data: [] })),
+      lookup(),
+      http.post(`${API}/admin/flash-sales`, async ({ request }) => {
+        posted = await request.json();
+        return HttpResponse.json({ data: sale() }, { status: 201 });
+      }),
+    );
+    renderApp('/admin/promotions/flash-sales');
+    await userEvent.click(await screen.findByRole('button', { name: 'New flash sale' }));
+    const form = await screen.findByTestId('admin-flash-form');
+    await userEvent.type(within(form).getByLabelText('Sale name'), 'Weekend Woof');
+    await userEvent.type(within(form).getByLabelText('Starts (UTC)'), '2026-11-20T10:00');
+    await userEvent.type(within(form).getByLabelText('Ends (UTC)'), '2026-11-21T10:00');
+    await userEvent.type(within(form).getByLabelText('SKU, item 1'), 'PW-ROPE-S');
+    await userEvent.type(within(form).getByLabelText('Sale price (EUR), item 1'), '15');
+    const info = within(form).getByTestId('flash-item-info');
+    // The lookup runs when the SKU box loses focus.
+    await userEvent.tab({ shift: false });
+    await userEvent.click(within(form).getByLabelText('Sale price (EUR), item 1'));
+    await waitFor(() => expect(info).toHaveTextContent('Regular price €20.00. 25% off.'));
+
+    await userEvent.click(within(form).getByRole('button', { name: 'Create sale' }));
+    await waitFor(() =>
+      expect(posted).toMatchObject({
+        name: 'Weekend Woof',
+        startsAt: '2026-11-20T10:00:00.000Z',
+        items: [{ variant: 'PW-ROPE-S', salePriceCents: 1500 }],
+      }),
+    );
+  });
+
+  it('warns when the typed price is not below the regular price', async () => {
+    server.use(
+      http.get(`${API}/admin/flash-sales`, () => HttpResponse.json({ data: [] })),
+      lookup(),
+    );
+    renderApp('/admin/promotions/flash-sales');
+    await userEvent.click(await screen.findByRole('button', { name: 'New flash sale' }));
+    const form = await screen.findByTestId('admin-flash-form');
+    await userEvent.type(within(form).getByLabelText('SKU, item 1'), 'PW-ROPE-S');
+    await userEvent.type(within(form).getByLabelText('Sale price (EUR), item 1'), '20');
+    await waitFor(() =>
+      expect(within(form).getByTestId('flash-item-info')).toHaveTextContent(
+        'The sale price must be below the regular price.',
+      ),
+    );
+  });
+
+  it('refuses bad input before sending, on the right fields', async () => {
+    let posts = 0;
+    server.use(
+      http.get(`${API}/admin/flash-sales`, () => HttpResponse.json({ data: [] })),
+      http.post(`${API}/admin/flash-sales`, () => {
+        posts += 1;
+        return HttpResponse.json({ data: sale() }, { status: 201 });
+      }),
+    );
+    renderApp('/admin/promotions/flash-sales');
+    await userEvent.click(await screen.findByRole('button', { name: 'New flash sale' }));
+    const form = await screen.findByTestId('admin-flash-form');
+    await userEvent.type(within(form).getByLabelText('Starts (UTC)'), '2026-11-21T10:00');
+    await userEvent.type(within(form).getByLabelText('Ends (UTC)'), '2026-11-20T10:00');
+    await userEvent.click(within(form).getByRole('button', { name: 'Create sale' }));
+    expect(await within(form).findByText('Give the sale a name')).toBeVisible();
+    expect(within(form).getByText('The end must be after the start')).toBeVisible();
+    expect(within(form).getByText('Enter the SKU')).toBeVisible();
+    expect(posts).toBe(0);
+  });
+
+  it('puts a server price refusal on the item row', async () => {
+    server.use(
+      http.get(`${API}/admin/flash-sales`, () => HttpResponse.json({ data: [] })),
+      http.post(`${API}/admin/flash-sales`, () =>
+        HttpResponse.json(
+          {
+            error: {
+              code: 'VALIDATION_ERROR',
+              message: 'Request validation failed',
+              details: {
+                formErrors: [],
+                fieldErrors: {
+                  'items.0.salePriceCents': [
+                    'The sale price must be below the regular price (€20.00)',
+                  ],
+                },
+              },
+            },
+          },
+          { status: 400 },
+        ),
+      ),
+    );
+    renderApp('/admin/promotions/flash-sales');
+    await userEvent.click(await screen.findByRole('button', { name: 'New flash sale' }));
+    const form = await screen.findByTestId('admin-flash-form');
+    await userEvent.type(within(form).getByLabelText('Sale name'), 'X');
+    await userEvent.type(within(form).getByLabelText('Starts (UTC)'), '2026-11-20T10:00');
+    await userEvent.type(within(form).getByLabelText('Ends (UTC)'), '2026-11-21T10:00');
+    await userEvent.type(within(form).getByLabelText('SKU, item 1'), 'PW-ROPE-S');
+    await userEvent.type(within(form).getByLabelText('Sale price (EUR), item 1'), '19');
+    await userEvent.click(within(form).getByRole('button', { name: 'Create sale' }));
+    expect(
+      await within(form).findByText('The sale price must be below the regular price (€20.00)'),
+    ).toBeVisible();
+  });
+
+  it('shows the Omnibus reference per item on a live sale, locks it, and can end it now', async () => {
+    let ended = 0;
+    server.use(
+      http.get(`${API}/admin/flash-sales`, () =>
+        HttpResponse.json({
+          data: [
+            sale({
+              status: 'active',
+              items: [
+                item({ referenceCents: 1899 }),
+                item({ id: 'i2', sku: 'PW-BALL', variantId: 'v2', referenceCents: null }),
+              ],
+              itemCount: 2,
+            }),
+          ],
+        }),
+      ),
+      http.post(`${API}/admin/flash-sales/f1/end`, () => {
+        ended += 1;
+        return HttpResponse.json({ data: sale({ status: 'ended' }) });
+      }),
+    );
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    renderApp('/admin/promotions/flash-sales');
+    await userEvent.click(await screen.findByRole('button', { name: /View/ }));
+    const detail = await screen.findByTestId('admin-flash-detail');
+    const refs = within(detail).getAllByTestId('flash-omnibus');
+    expect(refs[0]).toHaveTextContent('Lowest 30-day price: €18.99');
+    expect(refs[1]).toHaveTextContent('No history');
+    expect(within(detail).queryByLabelText('Sale name')).not.toBeInTheDocument();
+    await userEvent.click(within(detail).getByRole('button', { name: 'End now' }));
+    await waitFor(() => expect(ended).toBe(1));
   });
 });

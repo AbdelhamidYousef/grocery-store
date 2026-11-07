@@ -352,6 +352,7 @@ describe('sale prices in the cart and at checkout', () => {
   it('activates lazily on a cart read and charges the sale price in cart and order', async () => {
     await createShippingMethods();
     const v = await variant(2000);
+    await history(v.id, 1800, ago(10 * DAY));
     await sale({
       startsAt: ago(HOUR),
       endsAt: ahead(DAY),
@@ -364,7 +365,12 @@ describe('sale prices in the cart and at checkout', () => {
         pricing: { merchandiseCents: number; lines: { unitCents: number; priceSource: string }[] };
       };
     }>(await shop.call('get', '/cart')).data;
-    expect(cart.pricing.lines[0]).toMatchObject({ unitCents: 1500, priceSource: 'sale' });
+    // The cart carries the Omnibus reference (lowest price in the 30 days before the sale).
+    expect(cart.pricing.lines[0]).toMatchObject({
+      unitCents: 1500,
+      priceSource: 'sale',
+      referenceCents: 1800,
+    });
     expect(cart.pricing.merchandiseCents).toBe(3000);
 
     expect((await shop.call('post', '/checkout', checkoutBody)).status).toBe(200);

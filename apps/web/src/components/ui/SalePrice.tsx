@@ -6,7 +6,8 @@ import { TEST_IDS } from '../../lib/test-ids';
 import { VisuallyHidden } from './VisuallyHidden';
 
 interface SalePriceProps {
-  sale: SaleOffer;
+  // The cart passes the engine's line price; a card passes the whole offer. Only these are read.
+  sale: Pick<SaleOffer, 'priceCents' | 'referenceCents'>;
   currency?: string;
   className?: string;
 }

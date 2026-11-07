@@ -22,6 +22,9 @@ export const CartPricingSchema = z.object({
       unitCents: Cents,
       priceSource: z.enum(['base', 'member', 'sale', 'fixed']),
       lineDiscountCents: Cents,
+      // For a line at a flash-sale price: the EU Omnibus reference (lowest price in the 30 days
+      // before the sale). Null when the line is not on sale or the variant had no history.
+      referenceCents: Cents.nullable(),
     }),
   ),
   adjustments: z.array(

@@ -6,11 +6,17 @@ import {
   AdminDiscountCodeInputSchema,
   AdminDiscountCodeListResponseSchema,
   AdminDiscountCodeResponseSchema,
+  AdminFlashSaleEndInputSchema,
+  AdminFlashSaleInputSchema,
+  AdminFlashSaleListResponseSchema,
+  AdminFlashSaleResponseSchema,
+  AdminVariantLookupResponseSchema,
   AdminGiftRuleInputSchema,
   AdminGiftRuleResponseSchema,
   IdParamsSchema,
 } from '@store/shared';
 import { Router as ExpressRouter, type Router } from 'express';
+import { z } from 'zod';
 
 import { respond, valid, validate } from '../../lib/validate.ts';
 import { setAudit } from '../admin/audit.ts';
@@ -89,6 +95,52 @@ export function createPromotionsAdminRouter(): Router {
   router.delete('/gift-rule', async (_req, res) => {
     setAudit(res, 'gift_rule.clear');
     await service.clearGiftRule();
+    res.status(204).end();
+  });
+
+  // ----- flash sales -----
+  router.get('/flash-sales', async (_req, res) => {
+    respond(res, AdminFlashSaleListResponseSchema, { data: await service.listSales() });
+  });
+  // Registered before /:id so "variant-lookup" is not read as an id.
+  const lookupQuery = { query: z.object({ sku: z.string().trim().min(1).max(80) }) };
+  router.get('/flash-sales/variant-lookup', validate(lookupQuery), async (req, res) => {
+    const { query } = valid(req, lookupQuery);
+    respond(res, AdminVariantLookupResponseSchema, {
+      data: await service.lookupVariant(query.sku),
+    });
+  });
+  const saleBody = { body: AdminFlashSaleInputSchema };
+  router.post('/flash-sales', validate(saleBody), async (req, res) => {
+    const { body } = valid(req, saleBody);
+    const sale = await service.createSale(body);
+    setAudit(res, 'flash_sale.create', sale.id);
+    res.status(201);
+    respond(res, AdminFlashSaleResponseSchema, { data: sale });
+  });
+  const saleUpdate = { params: IdParamsSchema, body: AdminFlashSaleInputSchema };
+  router.put('/flash-sales/:id', validate(saleUpdate), async (req, res) => {
+    const { params, body } = valid(req, saleUpdate);
+    setAudit(res, 'flash_sale.update', params.id);
+    respond(res, AdminFlashSaleResponseSchema, { data: await service.updateSale(params.id, body) });
+  });
+  const saleEnd = { params: IdParamsSchema, body: AdminFlashSaleEndInputSchema };
+  router.patch('/flash-sales/:id', validate(saleEnd), async (req, res) => {
+    const { params, body } = valid(req, saleEnd);
+    setAudit(res, 'flash_sale.shorten', params.id);
+    respond(res, AdminFlashSaleResponseSchema, {
+      data: await service.shortenSale(params.id, body.endsAt),
+    });
+  });
+  router.post('/flash-sales/:id/end', validate(byId), async (req, res) => {
+    const { params } = valid(req, byId);
+    setAudit(res, 'flash_sale.end', params.id);
+    respond(res, AdminFlashSaleResponseSchema, { data: await service.endSaleNow(params.id) });
+  });
+  router.delete('/flash-sales/:id', validate(byId), async (req, res) => {
+    const { params } = valid(req, byId);
+    setAudit(res, 'flash_sale.delete', params.id);
+    await service.deleteSale(params.id);
     res.status(204).end();
   });
 

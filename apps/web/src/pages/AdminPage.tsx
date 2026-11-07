@@ -20,6 +20,7 @@ import { ProductEdit } from '../features/admin/ProductEdit';
 import { ProductNew } from '../features/admin/ProductNew';
 import { ProductsList } from '../features/admin/ProductsList';
 import { CodesAdmin } from '../features/admin/promotions/CodesAdmin';
+import { FlashSalesAdmin } from '../features/admin/promotions/FlashSalesAdmin';
 import { GiftAdmin } from '../features/admin/promotions/GiftAdmin';
 import { PromotionsLayout } from '../features/admin/promotions/PromotionsLayout';
 import { TiersAdmin } from '../features/admin/promotions/TiersAdmin';
@@ -56,6 +57,7 @@ export default function AdminPage() {
           <Route path="codes" element={<CodesAdmin />} />
           <Route path="tiers" element={<TiersAdmin />} />
           <Route path="gift" element={<GiftAdmin />} />
+          <Route path="flash-sales" element={<FlashSalesAdmin />} />
         </Route>
         <Route path="*" element={<AdminNotFound />} />
       </Route>

@@ -25,6 +25,7 @@ export function CartContents({
           <CartLine
             key={item.id}
             item={item}
+            priced={cart.pricing.lines.find((l) => l.variantId === item.variantId)}
             currency={cart.currency}
             compact={compact}
             notices={inlineFor(item.variantId)}

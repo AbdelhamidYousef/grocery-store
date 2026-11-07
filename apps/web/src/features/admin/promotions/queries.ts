@@ -1,10 +1,22 @@
-import type { AdminBulkTierInput, AdminDiscountCodeInput, AdminGiftRuleInput } from '@store/shared';
+import type {
+  AdminBulkTierInput,
+  AdminDiscountCodeInput,
+  AdminFlashSaleInput,
+  AdminGiftRuleInput,
+} from '@store/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   clearAdminGift,
   createAdminCode,
+  createAdminFlashSale,
   createAdminTier,
+  deleteAdminFlashSale,
+  endAdminFlashSale,
+  fetchAdminFlashSales,
+  lookupAdminVariant,
+  shortenAdminFlashSale,
+  updateAdminFlashSale,
   deleteAdminCode,
   deleteAdminTier,
   fetchAdminCodes,
@@ -82,4 +94,44 @@ export function useSetGift() {
 export function useClearGift() {
   const refresh = useRefresh();
   return useMutation({ mutationFn: clearAdminGift, onSuccess: refresh });
+}
+
+export const useAdminFlashSales = () =>
+  useQuery({
+    queryKey: keys.admin.promotions.flashSales,
+    queryFn: ({ signal }) => fetchAdminFlashSales(signal),
+    staleTime: FRESH,
+  });
+/** The variant behind a typed SKU; only asks once the admin has finished typing it. */
+export const useVariantLookup = (sku: string) =>
+  useQuery({
+    queryKey: keys.admin.promotions.variant(sku),
+    queryFn: ({ signal }) => lookupAdminVariant(sku, signal),
+    enabled: sku !== '',
+    staleTime: 30_000,
+    retry: false,
+  });
+export function useSaveFlashSale() {
+  const refresh = useRefresh();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string | undefined; input: AdminFlashSaleInput }) =>
+      id ? updateAdminFlashSale(id, input) : createAdminFlashSale(input),
+    onSuccess: refresh,
+  });
+}
+export function useDeleteFlashSale() {
+  const refresh = useRefresh();
+  return useMutation({ mutationFn: deleteAdminFlashSale, onSuccess: refresh });
+}
+export function useEndFlashSale() {
+  const refresh = useRefresh();
+  return useMutation({ mutationFn: endAdminFlashSale, onSuccess: refresh });
+}
+export function useShortenFlashSale() {
+  const refresh = useRefresh();
+  return useMutation({
+    mutationFn: ({ id, endsAt }: { id: string; endsAt: string }) =>
+      shortenAdminFlashSale(id, endsAt),
+    onSuccess: refresh,
+  });
 }

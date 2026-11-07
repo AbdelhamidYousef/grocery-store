@@ -4,9 +4,13 @@ import {
   AdminDiscountCodeDeleteResponseSchema,
   AdminDiscountCodeListResponseSchema,
   AdminDiscountCodeResponseSchema,
+  AdminFlashSaleListResponseSchema,
+  AdminFlashSaleResponseSchema,
   AdminGiftRuleResponseSchema,
+  AdminVariantLookupResponseSchema,
   type AdminBulkTierInput,
   type AdminDiscountCodeInput,
+  type AdminFlashSaleInput,
   type AdminGiftRuleInput,
 } from '@store/shared';
 
@@ -102,4 +106,63 @@ export async function setAdminGift(input: AdminGiftRuleInput) {
 }
 export async function clearAdminGift(): Promise<void> {
   await apiFetch('/admin/gift-rule', { method: 'DELETE', schema: NoContentSchema });
+}
+
+// ----- flash sales -----
+export async function fetchAdminFlashSales(signal?: AbortSignal) {
+  return (
+    await apiFetch('/admin/flash-sales', {
+      schema: AdminFlashSaleListResponseSchema,
+      ...(signal && { signal }),
+    })
+  ).data;
+}
+export async function createAdminFlashSale(input: AdminFlashSaleInput) {
+  return (
+    await apiFetch('/admin/flash-sales', {
+      method: 'POST',
+      body: input,
+      schema: AdminFlashSaleResponseSchema,
+    })
+  ).data;
+}
+export async function updateAdminFlashSale(saleId: string, input: AdminFlashSaleInput) {
+  return (
+    await apiFetch(`/admin/flash-sales/${id(saleId)}`, {
+      method: 'PUT',
+      body: input,
+      schema: AdminFlashSaleResponseSchema,
+    })
+  ).data;
+}
+export async function shortenAdminFlashSale(saleId: string, endsAt: string) {
+  return (
+    await apiFetch(`/admin/flash-sales/${id(saleId)}`, {
+      method: 'PATCH',
+      body: { endsAt },
+      schema: AdminFlashSaleResponseSchema,
+    })
+  ).data;
+}
+export async function endAdminFlashSale(saleId: string) {
+  return (
+    await apiFetch(`/admin/flash-sales/${id(saleId)}/end`, {
+      method: 'POST',
+      schema: AdminFlashSaleResponseSchema,
+    })
+  ).data;
+}
+export async function deleteAdminFlashSale(saleId: string): Promise<void> {
+  await apiFetch(`/admin/flash-sales/${id(saleId)}`, {
+    method: 'DELETE',
+    schema: NoContentSchema,
+  });
+}
+export async function lookupAdminVariant(sku: string, signal?: AbortSignal) {
+  return (
+    await apiFetch(`/admin/flash-sales/variant-lookup?sku=${encodeURIComponent(sku)}`, {
+      schema: AdminVariantLookupResponseSchema,
+      ...(signal && { signal }),
+    })
+  ).data;
 }

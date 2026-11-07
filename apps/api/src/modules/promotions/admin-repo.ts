@@ -1,10 +1,12 @@
-import { asc, count, desc, eq, isNull, and, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 
 import { db } from '../../db/client.ts';
 import {
   bulkTiers,
   discountCodes,
   discountRedemptions,
+  flashSaleItems,
+  flashSales,
   giftRules,
   productVariants,
   products,
@@ -170,4 +172,143 @@ export async function clearGiftRule() {
     .where(eq(giftRules.active, true))
     .returning({ id: giftRules.id });
   return rows.length;
+}
+
+// ----- flash sales -----
+// Only name, window, status and the items' sale prices are written here. reference_cents and
+// price_history belong to activation (service.syncFlashSales), never to an admin edit.
+type Run = Pick<typeof db, 'select' | 'insert' | 'update' | 'delete'>;
+
+const saleItemColumns = {
+  id: flashSaleItems.id,
+  saleId: flashSaleItems.saleId,
+  variantId: flashSaleItems.variantId,
+  sku: productVariants.sku,
+  productName: products.name,
+  variantName: productVariants.name,
+  regularCents: productVariants.priceCents,
+  salePriceCents: flashSaleItems.salePriceCents,
+  referenceCents: flashSaleItems.referenceCents,
+};
+
+export async function listSales() {
+  const sales = await db.select().from(flashSales).orderBy(desc(flashSales.startsAt));
+  return withItems(db, sales);
+}
+
+export async function getSale(run: Run, id: string) {
+  const sales = await run.select().from(flashSales).where(eq(flashSales.id, id));
+  return (await withItems(run, sales))[0];
+}
+
+async function withItems(run: Run, sales: (typeof flashSales.$inferSelect)[]) {
+  if (sales.length === 0) return [];
+  const items = await run
+    .select(saleItemColumns)
+    .from(flashSaleItems)
+    .innerJoin(productVariants, eq(productVariants.id, flashSaleItems.variantId))
+    .innerJoin(products, eq(products.id, productVariants.productId))
+    .where(
+      inArray(
+        flashSaleItems.saleId,
+        sales.map((s) => s.id),
+      ),
+    )
+    .orderBy(asc(productVariants.sku));
+  return sales.map((s) => ({ ...s, items: items.filter((i) => i.saleId === s.id) }));
+}
+
+export async function findVariantsWithPrice(run: Run, ids: string[], skus: string[]) {
+  const cond = [
+    ids.length ? inArray(productVariants.id, ids) : undefined,
+    skus.length ? inArray(productVariants.sku, skus) : undefined,
+  ].filter((c) => c !== undefined);
+  if (cond.length === 0) return [];
+  return run
+    .select({
+      id: productVariants.id,
+      sku: productVariants.sku,
+      priceCents: productVariants.priceCents,
+      status: productVariants.status,
+      productStatus: products.status,
+      productName: products.name,
+      variantName: productVariants.name,
+    })
+    .from(productVariants)
+    .innerJoin(products, eq(products.id, productVariants.productId))
+    .where(or(...cond));
+}
+
+type SaleValues = { name: string; startsAt: Date; endsAt: Date };
+type ItemValues = { variantId: string; salePriceCents: number }[];
+
+export async function insertSale(values: SaleValues, items: ItemValues) {
+  return db.transaction(async (tx) => {
+    const [sale] = await tx.insert(flashSales).values(values).returning({ id: flashSales.id });
+    await tx.insert(flashSaleItems).values(items.map((i) => ({ ...i, saleId: sale!.id })));
+    return sale!.id;
+  });
+}
+
+// Locks the row, so a sync that activates the sale at the same moment cannot interleave with the
+// edit: whoever gets the lock second sees the other's status.
+export async function lockSale(tx: Run, id: string) {
+  const [row] = await tx.select().from(flashSales).where(eq(flashSales.id, id)).for('update');
+  return row;
+}
+
+export async function replaceScheduledSale(
+  id: string,
+  values: SaleValues,
+  items: ItemValues,
+): Promise<'ok' | 'missing' | { status: string }> {
+  return db.transaction(async (tx) => {
+    const row = await lockSale(tx, id);
+    if (!row) return 'missing' as const;
+    if (row.status !== 'scheduled') return { status: row.status };
+    await tx
+      .update(flashSales)
+      .set({ ...values, updatedAt: new Date() })
+      .where(eq(flashSales.id, id));
+    await tx.delete(flashSaleItems).where(eq(flashSaleItems.saleId, id));
+    await tx.insert(flashSaleItems).values(items.map((i) => ({ ...i, saleId: id })));
+    return 'ok' as const;
+  });
+}
+
+export type MoveEnd =
+  | { kind: 'missing' }
+  | { kind: 'status'; status: string }
+  | { kind: 'refused'; message: string }
+  | { kind: 'moved' };
+
+// `decide` returns the new end, or the sentence explaining why it cannot move.
+export async function moveActiveEnd(
+  id: string,
+  decide: (row: typeof flashSales.$inferSelect) => Date | { refuse: string },
+): Promise<MoveEnd> {
+  return db.transaction(async (tx): Promise<MoveEnd> => {
+    const row = await lockSale(tx, id);
+    if (!row) return { kind: 'missing' };
+    if (row.status !== 'active') return { kind: 'status', status: row.status };
+    const next = decide(row);
+    if (!(next instanceof Date)) return { kind: 'refused', message: next.refuse };
+    await tx
+      .update(flashSales)
+      .set({ endsAt: next, updatedAt: new Date() })
+      .where(eq(flashSales.id, id));
+    return { kind: 'moved' };
+  });
+}
+
+export async function deleteScheduledSale(
+  id: string,
+): Promise<'ok' | 'missing' | { status: string }> {
+  return db.transaction(async (tx) => {
+    const row = await lockSale(tx, id);
+    if (!row) return 'missing' as const;
+    if (row.status !== 'scheduled') return { status: row.status };
+    await tx.delete(flashSales).where(eq(flashSales.id, id));
+    return 'ok' as const;
+  });
 }

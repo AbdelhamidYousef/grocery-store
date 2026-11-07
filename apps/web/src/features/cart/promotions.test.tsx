@@ -273,3 +273,81 @@ describe('notice sentences', () => {
     expect(noticeSentence({ key: 'something_new' }, pricing, 'EUR')).toBeNull();
   });
 });
+
+describe('sale lines and the Omnibus reference', () => {
+  const line = (over: Record<string, unknown>) => ({
+    variantId: 'v1',
+    unitCents: 899,
+    priceSource: 'sale' as const,
+    lineDiscountCents: 0,
+    referenceCents: 1099,
+    ...over,
+  });
+
+  it('shows the sale unit price and the lowest 30-day price on a sale line only', async () => {
+    serveCart({
+      ...makeCart([
+        makeCartItem({ quantity: 2, lineTotalCents: 2198 }),
+        makeCartItem({ id: 'l2', variantId: 'v2', productName: 'Squeaky Ball', quantity: 1 }),
+      ]),
+      pricing: makeCartPricing({
+        lines: [
+          line({}),
+          line({ variantId: 'v2', unitCents: 1099, priceSource: 'base', referenceCents: null }),
+        ],
+      }),
+    });
+    renderApp('/cart');
+    const lines = await screen.findAllByTestId('cart-line');
+    const sale = within(lines[0]!);
+    expect(sale.getByTestId('sale-price')).toHaveTextContent('€8.99');
+    expect(sale.getByTestId('sale-omnibus')).toHaveTextContent(
+      'Lowest price in the last 30 days: €10.99',
+    );
+    // The line total follows the sale price (2 x 8.99), not the regular one.
+    expect(sale.getByTestId('cart-line-total')).toHaveTextContent('€17.98');
+    const regular = within(lines[1]!);
+    expect(regular.queryByTestId('sale-omnibus')).not.toBeInTheDocument();
+    expect(regular.getByText('€10.99 each')).toBeInTheDocument();
+  });
+
+  it('shows no Omnibus text for a sale line without price history', async () => {
+    serveCart({
+      ...makeCart([makeCartItem()]),
+      pricing: makeCartPricing({ lines: [line({ referenceCents: null })] }),
+    });
+    renderApp('/cart');
+    expect(await screen.findByTestId('sale-price')).toHaveTextContent('€8.99');
+    expect(screen.queryByTestId('sale-omnibus')).not.toBeInTheDocument();
+  });
+
+  it('shows the member price with a label, and falls back to the item price without a pricing entry', async () => {
+    serveCart({
+      ...makeCart([
+        makeCartItem({ quantity: 2, lineTotalCents: 2198 }),
+        makeCartItem({
+          id: 'l2',
+          variantId: 'v2',
+          productName: 'Squeaky Ball',
+          unitPriceCents: 500,
+          lineTotalCents: 500,
+        }),
+      ]),
+      pricing: makeCartPricing({
+        lines: [line({ priceSource: 'member', unitCents: 989, referenceCents: null })],
+      }),
+    });
+    renderApp('/cart');
+    const lines = await screen.findAllByTestId('cart-line');
+    const member = within(lines[0]!);
+    expect(member.getByText(/€9.89 each/)).toBeInTheDocument();
+    expect(member.getByTestId('cart-line-member')).toHaveTextContent('Member price');
+    expect(member.getByTestId('cart-line-total')).toHaveTextContent('€19.78');
+    expect(member.queryByTestId('sale-omnibus')).not.toBeInTheDocument();
+    // No pricing entry for v2: the item's own price and total.
+    const plain = within(lines[1]!);
+    expect(plain.getByText('€5.00 each')).toBeInTheDocument();
+    expect(plain.getByTestId('cart-line-total')).toHaveTextContent('€5.00');
+    expect(plain.queryByTestId('cart-line-member')).not.toBeInTheDocument();
+  });
+});
