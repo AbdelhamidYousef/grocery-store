@@ -17,6 +17,7 @@ import { Dashboard } from '../features/admin/Dashboard';
 import { NavigationAdmin } from '../features/admin/NavigationAdmin';
 import { OrderDetail } from '../features/admin/OrderDetail';
 import { OrdersList } from '../features/admin/OrdersList';
+import { SizeGuidesAdmin } from '../features/admin/pdp/SizeGuidesAdmin';
 import { ProductEdit } from '../features/admin/ProductEdit';
 import { ProductNew } from '../features/admin/ProductNew';
 import { ProductsList } from '../features/admin/ProductsList';
@@ -43,6 +44,7 @@ export default function AdminPage() {
         <Route path="collections" element={<CollectionsAdmin />} />
         <Route path="tags" element={<TagsAdmin />} />
         <Route path="navigation" element={<NavigationAdmin />} />
+        <Route path="size-guides" element={<SizeGuidesAdmin />} />
         <Route path="guides" element={<GuidesList />} />
         <Route path="guides/new" element={<GuideEdit />} />
         <Route path="guides/:id" element={<GuideEdit />} />

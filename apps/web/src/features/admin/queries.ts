@@ -66,6 +66,8 @@ function useRefreshAfterWrite() {
       queryClient.invalidateQueries({ queryKey: keys.admin.products }),
       queryClient.invalidateQueries({ queryKey: keys.admin.stats }),
       queryClient.invalidateQueries({ queryKey: keys.products.all }),
+      // A new or removed variant changes the constituents rows of the content editor.
+      queryClient.invalidateQueries({ queryKey: ['admin', 'product-content'] }),
     ]);
 }
 

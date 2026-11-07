@@ -73,6 +73,20 @@ export const server = setupServer(
       meta: { page: 1, limit: 3, total: 1, totalPages: 1 },
     }),
   ),
+  // Admin product page content: empty unless a test says otherwise (the product screen asks).
+  http.get(`${API}/admin/products/:id/content`, () =>
+    HttpResponse.json({
+      data: {
+        specs: [],
+        faqs: [],
+        feedingTable: [],
+        constituents: [],
+        deliveryNote: null,
+        sizeGuideId: null,
+      },
+    }),
+  ),
+  http.get(`${API}/admin/size-guides`, () => HttpResponse.json({ data: [] })),
   http.get(`${API}/categories`, () =>
     HttpResponse.json({
       data: [

@@ -1,6 +1,7 @@
 // Zod schemas shared by API and web, one file per resource.
 export * from './account.ts';
 export * from './admin-content.ts';
+export * from './admin-pdp.ts';
 export * from './admin-promotions.ts';
 export * from './admin.ts';
 export * from './auth.ts';

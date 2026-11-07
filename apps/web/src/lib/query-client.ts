@@ -87,6 +87,9 @@ export const keys = {
     products: ['admin', 'products'] as const,
     productList: (params: AdminProductListParams) => ['admin', 'products', 'list', params] as const,
     product: (id: string) => ['admin', 'products', 'detail', id] as const,
+    // Product-page content and the size guide library (phase 16).
+    productContent: (id: string) => ['admin', 'product-content', id] as const,
+    sizeGuides: ['admin', 'size-guides'] as const,
     brands: ['admin', 'brands'] as const,
     collections: ['admin', 'collections'] as const,
     tags: ['admin', 'tags'] as const,

@@ -5,6 +5,7 @@ import { Seo } from '../../components/Seo';
 import { Button } from '../../components/ui/Button';
 import { Skeleton } from '../../components/ui/Skeleton';
 
+import { ProductContent } from './pdp/ProductContent';
 import { ProductForm } from './ProductForm';
 import { ProductMerchandising } from './ProductMerchandising';
 import { useAdminProduct } from './queries';
@@ -60,6 +61,7 @@ export function ProductEdit() {
       {/* Keyed by id so moving between products always starts a fresh form. */}
       <ProductForm key={product.id} product={product} onSaved={() => undefined} />
       <ProductMerchandising key={`merch-${product.id}-${product.updatedAt}`} product={product} />
+      <ProductContent key={`content-${product.id}`} product={product} />
       <VariantsSection product={product} />
     </section>
   );

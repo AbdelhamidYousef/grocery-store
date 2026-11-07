@@ -1,0 +1,25 @@
+// Display helpers for the integer units the API uses on the product page. Done on the number's
+// own digits (no float division), so 26.5 % never shows up as 26.499999.
+
+/** Basis points as a percentage without trailing zeros: 2650 -> "26.5", 2600 -> "26", 7 -> "0.07". */
+export function bpToPercent(bp: number): string {
+  const whole = Math.floor(bp / 100);
+  const fraction = String(bp % 100)
+    .padStart(2, '0')
+    .replace(/0$/, '');
+  return fraction === '' || fraction === '0' ? String(whole) : `${whole}.${fraction}`;
+}
+
+/** Grams as kilograms without trailing zeros: 7500 -> "7.5", 5000 -> "5", 250 -> "0.25". */
+export function gramsToKg(grams: number): string {
+  const whole = Math.floor(grams / 1000);
+  const fraction = String(grams % 1000)
+    .padStart(3, '0')
+    .replace(/0+$/, '');
+  return fraction === '' ? String(whole) : `${whole}.${fraction}`;
+}
+
+/** Grams for people: 280 -> "280 g", 1500 -> "1.5 kg". */
+export function formatGrams(grams: number): string {
+  return grams >= 1000 ? `${gramsToKg(grams)} kg` : `${grams} g`;
+}

@@ -13,6 +13,7 @@ const LINKS = [
   { to: '/admin/tags', label: 'Tags', end: false },
   { to: '/admin/navigation', label: 'Navigation', end: false },
   { to: '/admin/promotions', label: 'Promotions', end: false },
+  { to: '/admin/size-guides', label: 'Size guides', end: false },
   { to: '/admin/guides', label: 'Guides', end: false },
   { to: '/admin/help', label: 'Help articles', end: false },
   { to: '/admin/testimonials', label: 'Testimonials', end: false },
