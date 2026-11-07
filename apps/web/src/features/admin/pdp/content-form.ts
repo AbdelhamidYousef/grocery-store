@@ -6,10 +6,10 @@ import {
   type LifeStage,
 } from '@store/shared';
 
-import { bpToPercent, gramsToKg } from '../../../lib/units';
+import { bpToPercent, gramsToKg, kgToGrams } from '../../../lib/units';
 import { inputToCents, inputToInt } from '../money-input';
 
-export { bpToPercent, gramsToKg };
+export { bpToPercent, gramsToKg, kgToGrams };
 
 // The product-content form as strings (what inputs hold) and the two conversions at its edges.
 // Basis points and grams are integers in the API; people type percent and kilograms. Both
@@ -46,14 +46,6 @@ export interface ContentForm {
 export function percentToBp(raw: string): number | null {
   const bp = inputToCents(raw);
   return bp !== null && bp <= 10_000 ? bp : null;
-}
-const KG = /^\d{1,3}(?:[.,]\d{1,3})?$/;
-/** "7.5" -> 7500 grams, done on the text; null for anything else. */
-export function kgToGrams(raw: string): number | null {
-  const text = raw.trim();
-  if (!KG.test(text)) return null;
-  const [whole = '0', fraction = ''] = text.replace(',', '.').split('.');
-  return Number(whole) * 1000 + Number(fraction.padEnd(3, '0'));
 }
 export function toForm(content: AdminProductContent): ContentForm {
   return {

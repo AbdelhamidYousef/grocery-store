@@ -394,4 +394,48 @@ describe('product tabs', () => {
     );
     expect(screen.queryByTestId('delivery-note')).toBeNull();
   });
+
+  it('puts the feeding calculator above the table and lets it pick a bag, keeping the tab', async () => {
+    const small = makeVariant({
+      id: 'v1',
+      sku: 'KIB-500',
+      name: '500 g bag',
+      options: { pack: '500g' },
+      priceCents: 600,
+      netAmount: 500,
+      netUnit: 'g',
+      isDefault: true,
+    });
+    const big = makeVariant({
+      id: 'v2',
+      sku: 'KIB-2000',
+      name: '2 kg bag',
+      options: { pack: '2kg' },
+      priceCents: 1800,
+      netAmount: 2000,
+      netUnit: 'g',
+    });
+    server.use(
+      http.get(`${API}/products/rope-tug`, () =>
+        HttpResponse.json({
+          data: makeProduct({
+            optionKeys: ['pack'],
+            variants: [small, big],
+            feedingTable: [
+              { petWeightGMin: 1000, petWeightGMax: 20000, dailyG: 40, lifeStage: 'any' },
+            ],
+          }),
+        }),
+      ),
+    );
+    const router = renderApp('/products/rope-tug#feeding');
+    expect(await screen.findByTestId('feeding-calculator')).toBeInTheDocument();
+    expect(screen.getByTestId('feeding-table')).toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Pick the bag size that lasts a month' }),
+    );
+    expect(router.state.location.search).toContain('variant=KIB-2000');
+    expect(router.state.location.hash).toBe('#feeding');
+    expect(screen.getByTestId('feeding-bag')).toHaveTextContent('about 50 days');
+  });
 });

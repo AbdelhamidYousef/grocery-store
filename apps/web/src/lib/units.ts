@@ -23,3 +23,12 @@ export function gramsToKg(grams: number): string {
 export function formatGrams(grams: number): string {
   return grams >= 1000 ? `${gramsToKg(grams)} kg` : `${grams} g`;
 }
+
+const KG = /^\d{1,3}(?:[.,]\d{1,3})?$/;
+/** "7.5" or "7,5" -> 7500 grams, done on the text; null for anything else. */
+export function kgToGrams(raw: string): number | null {
+  const text = raw.trim();
+  if (!KG.test(text)) return null;
+  const [whole = '0', fraction = ''] = text.replace(',', '.').split('.');
+  return Number(whole) * 1000 + Number(fraction.padEnd(3, '0'));
+}

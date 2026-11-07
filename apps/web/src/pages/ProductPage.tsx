@@ -1,4 +1,4 @@
-import type { ProductDetail } from '@store/shared';
+import type { ProductDetail, Variant } from '@store/shared';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
@@ -66,6 +66,16 @@ function ProductView({ product }: { product: ProductDetail }) {
   const variant = variantFromSku(product.variants, params.get('variant'));
   const location = useLocation();
   const cart = useAddToCartAction(product);
+  // replace: choosing colours is exploring, not navigating, so Back should leave the product
+  // rather than step through every swatch. The hash (open tab) stays.
+  const selectVariant = (next: Variant) => {
+    const nextParams = new URLSearchParams(location.search);
+    nextParams.set('variant', next.sku);
+    navigate(
+      { pathname: location.pathname, search: `?${nextParams}`, hash: location.hash },
+      { replace: true, preventScrollReset: true },
+    );
+  };
   // Which photo is shown is derived, not synced with an effect: a thumbnail the shopper picked
   // wins for the variant it was picked on; otherwise a variant with its own photo shows it; else
   // the first image. Changing variant therefore swaps the photo with no extra render.
@@ -194,16 +204,7 @@ function ProductView({ product }: { product: ProductDetail }) {
                 optionKeys={product.optionKeys}
                 variants={product.variants}
                 selected={variant}
-                onSelect={(next) => {
-                  // replace: choosing colours is exploring, not navigating, so Back should leave
-                  // the product rather than step through every swatch. The hash (open tab) stays.
-                  const nextParams = new URLSearchParams(location.search);
-                  nextParams.set('variant', next.sku);
-                  navigate(
-                    { pathname: location.pathname, search: `?${nextParams}`, hash: location.hash },
-                    { replace: true, preventScrollReset: true },
-                  );
-                }}
+                onSelect={selectVariant}
               />
             )}
 
@@ -233,6 +234,7 @@ function ProductView({ product }: { product: ProductDetail }) {
         <ProductTabs
           product={product}
           variant={variant}
+          onPickVariant={selectVariant}
           attributes={
             <dl
               data-testid={TEST_IDS.productAttributes}

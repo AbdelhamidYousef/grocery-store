@@ -79,3 +79,137 @@ export const FeedingTableInputSchema = z
       ctx.addIssue({ code: 'custom', message: p.message, path: [p.index, 'petWeightGMin'] });
     }
   });
+
+// ---------------------------------------------------------------------------------------------
+// The calculator. Integer arithmetic only: grams in, grams out, cents for money.
+// ---------------------------------------------------------------------------------------------
+
+/** round_half_up(a / b) for integer a and integer b > 0 (a may be negative). */
+function divRoundHalfUp(a: number, b: number): number {
+  return Math.floor((2 * a + b) / (2 * b));
+}
+
+export interface FeedingInput {
+  /** Pet weight in grams. */
+  weightG: number;
+  lifeStage: LifeStage;
+  /** Meals a day; 2 unless the shopper (or an adult cat's plan) says otherwise. */
+  portions?: number;
+}
+
+export interface FeedingResult {
+  /** Daily amount in grams, interpolated between the midpoints of neighbouring bands. */
+  dailyG: number;
+  portions: number;
+  /** Per meal, rounded half up (so the meals can differ from the day by a gram). */
+  gramsPerPortion: number;
+  /** Set when the weight is outside the table: the weight is clamped to its edge. The UI must say so. */
+  clamped: 'below' | 'above' | null;
+  /** The weight the maths used (after clamping). */
+  usedWeightG: number;
+  /** The table the answer came from: the life stage asked for, or `any` when it has none. */
+  lifeStage: LifeStage;
+  /** Range of weights the table covers, for the UI's wording. */
+  coversFromG: number;
+  coversToG: number;
+}
+
+/** The rows that apply to a life stage: its own table, else the all-stages one, else nothing. */
+export function rowsForStage(rows: readonly FeedingRow[], stage: LifeStage): FeedingRow[] {
+  const own = rows.filter((r) => r.lifeStage === stage);
+  const table = own.length > 0 ? own : rows.filter((r) => r.lifeStage === 'any');
+  return [...table].sort((a, b) => a.petWeightGMin - b.petWeightGMin);
+}
+
+/**
+ * Daily feeding for a pet weight. Each band is represented by its MIDPOINT (the weight at the
+ * middle of the band, rounded half up), and between two neighbouring midpoints the daily amount
+ * moves in a straight line, so a pet 1 g heavier never jumps by a whole band's difference. Below
+ * the first midpoint and above the last, the amount stays flat. A weight outside the table is
+ * clamped to its edge and flagged (`clamped`); it is never silently guessed.
+ *
+ * Returns null when the product has no usable table or the weight is not a positive integer.
+ */
+export function calculateFeeding(
+  rows: readonly FeedingRow[],
+  { weightG, lifeStage, portions = 2 }: FeedingInput,
+): FeedingResult | null {
+  if (!Number.isInteger(weightG) || weightG <= 0) return null;
+  if (!Number.isInteger(portions) || portions < 1) return null;
+  const table = rowsForStage(rows, lifeStage);
+  const first = table[0];
+  const last = table[table.length - 1];
+  if (!first || !last) return null;
+
+  const coversFromG = first.petWeightGMin;
+  // The upper edge is exclusive, so the heaviest weight the table covers is one gram less.
+  const coversToG = last.petWeightGMax;
+  let clamped: FeedingResult['clamped'] = null;
+  let used = weightG;
+  if (weightG < coversFromG) {
+    clamped = 'below';
+    used = coversFromG;
+  } else if (weightG >= coversToG) {
+    clamped = 'above';
+    used = coversToG - 1;
+  }
+
+  const points = table.map((r) => ({
+    at: divRoundHalfUp(r.petWeightGMin + r.petWeightGMax, 2),
+    dailyG: r.dailyG,
+  }));
+  let dailyG = points[0]?.dailyG ?? first.dailyG;
+  if (used >= (points[points.length - 1]?.at ?? 0)) {
+    dailyG = points[points.length - 1]?.dailyG ?? last.dailyG;
+  } else if (used > (points[0]?.at ?? 0)) {
+    for (let i = 1; i < points.length; i++) {
+      const lo = points[i - 1];
+      const hi = points[i];
+      if (!lo || !hi || used > hi.at) continue;
+      dailyG = lo.dailyG + divRoundHalfUp((hi.dailyG - lo.dailyG) * (used - lo.at), hi.at - lo.at);
+      break;
+    }
+  }
+
+  return {
+    dailyG,
+    portions,
+    gramsPerPortion: divRoundHalfUp(dailyG, portions),
+    clamped,
+    usedWeightG: used,
+    lifeStage: table[0]?.lifeStage ?? lifeStage,
+    coversFromG,
+    coversToG,
+  };
+}
+
+/** Whole days a pack lasts at a daily amount (the last partial day is not counted). */
+export function daysPerBag(packG: number, dailyG: number): number {
+  if (!Number.isInteger(packG) || !Number.isInteger(dailyG) || packG <= 0 || dailyG <= 0) return 0;
+  return Math.floor(packG / dailyG);
+}
+
+/** What a day of feeding costs, in cents, rounded half up: price * dailyG / packG. */
+export function costPerDayCents(priceCents: number, packG: number, dailyG: number): number {
+  if (!Number.isInteger(priceCents) || !Number.isInteger(packG) || !Number.isInteger(dailyG)) {
+    return 0;
+  }
+  if (packG <= 0 || dailyG <= 0 || priceCents < 0) return 0;
+  return divRoundHalfUp(priceCents * dailyG, packG);
+}
+
+/**
+ * Of the candidate packs, the smallest one that lasts at least `days`; if none does, the biggest
+ * (the closest the shop can get). Candidates are { id, packG }. Null for an empty list.
+ */
+export function packForDays<T extends { packG: number }>(
+  candidates: readonly T[],
+  dailyG: number,
+  days: number,
+): T | null {
+  if (candidates.length === 0 || dailyG <= 0) return null;
+  const sorted = [...candidates].sort((a, b) => a.packG - b.packG);
+  return (
+    sorted.find((c) => daysPerBag(c.packG, dailyG) >= days) ?? sorted[sorted.length - 1] ?? null
+  );
+}

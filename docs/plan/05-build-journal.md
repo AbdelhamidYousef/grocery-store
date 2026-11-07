@@ -765,3 +765,10 @@ Learn: convert units at the edge of the form, on text, and send the API one unit
 - Delivery tab: shared copy with no figures (they live on the Shipping page and at checkout) plus the product's own delivery note.
 - Tests: tab list per product, keyboard (arrows, End), hash open and fallback, constituents per variant with the tab kept, FAQ accordion and JSON-LD (and none without FAQs), delivery links; Seo JSON-LD (replace, cleanup, `</script>` inside data stays data).
 Learn: a URL hash is state the router does not touch unless you carry it, and a tab strip should be derived from the data so empty panels cannot exist.
+
+### 16.4 — feeding calculator
+- `packages/shared/src/feeding.ts` gains the pure maths: `calculateFeeding(rows, { weightG, lifeStage, portions })`, `daysPerBag`, `costPerDayCents` and `packForDays`. Everything is integers: a band is represented by its midpoint, the amount moves in a straight line between neighbouring midpoints with `round_half_up(a / b) = floor((2a + b) / (2b))` (which also works for a falling table), and money is `price * daily / pack` rounded the same way. The tests include boundaries (lower edge in, upper edge out), a monotonic sweep over 19 kg, a falling table, rounding of meals, life-stage fallback and bad input.
+- Out-of-range weights are clamped to the edge of the table and flagged; the UI says "Our guide starts at 1 kg, so this is the amount for 1 kg. Ask your vet..." instead of guessing.
+- UI: a number box (kg as text, parsed to grams from the characters), a 100 g slider, meals a day, a life stage select when there is more than one table, then the answer as a sentence ("About 280 g a day, two meals of 140 g"), "This bag lasts about 21 days, about EUR 0.84 a day", a "Pick the bag size that lasts a month" button that changes `?variant=` and keeps the tab, and the disclaimer. The cup is CSS only and respects reduced motion.
+- The feeding table sits under the calculator, so the numbers are readable without using it.
+Learn: write the rounding rule once, as a function, and test its edges (halves, negative slopes, exclusive upper bound); the UI then only formats what the function returns.

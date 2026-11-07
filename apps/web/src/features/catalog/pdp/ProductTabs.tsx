@@ -6,6 +6,7 @@ import { TEST_IDS } from '../../../lib/test-ids';
 
 import { DeliveryPanel } from './DeliveryPanel';
 import { FaqAccordion } from './FaqAccordion';
+import { FeedingCalculator } from './FeedingCalculator';
 import { FeedingTable } from './FeedingTable';
 import { SpecsPanel } from './SpecsPanel';
 
@@ -46,13 +47,13 @@ export function ProductTabs({
   product,
   variant,
   attributes,
-  feeding,
+  onPickVariant,
 }: {
   product: ProductDetail;
   variant: Variant | undefined;
   attributes: React.ReactNode;
-  /** The feeding calculator, rendered above the table (step 16.4). */
-  feeding?: React.ReactNode;
+  /** Called when the feeding calculator suggests another pack size. */
+  onPickVariant: (variant: Variant) => void;
 }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -78,7 +79,7 @@ export function ProductTabs({
     ),
     feeding: (
       <div className="flex flex-col gap-6">
-        {feeding}
+        <FeedingCalculator product={product} variant={variant} onPickVariant={onPickVariant} />
         <FeedingTable rows={product.feedingTable} />
       </div>
     ),
