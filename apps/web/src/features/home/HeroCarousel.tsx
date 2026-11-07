@@ -62,7 +62,7 @@ export function HeroCarousel({ slides }: { slides: readonly HeroSlide[] }) {
             aria-label={`${i + 1} of ${count}`}
             hidden={i !== index}
             data-testid="hero-slide"
-            className="mx-auto grid h-full max-w-7xl grid-rows-[1fr_auto] gap-4 px-4 pb-20 pt-6 sm:px-6 md:grid-cols-2 md:grid-rows-1 md:items-center md:gap-8 md:pb-16 lg:px-8"
+            className="mx-auto grid h-full max-w-7xl [&[hidden]]:hidden grid-rows-[1fr_auto] gap-4 px-4 pb-20 pt-6 sm:px-6 md:grid-cols-2 md:grid-rows-1 md:items-center md:gap-8 md:pb-16 lg:px-8"
           >
             <div className="order-2 flex min-h-0 flex-col items-start gap-3 md:order-1">
               <h2 className="line-clamp-2 font-display text-3xl font-bold leading-tight text-ink sm:text-4xl md:text-5xl">
