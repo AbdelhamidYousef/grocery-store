@@ -16,6 +16,7 @@ export * from './order-items.ts';
 export * from './order-status-history.ts';
 export * from './orders.ts';
 export * from './payments.ts';
+export * from './pets.ts';
 export * from './product-images.ts';
 export * from './product-variants.ts';
 export * from './products.ts';

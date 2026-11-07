@@ -18,6 +18,7 @@ import { helpRouter } from './help/router.ts';
 import { homeRouter } from './home/router.ts';
 import type { Outbox } from './mail/outbox.ts';
 import { merchandisingRouter } from './merchandising/router.ts';
+import { createPetsRouter } from './pets/router.ts';
 import { promotionsRouter } from './promotions/router.ts';
 import { registerPromotionSubscribers } from './promotions/service.ts';
 import { safetyRouter } from './safety/router.ts';
@@ -67,6 +68,7 @@ export function createModulesRouter(opts: {
   router.use(noStore);
   router.use(createAuthRouter(opts));
   router.use(createAccountRouter(opts));
+  router.use(createPetsRouter());
   router.use(cartRouter);
   router.use(createTrackingRouter(opts));
   router.use(createWithdrawalsRouter(opts));
