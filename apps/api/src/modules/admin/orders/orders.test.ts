@@ -28,6 +28,7 @@ interface Detail {
     payment: { status: string; providerPaymentIntentId: string } | null;
     customer: { email: string } | null;
     history: { toStatus: string; actor: string; note: string | null }[];
+    promotions: { type: string; label: string; cents: number }[];
     allowedNext: string[];
   };
 }
@@ -94,6 +95,7 @@ describe('GET /admin/orders/:number', () => {
       ['paid', 'system:webhook'],
     ]);
     expect(data.allowedNext).toEqual(['processing', 'refunded', 'cancelled']);
+    expect(data.promotions).toEqual([]);
   });
 
   it('has no customer for a guest order, and answers 404 / 400 for unknown or malformed numbers', async () => {

@@ -546,6 +546,7 @@ export function makeAdminOrderDetail(
         at: '2026-10-30T09:15:00.000Z',
       },
     ],
+    promotions: [],
     allowedNext: ['processing', 'cancelled'],
     ...overrides,
   };

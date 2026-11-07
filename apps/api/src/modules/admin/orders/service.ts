@@ -8,6 +8,7 @@ import * as checkoutRepo from '../../checkout/repo.ts';
 import { transitionOrder } from '../../orders/service.ts';
 import { requestableNext } from '../../orders/state-machine.ts';
 import { toOrderDto } from '../../orders/view.ts';
+import { listOrderPromotions } from '../../promotions/repo.ts';
 
 import * as repo from './repo.ts';
 
@@ -42,11 +43,12 @@ export async function listOrders(query: {
 export async function getOrderDetail(number: string): Promise<AdminOrderDetail> {
   const order = await checkoutRepo.findOrderByNumber(number);
   if (!order) throw notFound('Order not found');
-  const [items, payment, history, customer] = await Promise.all([
+  const [items, payment, history, customer, promotions] = await Promise.all([
     checkoutRepo.listOrderItems(db, order.id),
     checkoutRepo.findPaymentByOrder(db, order.id),
     repo.listHistory(order.id),
     order.userId ? repo.findCustomer(order.userId) : undefined,
+    listOrderPromotions(db, order.id),
   ]);
   return {
     order: toOrderDto(order, items, payment),
@@ -73,6 +75,7 @@ export async function getOrderDetail(number: string): Promise<AdminOrderDetail> 
       note: h.note,
       at: h.createdAt.toISOString(),
     })),
+    promotions: promotions.map((p) => ({ type: p.type, label: p.label, cents: p.cents })),
     allowedNext: [...requestableNext(order.status)],
   };
 }

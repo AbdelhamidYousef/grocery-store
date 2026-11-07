@@ -354,6 +354,10 @@ export const AdminOrderDetailSchema = z.object({
     .nullable(),
   customer: z.object({ id: z.string(), email: z.string(), name: z.string() }).nullable(),
   history: z.array(AdminHistoryEntrySchema),
+  // The snapshot of what the pricing engine applied (code, tier, gift, free shipping, credit).
+  promotions: z.array(
+    z.object({ type: z.string(), label: z.string(), cents: z.number().int().min(0) }),
+  ),
   // What the transition buttons may offer: exactly the state machine's requestable moves.
   allowedNext: z.array(OrderStatusSchema),
 });

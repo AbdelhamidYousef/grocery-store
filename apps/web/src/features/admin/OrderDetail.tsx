@@ -52,7 +52,7 @@ function Address({ title, address }: { title: string; address: OrderAddress | nu
 }
 
 function Body({ detail }: { detail: AdminOrderDetail }) {
-  const { order, payment, customer, history } = detail;
+  const { order, payment, customer, history, promotions } = detail;
   const { totals } = order;
   const money = (cents: number) => formatMoney(cents, totals.currency);
   return (
@@ -146,6 +146,21 @@ function Body({ detail }: { detail: AdminOrderDetail }) {
           <dt className="font-bold">Total</dt>
           <dd className="text-right font-bold">{money(totals.totalCents)}</dd>
         </dl>
+        {promotions.length > 0 && (
+          <div>
+            <h4 className="font-semibold">Promotions applied</h4>
+            <ul
+              className="mt-1 flex flex-col gap-1 text-sm"
+              data-testid={TEST_IDS.adminOrderPromotions}
+            >
+              {promotions.map((p, i) => (
+                <li key={`${p.type}-${i}`} className="break-words">
+                  {p.label}: {p.cents > 0 ? `-${money(p.cents)}` : 'no charge'}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </section>
 
       <section aria-labelledby="order-customer" className="grid grid-cols-1 gap-6 sm:grid-cols-2">

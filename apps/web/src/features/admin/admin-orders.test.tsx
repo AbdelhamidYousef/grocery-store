@@ -128,6 +128,29 @@ describe('admin order detail', () => {
     expect(steps[1]).toHaveTextContent('by stripe');
   });
 
+  it('lists the promotions snapshot, and nothing when there are none', async () => {
+    serveOrder(
+      makeAdminOrderDetail({
+        promotions: [
+          { type: 'code', label: 'PAWS10', cents: 380 },
+          { type: 'gift', label: 'Free gift: Peanut Crunch Biscuits', cents: 0 },
+        ],
+      }),
+    );
+    renderApp(`/admin/orders/${NUMBER}`);
+    const list = await screen.findByTestId('admin-order-promotions');
+    expect(within(list).getAllByRole('listitem')).toHaveLength(2);
+    expect(list).toHaveTextContent('PAWS10: -€3.80');
+    expect(list).toHaveTextContent('Free gift: Peanut Crunch Biscuits: no charge');
+  });
+
+  it('shows no promotions block for an order without any', async () => {
+    serveOrder();
+    renderApp(`/admin/orders/${NUMBER}`);
+    await screen.findByRole('heading', { name: NUMBER });
+    expect(screen.queryByTestId('admin-order-promotions')).not.toBeInTheDocument();
+  });
+
   it('offers exactly the allowed moves as buttons, never "paid"', async () => {
     serveOrder(makeAdminOrderDetail({ allowedNext: ['processing', 'paid', 'cancelled'] }));
     renderApp(`/admin/orders/${NUMBER}`);

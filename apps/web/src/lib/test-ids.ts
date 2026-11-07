@@ -169,6 +169,7 @@ export const TEST_IDS = {
   adminVariantForm: 'admin-variant-form',
   adminStockForm: 'admin-stock-form',
   adminOrderStatus: 'admin-order-status',
+  adminOrderPromotions: 'admin-order-promotions',
   adminTransition: 'admin-transition',
   adminTimeline: 'admin-timeline',
   adminStripeLink: 'admin-stripe-link',
