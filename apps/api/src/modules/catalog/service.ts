@@ -1,4 +1,5 @@
 import {
+  CONSTITUENT_KEYS,
   FACET_KEYS,
   badgeFromSlug,
   badgeSlug,
@@ -307,6 +308,10 @@ export async function listBestsellerCards(limit: number): Promise<ProductCard[]>
 
 // ---------- product detail ----------
 
+const CONSTITUENT_ORDER: readonly string[] = CONSTITUENT_KEYS;
+const sortConstituents = <T extends { key: string }>(list: T[]): T[] =>
+  [...list].sort((a, b) => CONSTITUENT_ORDER.indexOf(a.key) - CONSTITUENT_ORDER.indexOf(b.key));
+
 export async function getProduct(slug: string, viewer: Viewer = GUEST): Promise<ProductDetail> {
   const rows = await repo.getProductBySlug(slug);
   // A product with no active variant cannot be bought, so it is as good as missing (the list
@@ -337,6 +342,8 @@ export async function getProduct(slug: string, viewer: Viewer = GUEST): Promise<
       swatchHex: v.swatchHex,
       sale: offers.byVariant.get(v.id) ?? null,
       ...memberFields(members.byVariant.get(v.id), viewer.isMember),
+      // Fixed display order (protein first), not insertion order.
+      constituents: sortConstituents(rows.constituents.get(v.id) ?? []),
     };
   });
   // A sample size must not set the "from" price of the product.
@@ -376,5 +383,17 @@ export async function getProduct(slug: string, viewer: Viewer = GUEST): Promise<
     // Notices are looked up by variant: a recall is often one size, and the page then warns about
     // the product as a whole (the shopper may switch variants without a reload).
     safetyNotices: await noticesForVariants(rows.variants.map((v) => v.id)),
+    specs: rows.specs,
+    faqs: rows.faqs,
+    feedingTable: rows.feeding,
+    sizeGuide: rows.sizeGuide && {
+      slug: rows.sizeGuide.slug,
+      title: rows.sizeGuide.title,
+      columns: rows.sizeGuide.table.columns,
+      rows: rows.sizeGuide.table.rows,
+      howtoMd: rows.sizeGuide.howtoMd,
+      tip: rows.sizeGuide.tip,
+    },
+    deliveryNote: rows.deliveryNote,
   };
 }

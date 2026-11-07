@@ -1,9 +1,11 @@
 import { z } from 'zod';
 
 import { BADGES, BADGE_SLUGS } from '../badges.ts';
+import { FeedingRowSchema } from '../feeding.ts';
 import { NetUnitSchema } from '../pets.ts';
 
 import { PaginatedSchema, PaginationQuerySchema, DataSchema } from './common.ts';
+import { ConstituentSchema, FaqSchema, SizeGuideSchema, SpecSchema } from './pdp.ts';
 import { MemberOfferSchema, SaleOfferSchema } from './promotions.ts';
 import { SafetyNoticeSchema } from './safety.ts';
 
@@ -164,6 +166,8 @@ export const VariantSchema = z.object({
   sale: SaleOfferSchema.nullable(),
   hasMemberPrice: z.boolean(),
   member: MemberOfferSchema.nullable(),
+  // Guaranteed analysis per 100 g (empty for a toy). The tab shows the selected variant's.
+  constituents: z.array(ConstituentSchema),
 });
 export type Variant = z.infer<typeof VariantSchema>;
 
@@ -195,6 +199,12 @@ export const ProductDetailSchema = z.object({
   images: z.array(ImageSchema),
   // Active safety notices (recalls, warnings) that touch any variant of this product.
   safetyNotices: z.array(SafetyNoticeSchema),
+  specs: z.array(SpecSchema),
+  faqs: z.array(FaqSchema),
+  // Empty for products that are not fed (a toy), and then the Feeding guide tab is left out.
+  feedingTable: z.array(FeedingRowSchema),
+  sizeGuide: SizeGuideSchema.nullable(),
+  deliveryNote: z.string().nullable(),
 });
 export type ProductDetail = z.infer<typeof ProductDetailSchema>;
 export const ProductDetailResponseSchema = DataSchema(ProductDetailSchema);

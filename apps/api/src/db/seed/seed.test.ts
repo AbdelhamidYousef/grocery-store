@@ -135,3 +135,32 @@ describe('seed', () => {
     expect(rows[0]?.n).toBe(await counts().then((c) => c?.inventory));
   });
 });
+
+describe('seed: product page content', () => {
+  it('seeds specs, FAQs, tiling feeding tables, constituents and size guides, once', async () => {
+    await runSeed();
+    const read = async () =>
+      (
+        await db.execute<Record<string, number>>(sql`
+          select
+            (select count(*)::int from product_specs) as specs,
+            (select count(*)::int from product_faqs) as faqs,
+            (select count(*)::int from feeding_rows) as feeding,
+            (select count(*)::int from variant_constituents) as constituents,
+            (select count(*)::int from size_guides) as guides,
+            (select count(*)::int from products where size_guide_id is not null) as guided,
+            (select count(*)::int from products p where
+               not exists (select 1 from product_specs s where s.product_id = p.id)) as without_specs`)
+      )[0];
+    const first = await read();
+    await runSeed();
+    expect(await read()).toEqual(first);
+    expect(first?.without_specs).toBe(0);
+    expect(first?.guides).toBe(3);
+    expect(first?.guided).toBeGreaterThan(5);
+    expect(first?.feeding).toBeGreaterThan(30);
+    // Constituents come in sixes (five percentages and kcal) per variant of a fed product.
+    expect((first?.constituents ?? 0) % 6).toBe(0);
+    expect(first?.constituents).toBeGreaterThan(100);
+  });
+});

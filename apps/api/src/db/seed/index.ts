@@ -10,15 +10,20 @@ import {
   collectionProducts,
   collections as collectionsTable,
   discountCodes,
+  feedingRows,
   giftRules,
   inventory,
+  productFaqs,
   productImages,
+  productSpecs,
   productTags,
   productVariants,
   products as productsTable,
   shippingMethods as shippingTable,
+  sizeGuides as sizeGuidesTable,
   tags as tagsTable,
   users,
+  variantConstituents,
 } from '../schema/index.ts';
 
 import { HOUSE_BRAND, brands } from './brands.ts';
@@ -29,6 +34,7 @@ import { FORCED_STOCK, expandVariants, stockLevels } from './expand.ts';
 import { seedHomeContent } from './home.ts';
 import { imageRowsFor } from './images.ts';
 import { seedMenuPromos } from './menu-promos.ts';
+import { assertFeedingTablesTile, pdpFor, sizeGuides } from './pdp.ts';
 import { products } from './products.ts';
 import {
   bulkTierSeeds,
@@ -52,6 +58,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export async function runSeed(now = new Date()) {
   // A typo in any seed file fails here, naming the product, before the database is touched.
   validateSeed(products);
+  assertFeedingTablesTile(products);
   const passwordHash = await hashDemoPassword();
   // Read and validated before the transaction opens: a bad Markdown file stops the seed up front.
   const content = loadContent();
@@ -320,6 +327,73 @@ export async function runSeed(now = new Date()) {
         }));
       }),
     );
+
+    // ---- product page content (phase 16): specs, FAQs, feeding tables, constituents, size
+    // guides. Replaced wholesale for the seeded products, so a re-seed gives the same rows. ----
+    const guideRows = await tx
+      .insert(sizeGuidesTable)
+      .values(
+        sizeGuides.map((g) => ({
+          slug: g.slug,
+          title: g.title,
+          rows: g.table,
+          howtoMd: g.howtoMd,
+          tip: g.tip,
+        })),
+      )
+      .onConflictDoUpdate({
+        target: sizeGuidesTable.slug,
+        set: {
+          title: excluded('title'),
+          rows: excluded('rows'),
+          howtoMd: excluded('howto_md'),
+          tip: excluded('tip'),
+        },
+      })
+      .returning({ id: sizeGuidesTable.id, slug: sizeGuidesTable.slug });
+    const guideId = new Map(guideRows.map((r) => [r.slug, r.id]));
+    const seededIds = [...productId.values()];
+    await tx.delete(productSpecs).where(inArray(productSpecs.productId, seededIds));
+    await tx.delete(productFaqs).where(inArray(productFaqs.productId, seededIds));
+    await tx.delete(feedingRows).where(inArray(feedingRows.productId, seededIds));
+    await tx.delete(variantConstituents).where(
+      inArray(
+        variantConstituents.variantId,
+        variantRows.map((v) => v.id),
+      ),
+    );
+    for (const p of products) {
+      const id = productId.get(p.slug);
+      if (!id) throw new Error(`product ${p.slug} was not inserted`);
+      const pdp = pdpFor(p);
+      await tx
+        .insert(productSpecs)
+        .values(pdp.specs.map((s, sortOrder) => ({ productId: id, ...s, sortOrder })));
+      await tx
+        .insert(productFaqs)
+        .values(pdp.faqs.map((f, sortOrder) => ({ productId: id, ...f, sortOrder })));
+      if (pdp.feeding.length > 0) {
+        await tx.insert(feedingRows).values(pdp.feeding.map((r) => ({ productId: id, ...r })));
+      }
+      if (pdp.constituents) {
+        const values = Object.entries(pdp.constituents);
+        const ids = expandVariants(p).map((v) => variantId.get(v.sku) ?? '');
+        await tx
+          .insert(variantConstituents)
+          .values(
+            ids.flatMap((variant) =>
+              values.map(([key, valueBp]) => ({ variantId: variant, key, valueBp })),
+            ),
+          );
+      }
+      await tx
+        .update(productsTable)
+        .set({
+          sizeGuideId: pdp.sizeGuideSlug ? (guideId.get(pdp.sizeGuideSlug) ?? null) : null,
+          deliveryNote: pdp.deliveryNote,
+        })
+        .where(eq(productsTable.id, id));
+    }
 
     // ---- guides, help articles, testimonials (after products: guides link to them) ----
     await seedContent(tx, content, productId);

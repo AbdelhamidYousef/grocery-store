@@ -139,6 +139,7 @@ export function makeVariant(overrides: Partial<Variant> = {}): Variant {
     sale: null,
     hasMemberPrice: false,
     member: null,
+    constituents: [],
     ...overrides,
   };
 }
@@ -196,6 +197,11 @@ export function makeProduct(overrides: Partial<ProductDetail> = {}): ProductDeta
       },
     ],
     safetyNotices: [],
+    specs: [],
+    faqs: [],
+    feedingTable: [],
+    sizeGuide: null,
+    deliveryNote: null,
     ...overrides,
   };
 }
