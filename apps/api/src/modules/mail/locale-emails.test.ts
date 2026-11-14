@@ -28,7 +28,7 @@ describe('emails without an order follow the store view the person used', () => 
     expect(res.status).toBe(201);
     await outbox.drain();
     const toCustomer = transport.sent.find((m) => m.to === 'hanna@grocery.test');
-    expect(toCustomer?.subject).toMatch(/^Wir haben Ihre Nachricht erhalten/);
+    expect(toCustomer?.subject).toMatch(/^Wir haben deine Nachricht erhalten/);
     expect(toCustomer?.text).toContain('Thema: Meine Bestellung');
     const toShop = transport.sent.find((m) => m.to !== 'hanna@grocery.test');
     expect(toShop?.subject).toMatch(/^\[Contact\] My order from Hanna/);

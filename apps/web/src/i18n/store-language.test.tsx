@@ -20,7 +20,7 @@ const table = [{ element: <StoreLayout />, children: [{ path: '*', element: <Pro
 describe('the store view picks the language and number format', () => {
   it.each([
     ['/de-en/x', 'Your cart | 1 product | €1,234.50'],
-    ['/de-de/x', 'Ihr Warenkorb |'],
+    ['/de-de/x', 'Dein Warenkorb |'],
   ])('%s', (path, expected) => {
     renderApp(path, table);
     const text = screen.getByTestId('out').textContent ?? '';

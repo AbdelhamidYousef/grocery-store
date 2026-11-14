@@ -188,7 +188,7 @@ test('German store: German words and euros; English store: euros, checkout, Engl
     timeout: 15_000,
   });
   await expect(page.getByTestId('order-summary').getByTestId('order-total')).toContainText('€');
-  expect(await mailSubject(deMail)).toBe(`Ihre Grocery-Bestellung ${deNumber} ist bestätigt`);
+  expect(await mailSubject(deMail)).toBe(`Deine Grocery-Bestellung ${deNumber} ist bestätigt`);
 
   // --- switch to /de-en: English words, still euros ---
   await page.getByTestId('store-switcher').selectOption('de-en');

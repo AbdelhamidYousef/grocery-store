@@ -76,8 +76,8 @@ describe('email dictionaries', () => {
 describe('order emails in the order language', () => {
   it('confirmation in German: German words, euros in the German format, store-prefixed link', () => {
     const mail = orderConfirmation(order, emailText('de-de'));
-    expect(mail.subject).toBe('Ihre Grocery-Bestellung PW-2026-000007 ist bestätigt');
-    expect(mail.text).toContain('Vielen Dank für Ihre Bestellung, Ada Lovelace!');
+    expect(mail.subject).toBe('Deine Grocery-Bestellung PW-2026-000007 ist bestätigt');
+    expect(mail.text).toContain('Danke für deine Bestellung, Ada Lovelace.');
     expect(mail.text).toContain('Zwischensumme: 25,98');
     expect(mail.text).toContain('Gesamtsumme: 30,88');
     expect(mail.text).toContain('/de-de/track-order?number=PW-2026-000007');
@@ -98,7 +98,7 @@ describe('order emails in the order language', () => {
         { confirmUrl: 'https://x/c', unsubscribeUrl: 'https://x/u', hours: 48 },
         emailText('de-de'),
       ).subject,
-    ).toBe('Bestätigen Sie Ihr Grocery-Abonnement');
+    ).toBe('Bestätige dein Grocery-Abonnement');
     expect(
       renderQueuedEmail(
         'newsletter_confirm',

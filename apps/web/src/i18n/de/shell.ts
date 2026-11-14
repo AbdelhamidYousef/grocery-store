@@ -120,7 +120,7 @@ export const shell: Record<keyof typeof enNs, Entry> = {
   'shell.home.shopByPet': 'Nach Tier einkaufen',
   'shell.home.bestsellers': 'Bestseller',
   'shell.home.bestsellersError':
-    'Wir konnten unsere Bestseller gerade nicht laden. Bitte versuchen Sie es gleich noch einmal.',
+    'Wir konnten unsere Bestseller gerade nicht laden. Bitte versuche es gleich noch einmal.',
   'shell.home.featured': 'Ausgewählte Angebote',
   'shell.home.slideOf': '{n} von {count}',
   'shell.home.prev': 'Vorherige Folie',
@@ -177,7 +177,7 @@ export const shell: Record<keyof typeof enNs, Entry> = {
   'shell.notFound.pageHint':
     'Der Link ist möglicherweise veraltet, oder die Seite wurde verschoben.',
   'shell.notFound.back': 'Zurück zum Shop',
-  'shell.notFound.orLookAt': 'Oder schauen Sie sich an',
+  'shell.notFound.orLookAt': 'Oder sieh dir das an',
   'shell.error.title': 'Etwas ist schiefgelaufen',
   'shell.error.notFoundHeading': 'Diese Seite finden wir nicht',
   'shell.error.notFoundText': 'Die angeforderte Seite existiert nicht.',

@@ -19,14 +19,12 @@ export const search: Record<keyof typeof enNs, Entry> = {
   'search.count.brands': { one: '{count} Marke', other: '{count} Marken' },
   'search.recentCount': { one: '{count} letzte Suche', other: '{count} letzte Suchen' },
   'search.noSuggestionsShort': 'Keine Vorschläge',
-  'search.noSuggestions':
-    'Keine Vorschläge. Drücken Sie die Eingabetaste, um nach „{query}“ zu suchen.',
-  'search.unavailable':
-    'Vorschläge sind nicht verfügbar. Drücken Sie die Eingabetaste, um zu suchen.',
+  'search.noSuggestions': 'Keine Vorschläge. Drücke die Eingabetaste, um nach „{query}“ zu suchen.',
+  'search.unavailable': 'Vorschläge sind nicht verfügbar. Drücke die Eingabetaste, um zu suchen.',
   'search.searching': 'Suche läuft',
   'search.searchingDots': 'Suche läuft ...',
   'search.page.title': 'Suche',
   'search.page.titleFor': 'Suche: {query}',
   'search.page.resultsFor': 'Ergebnisse für „{query}“',
-  'search.page.prompt': 'Geben Sie oben im Suchfeld ein, wonach Sie suchen.',
+  'search.page.prompt': 'Gib oben im Suchfeld ein, wonach du suchst.',
 };

@@ -7,14 +7,14 @@ export const content: Record<keyof typeof enNs, Entry> = {
   'content.guides.seoDescription':
     'Kurze, freundliche Ratgeber für Halter von Hunden, Katzen, Vögeln, Fischen und Kleintieren.',
   'content.guides.intro':
-    'Kurze, freundliche Lektüre für glücklichere Tiere. Geschrieben für einen Demo-Shop, also verstehen Sie sie als Inspiration und fragen Sie bei Sorgen Ihre Tierarztpraxis.',
+    'Kurze, freundliche Lektüre für glücklichere Tiere. Geschrieben für einen Demo-Shop, also versteh sie als Inspiration und frag bei Sorgen deine Tierarztpraxis.',
   'content.guides.topics': 'Ratgeber-Themen',
   'content.guides.all': 'Alle Ratgeber',
   'content.guides.list': 'Ratgeber',
   'content.guides.listError': 'Die Ratgeber konnten nicht geladen werden.',
   'content.guides.retry': 'Erneut versuchen',
   'content.guides.noPage': 'Seite {page} gibt es nicht.',
-  'content.guides.empty': 'Hier gibt es noch keine Ratgeber. Schauen Sie bald wieder vorbei!',
+  'content.guides.empty': 'Hier gibt es noch keine Ratgeber. Schau bald wieder vorbei.',
   'content.guides.seeAll': 'Alle Ratgeber ansehen',
   'content.guides.minRead': '{minutes} Min. Lesezeit',
   'content.guides.errorTitle': 'Etwas ist schiefgelaufen',
@@ -26,8 +26,8 @@ export const content: Record<keyof typeof enNs, Entry> = {
 
   // Help centre
   'content.help.title': 'Hilfecenter',
-  'content.help.seoDescription': 'Antworten zu Versand, Rücksendungen, Zahlung und Ihrem Konto.',
-  'content.help.intro': 'Suchen Sie oder wählen Sie ein Thema.',
+  'content.help.seoDescription': 'Antworten zu Versand, Rücksendungen, Zahlung und deinem Konto.',
+  'content.help.intro': 'Suche oder wähle ein Thema.',
   'content.help.searchLabel': 'Hilfe durchsuchen',
   'content.help.searchInput': 'Hilfecenter durchsuchen',
   'content.help.topics': 'Hilfethemen',
@@ -41,11 +41,11 @@ export const content: Record<keyof typeof enNs, Entry> = {
   'content.help.retry': 'Erneut versuchen',
   'content.help.nothingFound': 'Nichts gefunden für „{q}“.',
   'content.help.noArticles': 'In diesem Thema gibt es noch keine Artikel.',
-  'content.help.tryDifferent': 'Versuchen Sie andere Suchbegriffe oder',
-  'content.help.browseAll': 'durchstöbern Sie alle Themen',
-  'content.help.stuck': '. Brauchen Sie noch Hilfe?',
-  'content.help.contact': 'Kontaktieren Sie uns',
-  'content.help.contactRest': 'und ein echter Mensch antwortet Ihnen.',
+  'content.help.tryDifferent': 'Versuche andere Suchbegriffe oder',
+  'content.help.browseAll': 'stöbere durch alle Themen',
+  'content.help.stuck': '. Brauchst du noch Hilfe?',
+  'content.help.contact': 'Kontaktiere uns',
+  'content.help.contactRest': 'und ein echter Mensch antwortet dir.',
   'content.help.results': {
     one: '{count} Antwort für „{q}“',
     other: '{count} Antworten für „{q}“',
@@ -73,16 +73,16 @@ export const content: Record<keyof typeof enNs, Entry> = {
 
   // Contact
   'content.contact.title': 'Kontakt',
-  'content.contact.seoDescription': 'Schreiben Sie dem Grocery-Team.',
+  'content.contact.seoDescription': 'Schreib dem Grocery-Team.',
   'content.contact.intro':
-    'Fragen zu einer Bestellung, einem Produkt oder Ihren Daten? Schreiben Sie uns, und ein Mensch antwortet Ihnen. Vielleicht finden Sie schnell eine Antwort im',
+    'Fragen zu einer Bestellung, einem Produkt oder deinen Daten? Schreib uns, und ein Mensch antwortet dir. Vielleicht findest du schnell eine Antwort im',
   'content.contact.helpLink': 'Hilfecenter',
-  'content.contact.name': 'Ihr Name',
+  'content.contact.name': 'Dein Name',
   'content.contact.email': 'E-Mail',
   'content.contact.emailHint': 'An diese Adresse antworten wir.',
   'content.contact.topic': 'Worum geht es?',
   'content.contact.topicChoose': 'Thema wählen',
-  'content.contact.topicRequired': 'Wählen Sie, worum es in Ihrer Nachricht geht',
+  'content.contact.topicRequired': 'Wähle, worum es in deiner Nachricht geht',
   'content.contact.topic.order': 'Meine Bestellung',
   'content.contact.topic.shipping': 'Versand und Lieferung',
   'content.contact.topic.returns': 'Rücksendungen und Erstattungen',
@@ -91,18 +91,18 @@ export const content: Record<keyof typeof enNs, Entry> = {
   'content.contact.topic.privacy': 'Meine Daten und Datenschutz',
   'content.contact.topic.other': 'Etwas anderes',
   'content.contact.order': 'Bestellnummer (optional)',
-  'content.contact.message': 'Ihre Nachricht',
+  'content.contact.message': 'Deine Nachricht',
   'content.contact.honeypot': 'Bitte leer lassen',
   'content.contact.send': 'Nachricht senden',
   'content.contact.tooMany':
-    'Sie haben bereits mehrere Nachrichten gesendet. Bitte warten Sie eine Weile und versuchen Sie es dann erneut.',
+    'Du hast bereits mehrere Nachrichten gesendet. Bitte warte eine Weile und versuche es dann erneut.',
   'content.contact.failed':
-    'Ihre Nachricht konnte gerade nicht gesendet werden. Bitte versuchen Sie es gleich noch einmal.',
+    'Deine Nachricht konnte gerade nicht gesendet werden. Bitte versuche es gleich noch einmal.',
   'content.contact.sentTitle': 'Nachricht gesendet',
-  'content.contact.thanks': 'Danke, wir haben Ihre Nachricht erhalten',
-  'content.contact.referenceBefore': 'Ihre Referenznummer lautet',
+  'content.contact.thanks': 'Danke, wir haben deine Nachricht erhalten',
+  'content.contact.referenceBefore': 'Deine Referenznummer lautet',
   'content.contact.referenceAfter':
-    '. Wir haben Ihnen eine Kopie per E-Mail geschickt und antworten an diese Adresse, in der Regel innerhalb von zwei Werktagen.',
+    '. Wir haben dir eine Kopie per E-Mail geschickt und antworten an diese Adresse, in der Regel innerhalb von zwei Werktagen.',
   'content.contact.browseHelp': 'Hilfecenter durchstöbern',
 
   // /developers
@@ -114,13 +114,13 @@ export const content: Record<keyof typeof enNs, Entry> = {
     'Dies ist ein Demo-Shop mit Testdaten, und WebMCP ist eine experimentelle Browser-Funktion. Nichts davon ist eine stabile öffentliche API.',
   'content.dev.whatTitle': 'Was ist WebMCP?',
   'content.dev.whatText':
-    'WebMCP ist ein Entwurf der W3C Web Machine Learning Community Group. Eine Seite registriert Tools beim Browser, und ein im Browser integrierter KI-Agent ruft sie mit JSON-Argumenten auf, statt den Bildschirm auszulesen. Die Tools laufen in Ihrem Tab, mit Ihrer eigenen Sitzung und Ihrem eigenen Warenkorb, über dieselbe API, die auch die Website selbst nutzt. Ein Agent kann also nie mehr tun als Sie. In einem Browser ohne WebMCP verhalten sich diese Seite und der gesamte Shop wie gewohnt.',
-  'content.dev.tryTitle': 'So probieren Sie es aus',
-  'content.dev.try1': 'Verwenden Sie Chrome 146 oder neuer (zum Zeitpunkt des Schreibens Canary).',
-  'content.dev.try2Before': 'Öffnen Sie',
-  'content.dev.try2After': ', stellen Sie es auf „Enabled“ und starten Sie den Browser neu.',
+    'WebMCP ist ein Entwurf der W3C Web Machine Learning Community Group. Eine Seite registriert Tools beim Browser, und ein im Browser integrierter KI-Agent ruft sie mit JSON-Argumenten auf, statt den Bildschirm auszulesen. Die Tools laufen in deinem Tab, mit deiner eigenen Sitzung und deinem eigenen Warenkorb, über dieselbe API, die auch die Website selbst nutzt. Ein Agent kann also nie mehr tun als du. In einem Browser ohne WebMCP verhalten sich diese Seite und der gesamte Shop wie gewohnt.',
+  'content.dev.tryTitle': 'So probierst du es aus',
+  'content.dev.try1': 'Verwende Chrome 146 oder neuer (zum Zeitpunkt des Schreibens Canary).',
+  'content.dev.try2Before': 'Öffne',
+  'content.dev.try2After': ', stell es auf „Enabled“ und starte den Browser neu.',
   'content.dev.try3':
-    'Öffnen Sie diesen Shop und bitten Sie den Agenten Ihres Browsers, ein Spielzeug zu finden und in den Warenkorb zu legen.',
+    'Öffne diesen Shop und bitte den Agenten deines Browsers, ein Spielzeug zu finden und in den Warenkorb zu legen.',
   'content.dev.tryNote':
     'Der Name des Flags und die API ändern sich noch; zuletzt geprüft im November 2026. Tests mit Browser-Agenten erfolgen manuell: Die automatisierten Tests verwenden einen Platzhalter für die Browser-API.',
   'content.dev.toolsTitle': 'Die {count} Tools',
@@ -146,6 +146,6 @@ export const content: Record<keyof typeof enNs, Entry> = {
 
   // Messages from outside (shared Zod rules)
   'msg.content.required': 'Pflichtfeld',
-  'msg.content.emailInvalid': 'Geben Sie eine gültige E-Mail-Adresse ein',
-  'msg.content.messageShort': 'Erzählen Sie uns etwas mehr (mindestens 10 Zeichen)',
+  'msg.content.emailInvalid': 'Gib eine gültige E-Mail-Adresse ein',
+  'msg.content.messageShort': 'Erzähl uns etwas mehr (mindestens 10 Zeichen)',
 };

@@ -22,5 +22,5 @@ Plain, warm, short. The shop says what happens and when, like a good courier wou
 
 Tagline: "Groceries at your door in 30 minutes." / "Lebensmittel in 30 Minuten an deiner Tür."
 
-German copy outside the shell (cart, checkout, account, returns, emails) still uses "Sie" and moves
-to "du" when the feature is reworked in a later phase.
+German catalogue content in the seed (`translations/de.json`: product and guide texts) still says "Sie"
+in places; it is replaced with the grocery catalogue in G3.

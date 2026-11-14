@@ -64,10 +64,10 @@ describe('order emails through the outbox', () => {
     await ship(number);
     await outbox.drain();
     expect(transport.sent.map((m) => m.subject)).toEqual([
-      `Ihre Grocery-Bestellung ${number} ist bestätigt`,
-      `Ihre Grocery-Bestellung ${number} ist unterwegs`,
+      `Deine Grocery-Bestellung ${number} ist bestätigt`,
+      `Deine Grocery-Bestellung ${number} ist unterwegs`,
     ]);
-    expect(transport.sent[0]?.html).toContain('Vielen Dank für Ihre Bestellung');
+    expect(transport.sent[0]?.html).toContain('Danke für deine Bestellung');
   });
 
   it('sends the confirmation once even if the payment event is delivered again', async () => {

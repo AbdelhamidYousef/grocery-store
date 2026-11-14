@@ -6,12 +6,12 @@ export const checkout: Record<keyof typeof enNs, Entry> = {
   'checkout.title': 'Kasse',
   'checkout.backToCart': 'Zurück zum Warenkorb',
   'checkout.loading': 'Kasse wird geladen',
-  'checkout.cartLoadError': 'Wir konnten Ihren Warenkorb nicht laden.',
+  'checkout.cartLoadError': 'Wir konnten deinen Warenkorb nicht laden.',
   'checkout.tryAgain': 'Erneut versuchen',
-  'checkout.empty': 'Ihr Warenkorb ist leer, daher gibt es noch nichts zu bezahlen.',
+  'checkout.empty': 'Dein Warenkorb ist leer, daher gibt es noch nichts zu bezahlen.',
   'checkout.continueShopping': 'Weiter einkaufen',
   'checkout.soldOut':
-    'Ein Artikel in Ihrem Warenkorb ist ausverkauft. Entfernen Sie ihn, um fortzufahren.',
+    'Ein Artikel in deinem Warenkorb ist ausverkauft. Entferne ihn, um fortzufahren.',
   'checkout.reviewCart': 'Warenkorb prüfen',
 
   // ---------- step cards ----------
@@ -24,12 +24,12 @@ export const checkout: Record<keyof typeof enNs, Entry> = {
   'checkout.step.editShipping': 'Versandart ändern',
 
   // ---------- step 1: details ----------
-  'checkout.details.haveAccount': 'Sie haben ein Konto?',
-  'checkout.details.signIn': 'Melden Sie sich an,',
+  'checkout.details.haveAccount': 'Hast du schon ein Konto?',
+  'checkout.details.signIn': 'Melde dich an,',
   'checkout.details.signInRest':
-    'um Ihre gespeicherten Daten zu nutzen. Oder fahren Sie einfach als Gast fort.',
+    'um deine gespeicherten Daten zu nutzen. Oder fahre einfach als Gast fort.',
   'checkout.details.email': 'E-Mail',
-  'checkout.details.emailHint': 'Hierhin senden wir Ihre Bestellbestätigung.',
+  'checkout.details.emailHint': 'Hierhin senden wir deine Bestellbestätigung.',
   'checkout.details.fullName': 'Vollständiger Name',
   'checkout.details.line1': 'Adresszeile 1',
   'checkout.details.line2': 'Adresszeile 2 (optional)',
@@ -61,30 +61,30 @@ export const checkout: Record<keyof typeof enNs, Entry> = {
   'checkout.shipping.tryAgain': 'Erneut versuchen',
   'checkout.roundUp.label': 'Meine Summe für Whisker Hollow Rescue auf den nächsten Euro aufrunden',
   'checkout.roundUp.hint':
-    'Die zusätzlichen Cent erscheinen als eigene Zeile in Ihrer Bestellung. Ein erfundenes Tierheim: Es fließt kein Geld.',
+    'Die zusätzlichen Cent erscheinen als eigene Zeile in deiner Bestellung. Ein erfundenes Tierheim: Es fließt kein Geld.',
 
   // ---------- step 3: payment ----------
   'checkout.payment.pay': '{amount} bezahlen',
   'checkout.payment.testMode':
-    'Testmodus: Verwenden Sie die Karte 4242 4242 4242 4242, ein beliebiges Datum in der Zukunft und eine beliebige Prüfziffer. Es fließt kein echtes Geld.',
+    'Testmodus: Verwende die Karte 4242 4242 4242 4242, ein beliebiges Datum in der Zukunft und eine beliebige Prüfziffer. Es fließt kein echtes Geld.',
   'checkout.payment.notConfiguredTitle': 'Zahlungen sind in dieser Umgebung nicht eingerichtet',
   'checkout.payment.notConfiguredBody':
     'Dies ist ein Demo-Shop, der nur im Stripe-Testmodus läuft. Diese Kopie hat noch keinen Stripe-Schlüssel, daher können hier keine Bestellungen aufgegeben werden. Alles vor diesem Schritt funktioniert wie gewohnt.',
-  'checkout.payment.preparing': 'Ihre Zahlung wird vorbereitet…',
+  'checkout.payment.preparing': 'Deine Zahlung wird vorbereitet…',
   'checkout.payment.loadFailedTitle': 'Wir konnten das sichere Zahlungsformular nicht laden',
   'checkout.payment.loadFailedBody':
-    'Es wurde nichts abgebucht, und Ihre Bestellung ist gespeichert. Prüfen Sie Ihre Verbindung (auch ein Werbe- oder Skript-Blocker kann das Stripe-Formular blockieren) und versuchen Sie es dann erneut.',
+    'Es wurde nichts abgebucht, und deine Bestellung ist gespeichert. Prüfe deine Verbindung (auch ein Werbe- oder Skript-Blocker kann das Stripe-Formular blockieren) und versuche es dann erneut.',
   'checkout.payment.tryAgain': 'Erneut versuchen',
   'checkout.payment.failed':
-    'Bei der Zahlung ist etwas schiefgelaufen. Es wurde nichts abgebucht; bitte versuchen Sie es erneut.',
+    'Bei der Zahlung ist etwas schiefgelaufen. Es wurde nichts abgebucht; bitte versuche es erneut.',
   'checkout.payment.unreachable':
-    'Wir konnten den Zahlungsanbieter nicht erreichen. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+    'Wir konnten den Zahlungsanbieter nicht erreichen. Prüfe deine Verbindung und versuche es erneut.',
 
   // ---------- summary ----------
   'checkout.summary.aria': 'Bestellübersicht',
   'checkout.summary.title': 'Bestellübersicht',
   'checkout.summary.codeBack': 'Zurück zum Warenkorb, um den Code zu ändern',
-  'checkout.summary.itemsRegion': 'Artikel in Ihrer Bestellung ({count}), scrollbar',
+  'checkout.summary.itemsRegion': 'Artikel in deiner Bestellung ({count}), scrollbar',
   'checkout.summary.qty': 'Menge {quantity}',
   'checkout.summary.subtotal': 'Zwischensumme',
   'checkout.summary.shipping': 'Versand',
@@ -99,39 +99,39 @@ export const checkout: Record<keyof typeof enNs, Entry> = {
 
   // ---------- errors from placing the order ----------
   'checkout.error.cartChanged':
-    'Während Ihres Bestellvorgangs hat sich etwas in Ihrem Warenkorb geändert (ein Artikel ist ausverkauft oder ein Preis hat sich verändert). Wir haben Ihre Bestellübersicht aktualisiert; bitte prüfen Sie sie und fahren Sie fort.',
+    'Während deines Bestellvorgangs hat sich etwas in deinem Warenkorb geändert (ein Artikel ist ausverkauft oder ein Preis hat sich verändert). Wir haben deine Bestellübersicht aktualisiert; bitte prüfe sie und fahre fort.',
   'checkout.error.paymentProvider':
-    'Unser Zahlungsanbieter hat gerade Probleme. Es wurde nichts abgebucht; bitte versuchen Sie es in einem Moment erneut.',
+    'Unser Zahlungsanbieter hat gerade Probleme. Es wurde nichts abgebucht; bitte versuche es in einem Moment erneut.',
 
   // ---------- confirmation ----------
   'checkout.confirmation.seoTitle': 'Bestellbestätigung',
   'checkout.confirmation.order': 'Bestellung',
-  'checkout.confirmation.pending.title': 'Ihre Zahlung wird bestätigt…',
+  'checkout.confirmation.pending.title': 'Deine Zahlung wird bestätigt…',
   'checkout.confirmation.pending.body':
-    'Das dauert meist nur wenige Sekunden. Bitte lassen Sie diese Seite geöffnet.',
-  'checkout.confirmation.paid.title': 'Vielen Dank, Ihre Bestellung ist bezahlt!',
-  'checkout.confirmation.paid.body': 'Eine Bestätigung ist unterwegs zu Ihrer E-Mail-Adresse.',
-  'checkout.confirmation.timeout.title': 'Wir bestätigen Ihre Zahlung noch',
+    'Das dauert meist nur wenige Sekunden. Bitte lass diese Seite geöffnet.',
+  'checkout.confirmation.paid.title': 'Danke, deine Bestellung ist bezahlt.',
+  'checkout.confirmation.paid.body': 'Eine Bestätigung ist unterwegs zu deiner E-Mail-Adresse.',
+  'checkout.confirmation.timeout.title': 'Wir bestätigen deine Zahlung noch',
   'checkout.confirmation.timeout.body':
-    'Es dauert länger als gewöhnlich, was passieren kann, wenn der Zahlungsanbieter uns langsam benachrichtigt. Bitte zahlen Sie nicht erneut. Sie müssen hier nicht warten: Sobald die Zahlung bestätigt ist, erhalten Sie eine E-Mail, und Sie können jederzeit auf diese Seite zurückkehren, um nachzusehen.',
-  'checkout.confirmation.failed.title': 'Ihre Zahlung ist nicht durchgegangen',
+    'Es dauert länger als gewöhnlich, was passieren kann, wenn der Zahlungsanbieter uns langsam benachrichtigt. Bitte zahle nicht erneut. Du musst hier nicht warten: Sobald die Zahlung bestätigt ist, erhältst du eine E-Mail, und du kannst jederzeit auf diese Seite zurückkehren, um nachzusehen.',
+  'checkout.confirmation.failed.title': 'Deine Zahlung ist nicht durchgegangen',
   'checkout.confirmation.failed.body':
-    'Es wurde nichts abgebucht. Ihr Warenkorb ist noch da, Sie können es also erneut versuchen.',
+    'Es wurde nichts abgebucht. Dein Warenkorb ist noch da, du kannst es also erneut versuchen.',
   'checkout.confirmation.cancelled.title': 'Diese Bestellung wurde storniert',
   'checkout.confirmation.cancelled.body':
-    'Falls Sie bezahlt haben, ist das Geld auf dem Weg zurück zu Ihnen.',
+    'Falls du bezahlt hast, ist das Geld auf dem Weg zurück zu dir.',
   'checkout.confirmation.notFound.title': 'Wir finden diese Bestellung hier nicht',
   'checkout.confirmation.notFound.body':
     'Bestellungen lassen sich nur über den Browser oder das Konto öffnen, mit dem sie aufgegeben wurden.',
-  'checkout.confirmation.error.title': 'Wir konnten Ihre Bestellung nicht prüfen',
+  'checkout.confirmation.error.title': 'Wir konnten deine Bestellung nicht prüfen',
   'checkout.confirmation.error.body':
-    'Der Server hat nicht geantwortet. Ihre Zahlung ist davon nicht betroffen.',
+    'Der Server hat nicht geantwortet. Deine Zahlung ist davon nicht betroffen.',
   'checkout.confirmation.waking':
-    'Unser Server wacht gerade aus einem Nickerchen auf (diese Demo läuft auf kostenlosem Hosting), daher kann die erste Antwort bis zu einer Minute dauern. Einen Moment Geduld, Ihre Bestellung ist sicher.',
+    'Unser Server wacht gerade aus einem Nickerchen auf (diese Demo läuft auf kostenlosem Hosting), daher kann die erste Antwort bis zu einer Minute dauern. Einen Moment Geduld, deine Bestellung ist sicher.',
   'checkout.confirmation.tryAgain': 'Erneut versuchen',
   'checkout.confirmation.checkAgain': 'Erneut prüfen',
   'checkout.confirmation.continueShopping': 'Weiter einkaufen',
-  'checkout.confirmation.yourOrder': 'Ihre Bestellung',
+  'checkout.confirmation.yourOrder': 'Deine Bestellung',
   'checkout.confirmation.delivery': 'Lieferung',
   'checkout.confirmation.shippingMethod': 'Versandart',
   'checkout.confirmation.contact': 'Kontakt',

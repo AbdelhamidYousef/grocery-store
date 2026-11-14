@@ -142,8 +142,8 @@ variables; a bitmap logo would not.
 ### G2.4: tone of voice and shell copy
 `docs/plan/03-conventions.md` now has a "Tone of voice" section. Shell copy (tagline, cookie notice,
 server-down notice, footer, trust bar, 404 and error text, newsletter, email footer and sign-off) is
-rewritten to it in English and German ("du"). German outside the shell still says "Sie" until those
-features are reworked. Learn: tone is a list of rules you can check a sentence against, not a mood.
+rewritten to it in English and German. A follow-up pass moved all German UI strings and emails to "du"
+(rewritten by hand where the verb changes, not word-swapped), except catalogue texts in the seed. Learn: tone is a list of rules you can check a sentence against, not a mood.
 
 ### G2.5: phase end
 Gates green: shared 260, web 900, API 1,361 + 2 skipped, e2e 75 + 1 skipped. Header checked by eye at

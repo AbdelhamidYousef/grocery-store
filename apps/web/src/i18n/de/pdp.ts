@@ -48,7 +48,7 @@ export const pdp: Record<keyof typeof enNs, Entry> = {
   // ---- delivery panel ----
   'pdp.delivery.heading': 'Lieferung',
   'pdp.delivery.shipIntro':
-    'Bestellungen werden an Werktagen aus unserem Lager versandt. Sie wählen an der Kasse Standard- oder Expresslieferung und sehen den genauen Preis, bevor Sie bezahlen. Preise und Lieferzeiten finden Sie auf der Seite',
+    'Bestellungen werden an Werktagen aus unserem Lager versandt. Du wählst an der Kasse Standard- oder Expresslieferung und siehst den genauen Preis, bevor du bezahlst. Preise und Lieferzeiten findest du auf der Seite',
   'pdp.delivery.shipLink': 'Versand',
   'pdp.delivery.shipOutro': '.',
   'pdp.delivery.cutoffNote':
@@ -59,13 +59,13 @@ export const pdp: Record<keyof typeof enNs, Entry> = {
   'pdp.delivery.returnsLink': 'Rücksendung und Widerruf',
 
   // ---- delivery estimate ----
-  'pdp.estimate.orderIn': 'Bestellen Sie in {countdown}, Lieferung {range}',
+  'pdp.estimate.orderIn': 'Bestelle in {countdown}, Lieferung {range}',
   'pdp.estimate.orderNow': 'Jetzt bestellen, Versand {day}, Lieferung {range}',
   'pdp.estimate.methodArrives': '{method}: Lieferung {range}',
   'pdp.estimate.methodArrivesSpoken': '{method}: Lieferung {range}.',
   'pdp.estimate.range': '{from} bis {to}',
   'pdp.estimate.spoken':
-    'Bestellen Sie an einem Werktag vor {time}, dann wird Ihre Bestellung am selben Tag versandt.',
+    'Bestelle an einem Werktag vor {time}, dann wird deine Bestellung am selben Tag versandt.',
   'pdp.estimate.cutoffNote': 'Bestellschluss {time} Uhr Amsterdamer Zeit, Montag bis Freitag.',
   'pdp.estimate.countdownHm': '{h} Std. {m} Min.',
   'pdp.estimate.countdownM': '{m} Min.',
@@ -96,7 +96,7 @@ export const pdp: Record<keyof typeof enNs, Entry> = {
   'pdp.kits.save': '{saving} sparen',
 
   // ---- rails ----
-  'pdp.related.heading': 'Das könnte Ihnen auch gefallen',
+  'pdp.related.heading': 'Das könnte dir auch gefallen',
   'pdp.related.label': 'Ähnliche Produkte',
   'pdp.recent.heading': 'Zuletzt angesehen',
 };

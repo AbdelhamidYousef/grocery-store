@@ -101,7 +101,7 @@ export const catalog: Record<keyof typeof enNs, Entry> = {
 
   // Listing
   'catalog.list.loadError': 'Die Produkte konnten nicht geladen werden.',
-  'catalog.list.loadErrorHint': 'Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+  'catalog.list.loadErrorHint': 'Prüfe deine Verbindung und versuche es erneut.',
   'catalog.list.tryAgain': 'Erneut versuchen',
   'catalog.list.loading': 'Produkte werden geladen',
   'catalog.list.filters': 'Filter',
@@ -122,11 +122,11 @@ export const catalog: Record<keyof typeof enNs, Entry> = {
   'catalog.empty.firstPage': 'Zur ersten Seite',
   'catalog.empty.noResults': 'Keine Ergebnisse für „{q}“',
   'catalog.empty.noMatch': 'Keine passenden Produkte',
-  'catalog.empty.removeFilter': 'Entfernen Sie einen Filter, um mehr zu sehen.',
+  'catalog.empty.removeFilter': 'Entferne einen Filter, um mehr zu sehen.',
   'catalog.empty.tryWords':
-    'Versuchen Sie weniger oder andere Wörter. Die Suche findet ganze Wörter, prüfen Sie also die Schreibweise.',
+    'Versuche weniger oder andere Wörter. Die Suche findet ganze Wörter, prüfe also die Schreibweise.',
   'catalog.empty.nothingYet':
-    'Hier gibt es noch nichts. Schauen Sie sich ein anderes Haustier an, während wir nachfüllen.',
+    'Hier gibt es noch nichts. Schau dir etwas anderes an, während wir nachfüllen.',
   'catalog.empty.clearFilters': 'Filter löschen',
 
   // Pages
@@ -150,5 +150,5 @@ export const catalog: Record<keyof typeof enNs, Entry> = {
   'catalog.collection.until': 'Bis {date}',
 
   // Messages from outside
-  'msg.catalog.priceFormat': 'Geben Sie einen Preis wie 12,50 ein',
+  'msg.catalog.priceFormat': 'Gib einen Preis wie 12,50 ein',
 };

@@ -4,9 +4,9 @@ import type { Entry } from '../types';
 export const loyalty: Record<keyof typeof enNs, Entry> = {
   // Checkout: pay with points
   'loyalty.redeem.title': 'Treuepunkte einlösen',
-  'loyalty.redeem.balance': 'Sie haben {balance} Punkte (Wert: {worth}).',
-  'loyalty.redeem.rate': '100 Punkte = {amount} Rabatt auf Ihre Artikel.',
-  'loyalty.redeem.minimum': 'Mindestens {amount} zahlen Sie immer per Karte.',
+  'loyalty.redeem.balance': 'Du hast {balance} Punkte (Wert: {worth}).',
+  'loyalty.redeem.rate': '100 Punkte = {amount} Rabatt auf deine Artikel.',
+  'loyalty.redeem.minimum': 'Mindestens {amount} zahlst du immer per Karte.',
   'loyalty.redeem.useMax': 'Maximum nutzen ({max})',
   'loyalty.redeem.clear': 'Zurücksetzen',
   'loyalty.redeem.applied': '{points} Punkte = {amount} Rabatt',
@@ -30,20 +30,20 @@ export const loyalty: Record<keyof typeof enNs, Entry> = {
   'loyalty.charity.waysTitle': 'Zwei Wege zu helfen',
   'loyalty.charity.checkoutLabel': 'Beim Bezahlen:',
   'loyalty.charity.checkoutText':
-    'Setzen Sie ein Häkchen bei „Aufrunden“, und der Gesamtbetrag wird auf den nächsten vollen Euro erhöht. Der Aufschlag erscheint als eigene Zeile in Ihrer Bestellung und wird nie rabattiert.',
+    'Setze ein Häkchen bei „Aufrunden“, und der Gesamtbetrag wird auf den nächsten vollen Euro erhöht. Der Aufschlag erscheint als eigene Zeile in deiner Bestellung und wird nie rabattiert.',
   'loyalty.charity.pointsLabel': 'Mit Punkten:',
-  'loyalty.charity.pointsText': 'Spenden Sie beliebig viele Ihrer Treuepunkte (1 Punkt = 1 Cent)',
-  'loyalty.charity.pointsOnYour': 'auf Ihrer',
+  'loyalty.charity.pointsText': 'Spende beliebig viele deiner Treuepunkte (1 Punkt = 1 Cent)',
+  'loyalty.charity.pointsOnYour': 'auf deiner',
   'loyalty.charity.rewardsPage': 'Prämienseite',
-  'loyalty.charity.pointsOnceYou': 'sobald Sie sich',
-  'loyalty.charity.signIn': 'anmelden',
+  'loyalty.charity.pointsOnceYou': 'sobald du dich',
+  'loyalty.charity.signIn': 'anmeldest',
   'loyalty.charity.roundUpNote':
     'Ein Aufrundungsbetrag wird gezählt, sobald die Bestellung bezahlt ist, und zurückgebucht, wenn die Bestellung erstattet wird.',
 
   // Referral panel
   'loyalty.referral.title': 'Freunde werben',
   'loyalty.referral.how':
-    'Teilen Sie Ihren Link. Wenn ein Freund ein Konto erstellt und seine erste Bestellung ab {min} bezahlt, erhalten Sie beide einen Code über {reward} (gültig {days} Tage, für eine Bestellung ab {min}).',
+    'Teile deinen Link. Wenn ein Freund ein Konto erstellt und seine erste Bestellung ab {min} bezahlt, bekommt ihr beide einen Code über {reward} (gültig {days} Tage, für eine Bestellung ab {min}).',
   'loyalty.referral.copy': 'Link kopieren',
   'loyalty.referral.copied': 'Kopiert',
   'loyalty.referral.linkCopied': 'Link kopiert',
@@ -54,15 +54,15 @@ export const loyalty: Record<keyof typeof enNs, Entry> = {
 
   // /account/rewards
   'loyalty.rewards.title': 'Prämien',
-  'loyalty.rewards.pointsError': 'Ihre Punkte konnten nicht geladen werden.',
+  'loyalty.rewards.pointsError': 'Deine Punkte konnten nicht geladen werden.',
   'loyalty.rewards.retry': 'Erneut versuchen',
-  'loyalty.rewards.balance': 'Ihr Punktestand',
+  'loyalty.rewards.balance': 'Dein Punktestand',
   'loyalty.rewards.pointsUnit': 'Punkte',
   'loyalty.rewards.worth': 'An der Kasse {amount} wert',
-  'loyalty.rewards.earnRateOne': 'Sie erhalten 1 Punkt pro ausgegebenem Euro.',
-  'loyalty.rewards.earnRatePercent': 'Sie erhalten {percent} % pro ausgegebenem Euro.',
+  'loyalty.rewards.earnRateOne': 'Du erhältst 1 Punkt pro ausgegebenem Euro.',
+  'loyalty.rewards.earnRatePercent': 'Du erhältst {percent} % pro ausgegebenem Euro.',
   'loyalty.rewards.nextTier': 'Noch {points} verdiente Punkte bis {label}.',
-  'loyalty.rewards.topTier': 'Sie sind in der höchsten Stufe. Brav gemacht!',
+  'loyalty.rewards.topTier': 'Du bist in der höchsten Stufe.',
   'loyalty.rewards.spendTitle': 'Punkte ausgeben',
   'loyalty.rewards.rewardsError': 'Die Prämien konnten nicht geladen werden.',
   'loyalty.rewards.noRewards': 'Derzeit sind keine Prämien verfügbar.',
@@ -70,7 +70,7 @@ export const loyalty: Record<keyof typeof enNs, Entry> = {
   'loyalty.rewards.redeem.button': 'Einlösen',
   'loyalty.rewards.redeem.morePoints': 'Noch {short} Punkte',
   'loyalty.rewards.redeem.for': 'für {name}',
-  'loyalty.rewards.redeem.code': 'Ihr Code lautet {code}',
+  'loyalty.rewards.redeem.code': 'Dein Code lautet {code}',
   'loyalty.rewards.redeem.failed': 'Das konnte nicht eingelöst werden.',
   'loyalty.rewards.giveAwayTitle': 'Oder verschenken',
   'loyalty.rewards.donate.giveTo': 'Punkte spenden an',
@@ -80,9 +80,9 @@ export const loyalty: Record<keyof typeof enNs, Entry> = {
   'loyalty.rewards.donate.button': 'Spenden',
   'loyalty.rewards.donate.thanks': 'Danke! {points} Punkte gingen an das Tierheim.',
   'loyalty.rewards.donate.failed': 'Das konnte nicht gespendet werden.',
-  'loyalty.rewards.codesTitle': 'Ihre Codes',
+  'loyalty.rewards.codesTitle': 'Deine Codes',
   'loyalty.rewards.codesEmpty':
-    'Codes, die Sie mit Punkten kaufen, erscheinen hier. Wenden Sie einen im Warenkorb an.',
+    'Codes, die du mit Punkten kaufst, erscheinen hier. Wende einen im Warenkorb an.',
   'loyalty.rewards.code.freeDelivery': 'Kostenlose Lieferung',
   'loyalty.rewards.code.fixedOff': '{amount} Rabatt',
   'loyalty.rewards.code.percentOff': '{percent} % Rabatt',
@@ -92,8 +92,8 @@ export const loyalty: Record<keyof typeof enNs, Entry> = {
   'loyalty.rewards.code.noExpiry': 'Unbegrenzt gültig',
   'loyalty.rewards.historyTitle': 'Punkteverlauf',
   'loyalty.rewards.historyEmpty':
-    'Noch keine Punkte. Jeder Euro, den Sie für eine Bestellung ausgeben, bringt Punkte.',
-  'loyalty.rewards.historyCaption': 'Ihre letzten 50 Punktebewegungen',
+    'Noch keine Punkte. Jeder Euro, den du für eine Bestellung ausgibst, bringt Punkte.',
+  'loyalty.rewards.historyCaption': 'Deine letzten 50 Punktebewegungen',
   'loyalty.rewards.colDate': 'Datum',
   'loyalty.rewards.colWhat': 'Vorgang',
   'loyalty.rewards.colPoints': 'Punkte',
@@ -105,26 +105,26 @@ export const loyalty: Record<keyof typeof enNs, Entry> = {
   'loyalty.rewards.kind.adjust': 'Korrektur',
 
   // Wishlist
-  'loyalty.wishlist.title': 'Ihre Wunschliste',
+  'loyalty.wishlist.title': 'Deine Wunschliste',
   'loyalty.wishlist.saveLabel': '{name} auf die Wunschliste setzen',
-  'loyalty.wishlist.saved': '{name} wurde auf Ihre Wunschliste gesetzt',
+  'loyalty.wishlist.saved': '{name} wurde auf deine Wunschliste gesetzt',
   'loyalty.wishlist.updateFailed':
-    'Ihre Wunschliste konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.',
+    'Deine Wunschliste konnte nicht aktualisiert werden. Bitte versuche es erneut.',
   'loyalty.wishlist.moveToCart': 'In den Warenkorb',
   'loyalty.wishlist.soldOut': 'Ausverkauft',
   'loyalty.wishlist.remove': 'Entfernen',
-  'loyalty.wishlist.error': 'Ihre Wunschliste konnte gerade nicht geladen werden.',
+  'loyalty.wishlist.error': 'Deine Wunschliste konnte gerade nicht geladen werden.',
   'loyalty.wishlist.empty':
-    'Noch nichts gespeichert. Tippen Sie bei einem Produkt auf das Herz, um es hier zu merken.',
+    'Noch nichts gespeichert. Tippe bei einem Produkt auf das Herz, um es hier zu merken.',
   'loyalty.wishlist.keepBrowsing': 'Weiter stöbern',
   'loyalty.wishlist.shareTitle': 'Wunschliste teilen',
   'loyalty.wishlist.shareText':
-    'Jeder mit dem Link sieht diese Artikel und Ihren Vornamen, sonst nichts. Wenn Sie das Teilen beenden, funktioniert der Link nicht mehr.',
+    'Jeder mit dem Link sieht diese Artikel und deinen Vornamen, sonst nichts. Wenn du das Teilen beendest, funktioniert der Link nicht mehr.',
   'loyalty.wishlist.stopSharing': 'Teilen beenden',
   'loyalty.wishlist.createLink': 'Link zum Teilen erstellen',
-  'loyalty.wishlist.signIn': 'Melden Sie sich an,',
+  'loyalty.wishlist.signIn': 'Melde dich an,',
   'loyalty.wishlist.signInRest':
-    'um Ihre Liste zu teilen. Ihre gespeicherten Artikel bleiben erhalten.',
+    'um deine Liste zu teilen. Deine gespeicherten Artikel bleiben erhalten.',
   'loyalty.wishlist.sharedTitle': 'Eine geteilte Wunschliste',
   'loyalty.wishlist.ownerTitle': 'Wunschliste von {name}',
   'loyalty.wishlist.sharedEmpty': 'Derzeit steht nichts auf dieser Liste.',
@@ -140,7 +140,7 @@ export const loyalty: Record<keyof typeof enNs, Entry> = {
     'Neuigkeiten und hin und wieder ein Angebot. Zuerst schicken wir einen Bestätigungslink, und jede Nachricht lässt sich mit einem Klick abbestellen. Lies die',
   'loyalty.newsletter.privacyLink': 'Datenschutzerklärung',
   'loyalty.newsletter.email': 'E-Mail',
-  'loyalty.newsletter.pets': 'Welche Tiere haben Sie?',
+  'loyalty.newsletter.pets': 'Welche Tiere hast du?',
   'loyalty.newsletter.consent':
     'Schick mir Grocery-News und Angebote. Ich kann mich jederzeit mit einem Klick abmelden.',
   'loyalty.newsletter.consentRequired': 'Bitte setze das Häkchen, um zu abonnieren',
@@ -148,24 +148,23 @@ export const loyalty: Record<keyof typeof enNs, Entry> = {
   'loyalty.newsletter.submit': 'Abonnieren und 10 % Rabatt sichern',
   'loyalty.newsletter.done':
     'Fast geschafft. Wenn diese Adresse E-Mails empfangen kann, ist ein Bestätigungslink unterwegs. Klicke darauf, dann folgt dein Willkommenscode.',
-  'loyalty.newsletter.tooMany':
-    'Zu viele Anmeldungen von hier. Bitte versuchen Sie es später erneut.',
+  'loyalty.newsletter.tooMany': 'Zu viele Anmeldungen von hier. Bitte versuche es später erneut.',
   'loyalty.newsletter.failed':
-    'Die Anmeldung war gerade nicht möglich. Bitte versuchen Sie es gleich noch einmal.',
+    'Die Anmeldung war gerade nicht möglich. Bitte versuche es gleich noch einmal.',
   'loyalty.newsletter.token.incomplete':
-    'Dieser Link ist unvollständig. Bitte öffnen Sie ihn erneut über die E-Mail.',
+    'Dieser Link ist unvollständig. Bitte öffne ihn erneut über die E-Mail.',
   'loyalty.newsletter.token.working': 'Wird bearbeitet',
   'loyalty.newsletter.token.expired': 'Dieser Link ist abgelaufen.',
   'loyalty.newsletter.token.invalid': 'Dieser Link ist nicht mehr gültig.',
   'loyalty.newsletter.token.signUpAgain': 'Erneut anmelden',
   'loyalty.newsletter.confirm.title': 'Abonnement bestätigen',
   'loyalty.newsletter.confirm.already':
-    'Sie haben den Newsletter bereits abonniert. Ihren Willkommenscode finden Sie in der E-Mail, die wir gesendet haben.',
+    'Du hast den Newsletter bereits abonniert. Deinen Willkommenscode findest du in der E-Mail, die wir gesendet haben.',
   'loyalty.newsletter.confirm.done':
-    'Sie sind angemeldet! Wir haben Ihnen gerade Ihren Willkommenscode über 10 % per E-Mail geschickt.',
+    'Du bist angemeldet. Wir haben dir gerade deinen Willkommenscode über 10 % per E-Mail geschickt.',
   'loyalty.newsletter.unsubscribe.title': 'Abbestellen',
   'loyalty.newsletter.unsubscribe.done':
-    'Sie sind abgemeldet. Wir senden Ihnen keine Neuigkeiten mehr.',
+    'Du bist abgemeldet. Wir senden dir keine Neuigkeiten mehr.',
 
   // Stock alerts
   'loyalty.stockAlerts.title': 'Per E-Mail benachrichtigen, wenn wieder da',
@@ -173,14 +172,13 @@ export const loyalty: Record<keyof typeof enNs, Entry> = {
   'loyalty.stockAlerts.submit': 'Benachrichtigen',
   'loyalty.stockAlerts.done':
     'Alles klar. Wir schreiben an {email} einmal, sobald der Artikel wieder da ist.',
-  'loyalty.stockAlerts.inStock': 'Der Artikel ist gerade verfügbar: Laden Sie die Seite neu.',
-  'loyalty.stockAlerts.limit': 'Sie können auf höchstens 5 Artikel gleichzeitig warten.',
-  'loyalty.stockAlerts.tooMany': 'Zu viele Anfragen. Bitte versuchen Sie es später erneut.',
-  'loyalty.stockAlerts.failed':
-    'Das konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.',
+  'loyalty.stockAlerts.inStock': 'Der Artikel ist gerade verfügbar: Lade die Seite neu.',
+  'loyalty.stockAlerts.limit': 'Du kannst auf höchstens 5 Artikel gleichzeitig warten.',
+  'loyalty.stockAlerts.tooMany': 'Zu viele Anfragen. Bitte versuche es später erneut.',
+  'loyalty.stockAlerts.failed': 'Das konnte nicht gespeichert werden. Bitte versuche es erneut.',
   'loyalty.stockAlerts.cancel.title': 'Verfügbarkeitsbenachrichtigung',
-  'loyalty.stockAlerts.cancel.done': 'Erledigt: Wir schreiben Ihnen nicht mehr zu diesem Artikel.',
+  'loyalty.stockAlerts.cancel.done': 'Erledigt: Wir schreiben dir nicht mehr zu diesem Artikel.',
 
   // Messages from outside (shared Zod rules)
-  'msg.loyalty.emailInvalid': 'Geben Sie eine gültige E-Mail-Adresse ein',
+  'msg.loyalty.emailInvalid': 'Gib eine gültige E-Mail-Adresse ein',
 };
