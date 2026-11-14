@@ -6,6 +6,7 @@ import { TEST_IDS } from '../../lib/test-ids';
 
 const LINKS = [
   { to: '/admin', label: 'Dashboard', end: true },
+  { to: '/admin/analytics', label: 'Analytics', end: false },
   { to: '/admin/products', label: 'Products', end: false },
   { to: '/admin/orders', label: 'Orders', end: false },
   { to: '/admin/returns', label: 'Returns', end: false },

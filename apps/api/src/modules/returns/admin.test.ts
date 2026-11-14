@@ -174,12 +174,15 @@ describe('admin returns: full flow', () => {
     await act(id, 'refund');
     expect((await orderByNumber(o.number)).status).toBe('delivered');
     expect(fake.refundedCents(await intentOf(o.number))).toBe(1000);
+    // The order keeps a running total of what was handed back (analytics reads revenue net of it).
+    expect((await orderByNumber(o.number)).refundedCents).toBe(1000);
     // A second return for the rest finishes the order.
     const id2 = await requestReturn(o, [{ orderItemId: line!.id, quantity: 2 }]);
     await act(id2, 'approve');
     await act(id2, 'receive');
     await act(id2, 'refund');
     expect((await orderByNumber(o.number)).status).toBe('refunded');
+    expect((await orderByNumber(o.number)).refundedCents).toBe(3000);
     expect(fake.refundedCents(await intentOf(o.number))).toBe(3000);
   });
 

@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { Seo } from '../components/Seo';
 import { AdminLayout } from '../features/admin/AdminLayout';
+import { AnalyticsDashboard } from '../features/admin/analytics/AnalyticsDashboard';
 import { BrandsAdmin } from '../features/admin/BrandsAdmin';
 import { BundlesAdmin } from '../features/admin/bundles/BundlesAdmin';
 import { CollectionsAdmin } from '../features/admin/CollectionsAdmin';
@@ -42,6 +43,7 @@ export default function AdminPage() {
     <Routes>
       <Route element={<AdminLayout />}>
         <Route index element={<Dashboard />} />
+        <Route path="analytics" element={<AnalyticsDashboard />} />
         <Route path="products" element={<ProductsList />} />
         <Route path="products/new" element={<ProductNew />} />
         <Route path="products/:id" element={<ProductEdit />} />

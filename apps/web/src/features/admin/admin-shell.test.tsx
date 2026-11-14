@@ -51,6 +51,7 @@ describe('admin shell', () => {
         .map((l) => l.textContent),
     ).toEqual([
       'Dashboard',
+      'Analytics',
       'Products',
       'Orders',
       'Returns',

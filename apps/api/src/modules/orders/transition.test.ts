@@ -3,7 +3,7 @@ import { pino } from 'pino';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { db } from '../../db/client.ts';
-import { orderStatusHistory, payments } from '../../db/schema/index.ts';
+import { orderStatusHistory, orders, payments } from '../../db/schema/index.ts';
 import { makeTestApp } from '../../test/app.ts';
 import { createShippingMethods } from '../../test/factories.ts';
 import { FakeStripe } from '../../test/fake-stripe.ts';
@@ -87,6 +87,14 @@ describe('transitionOrder (side effects through the state machine)', () => {
     expect(await stockOf(variantId)).toEqual({ quantity: 10, reserved: 0 });
     const [payment] = await db.select().from(payments);
     expect(payment?.status).toBe('refunded');
+  });
+
+  it('a whole-order refund records everything as handed back', async () => {
+    const { number } = await placeOrder(app, { stock: 10, quantity: 2 });
+    await simulate(app, number);
+    await move(number, 'refunded');
+    const [order] = await db.select().from(orders).where(eq(orders.number, number));
+    expect(order?.refundedCents).toBe(order?.totalCents);
   });
 
   it('refunding a paid (unshipped) order restocks, refunding a delivered one does not', async () => {

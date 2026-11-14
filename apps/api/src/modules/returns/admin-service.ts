@@ -274,6 +274,10 @@ export async function refund(
     const locked = await repo.lockReturn(tx, ret.id);
     if (!order || !locked) throw notFound('Return not found');
     if (locked.status === 'refunded') return; // a parallel click finished it first
+    // The order's running total of money handed back (analytics reads revenue net of it).
+    await checkoutRepo.updateOrder(tx, order.id, {
+      refundedCents: order.refundedCents + locked.refundCents,
+    });
     const row = await repo.updateReturn(tx, ret.id, {
       status: 'refunded',
       providerRefundId,

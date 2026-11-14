@@ -8,7 +8,7 @@ import type { z } from 'zod';
 // Empty in dev (the Vite proxy forwards /api, same origin so cookies just work). In production
 // the web and API live on different origins, but Vercel rewrites /api/* too, so this stays empty
 // there as well; VITE_API_URL exists for builds that talk to an API directly.
-const API_BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
+export const API_BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
 
 export type ApiErrorCode = ErrorCode | 'NETWORK' | 'BAD_RESPONSE';
 

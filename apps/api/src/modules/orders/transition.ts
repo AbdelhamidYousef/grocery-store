@@ -75,6 +75,9 @@ export async function applyTransition(
   const updated = await repo.updateOrder(tx, order.id, {
     status: to,
     ...(to === 'paid' && { placedAt: new Date() }),
+    // A whole-order refund hands everything back (a refund that closes out returns already moved
+    // its own share, see returns/admin-service.ts, and passes skipRefundEvent).
+    ...(to === 'refunded' && !ctx.skipRefundEvent && { refundedCents: order.totalCents }),
   });
 
   // Only a confirmed payment spends the cart; until then an abandoned checkout keeps it.

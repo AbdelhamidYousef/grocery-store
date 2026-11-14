@@ -15,6 +15,7 @@ import { createReviewsAdminRouter } from '../reviews/admin-router.ts';
 import { createSafetyAdminRouter } from '../safety/admin-router.ts';
 import { createVetAdminRouter } from '../vet/admin-router.ts';
 
+import { createAnalyticsRouter } from './analytics/router.ts';
 import { auditMutations } from './audit.ts';
 import { createBundlesAdminRouter } from './bundles/router.ts';
 import { createAdminContentRouter } from './content/router.ts';
@@ -38,6 +39,7 @@ export function createAdminRouter(deps: {
 
   const admin = ExpressRouter();
   admin.use(createStatsRouter());
+  admin.use(createAnalyticsRouter());
   admin.use(createProductsRouter());
   admin.use(createPdpAdminRouter());
   admin.use(createBundlesAdminRouter());

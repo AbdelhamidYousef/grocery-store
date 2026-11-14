@@ -70,6 +70,9 @@ export const orders = pgTable(
     donationCents: integer('donation_cents').notNull().default(0),
     taxCents: integer('tax_cents').notNull().default(0),
     totalCents: integer('total_cents').notNull(),
+    // Money handed back so far, by a whole-order refund or by refunded returns (phase 22). Analytics
+    // reads net revenue as total - refunded, so a partial return needs no guessing from statuses.
+    refundedCents: integer('refunded_cents').notNull().default(0),
     // Snapshots of the chosen shipping method: it may be edited or retired later.
     shippingMethodCode: text('shipping_method_code').notNull(),
     shippingMethodName: text('shipping_method_name').notNull(),
@@ -92,6 +95,10 @@ export const orders = pgTable(
     check(
       'orders_total_check',
       sql`${t.totalCents} = ${t.subtotalCents} + ${t.shippingCents} + ${t.taxCents} + ${t.donationCents} - ${t.discountCents}`,
+    ),
+    check(
+      'orders_refunded_check',
+      sql`${t.refundedCents} >= 0 AND ${t.refundedCents} <= ${t.totalCents}`,
     ),
     check(
       'orders_amounts_check',
