@@ -6,13 +6,13 @@ export const shell: Record<keyof typeof enNs, Entry> = {
   'shell.skipLink': 'Zum Hauptinhalt springen',
   'shell.menu': 'Menü',
   'shell.shopByPet': 'Nach Tier einkaufen',
-  'shell.storeSwitcher': 'Land und Sprache',
+  'shell.storeSwitcher': 'Sprache',
   'shell.breadcrumb': 'Brotkrümelnavigation',
   'shell.loading': 'Wird geladen',
   'shell.loadingPage': 'Seite wird geladen',
   'shell.close': 'Schließen',
   'shell.apiDown':
-    'Wir können den Server des Shops gerade nicht erreichen. Ihr Warenkorb ist sicher. Wir versuchen es weiter, und diese Meldung verschwindet von selbst, sobald alles wieder läuft.',
+    'Wir erreichen den Shop gerade nicht. Dein Warenkorb ist sicher. Wir versuchen es weiter, und diese Meldung verschwindet, sobald es wieder klappt.',
   'shell.header.cartLabel': {
     one: 'Warenkorb, {count} Artikel',
     other: 'Warenkorb, {count} Artikel',
@@ -31,17 +31,15 @@ export const shell: Record<keyof typeof enNs, Entry> = {
   // Cookie notice
   'shell.cookie.label': 'Cookie-Hinweis',
   'shell.cookie.text':
-    'Wir verwenden nur unbedingt erforderliche Cookies (Sitzung, Warenkorb). Es werden keine Analyse- oder Marketing-Cookies gesetzt.',
+    'Wir nutzen nur die Cookies, die der Shop braucht (Sitzung und Warenkorb). Keine Analyse, keine Werbung.',
   'shell.cookie.details': 'Cookie-Details',
   'shell.cookie.ok': 'OK',
 
   // Footer
-  'shell.footer.tagline':
-    'Alles für glückliche Schwänze: Zubehör für Hunde, Katzen, Vögel, Fische, Reptilien und Kleintiere.',
+  'shell.footer.tagline': 'Lebensmittel in 30 Minuten an deiner Tür.',
   'shell.footer.paymentNote':
-    'Zahlungen laufen im Stripe-Testmodus: Es werden keine echten Bestellungen angenommen und keine Karte wird belastet.',
-  'shell.footer.copyright':
-    '© {year} Grocery Demo-Shop, ein fiktives Unternehmen. Keine Rechtsberatung.',
+    'Zahlungen laufen im Stripe-Testmodus. Es gibt keine echte Bestellung und keine Karte wird belastet.',
+  'shell.footer.copyright': '© {year} Grocery, ein fiktiver Shop. Keine Rechtsberatung.',
   'shell.footer.shop': 'Shop',
   'shell.footer.brands': 'Marken',
   'shell.footer.guides': 'Ratgeber',
@@ -117,9 +115,8 @@ export const shell: Record<keyof typeof enNs, Entry> = {
   'shell.sale.dismiss': 'Banner „{name}“ schließen',
 
   // Home
-  'shell.home.seoDescription':
-    'Bunter, robuster und schwanzwedelnd geprüfter Bedarf für Hunde, Katzen, Vögel, Fische und Kleintiere.',
-  'shell.home.h1': 'Hier beginnen glückliche Schwänze',
+  'shell.home.seoDescription': 'Lebensmittel in 30 Minuten an deiner Tür.',
+  'shell.home.h1': 'Lebensmittel in 30 Minuten an deiner Tür',
   'shell.home.shopByPet': 'Nach Tier einkaufen',
   'shell.home.bestsellers': 'Bestseller',
   'shell.home.bestsellersError':
@@ -136,10 +133,10 @@ export const shell: Record<keyof typeof enNs, Entry> = {
   'shell.home.trust.label': 'Warum bei uns einkaufen',
   'shell.home.trust.deliveryTitle': 'Kostenlose Lieferung',
   'shell.home.trust.deliveryText': 'Ab 49 Euro Bestellwert',
-  'shell.home.trust.promiseTitle': 'Glücklicher-Schwanz-Versprechen',
-  'shell.home.trust.promiseText': 'Kein Treffer? Wir machen es wieder gut',
-  'shell.home.trust.safeTitle': 'Tiersichere Auswahl',
-  'shell.home.trust.safeText': 'Ehrliche Materialien und Zutaten',
+  'shell.home.trust.promiseTitle': 'Frische-Garantie',
+  'shell.home.trust.promiseText': 'Nicht zufrieden? Wir machen es wieder gut',
+  'shell.home.trust.safeTitle': 'Lieferung in 30 Minuten',
+  'shell.home.trust.safeText': 'Im Berliner Liefergebiet',
   'shell.home.trust.checkoutTitle': 'Sichere Kasse',
   'shell.home.trust.checkoutText': 'Sicher per Karte bezahlen',
   'shell.home.guides.title': 'Ratgeber zur Tierpflege',
@@ -176,8 +173,7 @@ export const shell: Record<keyof typeof enNs, Entry> = {
   'shell.notFound.headingBrand': 'Diese Marke finden wir nicht',
   'shell.notFound.headingCollection': 'Diese Kollektion finden wir nicht',
   'shell.notFound.headingGuide': 'Diesen Ratgeber finden wir nicht',
-  'shell.notFound.productHint':
-    'Es wurde möglicherweise aus dem Sortiment genommen, oder der Link ist veraltet.',
+  'shell.notFound.productHint': 'Vielleicht ist es nicht mehr im Sortiment, oder der Link ist alt.',
   'shell.notFound.pageHint':
     'Der Link ist möglicherweise veraltet, oder die Seite wurde verschoben.',
   'shell.notFound.back': 'Zurück zum Shop',
@@ -185,7 +181,6 @@ export const shell: Record<keyof typeof enNs, Entry> = {
   'shell.error.title': 'Etwas ist schiefgelaufen',
   'shell.error.notFoundHeading': 'Diese Seite finden wir nicht',
   'shell.error.notFoundText': 'Die angeforderte Seite existiert nicht.',
-  'shell.error.text':
-    'Ein unerwarteter Fehler hat das Laden dieser Seite verhindert. Bitte versuchen Sie es erneut.',
+  'shell.error.text': 'Etwas hat das Laden dieser Seite gestoppt. Bitte versuche es noch einmal.',
   'shell.error.reload': 'Shop neu laden',
 };

@@ -22,7 +22,9 @@ describe('home page', () => {
   it('shows the hero, pet tiles with counts, bestsellers, guides and testimonials', async () => {
     const spy = vi.spyOn(tracking, 'track');
     renderApp('/');
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Happy tails start here');
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'Groceries at your door in 30 minutes',
+    );
     expect(await screen.findByTestId('hero-carousel')).toBeInTheDocument();
 
     const tiles = within(screen.getByTestId('pet-tiles'));

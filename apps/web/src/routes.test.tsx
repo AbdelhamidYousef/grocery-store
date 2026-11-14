@@ -15,7 +15,7 @@ const renderAt = renderApp;
 
 describe('routes', () => {
   it.each([
-    ['/', 'Happy tails start here'],
+    ['/', 'Groceries at your door in 30 minutes'],
     ['/c/dogs', 'Dogs'],
     ['/products/rope-tug', 'Rope Tug'],
     ['/search', 'Search'],

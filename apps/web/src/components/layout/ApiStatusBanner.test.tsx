@@ -37,7 +37,7 @@ describe('<ApiStatusBanner />', () => {
     render(<ApiStatusBanner />, { wrapper: TestProviders });
 
     const banner = await screen.findByTestId('api-down-banner');
-    expect(banner).toHaveTextContent('cannot reach the shop');
+    expect(banner).toHaveTextContent("can't reach the shop");
     expect(banner).toHaveAttribute('role', 'status');
 
     server.use(up());

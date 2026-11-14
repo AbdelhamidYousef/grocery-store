@@ -5,8 +5,8 @@ import type { EmailKey } from './en.ts';
 // Deutsche E-Mail-Texte (Sie-Form). Dieselben Schlüssel und Platzhalter wie en.ts.
 export const de: Record<EmailKey, TextEntry> = {
   'mail.footer':
-    'Grocery ist ein fiktiver Demo-Shop für ein Portfolio. Nichts hier ist echt und keine Karte wurde belastet.',
-  'mail.signoff': '- Ihr Grocery-Team',
+    'Grocery ist ein fiktiver Shop für ein Portfolio. Nichts hier ist echt und keine Karte wurde belastet.',
+  'mail.signoff': '- Das Grocery-Team',
   'mail.hello': 'Hallo {name},',
   'mail.seeOrder': 'Bestellung ansehen',
   'mail.orderLine': 'Bestellung: {url}',
@@ -61,7 +61,7 @@ export const de: Record<EmailKey, TextEntry> = {
   'return.approved.l1':
     'Gute Nachrichten: Ihre Rücksendung {ref} zur Bestellung {order} ist genehmigt.',
   'return.approved.l2':
-    'So senden Sie zurück: Verpacken Sie {list} wenn möglich in der Originalverpackung, schreiben Sie {ref} auf das Paket und schicken Sie es an Grocery Returns, 1 Bone Street, Riga LV-1010 (eine erfundene Adresse: Dies ist ein Demo-Shop).',
+    'So senden Sie zurück: Verpacken Sie {list} wenn möglich in der Originalverpackung, schreiben Sie {ref} auf das Paket und schicken Sie es an Grocery Returns, Lindenstraße 1, 10115 Berlin (eine erfundene Adresse: Dies ist ein fiktiver Shop).',
   'return.approved.l3':
     'Sobald das Paket angekommen und geprüft ist, erstatten wir Ihnen den Betrag und schreiben Ihnen erneut.',
   'return.rejected.subject': 'Zu Ihrer Rücksendung {ref}',
@@ -90,7 +90,7 @@ export const de: Record<EmailKey, TextEntry> = {
   'news.unsub.link': 'Mit einem Klick abmelden',
   'news.confirm.subject': 'Bestätigen Sie Ihr Grocery-Abonnement',
   'news.confirm.l1':
-    'Noch ein Schritt: Bitte bestätigen Sie, dass Sie Grocery-News, Angebote und Haustier-Tipps erhalten möchten.',
+    'Noch ein Schritt: Bitte bestätigen Sie, dass Sie Grocery-News und Angebote erhalten möchten.',
   'news.confirm.link': 'Bestätigen: {url}',
   'news.confirm.button': 'Ja, anmelden',
   'news.confirm.hours': {

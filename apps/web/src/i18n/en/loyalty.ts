@@ -125,23 +125,23 @@ export const loyalty = {
 
   // Newsletter
   'loyalty.newsletter.seoTitle': 'Newsletter',
-  'loyalty.newsletter.seoDescription': 'Pet tips and offers from Grocery.',
-  'loyalty.newsletter.pageTitle': 'Join the pack',
+  'loyalty.newsletter.seoDescription': 'Offers and news from Grocery.',
+  'loyalty.newsletter.pageTitle': 'Get our offers by email',
   'loyalty.newsletter.pageText':
     'Subscribe and get 10% off your first order once you confirm your address.',
-  'loyalty.newsletter.slotTitle': 'Join the pack: 10% off your first order',
+  'loyalty.newsletter.slotTitle': 'Get 10% off your first order',
   'loyalty.newsletter.slotText':
-    'Tips for your pets and the odd offer. We email a link to confirm first, and every message has a one-click unsubscribe. See the',
+    'News and the odd offer. We email a link to confirm first, and every message has a one-click unsubscribe. See the',
   'loyalty.newsletter.privacyLink': 'privacy policy',
   'loyalty.newsletter.email': 'Email',
   'loyalty.newsletter.pets': 'Which pets do you have?',
   'loyalty.newsletter.consent':
-    'Send me Grocery news, offers and tips for my pets. I can unsubscribe with one click at any time.',
+    'Send me Grocery news and offers. I can unsubscribe with one click at any time.',
   'loyalty.newsletter.consentRequired': 'Please tick the box to subscribe',
   'loyalty.newsletter.honeypot': 'Leave this empty',
   'loyalty.newsletter.submit': 'Subscribe and get 10% off',
   'loyalty.newsletter.done':
-    'Almost there! If this address can receive our emails, a confirmation link is on its way. Click it and your welcome code follows.',
+    'Almost there. If this address can receive our emails, a confirmation link is on its way. Click it and your welcome code follows.',
   'loyalty.newsletter.tooMany': 'Too many sign-ups from here. Please try again later.',
   'loyalty.newsletter.failed': 'We could not sign you up right now. Please try again in a moment.',
   'loyalty.newsletter.token.incomplete':

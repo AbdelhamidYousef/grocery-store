@@ -23,10 +23,10 @@ const order: Order = {
   shippingMethod: { code: 'standard', name: 'Standard' },
   shippingAddress: {
     fullName: 'Ada <b>Lovelace</b>',
-    line1: '1 Bone Street',
+    line1: 'Lindenstrasse 1',
     line2: null,
-    city: 'Riga',
-    postalCode: 'LV-1010',
+    city: 'Berlin',
+    postalCode: '10115',
     country: 'DE',
   },
   billingAddress: null,

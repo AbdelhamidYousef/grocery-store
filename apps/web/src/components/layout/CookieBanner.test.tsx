@@ -11,8 +11,8 @@ describe('cookie banner', () => {
   it('says only necessary cookies are used and shows OK and Cookie details', async () => {
     renderApp('/');
     const banner = await screen.findByTestId('cookie-banner');
-    expect(banner).toHaveTextContent('only use cookies that are strictly necessary');
-    expect(banner).toHaveTextContent('No analytics or marketing cookies are set.');
+    expect(banner).toHaveTextContent('only use the cookies the shop needs');
+    expect(banner).toHaveTextContent('No analytics, no ads.');
     expect(screen.getByRole('button', { name: 'OK' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Cookie details' })).toHaveAttribute(
       'href',

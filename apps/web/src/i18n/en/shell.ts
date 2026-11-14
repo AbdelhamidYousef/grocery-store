@@ -5,13 +5,13 @@ export const shell = {
   'shell.skipLink': 'Skip to main content',
   'shell.menu': 'Menu',
   'shell.shopByPet': 'Shop by pet',
-  'shell.storeSwitcher': 'Country and language',
+  'shell.storeSwitcher': 'Language',
   'shell.breadcrumb': 'Breadcrumb',
   'shell.loading': 'Loading',
   'shell.loadingPage': 'Loading page',
   'shell.close': 'Close',
   'shell.apiDown':
-    "We cannot reach the shop's server right now. Your cart is safe. We keep trying, and this message disappears by itself when it is back.",
+    "We can't reach the shop right now. Your cart is safe. We keep trying, and this message goes away when we are back.",
   'shell.header.cartLabel': { one: 'Cart, {count} item', other: 'Cart, {count} items' },
   'shell.header.openMenu': 'Open menu',
   'shell.header.home': 'Grocery home',
@@ -27,16 +27,15 @@ export const shell = {
   // Cookie notice
   'shell.cookie.label': 'Cookie notice',
   'shell.cookie.text':
-    'We only use cookies that are strictly necessary (session, cart). No analytics or marketing cookies are set.',
+    'We only use the cookies the shop needs to run (session and cart). No analytics, no ads.',
   'shell.cookie.details': 'Cookie details',
   'shell.cookie.ok': 'OK',
 
   // Footer
-  'shell.footer.tagline':
-    'Happy-tail supplies for dogs, cats, birds, fish, reptiles and small pets.',
+  'shell.footer.tagline': 'Groceries at your door in 30 minutes.',
   'shell.footer.paymentNote':
-    'Payments run in Stripe test mode: no real orders are taken and no card is ever charged.',
-  'shell.footer.copyright': '© {year} Grocery demo store, a fictional company. Not legal advice.',
+    'Payments run in Stripe test mode. No real order is placed and no card is charged.',
+  'shell.footer.copyright': '© {year} Grocery, a fictional shop. Not legal advice.',
   'shell.footer.shop': 'Shop',
   'shell.footer.brands': 'Brands',
   'shell.footer.guides': 'Guides',
@@ -112,9 +111,8 @@ export const shell = {
   'shell.sale.dismiss': 'Dismiss the {name} banner',
 
   // Home
-  'shell.home.seoDescription':
-    'Colourful, tough and tail-wag-approved supplies for dogs, cats, birds, fish and small pets.',
-  'shell.home.h1': 'Happy tails start here',
+  'shell.home.seoDescription': 'Groceries at your door in 30 minutes.',
+  'shell.home.h1': 'Groceries at your door in 30 minutes',
   'shell.home.shopByPet': 'Shop by pet',
   'shell.home.bestsellers': 'Bestsellers',
   'shell.home.bestsellersError':
@@ -131,10 +129,10 @@ export const shell = {
   'shell.home.trust.label': 'Why shop with us',
   'shell.home.trust.deliveryTitle': 'Free delivery',
   'shell.home.trust.deliveryText': 'On orders over 49 euros',
-  'shell.home.trust.promiseTitle': 'Happy-tail promise',
-  'shell.home.trust.promiseText': 'Not a hit? We make it right',
-  'shell.home.trust.safeTitle': 'Pet-safe picks',
-  'shell.home.trust.safeText': 'Honest materials and ingredients',
+  'shell.home.trust.promiseTitle': 'Fresh guarantee',
+  'shell.home.trust.promiseText': 'Not happy? We make it right',
+  'shell.home.trust.safeTitle': '30-minute delivery',
+  'shell.home.trust.safeText': 'Inside the Berlin delivery area',
   'shell.home.trust.checkoutTitle': 'Secure checkout',
   'shell.home.trust.checkoutText': 'Pay by card, safely',
   'shell.home.guides.title': 'Pet care guides',
@@ -171,13 +169,13 @@ export const shell = {
   'shell.notFound.headingBrand': "We can't find that brand",
   'shell.notFound.headingCollection': "We can't find that collection",
   'shell.notFound.headingGuide': "We can't find that guide",
-  'shell.notFound.productHint': 'It may have been retired, or the link may be old.',
+  'shell.notFound.productHint': 'It may be out of the range, or the link is old.',
   'shell.notFound.pageHint': 'The link may be old, or the page may have moved.',
   'shell.notFound.back': 'Back to the shop',
   'shell.notFound.orLookAt': 'Or have a look at',
   'shell.error.title': 'Something went wrong',
   'shell.error.notFoundHeading': "We can't find that page",
   'shell.error.notFoundText': 'The page you asked for does not exist.',
-  'shell.error.text': 'An unexpected error stopped this page from loading. Please try again.',
+  'shell.error.text': 'Something stopped this page from loading. Please try again.',
   'shell.error.reload': 'Reload the shop',
 } satisfies Dictionary;

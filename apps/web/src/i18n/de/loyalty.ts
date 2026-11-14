@@ -131,24 +131,23 @@ export const loyalty: Record<keyof typeof enNs, Entry> = {
 
   // Newsletter
   'loyalty.newsletter.seoTitle': 'Newsletter',
-  'loyalty.newsletter.seoDescription': 'Tipps für Tiere und Angebote von Grocery.',
-  'loyalty.newsletter.pageTitle': 'Werden Sie Teil des Rudels',
+  'loyalty.newsletter.seoDescription': 'Angebote und Neuigkeiten von Grocery.',
+  'loyalty.newsletter.pageTitle': 'Angebote per E-Mail erhalten',
   'loyalty.newsletter.pageText':
-    'Abonnieren Sie den Newsletter und erhalten Sie 10 % Rabatt auf Ihre erste Bestellung, sobald Sie Ihre Adresse bestätigt haben.',
-  'loyalty.newsletter.slotTitle':
-    'Werden Sie Teil des Rudels: 10 % Rabatt auf Ihre erste Bestellung',
+    'Abonniere den Newsletter und erhalte 10 % Rabatt auf deine erste Bestellung, sobald du deine Adresse bestätigt hast.',
+  'loyalty.newsletter.slotTitle': '10 % Rabatt auf deine erste Bestellung',
   'loyalty.newsletter.slotText':
-    'Tipps für Ihre Tiere und hin und wieder ein Angebot. Zuerst senden wir einen Bestätigungslink, und jede Nachricht lässt sich mit einem Klick abbestellen. Lesen Sie die',
+    'Neuigkeiten und hin und wieder ein Angebot. Zuerst schicken wir einen Bestätigungslink, und jede Nachricht lässt sich mit einem Klick abbestellen. Lies die',
   'loyalty.newsletter.privacyLink': 'Datenschutzerklärung',
   'loyalty.newsletter.email': 'E-Mail',
   'loyalty.newsletter.pets': 'Welche Tiere haben Sie?',
   'loyalty.newsletter.consent':
-    'Senden Sie mir Neuigkeiten, Angebote und Tipps für meine Tiere von Grocery. Ich kann mich jederzeit mit einem Klick abmelden.',
-  'loyalty.newsletter.consentRequired': 'Bitte setzen Sie das Häkchen, um zu abonnieren',
+    'Schick mir Grocery-News und Angebote. Ich kann mich jederzeit mit einem Klick abmelden.',
+  'loyalty.newsletter.consentRequired': 'Bitte setze das Häkchen, um zu abonnieren',
   'loyalty.newsletter.honeypot': 'Bitte leer lassen',
   'loyalty.newsletter.submit': 'Abonnieren und 10 % Rabatt sichern',
   'loyalty.newsletter.done':
-    'Fast geschafft! Wenn diese Adresse E-Mails empfangen kann, ist ein Bestätigungslink unterwegs. Klicken Sie darauf, dann folgt Ihr Willkommenscode.',
+    'Fast geschafft. Wenn diese Adresse E-Mails empfangen kann, ist ein Bestätigungslink unterwegs. Klicke darauf, dann folgt dein Willkommenscode.',
   'loyalty.newsletter.tooMany':
     'Zu viele Anmeldungen von hier. Bitte versuchen Sie es später erneut.',
   'loyalty.newsletter.failed':

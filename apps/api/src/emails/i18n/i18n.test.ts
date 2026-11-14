@@ -29,7 +29,7 @@ const order = {
   shippingMethod: { code: 'standard', name: 'Standard' },
   shippingAddress: {
     fullName: 'Ada Lovelace',
-    line1: '1 Bone Street',
+    line1: 'Lindenstrasse 1',
     line2: null,
     city: 'London',
     postalCode: 'SW1A 1AA',

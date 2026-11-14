@@ -8,7 +8,7 @@ import type { TextEntry } from '@store/shared';
 export const en = {
   // ----- shared -----
   'mail.footer':
-    'Grocery is a fictional demo shop made for a portfolio. Nothing here is real and no card was charged.',
+    'Grocery is a fictional shop made for a portfolio. Nothing here is real and no card was charged.',
   'mail.signoff': '- The Grocery team',
   'mail.hello': 'Hello {name},',
   'mail.seeOrder': 'See your order',
@@ -66,7 +66,7 @@ export const en = {
   'return.approved.heading': 'Your return is approved',
   'return.approved.l1': 'Good news: your return {ref} for order {order} is approved.',
   'return.approved.l2':
-    'How to send it back: pack {list} in the original packaging if you can, write {ref} on the parcel, and post it to Grocery Returns, 1 Bone Street, Riga LV-1010 (a made-up address: this is a demo shop).',
+    'How to send it back: pack {list} in the original packaging if you can, write {ref} on the parcel, and post it to Grocery Returns, Lindenstrasse 1, 10115 Berlin (a made-up address: this is a fictional shop).',
   'return.approved.l3':
     'When it arrives and we have checked it, we refund you and send another email.',
   'return.rejected.subject': 'About your return {ref}',
@@ -92,8 +92,7 @@ export const en = {
   'news.unsub.lead': 'You get this because you subscribed to Grocery news.',
   'news.unsub.link': 'Unsubscribe with one click',
   'news.confirm.subject': 'Confirm your Grocery subscription',
-  'news.confirm.l1':
-    'One more step: please confirm that you want Grocery news, offers and pet tips.',
+  'news.confirm.l1': 'One more step: please confirm that you want Grocery news and offers.',
   'news.confirm.link': 'Confirm: {url}',
   'news.confirm.button': 'Yes, subscribe me',
   'news.confirm.hours': {
