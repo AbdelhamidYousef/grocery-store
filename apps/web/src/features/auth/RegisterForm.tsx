@@ -9,6 +9,7 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { PasswordInput } from '../../components/ui/PasswordInput';
 import { safeNext } from '../../lib/safe-next';
+import { clearReferral } from '../loyalty/referral-cookie';
 
 import { FormAlert } from './AuthCard';
 import { applyFieldErrors, formErrorMessage } from './form-errors';
@@ -32,7 +33,11 @@ export function RegisterForm({ next }: { next: string | null }) {
   const submit = handleSubmit((values) => {
     setFormError(null);
     registerUser.mutate(values, {
-      onSuccess: () => void navigate(target, { replace: true }),
+      onSuccess: () => {
+        // The server has read the cookie by now; it has done its job.
+        clearReferral();
+        void navigate(target, { replace: true });
+      },
       onError: (error) => {
         if (error instanceof ApiError && error.code === 'CONFLICT') {
           // The API answers 409 for an email that exists; show it on the email field.

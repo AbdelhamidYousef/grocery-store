@@ -5,6 +5,7 @@ import {
   IdParamsSchema,
   PersonalCodeListResponseSchema,
   PointsResponseSchema,
+  ReferralResponseSchema,
   RedeemRewardResponseSchema,
   RewardListResponseSchema,
 } from '@store/shared';
@@ -15,6 +16,7 @@ import { requireUser } from '../../middleware/auth.ts';
 import { publicCache } from '../../middleware/cache.ts';
 
 import * as charity from './charity-service.ts';
+import * as referrals from './referrals-service.ts';
 import * as rewards from './rewards-service.ts';
 import * as service from './service.ts';
 
@@ -30,6 +32,10 @@ export function createLoyaltyRouter(): Router {
 
   router.get('/me/points', async (req, res) => {
     respond(res, PointsResponseSchema, { data: await service.getSummary(userId(req)) });
+  });
+
+  router.get('/me/referral', async (req, res) => {
+    respond(res, ReferralResponseSchema, { data: await referrals.getSummary(userId(req)) });
   });
 
   router.get('/me/codes', async (req, res) => {

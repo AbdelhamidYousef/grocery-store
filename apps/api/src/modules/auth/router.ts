@@ -12,8 +12,27 @@ import { respond, valid, validate } from '../../lib/validate.ts';
 import { requireUser } from '../../middleware/auth.ts';
 import { createAuthRateLimiter, type RateLimitOptions } from '../../middleware/rate-limit.ts';
 import { mergeGuestCart } from '../cart/service.ts';
+import { attachOnRegister } from '../loyalty/referrals-service.ts';
 
 import * as service from './service.ts';
+
+// The referral cookie (`pawsome_ref`, set by the web when someone arrives through a friend's link)
+// is read once, when the account is created. Like the cart merge it must never fail a
+// registration: an error is logged and the sign-up goes through.
+async function attachReferral(
+  req: Request,
+  res: Response,
+  user: { id: string; email: string },
+): Promise<void> {
+  const raw = (req.cookies as Record<string, unknown> | undefined)?.pawsome_ref;
+  if (typeof raw !== 'string') return;
+  try {
+    await attachOnRegister(user, raw);
+  } catch (err) {
+    req.log.error({ err }, 'referral attach failed');
+  }
+  res.clearCookie('pawsome_ref', { path: '/' });
+}
 
 const meta = (req: Request) => ({ ip: req.ip, userAgent: req.get('user-agent') });
 
@@ -44,6 +63,7 @@ export function createAuthRouter(opts: { authRateLimit: RateLimitOptions }): Rou
     // The cookie we read is the one we replace: it is the old session to destroy (fixation).
     const { user, token } = await service.register(body, meta(req), readSessionCookie(req));
     setSessionCookie(res, token);
+    await attachReferral(req, res, user);
     await onLogin(user.id, req, res);
     res.status(201);
     respond(res, UserResponseSchema, { data: { user } });

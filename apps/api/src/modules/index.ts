@@ -20,6 +20,7 @@ import { helpRouter } from './help/router.ts';
 import { homeRouter } from './home/router.ts';
 import { createJobsRouter } from './jobs/router.ts';
 import { registerCharitySubscribers } from './loyalty/charity-service.ts';
+import { registerReferralSubscribers } from './loyalty/referrals-service.ts';
 import { createLoyaltyRouter, rewardsRouter } from './loyalty/router.ts';
 import { registerLoyaltySubscribers } from './loyalty/service.ts';
 import type { Outbox } from './mail/outbox.ts';
@@ -59,6 +60,7 @@ export function createModulesRouter(opts: {
   registerPromotionSubscribers();
   registerLoyaltySubscribers();
   registerCharitySubscribers();
+  registerReferralSubscribers();
   router.use(catalogRouter);
   router.use(merchandisingRouter);
   router.use(guidesRouter);

@@ -176,6 +176,13 @@
       "when": 1794636875843,
       "tag": "0024_charity_donations",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1794636877057,
+      "tag": "0025_referrals",
+      "breakpoints": true
     }
   ]
 }

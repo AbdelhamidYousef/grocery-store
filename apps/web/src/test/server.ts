@@ -44,6 +44,20 @@ export const server = setupServer(
       },
     }),
   ),
+  http.get(`${API}/me/referral`, () =>
+    HttpResponse.json({
+      data: {
+        code: 'PAWTEST1',
+        rewardCents: 500,
+        minOrderCents: 2000,
+        codeDays: 90,
+        maxPerYear: 10,
+        pending: 0,
+        qualified: 0,
+        rejected: 0,
+      },
+    }),
+  ),
   // A signed-in visitor has no points yet unless a test says so.
   http.get(`${API}/me/points`, () => HttpResponse.json({ data: makePoints() })),
   // A signed-in visitor has no pets unless a test says so.

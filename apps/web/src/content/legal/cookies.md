@@ -6,6 +6,7 @@ We only use cookies that are strictly necessary for the shop to work. We set no 
 
 - **Session:** keeps you signed in. Lasts until you sign out or it expires.
 - **Cart:** remembers what is in your basket. Lasts 30 days.
+- **Referral:** only if you arrive through a friend's "refer a friend" link: remembers the friend's code for 30 days so it can be attached when you create an account. It holds that code and nothing else, and is removed once you register.
 
 ## Why we do not ask for consent
 

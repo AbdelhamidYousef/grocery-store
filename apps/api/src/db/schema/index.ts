@@ -28,6 +28,7 @@ export * from './product-variants.ts';
 export * from './products.ts';
 export * from './promotions.ts';
 export * from './reviews.ts';
+export * from './referrals.ts';
 export * from './rewards.ts';
 export * from './safety-notices.ts';
 export * from './sessions.ts';

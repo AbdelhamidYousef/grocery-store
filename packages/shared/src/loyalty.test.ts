@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { nextTierFor, pointsForCents, tierFor } from './loyalty.ts';
+import { nextTierFor, normalizeEmail, pointsForCents, tierFor } from './loyalty.ts';
 
 describe('tierFor', () => {
   it.each([
@@ -40,5 +40,19 @@ describe('pointsForCents', () => {
   it('refuses fractional or negative cents', () => {
     expect(() => pointsForCents(1.5)).toThrow(RangeError);
     expect(() => pointsForCents(-1)).toThrow(RangeError);
+  });
+});
+
+describe('normalizeEmail', () => {
+  it('lower-cases and drops a +tag', () => {
+    expect(normalizeEmail('Ada+Shop@Example.com')).toBe('ada@example.com');
+  });
+  it('ignores dots and the googlemail alias for Gmail only', () => {
+    expect(normalizeEmail('jo.smith@gmail.com')).toBe('josmith@gmail.com');
+    expect(normalizeEmail('jo.smith+x@googlemail.com')).toBe('josmith@gmail.com');
+    expect(normalizeEmail('jo.smith@example.com')).toBe('jo.smith@example.com');
+  });
+  it('keeps different mailboxes different', () => {
+    expect(normalizeEmail('a@example.com')).not.toBe(normalizeEmail('b@example.com'));
   });
 });

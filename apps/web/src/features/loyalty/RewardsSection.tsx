@@ -19,6 +19,7 @@ import {
   useRedeemReward,
   useRewards,
 } from './queries';
+import { ReferralPanel } from './ReferralPanel';
 
 const KIND_LABEL: Record<PointKind, string> = {
   earn: 'Earned',
@@ -195,6 +196,8 @@ export function RewardsSection() {
 
       <h3 className="mt-8 font-display text-xl font-bold">Or give them away</h3>
       <DonateBox balance={Math.max(0, data?.balance ?? 0)} />
+
+      <ReferralPanel />
 
       <h3 className="mt-8 font-display text-xl font-bold">Your codes</h3>
       {codes.data && codes.data.length === 0 && (

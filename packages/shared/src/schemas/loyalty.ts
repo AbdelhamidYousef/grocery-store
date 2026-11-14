@@ -123,3 +123,20 @@ export type DonatePoints = z.infer<typeof DonatePointsSchema>;
 export const DonatePointsResponseSchema = DataSchema(
   z.object({ balance: z.number().int(), donatedCents: z.number().int().positive() }),
 );
+
+// ---------- referrals (19.6) ----------
+
+export const ReferralSummarySchema = z.object({
+  // The shareable code; the link is `/?ref=<code>`.
+  code: z.string(),
+  // What both sides get, and the rules, so the page never hard-codes a number the server owns.
+  rewardCents: z.number().int().positive(),
+  minOrderCents: z.number().int().positive(),
+  codeDays: z.number().int().positive(),
+  maxPerYear: z.number().int().positive(),
+  pending: z.number().int().min(0),
+  qualified: z.number().int().min(0),
+  rejected: z.number().int().min(0),
+});
+export type ReferralSummary = z.infer<typeof ReferralSummarySchema>;
+export const ReferralResponseSchema = DataSchema(ReferralSummarySchema);

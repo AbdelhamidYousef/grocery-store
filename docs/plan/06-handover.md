@@ -61,6 +61,21 @@ Merged into `main` (all gates green on 2026-11-07: shared 180, web 607, API 951 
 | 17 Reviews | done, merged 2026-11-14 (reviews with verified buyer, photo upload to local disk via multer + sharp, helpful votes, ratings on cards/PDP, moderation, shoppable gallery; security-review fixes; API 1,140+ pass, e2e 62 + 1 skipped). Set `UPLOADS_ENABLED=false` on the free-tier demo (ephemeral disk). `sweepOrphanUploads` waits for the phase 19 job runner |
 | 22 Post-purchase | building 2026-11-14 on `feat/phase-22` (`../ecommerce-p17` folder, DB `ecommerce_p17`, API 3117, e2e 3217/5217) |
 | 24, 21 | queued: 24 after 19 in lane B, then 21 alone |
+| 17 Reviews | building 2026-11-14 on `feat/phase-17` (`../ecommerce-p17`, DB `ecommerce_p17`, API 3117, e2e 3217/5217) |
+| 21, 22, 24 | queued 2026-11-14: 22 ‖ 24 after 17/19, then 21 alone (touches every screen) |
+| 19 Loyalty | in progress: lane `feat/phase-19` (`../ecommerce-p15`, DB `ecommerce_p15`, API 3115, e2e 3215/5215). 19.1 to 19.6 done and committed (job runner, points ledger, redeem + reversal, rewards shop, charity, referrals); resume at 19.7 (newsletter), see the notes below the table |
+| 16 PDP depth | in progress: lane `feat/phase-16` (`../ecommerce-p16`, DB `ecommerce_p16`, API 3116, e2e 3216/5216) |
+| 17 Reviews | queued: after 16 in lane B |
+| 21, 22, 24 | not started |
+
+Phase 19 resume notes (written after 19.6, for whoever builds 19.7 to 19.12):
+- Order events are the extension point: `onOrderPaid` / `onOrderCancelled` / `onOrderRefunded` (`modules/orders/events.ts`). Loyalty subscribes in `loyalty/service.ts` (points), `charity-service.ts` and `referrals-service.ts`; each exports a `register...Subscribers()` called from `modules/index.ts`. Handlers run inside the order's transaction, so keep them database-only (no email send; queue through the outbox).
+- Jobs: `jobs/runner.ts` has `registerJob({name, every, run})`; the new jobs (`send-stock-alerts` hourly, `pet-messages` daily) register there, and the CLI (`pnpm --filter @store/api job run <name>`), `JOBS_IN_PROCESS` and `POST /api/v1/internal/jobs/run` pick them up with no other change. The GitHub workflow `.github/workflows/jobs.yml` only runs once the repository variable `API_URL` and secret `JOBS_SECRET` exist (needs the owner's OK).
+- Personal single-use codes: `loyalty/codes.ts` `mintPersonalCode` (owner-only through `promotions.price`, `max_uses` 1, expiry). The newsletter welcome code (`WELCOME-XXXX`, 10% percent, first order only) needs a `percent` kind: extend `PersonalCodeSpec` (it supports `fixed` and `free_shipping` today) and keep the `WELCOME` prefix; it is not owner-bound (a subscriber may not have an account yet), so pass no owner or add an email-bound variant.
+- Money in a code is integer cents; points are integers (1 point = 1 cent); the round-up donation is a separate order field (`orders.donation_cents`) and is part of `totalCents`.
+- Migrations: 0018 job_runs, 0019 points_ledger, 0020 rewards, 0021 charity_donations, 0022 referrals. Hand-written SQL (the `updated_at` triggers) is at the end of 0020 and 0021 under a "HAND-WRITTEN" comment, so it can be re-appended when the lead regenerates the migrations after phase 16 merges. Always run prettier from the repo root (`pnpm format`): from a package folder it ignores `.prettierignore` and rewrites the migration snapshots.
+- API test suite is slow on a shared machine (every test truncates ~60 tables; 30 to 40 minutes under load). Run single files with `npx vitest run <path>` from `apps/api` while iterating and the whole suite once per commit.
+- Not done in 19.1 to 19.6: e2e (19.12 owns `loyalty.spec.ts`; the checkout round-up checkbox and "Use loyalty points" box need a step there), phase 22's `refundId` on `emitOrderRefunded`, an email when a referral qualifies, a real "free product" for the free-toy reward (it mints a EUR 6.99 code), admin visibility of referrals.
 
 Lanes for wave 2 are listed in the table; everything else is on `main`. Tax stays out of scope ("Demo store: no tax is charged"), logged as a decision.
 

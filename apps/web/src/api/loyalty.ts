@@ -6,6 +6,7 @@ import {
   AdminRewardResponseSchema,
   PersonalCodeListResponseSchema,
   PointsResponseSchema,
+  ReferralResponseSchema,
   RedeemRewardResponseSchema,
   RewardListResponseSchema,
   type AdminPointsAdjust,
@@ -15,6 +16,7 @@ import {
   type PersonalCode,
   type PointsSummary,
   type RedeemRewardResponse,
+  type ReferralSummary,
   type Reward,
 } from '@store/shared';
 
@@ -117,6 +119,17 @@ export async function donatePoints(points: number) {
       method: 'POST',
       body: { points },
       schema: DonatePointsResponseSchema,
+    })
+  ).data;
+}
+
+// ---------- referrals ----------
+
+export async function fetchReferral(signal?: AbortSignal): Promise<ReferralSummary> {
+  return (
+    await apiFetch('/me/referral', {
+      schema: ReferralResponseSchema,
+      ...(signal && { signal }),
     })
   ).data;
 }

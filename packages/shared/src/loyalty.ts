@@ -49,3 +49,22 @@ export function pointsForCents(cents: number, tier: TierId | Tier = 'pup'): numb
 }
 
 export const pointsToCents = (points: number): number => points * CENTS_PER_POINT;
+
+// ---------- referrals (19.6) ----------
+
+export const REFERRAL_REWARD_CENTS = 500;
+export const REFERRAL_MIN_ORDER_CENTS = 2000;
+export const REFERRAL_CODE_DAYS = 90;
+export const REFERRAL_MAX_PER_YEAR = 10;
+
+/**
+ * One identity per mailbox: lower-case, drop a "+tag", and for Gmail ignore dots. Two sign-ups that
+ * normalise to the same string are the same person for the self-referral rule.
+ */
+export function normalizeEmail(email: string): string {
+  const [rawLocal = '', rawDomain = ''] = email.trim().toLowerCase().split('@');
+  const domain = rawDomain === 'googlemail.com' ? 'gmail.com' : rawDomain;
+  let local = rawLocal.split('+')[0] ?? '';
+  if (domain === 'gmail.com') local = local.replaceAll('.', '');
+  return `${local}@${domain}`;
+}

@@ -12,6 +12,8 @@
 export const TEST_IDS = {
   pageHome: 'page-home',
   earnPoints: 'earn-points',
+  referralPanel: 'referral-panel',
+  referralLink: 'referral-link',
   charityTotal: 'charity-total',
   charityAmount: 'charity-amount',
   roundUp: 'round-up',

@@ -5,6 +5,7 @@ import {
   fetchCharityTotal,
   fetchMyCodes,
   fetchPoints,
+  fetchReferral,
   fetchRewards,
   redeemReward,
 } from '../../api/loyalty';
@@ -65,5 +66,14 @@ export function useDonatePoints() {
         queryClient.invalidateQueries({ queryKey: keys.points }),
         queryClient.invalidateQueries({ queryKey: keys.charityTotal }),
       ]),
+  });
+}
+
+export function useReferral() {
+  const { user } = useAuthOptional();
+  return useQuery({
+    queryKey: keys.referral,
+    queryFn: ({ signal }) => fetchReferral(signal),
+    enabled: user !== null,
   });
 }

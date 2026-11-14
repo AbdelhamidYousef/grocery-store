@@ -58,6 +58,7 @@ export const keys = {
   // Loyalty balance, tier and ledger of the signed-in shopper.
   points: ['points'] as const,
   rewards: ['rewards'] as const,
+  referral: ['points', 'referral'] as const,
   charityTotal: ['charity', 'total'] as const,
   myCodes: ['points', 'codes'] as const,
   adminRewards: ['admin', 'rewards'] as const,

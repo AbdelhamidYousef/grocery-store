@@ -3,6 +3,7 @@ import { Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
 
 import { MiniCart } from '../../features/cart/MiniCart';
 import { useCart } from '../../features/cart/queries';
+import { ReferralCapture } from '../../features/loyalty/ReferralCapture';
 import { SaleBanner } from '../../features/promotions/SaleBanner';
 
 import { ApiStatusBanner } from './ApiStatusBanner';
@@ -38,6 +39,7 @@ export function AppLayout() {
   return (
     <div className="flex min-h-screen flex-col">
       <SkipLink />
+      <ReferralCapture />
       <ApiStatusBanner />
       <SaleBanner />
       <Header
