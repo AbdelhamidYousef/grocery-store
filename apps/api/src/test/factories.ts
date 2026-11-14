@@ -9,6 +9,7 @@ import {
   collectionProducts,
   collections,
   productTags,
+  reviews,
   tags,
   inventory,
   productImages,
@@ -294,4 +295,32 @@ export async function createCollection(
     );
   }
   return collection;
+}
+
+// A review written straight into the table (bypassing the API), approved by default so read
+// tests need no moderation step. Pass `userId` to tie it to an account; each call otherwise makes
+// its own user, because (user, product) is unique.
+export async function createReview(
+  productId: string,
+  overrides: Partial<typeof reviews.$inferInsert> = {},
+) {
+  const userId = overrides.userId ?? (await createUser()).id;
+  const status = overrides.status ?? 'approved';
+  return first(
+    await db
+      .insert(reviews)
+      .values({
+        productId,
+        userId,
+        rating: 5,
+        title: 'Lovely product',
+        body: 'Exactly what my pet needed and it arrived quickly.',
+        wouldRecommend: true,
+        status,
+        ...(status !== 'pending' && { moderatedAt: new Date() }),
+        ...overrides,
+      })
+      .returning(),
+    'review',
+  );
 }

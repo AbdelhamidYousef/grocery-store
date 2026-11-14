@@ -1,11 +1,19 @@
-import { OrderStatusSchema, isPaidOrLater, type ReviewInput } from '@store/shared';
+import {
+  OrderStatusSchema,
+  isPaidOrLater,
+  type ReviewInput,
+  type ReviewListResponse,
+} from '@store/shared';
+import type { ReviewListQuerySchema } from '@store/shared';
+import type { z } from 'zod';
 
 import { db } from '../../db/client.ts';
 import { uniqueViolation } from '../../lib/db-errors.ts';
-import { conflict, notFound, validation } from '../../lib/errors.ts';
+import { conflict, forbidden, notFound, validation } from '../../lib/errors.ts';
 import { removePhotos, savePhoto, type UploadConfig } from '../../lib/uploads.ts';
 
 import * as repo from './repo.ts';
+import { extractTopics, type Topic } from './topics.ts';
 
 const PAID_STATUSES = OrderStatusSchema.options.filter(isPaidOrLater);
 
@@ -67,4 +75,108 @@ export async function createReview(
     }
     throw err;
   }
+}
+
+// ---------- public reads ----------
+
+const PAGE_SIZE = 10;
+const TOPIC_TTL_MS = 5 * 60_000;
+
+// Topics are recomputed from the approved texts, not stored, so moderation never has to maintain
+// them; a 5 minute per-product cache keeps a busy product page from re-reading every review.
+const topicCache = new Map<string, { at: number; topics: Topic[] }>();
+
+export function clearTopicCache(): void {
+  topicCache.clear();
+}
+
+async function topicsFor(productId: string, now: number): Promise<Topic[]> {
+  const hit = topicCache.get(productId);
+  if (hit && now - hit.at < TOPIC_TTL_MS && now >= hit.at) return hit.topics;
+  const topics = extractTopics(await repo.approvedTexts(productId));
+  topicCache.set(productId, { at: now, topics });
+  return topics;
+}
+
+const authorName = (first: string | null, last: string | null) =>
+  first ? `${first} ${(last ?? '').charAt(0)}.`.replace(/ \.$/, '') : 'A Pawsome customer';
+
+export async function listReviews(
+  slug: string,
+  query: z.output<typeof ReviewListQuerySchema>,
+  viewerId: string | null,
+  uploadsEnabled: boolean,
+  now = Date.now(),
+): Promise<ReviewListResponse> {
+  const productId = await repo.findProductId(slug);
+  if (!productId) throw notFound('Product not found');
+
+  const [page, sum, topics] = await Promise.all([
+    repo.listApproved(
+      productId,
+      {
+        ...(query.rating && { rating: query.rating }),
+        ...(query.topic && { topic: query.topic.toLowerCase() }),
+      },
+      query.sort,
+      viewerId,
+      PAGE_SIZE,
+      (query.page - 1) * PAGE_SIZE,
+    ),
+    repo.summary(productId),
+    topicsFor(productId, now),
+  ]);
+
+  const photosOf = new Map<string, { id: string; path: string }[]>();
+  for (const p of page.photos) {
+    const list = photosOf.get(p.reviewId) ?? [];
+    list.push({ id: p.id, path: p.path });
+    photosOf.set(p.reviewId, list);
+  }
+
+  return {
+    data: page.rows.map((r) => ({
+      id: r.id,
+      rating: r.rating,
+      title: r.title,
+      body: r.body,
+      verifiedBuyer: r.verifiedBuyer,
+      authorName: authorName(r.firstName, r.lastName),
+      petAgeMonths: r.petAgeMonths,
+      petWeightG: r.petWeightG,
+      sizePurchased: r.sizePurchased,
+      wouldRecommend: r.wouldRecommend,
+      helpfulCount: r.helpfulCount,
+      votedHelpful: r.voted,
+      photos: photosOf.get(r.id) ?? [],
+      createdAt: r.createdAt.toISOString(),
+    })),
+    meta: {
+      page: query.page,
+      limit: PAGE_SIZE,
+      total: page.total,
+      totalPages: Math.ceil(page.total / PAGE_SIZE),
+    },
+    summary: {
+      rating: {
+        count: sum.total,
+        // Integer rounding of sum*10/count without floats: add half the divisor before dividing.
+        averageTenths:
+          sum.total === 0 ? 0 : Math.floor((sum.sum * 20 + sum.total) / (sum.total * 2)),
+      },
+      breakdown: [sum.s1, sum.s2, sum.s3, sum.s4, sum.s5],
+      recommendPercent: sum.recommendPercent,
+      topics,
+      uploadsEnabled,
+    },
+  };
+}
+
+// Toggle: a second call from the same user takes the vote back. Your own review is off limits
+// (403) and only approved reviews are public at all (anything else is a 404, not a hint).
+export async function toggleHelpful(userId: string, reviewId: string) {
+  const review = await repo.findApprovedReview(reviewId);
+  if (!review) throw notFound('Review not found');
+  if (review.userId === userId) throw forbidden('You cannot vote on your own review.');
+  return repo.toggleVote(reviewId, userId);
 }

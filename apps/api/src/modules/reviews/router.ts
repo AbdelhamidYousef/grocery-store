@@ -1,4 +1,12 @@
-import { ReviewCreatedResponseSchema, reviewInputSchema, SlugParamsSchema } from '@store/shared';
+import {
+  HelpfulResponseSchema,
+  IdParamsSchema,
+  ReviewCreatedResponseSchema,
+  ReviewListQuerySchema,
+  ReviewListResponseSchema,
+  reviewInputSchema,
+  SlugParamsSchema,
+} from '@store/shared';
 import { Router as ExpressRouter, type RequestHandler, type Router } from 'express';
 
 import { parseReviewUpload, type UploadConfig } from '../../lib/uploads.ts';
@@ -27,6 +35,16 @@ export function createReviewsRouter(opts: {
     opts.reviewRateLimit ?? DEFAULT_REVIEW_LIMIT,
   );
 
+  const list = { params: SlugParamsSchema, query: ReviewListQuerySchema };
+  router.get('/products/:slug/reviews', validate(list), async (req, res) => {
+    const { params, query } = valid(req, list);
+    respond(
+      res,
+      ReviewListResponseSchema,
+      await service.listReviews(params.slug, query, req.user?.id ?? null, opts.uploads.enabled),
+    );
+  });
+
   const create = { params: SlugParamsSchema, body: reviewInputSchema };
   router.post(
     '/products/:slug/reviews',
@@ -43,6 +61,20 @@ export function createReviewsRouter(opts: {
           files: ((req.files as Express.Multer.File[] | undefined) ?? []).map((f) => f.buffer),
           config: opts.uploads,
         }),
+      });
+    },
+  );
+
+  const vote = { params: IdParamsSchema };
+  router.post(
+    '/reviews/:id/helpful',
+    requireUser,
+    createUserRateLimiter(opts.voteRateLimit ?? DEFAULT_VOTE_LIMIT),
+    validate(vote),
+    async (req, res) => {
+      const { params } = valid(req, vote);
+      respond(res, HelpfulResponseSchema, {
+        data: await service.toggleHelpful(userId(req), params.id),
       });
     },
   );

@@ -90,6 +90,8 @@ export const ReviewListResponseSchema = z.object({
     // Whole percent of approved reviews that would recommend; null with no reviews.
     recommendPercent: z.number().int().min(0).max(100).nullable(),
     topics: z.array(z.object({ topic: z.string(), count: z.number().int().min(1) })),
+    // Whether the form may offer the photo picker (false on the public demo, see lib/uploads.ts).
+    uploadsEnabled: z.boolean(),
   }),
 });
 export type ReviewListResponse = z.infer<typeof ReviewListResponseSchema>;

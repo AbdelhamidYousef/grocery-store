@@ -3,6 +3,7 @@ import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
 
 import { closeDb, db } from '../db/client.ts';
 import { clearBadgeCache } from '../modules/catalog/badge-index.ts';
+import { clearTopicCache } from '../modules/reviews/service.ts';
 
 import { settlePending } from './pending.ts';
 
@@ -32,6 +33,7 @@ beforeEach(async () => {
   await db.execute(sql`alter sequence order_number_seq restart with 1`);
   // The badge index is cached for a minute in production; a new test must not see the last one's.
   clearBadgeCache();
+  clearTopicCache();
 });
 
 // Before the next test's truncate, not after it: see pending.ts.
