@@ -1,3 +1,4 @@
+export * from './delivery.ts';
 export * from './errors.ts';
 export * from './feeding.ts';
 export * from './money.ts';

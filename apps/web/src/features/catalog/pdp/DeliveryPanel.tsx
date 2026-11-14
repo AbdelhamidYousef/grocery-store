@@ -25,6 +25,10 @@ export function DeliveryPanel({ note }: { note: string | null }) {
           </Link>{' '}
           for prices and times.
         </p>
+        <p className="mt-2 text-sm text-muted">
+          Orders placed before 15:00 Amsterdam time on a business day ship the same day. The
+          dispatch schedule and the holiday list are invented for this demo shop.
+        </p>
       </section>
       <section aria-labelledby="returns-heading">
         <h3 id="returns-heading" className="font-display text-xl font-bold">

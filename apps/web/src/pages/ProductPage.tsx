@@ -19,6 +19,7 @@ import { AddToCart } from '../features/catalog/AddToCart';
 import { formatFacetValue } from '../features/catalog/filters';
 import { Gallery } from '../features/catalog/Gallery';
 import { BoughtTogether } from '../features/catalog/pdp/BoughtTogether';
+import { DeliveryEstimate } from '../features/catalog/pdp/DeliveryEstimate';
 import { faqJsonLd } from '../features/catalog/pdp/FaqAccordion';
 import { ProductTabs } from '../features/catalog/pdp/ProductTabs';
 import { RecentlyViewed } from '../features/catalog/pdp/RecentlyViewed';
@@ -238,6 +239,8 @@ function ProductView({ product }: { product: ProductDetail }) {
                 onAdd={(quantity) => cart.add(variant, quantity)}
               />
             )}
+
+            {variant?.available && <DeliveryEstimate />}
           </div>
         </div>
         <ProductTabs

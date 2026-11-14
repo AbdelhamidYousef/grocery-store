@@ -19,6 +19,7 @@ export const TEST_IDS = {
   pageProduct: 'page-product',
   productTabs: 'product-tabs',
   feedingCalculator: 'feeding-calculator',
+  deliveryEstimate: 'delivery-estimate',
   sizeGuideButton: 'size-guide-button',
   productGrid: 'product-grid',
   productCard: 'product-card',

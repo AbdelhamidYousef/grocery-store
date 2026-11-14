@@ -37,6 +37,27 @@ export async function getShippingQuotes(cartId: string, country: string): Promis
   });
 }
 
+// Transit ranges of the active methods, fastest first, for the delivery estimate on product pages.
+export async function getDeliveryMethods(now = new Date()) {
+  const methods = await repo.listActiveShippingMethods();
+  return {
+    serverNow: now.toISOString(),
+    methods: methods
+      .map((m) => ({
+        code: m.code,
+        name: m.name,
+        etaDaysMin: m.etaDaysMin,
+        etaDaysMax: m.etaDaysMax,
+      }))
+      .sort(
+        (a, b) =>
+          a.etaDaysMax - b.etaDaysMax ||
+          a.etaDaysMin - b.etaDaysMin ||
+          a.code.localeCompare(b.code),
+      ),
+  };
+}
+
 export interface PlacedOrder {
   orderNumber: string;
   clientSecret: string;

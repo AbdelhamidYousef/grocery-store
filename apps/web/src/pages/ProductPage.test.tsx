@@ -470,4 +470,47 @@ describe('product tabs', () => {
     await screen.findByRole('tab', { name: 'Description' });
     expect(screen.queryByTestId('size-guide-button')).toBeNull();
   });
+
+  it('shows the delivery estimate under Add to cart for a variant in stock, and not for a sold-out one', async () => {
+    server.use(
+      http.get(`${API}/delivery-methods`, () =>
+        HttpResponse.json({
+          data: {
+            serverNow: new Date().toISOString(),
+            methods: [
+              { code: 'standard', name: 'Standard delivery', etaDaysMin: 3, etaDaysMax: 5 },
+            ],
+          },
+        }),
+      ),
+    );
+    renderApp('/products/rope-tug');
+    expect(await screen.findByTestId('delivery-estimate')).toHaveTextContent(/arrives/);
+  });
+
+  it('has no delivery estimate on a sold-out product', async () => {
+    server.use(
+      http.get(`${API}/delivery-methods`, () =>
+        HttpResponse.json({
+          data: {
+            serverNow: new Date().toISOString(),
+            methods: [
+              { code: 'standard', name: 'Standard delivery', etaDaysMin: 3, etaDaysMax: 5 },
+            ],
+          },
+        }),
+      ),
+      http.get(`${API}/products/rope-tug`, () =>
+        HttpResponse.json({
+          data: makeProduct({
+            inStock: false,
+            variants: [makeVariant({ available: false, isDefault: true })],
+          }),
+        }),
+      ),
+    );
+    renderApp('/products/rope-tug');
+    await screen.findByRole('tab', { name: 'Description' });
+    expect(screen.queryByTestId('delivery-estimate')).toBeNull();
+  });
 });

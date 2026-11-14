@@ -111,6 +111,9 @@ export const server = setupServer(
   ),
   // No recommendations and no recently viewed cards unless a test says so. `by-ids` comes before
   // `:slug`, like in the API router, or it would be read as a slug.
+  http.get(`${API}/delivery-methods`, () =>
+    HttpResponse.json({ data: { serverNow: new Date().toISOString(), methods: [] } }),
+  ),
   http.get(`${API}/products/by-ids`, () => HttpResponse.json({ data: [] })),
   http.get(`${API}/products/:slug/recommendations`, () =>
     HttpResponse.json({ data: { boughtTogether: [], related: [] } }),

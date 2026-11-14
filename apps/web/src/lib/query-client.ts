@@ -59,6 +59,8 @@ export const keys = {
   health: ['health'] as const,
   // The site-wide flash-sale banner (active or next scheduled sale, plus the server's clock).
   saleBanner: ['promotions', 'banner'] as const,
+  // Transit days of the shipping methods and the server clock, for the delivery estimate.
+  deliveryMethods: ['delivery-methods'] as const,
   // True once a request came back 401 while the shopper looked signed in (see createQueryClient).
   sessionExpired: ['session-expired'] as const,
   // Warnings the cart reported, kept until dismissed (see features/cart/queries.ts).
