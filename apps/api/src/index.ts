@@ -1,74 +1,14 @@
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-import { sql } from 'drizzle-orm';
-
-import { createApp } from './app.ts';
+import { bootstrap } from './bootstrap.ts';
 import { env } from './config/env.ts';
-import { closeDb, db } from './db/client.ts';
+import { closeDb } from './db/client.ts';
 import { startReservationSweeper } from './jobs/release-stale-reservations.ts';
 import { startJobTicker } from './jobs/runner.ts';
-import { selectPaymentGateway } from './lib/gateway.ts';
-import { createLogger } from './lib/logger.ts';
-import { createMailTransport } from './lib/mailer.ts';
 import { createShutdown } from './lib/shutdown.ts';
-import { createOutbox, startOutboxDrainer } from './modules/mail/outbox.ts';
+import { startOutboxDrainer } from './modules/mail/outbox.ts';
 
-// apps/api, so a relative UPLOAD_DIR means the same folder wherever the process was started from.
-const API_ROOT = fileURLToPath(new URL('..', import.meta.url));
-
-// Bootstrap only: read config, build the app, listen. Anything testable lives in createApp().
-const logger = createLogger({ level: env.LOG_LEVEL, pretty: env.NODE_ENV === 'development' });
-// Without a key the server still boots (catalog, cart, account all work) and any payment call
-// answers 502 "not configured"; production refuses to boot without one (see config/env.ts). Under
-// NODE_ENV=test with no key it boots a fake gateway instead, for the e2e suite (lib/gateway.ts).
-const { kind: gatewayKind, gateway: payments } = await selectPaymentGateway(env);
-if (gatewayKind === 'fake')
-  logger.warn('using the FAKE payment gateway (NODE_ENV=test, no Stripe key)');
-if (env.NODE_ENV === 'test' && !env.TEST_HOOK_SECRET)
-  logger.warn('TEST_HOOK_SECRET is not set: POST /test/webhooks/simulate is disabled');
-
-// Emails: Mailpit in development, Resend or SMTP in production, nothing (logged and skipped) when
-// production has neither. The API boots in every case.
-const outbox = createOutbox({
-  transport: createMailTransport(
-    {
-      nodeEnv: env.NODE_ENV,
-      from: env.MAIL_FROM,
-      smtpUrl: env.SMTP_URL,
-      resendApiKey: env.RESEND_API_KEY,
-    },
-    logger,
-  ),
-  log: logger,
-});
-
-const app = createApp({
-  logger,
-  pingDb: async () => {
-    await db.execute(sql`select 1`);
-  },
-  payments,
-  outbox,
-  config: {
-    nodeEnv: env.NODE_ENV,
-    webOrigin: env.WEB_ORIGIN,
-    cookieSecret: env.COOKIE_SECRET,
-    rateLimit: { windowMs: env.RATE_LIMIT_WINDOW_MS, limit: env.RATE_LIMIT_MAX },
-    authRateLimit: { windowMs: env.RATE_LIMIT_AUTH_WINDOW_MS, limit: env.RATE_LIMIT_AUTH_MAX },
-    uploads: { dir: resolve(API_ROOT, env.UPLOAD_DIR), enabled: env.UPLOADS_ENABLED },
-    ...(env.JOBS_SECRET && { jobsSecret: env.JOBS_SECRET }),
-    // The simulation switch only counts when there is no gateway at all, so it can never hide a
-    // real Stripe failure (see config/env.ts).
-    returns: {
-      windowDays: env.RETURN_WINDOW_DAYS,
-      simulated: env.RETURNS_SIMULATED && gatewayKind === 'unconfigured',
-    },
-    ...(env.TEST_HOOK_SECRET && {
-      testHooks: { secret: env.TEST_HOOK_SECRET, realStripe: gatewayKind === 'stripe' },
-    }),
-  },
-});
+// Long-running server (local dev, e2e, any always-on host): build the app, listen, start the
+// in-process timers. The serverless entry is vercel.ts. Anything testable lives in createApp().
+const { app, logger, payments, outbox } = await bootstrap();
 
 const server = app.listen(env.PORT, () => {
   logger.info(`api listening on http://localhost:${env.PORT}`);

@@ -3,7 +3,8 @@ import { fileURLToPath } from 'node:url';
 
 import { build } from 'esbuild';
 
-// Production build: bundles the server into one ESM file, `dist/index.js`.
+// Production build: bundles the server into `dist/index.js` and the Vercel function entry into
+// `dist/vercel.js`.
 //
 // Why bundle: `@store/shared` is a workspace package consumed as TypeScript source, which plain
 // `node` cannot import. esbuild inlines it (and our own `.ts` files) into the output.
@@ -17,7 +18,8 @@ await rm(`${root}dist`, { recursive: true, force: true });
 
 await build({
   absWorkingDir: root,
-  entryPoints: { index: 'src/index.ts' },
+  // index: the long-running server; vercel: the serverless entry (apps/web/api/index.js).
+  entryPoints: { index: 'src/index.ts', vercel: 'src/vercel.ts' },
   outdir: 'dist',
   bundle: true,
   platform: 'node',

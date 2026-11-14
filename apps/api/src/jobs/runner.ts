@@ -156,6 +156,14 @@ registerJob({
     }),
 });
 
+// Email retry safety net for hosts without the in-process drainer (Vercel): sends rows whose
+// immediate send failed or whose kick was lost. Harmless where the drainer also runs (SKIP LOCKED).
+registerJob({
+  name: 'drain-outbox',
+  every: 'hourly',
+  run: async (ctx) => (ctx.outbox ? ctx.outbox.drain() : { skipped: 'no outbox in context' }),
+});
+
 // Flash sales also activate lazily on read (promotions/service.ts), so a late tick never shows a
 // wrong price; this job makes the change happen on time even when nobody is browsing.
 registerJob({

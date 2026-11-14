@@ -1,10 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pnpm --filter @store/api build && pnpm build",
+  "functions": {
+    "api/index.js": { "maxDuration": 30 }
+  },
   "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "https://pawsome-api.onrender.com/api/:path*"
-    },
+    { "source": "/api/:path*", "destination": "/api" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
