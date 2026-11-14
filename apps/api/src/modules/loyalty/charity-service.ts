@@ -104,9 +104,10 @@ async function recordRoundUp(tx: Tx, { orderId }: OrderPaidEvent): Promise<void>
     .onConflictDoNothing({ target: donations.refKey });
 }
 
-// A cancelled or fully refunded paid order takes its round-up back with a negative row (the
-// history stays; the total drops). A partial refund leaves the donation alone: it was a gift on
-// top of the goods, and nothing in the refunded goods changes it.
+// A cancelled order, or a refund that hands the round-up back (only a whole-order refund does),
+// takes it back with a negative row (the history stays; the total drops). Returns refund goods and
+// shipping, never the round-up: it was a gift on top of the goods, so it stays donated even when
+// every item comes back through returns.
 async function reverseRoundUp(tx: Tx, orderId: string): Promise<void> {
   const [original] = await tx
     .select()
@@ -128,7 +129,7 @@ async function reverseRoundUp(tx: Tx, orderId: string): Promise<void> {
 
 const onCancelled = (tx: Tx, e: OrderCancelledEvent) => reverseRoundUp(tx, e.orderId);
 const onRefunded = async (tx: Tx, e: OrderRefundedEvent) => {
-  if (e.full) await reverseRoundUp(tx, e.orderId);
+  if (e.donationCents > 0) await reverseRoundUp(tx, e.orderId);
 };
 
 export function registerCharitySubscribers(): void {

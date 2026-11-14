@@ -8,6 +8,7 @@ import { createProduct, createShippingMethods, createUser } from '../../test/fac
 import { bodyOf } from '../../test/http.ts';
 import { orderByNumber, signedIn, simulate, TEST_ADDRESS } from '../../test/orders.ts';
 import { makeShopper, type Shopper } from '../../test/shopper.ts';
+import { emitOrderRefunded } from '../orders/events.ts';
 
 import { addressHash, getOrCreateCode } from './referrals-service.ts';
 
@@ -234,6 +235,30 @@ describe('voiding on refund', () => {
       expect(c.active).toBe(false);
     }
     expect((await referralOf(user.id))?.voidedAt).toBeInstanceOf(Date);
+  });
+
+  it('keeps the codes through a partial refund and voids them on the final one', async () => {
+    const r = await referrer();
+    const { shopper, user } = await register('friend@pawsome.test', r.code);
+    const order = await paidOrder(shopper);
+    const refund = (refundId: string, full: boolean) =>
+      db.transaction((tx) =>
+        emitOrderRefunded(tx, {
+          orderId: order.id,
+          refundId,
+          amountCents: 500,
+          full,
+          lines: [],
+          shippingCents: 0,
+          donationCents: 0,
+        }),
+      );
+    await refund('ret_1', false);
+    expect((await referralOf(user.id))?.voidedAt).toBeNull();
+    for (const c of await codesOf(r.user.id)) expect(c.active).toBe(true);
+    await refund('ret_2', true);
+    expect((await referralOf(user.id))?.voidedAt).toBeInstanceOf(Date);
+    for (const c of await codesOf(r.user.id)) expect(c.active).toBe(false);
   });
 
   it('also switches off a code held by an UNPAID order, so it cannot revive when the hold is released', async () => {

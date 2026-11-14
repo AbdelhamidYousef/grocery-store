@@ -8,6 +8,7 @@ import { createProduct, createShippingMethods } from '../../test/factories.ts';
 import { bodyOf, errorOf } from '../../test/http.ts';
 import { orderByNumber, signedIn, simulate, TEST_ADDRESS } from '../../test/orders.ts';
 import { makeShopper, type Shopper } from '../../test/shopper.ts';
+import { emitOrderRefunded } from '../orders/events.ts';
 
 import * as repo from './repo.ts';
 
@@ -78,6 +79,39 @@ describe('round-up at checkout', () => {
       ['reversal', -50],
       ['round_up', 50],
     ]);
+  });
+});
+
+describe('round-up and returns', () => {
+  const refund = (orderId: string, refundId: string | null, full: boolean, donationCents: number) =>
+    db.transaction((tx) =>
+      emitOrderRefunded(tx, {
+        orderId,
+        refundId,
+        amountCents: 100,
+        full,
+        lines: [],
+        shippingCents: 0,
+        donationCents,
+      }),
+    );
+
+  it('stays donated when returns refund every item, since returns never hand it back', async () => {
+    const order = await checkout(makeShopper(app), 5350, true);
+    await simulate(app, order.number).expect(200);
+    await refund(order.id, 'ret_1', false, 0);
+    await refund(order.id, 'ret_2', true, 0); // the last return: the order is fully refunded
+    expect((await total()).totalCents).toBe(50);
+  });
+
+  it('is reversed once by the refund that hands it back', async () => {
+    const order = await checkout(makeShopper(app), 5350, true);
+    await simulate(app, order.number).expect(200);
+    await refund(order.id, 'ret_1', false, 0);
+    await refund(order.id, null, true, 50);
+    await refund(order.id, null, true, 50); // redelivered
+    expect((await total()).totalCents).toBe(0);
+    expect(await db.select().from(donations)).toHaveLength(2);
   });
 });
 

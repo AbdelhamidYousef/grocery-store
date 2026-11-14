@@ -172,7 +172,6 @@ export async function reject(deps: VetDeps, number: string, actor: string, reaso
       orderId: order.id,
       refundId: `vet-rejection:${order.id}`,
       amountCents: order.totalCents,
-      refundedCents: order.totalCents,
       full: true,
       lines: lines.map((l) => ({
         orderItemId: l.id,
@@ -180,6 +179,7 @@ export async function reject(deps: VetDeps, number: string, actor: string, reaso
         refundCents: l.lineTotalCents - l.discountCents,
       })),
       shippingCents: order.shippingCents,
+      donationCents: order.donationCents,
     });
     await queueVetEmail(tx, 'vet_rejected', order, { reason, simulated });
   });

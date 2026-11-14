@@ -104,16 +104,17 @@ export async function applyTransition(
   else if (to === 'cancelled') await emitOrderCancelled(tx, { orderId: order.id });
   else if (to === 'refunded' && !ctx.skipRefundEvent) {
     // A whole-order refund returns what is LEFT: earlier partial refunds (returns) already moved
-    // their share, and the gateway's full refund covers only the rest.
+    // their share, and the gateway's full refund covers only the rest. Returns never hand back
+    // the round-up donation, so the rest always contains it.
     const left = Math.max(0, order.totalCents - (await refundedByReturns(tx, order.id)));
     await emitOrderRefunded(tx, {
       orderId: order.id,
       refundId: null,
       amountCents: left,
-      refundedCents: left,
       full: true,
       lines: [],
       shippingCents: 0,
+      donationCents: Math.min(order.donationCents, left),
     });
   }
   return updated;

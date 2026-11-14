@@ -19,27 +19,26 @@ export interface OrderCancelledEvent {
   orderId: string;
 }
 // One event for every money-back on an order, partial or full. Emitted by `applyTransition` for a
-// whole-order refund, and by the returns service for each refunded return. Subscribers (loyalty
-// clawback, referral and donation reversal) must be idempotent per `refundId`: the event is
-// emitted inside the transaction that records the refund, so it fires exactly once per refund, but
-// a subscriber that writes its own rows should key them on `refundId` anyway.
+// whole-order refund, by the returns service for each refunded return, and by a vet rejection.
+// Subscribers (loyalty clawback, referral voiding, round-up reversal) must be idempotent per
+// `refundId`: the event is emitted inside the transaction that records the refund, so it fires
+// once per refund, but a subscriber that writes its own rows keys them on `refundId` anyway.
 export interface OrderRefundedEvent {
   orderId: string;
-  /** Id of the return that was refunded; null for a whole-order refund through a status change. */
+  /** Id of this refund (the return's id, or `vet-rejection:<orderId>`); null for a whole-order
+   *  refund through a status change, of which an order can have only one. */
   refundId: string | null;
-  /** Money returned by THIS refund, integer cents. Never the order total of an earlier refund. */
+  /** Money returned by THIS refund, integer cents. Never a running total. */
   amountCents: number;
-  /** Same number as `amountCents` (the name phase 14 introduced; kept so existing code reads). */
-  refundedCents: number;
-  /** The refund's own id, when there is one (phase 22); keys the reversal rows so a retry is a no-op. */
-  refundId?: string;
-  /** False for a partial refund (only phase 22 emits those). */
-  /** True when the order is now fully refunded (its status is `refunded`). */
+  /** True when the order is now fully refunded: loyalty, referrals and the round-up reverse in full. */
   full: boolean;
-  /** What came back, per order line, so proportional clawbacks can be computed. */
+  /** Merchandise that came back, per order line (net of discounts), for proportional clawbacks.
+   *  Empty for a whole-order refund (`full` already says "everything"). */
   lines: { orderItemId: string; quantity: number; refundCents: number }[];
-  /** Shipping handed back in this refund (0 unless the admin ticked it). */
+  /** Shipping handed back in this refund. */
   shippingCents: number;
+  /** Round-up donation handed back in this refund: only a whole-order refund returns it. */
+  donationCents: number;
 }
 
 type Handler<E> = (tx: Tx, event: E) => Promise<void>;

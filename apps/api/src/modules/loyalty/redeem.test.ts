@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { db } from '../../db/client.ts';
-import { orderPromotions, orders, pointsLedger } from '../../db/schema/index.ts';
+import { orderItems, orderPromotions, orders, pointsLedger } from '../../db/schema/index.ts';
 import { makeTestApp } from '../../test/app.ts';
 import { createProduct, createShippingMethods } from '../../test/factories.ts';
 import { bodyOf, errorOf } from '../../test/http.ts';
@@ -209,24 +209,88 @@ describe('reversal', () => {
     expect(await balanceOf(c.user.id)).toBe(500 - earned);
   });
 
-  it('a partial refund reverses in proportion, once per refund id', async () => {
-    const c = await customerCart(); // 20.00 -> 20 points
+  // A refund event the way the returns service emits it: `units` of the order's one line, with
+  // the line's net price share, under its own refund id.
+  async function returnRefund(orderId: string, refundId: string, units: number, full = false) {
+    const [line] = await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+    const net = line!.lineTotalCents - line!.discountCents;
+    const refundCents = Math.floor((net * units) / line!.quantity);
+    await db.transaction((tx) =>
+      emitOrderRefunded(tx, {
+        orderId,
+        refundId,
+        amountCents: refundCents,
+        full,
+        lines: [{ orderItemId: line!.id, quantity: units, refundCents }],
+        shippingCents: 0,
+        donationCents: 0,
+      }),
+    );
+  }
+
+  const ledgerOf = async (orderId: string) =>
+    repo.pointsOfOrder(db, orderId).then((p) => ({ given: p.givenBack, clawed: p.clawedBack }));
+
+  it('a partial refund reverses the merchandise share, once per refund id', async () => {
+    const c = await customerCart(1000, 4); // 40.00 -> 40 points
     const order = await orderByNumber(numberOf(await checkout(c.shopper)));
     await simulate(app, order.number).expect(200);
-    const refund = () =>
-      db.transaction((tx) =>
-        emitOrderRefunded(tx, {
-          orderId: order.id,
-          refundedCents: Math.floor(order.totalCents / 4),
-          full: false,
-          refundId: 're_1',
-        }),
-      );
-    await refund();
-    const after = await balanceOf(c.user.id);
-    expect(after).toBeLessThan(20);
-    expect(after).toBeGreaterThanOrEqual(14); // about a quarter of 20 taken back
-    await refund(); // same refund id again
-    expect(await balanceOf(c.user.id)).toBe(after);
+    expect(await balanceOf(c.user.id)).toBe(40);
+    await returnRefund(order.id, 're_1', 1); // a quarter of the merchandise
+    expect(await balanceOf(c.user.id)).toBe(30);
+    await returnRefund(order.id, 're_1', 1); // the same refund delivered again
+    expect(await balanceOf(c.user.id)).toBe(30);
+  });
+
+  it('partial then final refunds give back the redeemed points first and settle exactly', async () => {
+    const c = await customerCart(1000, 4); // 40.00
+    await give(c.user.id, 1000);
+    const order = await orderByNumber(
+      numberOf(await checkout(c.shopper, { pointsToRedeem: 1000 })),
+    );
+    await simulate(app, order.number).expect(200);
+    const { earned } = await repo.pointsOfOrder(db, order.id); // on the 30.00 paid in cash
+    expect(earned).toBeGreaterThan(0);
+    expect(await balanceOf(c.user.id)).toBe(earned);
+
+    // a quarter comes back: 250 redeemed points returned, a quarter of the earned taken back
+    await returnRefund(order.id, 're_1', 1);
+    expect(await ledgerOf(order.id)).toEqual({ given: 250, clawed: Math.floor(earned / 4) });
+    // two more units: three quarters in all
+    await returnRefund(order.id, 're_2', 2);
+    expect((await ledgerOf(order.id)).given).toBe(750);
+    // the last unit makes the order fully refunded: everything left is settled, nothing more
+    await returnRefund(order.id, 're_3', 1, true);
+    expect(await ledgerOf(order.id)).toEqual({ given: 1000, clawed: earned });
+    expect(await balanceOf(c.user.id)).toBe(1000);
+    // retries of any of them, and a whole-order refund event afterwards, change nothing
+    await returnRefund(order.id, 're_2', 2);
+    await returnRefund(order.id, 're_3', 1, true);
+    await simulate(app, order.number, 'charge.refunded');
+    expect(await balanceOf(c.user.id)).toBe(1000);
+    expect(await ledgerOf(order.id)).toEqual({ given: 1000, clawed: earned });
+  });
+
+  it('a whole-order refund after a partial one reverses only what is left', async () => {
+    const c = await customerCart(1000, 2); // 20.00
+    await give(c.user.id, 400);
+    const order = await orderByNumber(numberOf(await checkout(c.shopper, { pointsToRedeem: 400 })));
+    await simulate(app, order.number).expect(200);
+    const { earned } = await repo.pointsOfOrder(db, order.id);
+    await returnRefund(order.id, 're_1', 1); // half
+    expect(await ledgerOf(order.id)).toEqual({ given: 200, clawed: Math.floor(earned / 2) });
+    await db.transaction((tx) =>
+      emitOrderRefunded(tx, {
+        orderId: order.id,
+        refundId: null,
+        amountCents: 0,
+        full: true,
+        lines: [],
+        shippingCents: 0,
+        donationCents: 0,
+      }),
+    );
+    expect(await ledgerOf(order.id)).toEqual({ given: 400, clawed: earned });
+    expect(await balanceOf(c.user.id)).toBe(400);
   });
 });

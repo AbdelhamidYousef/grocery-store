@@ -306,7 +306,6 @@ export async function refund(
       orderId: order.id,
       refundId: row.id,
       amountCents: row.refundCents,
-      refundedCents: row.refundCents,
       full,
       lines: items.map((i) => ({
         orderItemId: i.orderItemId,
@@ -314,6 +313,8 @@ export async function refund(
         refundCents: i.refundCents,
       })),
       shippingCents: row.refundShipping ? order.shippingCents : 0,
+      // A return refunds goods (and maybe shipping), never the round-up: that stays donated.
+      donationCents: 0,
     });
     await queueReturnEmail(tx, 'return_refunded', order, row, items);
   });

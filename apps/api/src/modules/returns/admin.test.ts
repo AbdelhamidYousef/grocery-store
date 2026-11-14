@@ -401,10 +401,10 @@ describe('admin returns: the refund event', () => {
       orderId: order.id,
       refundId: a,
       amountCents: 1000,
-      refundedCents: 1000,
       full: false,
       lines: [{ orderItemId: line!.id, quantity: 1, refundCents: 1000 }],
       shippingCents: 0,
+      donationCents: 0,
     });
     expect(events[1]).toMatchObject({
       refundId: b,

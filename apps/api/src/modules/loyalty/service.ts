@@ -124,34 +124,37 @@ export async function recordRedemption(
 // ---------- reversal ----------
 
 // Reversal instead of edit: a cancelled or refunded order adds rows, it never changes old ones.
-//  - earned points are taken back in proportion to what was refunded (everything left on a full
-//    refund). The claw-back is clamped to the CURRENT balance: if the customer has already spent
-//    the points, we do not push them below zero (only an admin `adjust` can do that). Documented
-//    in the decisions log.
-//  - points the customer paid with come back in the same proportion (a failed or cancelled order
-//    returns all of them).
+// A partial refund (a return) works on the share of MERCHANDISE that came back: the refunded
+// lines (net of discounts) over the order's merchandise net of discounts, which is exactly the
+// base points were earned on. Shipping and the round-up never earned points, so they do not count.
+//  - points the customer paid with come back first, in that share (a cancellation or a full
+//    refund returns all that is left of them).
+//  - then earned points are taken back in the same share (everything left on a full refund). The
+//    claw-back is clamped to the CURRENT balance: if the customer has already spent the points,
+//    we do not push them below zero (only an admin `adjust` can do that). Documented in the
+//    decisions log.
+// Each partial step is floored and capped at what is left, so partial refunds never take more
+// than a full one would, and the final (full) refund settles the remainder exactly.
 // `tag` is the idempotency key suffix, so a redelivered event writes nothing the second time.
 async function reverseOrder(
   tx: Tx,
   orderId: string,
   tag: string,
-  portion: { full: true } | { full: false; refundedCents: number },
+  portion: { full: true } | { full: false; merchandiseCents: number },
 ): Promise<void> {
   const order = await checkoutRepo.findOrderById(tx, orderId);
   if (!order?.userId) return;
   const p = await repo.pointsOfOrder(tx, orderId);
+  const base = order.subtotalCents - order.discountCents;
+  const share = (points: number) =>
+    portion.full || base <= 0
+      ? 0
+      : Math.floor((points * Math.min(portion.merchandiseCents, base)) / base);
 
   await repo.lockUser(tx, order.userId);
   const redeemedLeft = p.redeemed - p.givenBack;
   if (redeemedLeft > 0) {
-    const back = portion.full
-      ? redeemedLeft
-      : Math.min(
-          redeemedLeft,
-          Math.floor(
-            (p.redeemed * portion.refundedCents) / Math.max(1, order.totalCents + p.redeemed),
-          ),
-        );
+    const back = portion.full ? redeemedLeft : Math.min(redeemedLeft, share(p.redeemed));
     if (back > 0) {
       await repo.insertEntry(tx, {
         userId: order.userId,
@@ -167,12 +170,7 @@ async function reverseOrder(
   // Then take the earned points back, clamped to the balance AFTER the give-back.
   const earnedLeft = p.earned - p.clawedBack;
   if (earnedLeft > 0) {
-    const want = portion.full
-      ? earnedLeft
-      : Math.min(
-          earnedLeft,
-          Math.floor((p.earned * portion.refundedCents) / Math.max(1, order.totalCents)),
-        );
+    const want = portion.full ? earnedLeft : Math.min(earnedLeft, share(p.earned));
     const { balance } = await repo.standing(tx, order.userId);
     const take = Math.min(want, Math.max(0, balance));
     if (take > 0) {
@@ -193,12 +191,14 @@ async function reverseOnCancelled(tx: Tx, { orderId }: OrderCancelledEvent): Pro
 }
 
 async function reverseOnRefunded(tx: Tx, e: OrderRefundedEvent): Promise<void> {
+  // A null refundId is the order's one whole-order refund.
   const tag = `refund:${e.refundId ?? `${e.orderId}:full`}`;
+  const merchandiseCents = e.lines.reduce((sum, l) => sum + l.refundCents, 0);
   await reverseOrder(
     tx,
     e.orderId,
     tag,
-    e.full ? { full: true } : { full: false, refundedCents: e.refundedCents },
+    e.full ? { full: true } : { full: false, merchandiseCents },
   );
 }
 
