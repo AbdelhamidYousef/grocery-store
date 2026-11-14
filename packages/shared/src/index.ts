@@ -13,3 +13,4 @@ export * from './order-status.ts';
 export * from './unit-price.ts';
 export * from './pricing/index.ts';
 export * from './loyalty.ts';
+export * from './pet-messages.ts';
