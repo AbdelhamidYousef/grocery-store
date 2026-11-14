@@ -27,6 +27,8 @@ import { FlashSalesAdmin } from '../features/admin/promotions/FlashSalesAdmin';
 import { GiftAdmin } from '../features/admin/promotions/GiftAdmin';
 import { PromotionsLayout } from '../features/admin/promotions/PromotionsLayout';
 import { TiersAdmin } from '../features/admin/promotions/TiersAdmin';
+import { GalleryAdmin } from '../features/admin/reviews/GalleryAdmin';
+import { ReviewsAdmin } from '../features/admin/reviews/ReviewsAdmin';
 import { TagsAdmin } from '../features/admin/TagsAdmin';
 
 // One lazy chunk for the whole back office, with its own small route table underneath
@@ -40,6 +42,8 @@ export default function AdminPage() {
         <Route path="products/new" element={<ProductNew />} />
         <Route path="products/:id" element={<ProductEdit />} />
         <Route path="orders" element={<OrdersList />} />
+        <Route path="reviews" element={<ReviewsAdmin />} />
+        <Route path="gallery" element={<GalleryAdmin />} />
         <Route path="orders/:number" element={<OrderDetail />} />
         <Route path="brands" element={<BrandsAdmin />} />
         <Route path="collections" element={<CollectionsAdmin />} />

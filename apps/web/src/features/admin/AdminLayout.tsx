@@ -8,6 +8,8 @@ const LINKS = [
   { to: '/admin', label: 'Dashboard', end: true },
   { to: '/admin/products', label: 'Products', end: false },
   { to: '/admin/orders', label: 'Orders', end: false },
+  { to: '/admin/reviews', label: 'Reviews', end: false },
+  { to: '/admin/gallery', label: 'Gallery', end: false },
   { to: '/admin/brands', label: 'Brands', end: false },
   { to: '/admin/collections', label: 'Collections', end: false },
   { to: '/admin/tags', label: 'Tags', end: false },
