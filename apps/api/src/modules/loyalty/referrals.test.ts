@@ -190,6 +190,40 @@ describe('qualifying', () => {
   });
 });
 
+describe('the yearly limit under concurrency', () => {
+  it('two friends paying at the same moment cannot both take the last slot', async () => {
+    const r = await referrer();
+    const earlier = await Promise.all(Array.from({ length: 9 }, () => createUser()));
+    await db.insert(referrals).values(
+      earlier.map((u) => ({
+        referrerId: r.user.id,
+        referredUserId: u.id,
+        status: 'qualified' as const,
+        qualifiedAt: new Date(),
+      })),
+    );
+    const place = async (email: string, line1: string) => {
+      const { shopper, user } = await register(email, r.code);
+      const { variants } = await createProduct({ variants: [{ priceCents: 2500 }] });
+      await shopper.addToCart(variants[0]!.id, 1);
+      const res = await shopper.call('post', '/checkout', {
+        email,
+        shippingAddress: { ...TEST_ADDRESS, line1 },
+        shippingMethodCode: 'standard',
+      });
+      return {
+        user,
+        number: bodyOf<{ data: { orderNumber: string } }>(res).data.orderNumber,
+      };
+    };
+    const a = await place('a@pawsome.test', '10 First Road');
+    const b = await place('b@pawsome.test', '20 Second Road');
+    await Promise.all([simulate(app, a.number).expect(200), simulate(app, b.number).expect(200)]);
+    const statuses = [(await referralOf(a.user.id))?.status, (await referralOf(b.user.id))?.status];
+    expect(statuses.sort()).toEqual(['qualified', 'rejected']);
+  });
+});
+
 describe('voiding on refund', () => {
   it('switches off the unused codes when the qualifying order is fully refunded', async () => {
     const r = await referrer();

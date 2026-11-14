@@ -193,7 +193,14 @@ async function qualifyOnPaid(tx: Tx, { orderId }: OrderPaidEvent): Promise<void>
     await reject('same_address');
     return;
   }
-  // A referrer can bring in at most 10 people a year (rolling 365 days).
+  // A referrer can bring in at most 10 people a year (rolling 365 days). Two friends of one
+  // referrer paying at the same moment each hold their OWN referral row lock, so count under the
+  // referrer's user-row lock or both could see 9 and both qualify.
+  await tx
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.id, referral.referrerId))
+    .for('update');
   const [done] = await tx
     .select({ n: count() })
     .from(referrals)
