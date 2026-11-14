@@ -45,8 +45,6 @@ export const CheckoutAddressSchema = z.object({
 export type CheckoutAddressInput = z.input<typeof CheckoutAddressSchema>;
 export type CheckoutAddress = z.output<typeof CheckoutAddressSchema>;
 
-// Deliberately has no prices, totals or cart id: the server prices the caller's own cart. A client
-// that sent an amount would only be offering to be lied to.
 // A cart with a vet-approval item needs the vet's details; required text, validated like every form
 // field. Shown only to admins and in the mail copy; nothing is ever sent to a real vet (demo).
 export const VetDetailsSchema = z.object({
@@ -56,6 +54,8 @@ export const VetDetailsSchema = z.object({
 });
 export type VetDetails = z.infer<typeof VetDetailsSchema>;
 
+// Deliberately has no prices, totals or cart id: the server prices the caller's own cart. A client
+// that sent an amount would only be offering to be lied to.
 export const CheckoutRequestSchema = z.object({
   email: z.string().trim().max(254).pipe(z.email()),
   shippingAddress: CheckoutAddressSchema,
