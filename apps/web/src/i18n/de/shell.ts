@@ -45,7 +45,6 @@ export const shell: Record<keyof typeof enNs, Entry> = {
     '© {year} Pawsome Demo-Shop, ein fiktives Unternehmen. Keine Rechtsberatung.',
   'shell.footer.shop': 'Shop',
   'shell.footer.brands': 'Marken',
-  'shell.footer.giftFinder': 'Geschenkefinder',
   'shell.footer.guides': 'Ratgeber',
   'shell.footer.allGuides': 'Alle Ratgeber',
   'shell.footer.topicDogs': 'Hunde',

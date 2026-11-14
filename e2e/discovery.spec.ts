@@ -116,42 +116,6 @@ test('set a price range and in-stock only; a reload keeps the state', async ({ p
   await expect(page.getByRole('button', { name: /^Remove filter Price/ })).toBeVisible();
 });
 
-test('finish the gift quiz and open the result', async ({ page }) => {
-  await page.goto('/gift-finder');
-  await expect(page.getByTestId('gift-progress')).toContainText('Question 1 of 4');
-
-  // Next without an answer says so.
-  await page.getByTestId('gift-next').click();
-  await expect(page.getByTestId('gift-error')).toContainText('Pick one');
-
-  await page.getByLabel('A dog', { exact: true }).check();
-  await page.getByTestId('gift-next').click();
-  await expect(page.getByTestId('gift-question')).toHaveText('How old are they?');
-  await page.getByLabel('Grown up').check();
-  await page.getByTestId('gift-next').click();
-  await page.getByLabel(/Up to .*25/).check();
-  await page.getByTestId('gift-next').click();
-  await page.getByLabel('Playtime').check();
-  await page.getByTestId('gift-next').click();
-
-  await expect(page).toHaveURL(/\/gift-finder\/result\?pet=dog&age=adult&budget=2500&goal=play/);
-  const picks = page.getByTestId('gift-picks').getByTestId('product-card');
-  await expect(picks.first()).toBeVisible();
-  expect(await picks.count()).toBeLessThanOrEqual(6);
-  await expect(page.getByTestId('gift-why').first()).toContainText(/playtime/i);
-
-  // The result is a pure function of the URL: a reload shows the same picks.
-  const names = await picks.allInnerTexts();
-  await page.reload();
-  await expect(picks.first()).toBeVisible();
-  expect(await picks.allInnerTexts()).toEqual(names);
-
-  // A broken URL falls back to the quiz.
-  await page.goto('/gift-finder/result?pet=horse');
-  await expect(page).toHaveURL(/\/gift-finder$/);
-  await expect(page.getByTestId('gift-progress')).toContainText('Question 1 of 4');
-});
-
 // Edge cases: nothing wider than the viewport, and the repeated parts of the new UI stay a
 // sensible size (menu panels and the suggestion list scroll inside a max height instead of
 // growing past the screen).
@@ -163,14 +127,7 @@ for (const [label, size] of [
     await page.setViewportSize(size);
     const overflow = () =>
       page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-    for (const path of [
-      '/',
-      '/c/dogs',
-      '/search?q=chew',
-      '/gift-finder',
-      '/gift-finder/result?pet=dog&age=adult&budget=2500&goal=play',
-      '/account/pets',
-    ]) {
+    for (const path of ['/', '/c/dogs', '/search?q=chew', '/account/pets']) {
       await page.goto(path);
       await page.waitForLoadState('networkidle');
       expect(await overflow(), `${path} at ${size.width}px`).toBeLessThanOrEqual(0);

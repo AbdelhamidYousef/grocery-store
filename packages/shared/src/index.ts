@@ -6,7 +6,6 @@ export * from './pets.ts';
 export * from './pet-profiles.ts';
 export * from './schemas/index.ts';
 export * from './badges.ts';
-export * from './gift-quiz.ts';
 export * from './quick-chips.ts';
 export * from './bundles.ts';
 export * from './order-status.ts';

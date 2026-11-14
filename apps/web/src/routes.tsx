@@ -15,8 +15,6 @@ import CharityPage from './pages/CharityPage';
 import CollectionPage from './pages/CollectionPage';
 import ContactPage from './pages/ContactPage';
 import DevelopersPage from './pages/DevelopersPage';
-import GiftFinderPage from './pages/GiftFinderPage';
-import GiftResultPage from './pages/GiftResultPage';
 import GuidePage from './pages/GuidePage';
 import GuidesPage from './pages/GuidesPage';
 import HelpPage from './pages/HelpPage';
@@ -80,8 +78,6 @@ export const routes: RouteObject[] = [
               { path: 'newsletter/confirm', element: <NewsletterConfirmPage /> },
               { path: 'newsletter/unsubscribe', element: <NewsletterUnsubscribePage /> },
               { path: 'stock-alerts/cancel', element: <StockAlertCancelPage /> },
-              { path: 'gift-finder', element: <GiftFinderPage /> },
-              { path: 'gift-finder/result', element: <GiftResultPage /> },
               { path: 'contact', element: <ContactPage /> },
               { path: 'withdraw', element: <WithdrawPage /> },
               // Static pages: one component, one route per Markdown file.

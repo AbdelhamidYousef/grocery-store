@@ -40,7 +40,6 @@ export const shell = {
   'shell.footer.copyright': '© {year} Pawsome demo store, a fictional company. Not legal advice.',
   'shell.footer.shop': 'Shop',
   'shell.footer.brands': 'Brands',
-  'shell.footer.giftFinder': 'Gift finder',
   'shell.footer.guides': 'Guides',
   'shell.footer.allGuides': 'All guides',
   'shell.footer.topicDogs': 'Dogs',

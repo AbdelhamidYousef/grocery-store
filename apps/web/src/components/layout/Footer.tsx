@@ -54,7 +54,6 @@ function buildGroups(t: TFunction): FooterGroup[] {
       links: [
         ...PETS.map((pet) => ({ label: petName(t, pet), to: `/c/${pet.slug}` })),
         { label: t('shell.footer.brands'), to: '/brands' },
-        { label: t('shell.footer.giftFinder'), to: '/gift-finder' },
       ],
     },
     {
