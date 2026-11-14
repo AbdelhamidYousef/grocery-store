@@ -9,6 +9,8 @@ import type { Outbox } from '../mail/outbox.ts';
 import { createMerchandisingAdminRouter } from '../merchandising/admin-router.ts';
 import { createNavigationAdminRouter } from '../navigation/admin-router.ts';
 import { createPromotionsAdminRouter } from '../promotions/admin-router.ts';
+import { createReturnsAdminRouter } from '../returns/admin-router.ts';
+import type { ReturnsConfig } from '../returns/config.ts';
 import { createReviewsAdminRouter } from '../reviews/admin-router.ts';
 import { createSafetyAdminRouter } from '../safety/admin-router.ts';
 
@@ -28,6 +30,7 @@ export function createAdminRouter(deps: {
   payments: PaymentGateway;
   outbox: Outbox;
   uploads: UploadConfig;
+  returns: ReturnsConfig;
 }): Router {
   const router = ExpressRouter();
   router.use('/admin', requireAdmin, auditMutations);
@@ -44,6 +47,7 @@ export function createAdminRouter(deps: {
   admin.use(createPromotionsAdminRouter());
   admin.use(createNavigationAdminRouter());
   admin.use(createReviewsAdminRouter(deps));
+  admin.use(createReturnsAdminRouter(deps));
   admin.use(createGalleryAdminRouter(deps));
   admin.use(createLoyaltyAdminRouter());
   router.use('/admin', admin);

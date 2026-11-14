@@ -5,6 +5,7 @@ import { newsletterConfirm, newsletterWelcome } from './newsletter.ts';
 import { orderConfirmation } from './order-confirmation.ts';
 import { orderShipped } from './order-shipped.ts';
 import { petBirthday, petLifeStage } from './pet-messages.ts';
+import { RETURN_EMAIL_KINDS, returnUpdate } from './return-update.ts';
 import { reviewApproved } from './review-approved.ts';
 import { safetyNotice } from './safety-notice.ts';
 import { stockAlert } from './stock-alert.ts';
@@ -29,6 +30,7 @@ export const GENERAL_EMAIL_KINDS = [
   'stock_alert',
   'pet_birthday',
   'pet_life_stage',
+  ...RETURN_EMAIL_KINDS,
 ] as const;
 
 export const EMAIL_KINDS = [...ORDER_EMAIL_KINDS, ...GENERAL_EMAIL_KINDS] as const;
@@ -66,6 +68,12 @@ export function renderQueuedEmail(
     return renderEmail(kind, order, payload);
   }
   switch (kind) {
+    case 'return_requested':
+    case 'return_approved':
+    case 'return_rejected':
+    case 'return_received':
+    case 'return_refunded':
+      return returnUpdate(kind, payload);
     case 'contact_ack':
       return contactAck(payload);
     case 'contact_notify':

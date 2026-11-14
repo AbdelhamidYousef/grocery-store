@@ -4,6 +4,7 @@ import type { Tx } from '../../db/client.ts';
 import * as cartRepo from '../cart/repo.ts';
 import * as repo from '../checkout/repo.ts';
 import { enqueueEmail } from '../mail/outbox.ts';
+import { refundedByReturns } from '../returns/refunded.ts';
 
 import { emitOrderCancelled, emitOrderPaid, emitOrderRefunded } from './events.ts';
 import { assertTransition, stockEffect } from './state-machine.ts';
@@ -14,6 +15,11 @@ export interface TransitionContext {
   note?: string | null;
   /** The change reports something the payment provider already did (see PROVIDER_ONLY_TRANSITIONS). */
   fromProvider?: boolean;
+  /**
+   * The caller emits `OrderRefunded` itself with the real amount and lines (a refunded return),
+   * so this function must not emit its own whole-order event on top of it.
+   */
+  skipRefundEvent?: boolean;
 }
 
 // THE function that changes an order's status. Webhook, reconciler, checkout rollback and admin all
@@ -93,11 +99,18 @@ export async function applyTransition(
   // Inside this transaction, so a side effect and the status change commit together.
   if (to === 'paid') await emitOrderPaid(tx, { orderId: order.id });
   else if (to === 'cancelled') await emitOrderCancelled(tx, { orderId: order.id });
-  else if (to === 'refunded') {
+  else if (to === 'refunded' && !ctx.skipRefundEvent) {
+    // A whole-order refund returns what is LEFT: earlier partial refunds (returns) already moved
+    // their share, and the gateway's full refund covers only the rest.
+    const left = Math.max(0, order.totalCents - (await refundedByReturns(tx, order.id)));
     await emitOrderRefunded(tx, {
       orderId: order.id,
-      refundedCents: order.totalCents,
+      refundId: null,
+      amountCents: left,
+      refundedCents: left,
       full: true,
+      lines: [],
+      shippingCents: 0,
     });
   }
   return updated;

@@ -1,0 +1,1 @@
+ALTER TABLE "returns" ADD COLUMN "refund_intent_at" timestamp with time zone;

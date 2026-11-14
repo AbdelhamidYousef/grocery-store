@@ -1,0 +1,45 @@
+import type { Tx } from '../../db/client.ts';
+import type { ReturnEmailKind, ReturnEmailPayload } from '../../emails/return-update.ts';
+import type * as checkoutRepo from '../checkout/repo.ts';
+import { enqueueEmail } from '../mail/outbox.ts';
+
+import type { ReturnItemWithLine, ReturnRow } from './repo.ts';
+
+// What every return email is rendered from. Names and amounts are copied now: the outbox stores
+// data, not HTML, and a later catalogue edit must not rewrite an email already promised.
+export function returnEmailPayload(
+  order: checkoutRepo.OrderRow,
+  ret: ReturnRow,
+  items: ReturnItemWithLine[],
+): ReturnEmailPayload {
+  return {
+    firstName: order.shippingAddress.fullName.trim().split(/\s+/)[0] || 'there',
+    orderNumber: order.number,
+    returnId: ret.id,
+    currency: order.currency,
+    refundCents: ret.refundCents,
+    items: items
+      .filter((i) => i.returnId === ret.id)
+      .map((i) => ({ name: i.productName, quantity: i.quantity })),
+    rejectReason: ret.rejectReason,
+    simulated: ret.simulated,
+  };
+}
+
+// Queued inside the transaction that changes the return, one per kind and return (dedupe key), so
+// a replayed action can never send a second copy.
+export async function queueReturnEmail(
+  tx: Tx,
+  kind: ReturnEmailKind,
+  order: checkoutRepo.OrderRow,
+  ret: ReturnRow,
+  items: ReturnItemWithLine[],
+): Promise<void> {
+  await enqueueEmail(tx, {
+    kind,
+    to: order.email,
+    orderId: order.id,
+    payload: returnEmailPayload(order, ret, items),
+    dedupeKey: `${kind}:${ret.id}`,
+  });
+}

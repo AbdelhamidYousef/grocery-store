@@ -11,6 +11,7 @@ import { signedIn } from '../../test/orders.ts';
 import { listRoutes } from '../../test/routes.ts';
 import { makeShopper } from '../../test/shopper.ts';
 import { createOutbox } from '../mail/outbox.ts';
+import { DEFAULT_RETURNS_CONFIG } from '../returns/config.ts';
 
 import { createAdminRouter } from './router.ts';
 
@@ -30,6 +31,7 @@ describe('admin guard: every admin route', () => {
       payments: new FakeStripe(),
       outbox: createOutbox({ transport: new MemoryTransport(), log: pino({ level: 'silent' }) }),
       uploads: { dir: TEST_UPLOAD_DIR, enabled: true },
+      returns: DEFAULT_RETURNS_CONFIG,
     }),
   ).filter((r) => r.path.length > 0);
 

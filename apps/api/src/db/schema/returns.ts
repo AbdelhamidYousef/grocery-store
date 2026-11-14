@@ -54,6 +54,11 @@ export const returns = pgTable(
     // the admin ticked it. Integer cents.
     refundCents: integer('refund_cents').notNull(),
     refundShipping: boolean('refund_shipping').notNull().default(false),
+    // Written BEFORE the gateway is called (the "intent"): from then on the amount and the
+    // shipping choice are frozen, because the retry key `return-<id>` must always mean the same
+    // refund. A return with an intent but no provider refund id is a refund that may or may not
+    // have reached the provider; repeating the action is safe and finishes it.
+    refundIntentAt: timestamp('refund_intent_at', { withTimezone: true }),
     providerRefundId: text('provider_refund_id'),
     // True when the refund was recorded without a payment provider (RETURNS_SIMULATED).
     simulated: boolean('simulated').notNull().default(false),

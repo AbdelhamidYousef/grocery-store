@@ -18,13 +18,28 @@ export interface OrderPaidEvent {
 export interface OrderCancelledEvent {
   orderId: string;
 }
+// One event for every money-back on an order, partial or full. Emitted by `applyTransition` for a
+// whole-order refund, and by the returns service for each refunded return. Subscribers (loyalty
+// clawback, referral and donation reversal) must be idempotent per `refundId`: the event is
+// emitted inside the transaction that records the refund, so it fires exactly once per refund, but
+// a subscriber that writes its own rows should key them on `refundId` anyway.
 export interface OrderRefundedEvent {
   orderId: string;
+  /** Id of the return that was refunded; null for a whole-order refund through a status change. */
+  refundId: string | null;
+  /** Money returned by THIS refund, integer cents. Never the order total of an earlier refund. */
+  amountCents: number;
+  /** Same number as `amountCents` (the name phase 14 introduced; kept so existing code reads). */
   refundedCents: number;
   /** The refund's own id, when there is one (phase 22); keys the reversal rows so a retry is a no-op. */
   refundId?: string;
   /** False for a partial refund (only phase 22 emits those). */
+  /** True when the order is now fully refunded (its status is `refunded`). */
   full: boolean;
+  /** What came back, per order line, so proportional clawbacks can be computed. */
+  lines: { orderItemId: string; quantity: number; refundCents: number }[];
+  /** Shipping handed back in this refund (0 unless the admin ticked it). */
+  shippingCents: number;
 }
 
 type Handler<E> = (tx: Tx, event: E) => Promise<void>;

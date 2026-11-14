@@ -1,7 +1,14 @@
-import { and, asc, desc, eq, inArray, max, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray, isNotNull, max, ne, sql } from 'drizzle-orm';
 
 import { db, type Tx } from '../../db/client.ts';
-import { orderItems, orderStatusHistory, returnItems, returns } from '../../db/schema/index.ts';
+import {
+  inventoryAdjustments,
+  orderItems,
+  orderStatusHistory,
+  orders,
+  returnItems,
+  returns,
+} from '../../db/schema/index.ts';
 
 import { COUNTING_RETURN_STATUSES } from './state-machine.ts';
 
@@ -87,4 +94,107 @@ export async function listByOrder(run: Db, orderId: string): Promise<ReturnRow[]
     .from(returns)
     .where(eq(returns.orderId, orderId))
     .orderBy(desc(returns.createdAt), desc(returns.id));
+}
+
+// ---------- admin ----------
+
+export async function lockReturn(tx: Tx, returnId: string): Promise<ReturnRow | undefined> {
+  const [row] = await tx.select().from(returns).where(eq(returns.id, returnId)).for('update');
+  return row;
+}
+
+export async function findReturn(run: Db, returnId: string): Promise<ReturnRow | undefined> {
+  const [row] = await run.select().from(returns).where(eq(returns.id, returnId));
+  return row;
+}
+
+export async function updateReturn(
+  tx: Tx,
+  returnId: string,
+  values: Partial<typeof returns.$inferInsert>,
+): Promise<ReturnRow> {
+  const [row] = await tx.update(returns).set(values).where(eq(returns.id, returnId)).returning();
+  if (!row) throw new Error('return update matched no row');
+  return row;
+}
+
+export async function listAdmin(opts: {
+  status?: ReturnRow['status'] | undefined;
+  page: number;
+  limit: number;
+}) {
+  const where = opts.status ? eq(returns.status, opts.status) : undefined;
+  const units = db
+    .select({
+      returnId: returnItems.returnId,
+      units: sql<number>`sum(${returnItems.quantity})::int`.as('units'),
+    })
+    .from(returnItems)
+    .groupBy(returnItems.returnId)
+    .as('units');
+  const [rows, totals] = await Promise.all([
+    db
+      .select({
+        id: returns.id,
+        orderNumber: orders.number,
+        email: orders.email,
+        currency: orders.currency,
+        status: returns.status,
+        reason: returns.reason,
+        refundCents: returns.refundCents,
+        itemCount: units.units,
+        createdAt: returns.createdAt,
+      })
+      .from(returns)
+      .innerJoin(orders, eq(orders.id, returns.orderId))
+      .leftJoin(units, eq(units.returnId, returns.id))
+      .where(where)
+      .orderBy(desc(returns.createdAt), desc(returns.id))
+      .limit(opts.limit)
+      .offset((opts.page - 1) * opts.limit),
+    db.select({ n: count() }).from(returns).where(where),
+  ]);
+  return { rows, total: totals[0]?.n ?? 0 };
+}
+
+// Has another return of this order already been promised the shipping money?
+export async function shippingRefundedElsewhere(
+  run: Db,
+  orderId: string,
+  exceptReturnId: string,
+): Promise<boolean> {
+  const [row] = await run
+    .select({ n: count() })
+    .from(returns)
+    .where(
+      and(
+        eq(returns.orderId, orderId),
+        eq(returns.refundShipping, true),
+        isNotNull(returns.refundIntentAt),
+        ne(returns.id, exceptReturnId),
+      ),
+    );
+  return (row?.n ?? 0) > 0;
+}
+
+// Units per order line that are in a REFUNDED return: when every paid line is back in full the
+// order itself becomes refunded.
+export async function refundedQuantities(run: Db, orderId: string): Promise<Map<string, number>> {
+  const rows = await run
+    .select({
+      orderItemId: returnItems.orderItemId,
+      qty: sql<number>`sum(${returnItems.quantity})::int`,
+    })
+    .from(returnItems)
+    .innerJoin(returns, eq(returns.id, returnItems.returnId))
+    .where(and(eq(returns.orderId, orderId), eq(returns.status, 'refunded')))
+    .groupBy(returnItems.orderItemId);
+  return new Map(rows.map((r) => [r.orderItemId, Number(r.qty)]));
+}
+
+export async function insertAdjustment(
+  tx: Tx,
+  values: typeof inventoryAdjustments.$inferInsert,
+): Promise<void> {
+  await tx.insert(inventoryAdjustments).values(values);
 }

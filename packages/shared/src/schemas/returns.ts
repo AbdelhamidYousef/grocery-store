@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { PaginatedSchema, PaginationQuerySchema } from './common.ts';
+
 // ---------- returns (RMA): a sub-process of an order, with its own states ----------
 
 export const ReturnStatusSchema = z.enum([
@@ -137,3 +139,55 @@ export const OrderReturnsSchema = z.object({
 export type OrderReturns = z.infer<typeof OrderReturnsSchema>;
 export const OrderReturnsResponseSchema = z.object({ data: OrderReturnsSchema });
 export const ReturnResponseSchema = z.object({ data: ReturnSchema });
+
+// ---------- admin ----------
+
+export const AdminReturnListQuerySchema = PaginationQuerySchema.extend({
+  status: ReturnStatusSchema.optional(),
+});
+export type AdminReturnListQuery = z.input<typeof AdminReturnListQuerySchema>;
+
+export const AdminReturnRowSchema = z.object({
+  id: z.string(),
+  orderNumber: z.string(),
+  email: z.string(),
+  status: ReturnStatusSchema,
+  reason: ReturnReasonSchema,
+  itemCount: z.number().int(),
+  refundCents: z.number().int(),
+  currency: z.string().length(3),
+  createdAt: z.string(),
+});
+export type AdminReturnRow = z.infer<typeof AdminReturnRowSchema>;
+export const AdminReturnListResponseSchema = PaginatedSchema(AdminReturnRowSchema);
+
+export const AdminReturnDetailSchema = z.object({
+  return: ReturnSchema,
+  email: z.string(),
+  currency: z.string().length(3),
+  orderTotalCents: z.number().int(),
+  shippingCents: z.number().int(),
+  /** False once another return of this order already got the shipping back. */
+  shippingRefundable: z.boolean(),
+  /** Units the shelf takes back on `receive` by default (everything not damaged). */
+  restockItemIds: z.array(z.string()),
+  /** Next states the buttons may offer; the API refuses anything else with 409. */
+  allowedNext: z.array(ReturnStatusSchema),
+  /** True when a refund would be recorded without a payment provider (demo mode). */
+  simulatedMode: z.boolean(),
+});
+export type AdminReturnDetail = z.infer<typeof AdminReturnDetailSchema>;
+export const AdminReturnDetailResponseSchema = z.object({ data: AdminReturnDetailSchema });
+
+export const ReturnIdParamsSchema = z.object({ id: z.uuid() });
+
+export const AdminReturnRejectSchema = z.object({
+  reason: z.string().trim().min(3, 'Give the customer a reason').max(300),
+});
+export const AdminReturnReceiveSchema = z.object({
+  // Return-item ids to put back on the shelf; omitted means every line that is not damaged.
+  restockItemIds: z.array(z.uuid()).max(50).optional(),
+});
+export const AdminReturnRefundSchema = z.object({
+  refundShipping: z.boolean().default(false),
+});

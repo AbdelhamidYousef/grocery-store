@@ -119,7 +119,12 @@ export function createModulesRouter(opts: {
   router.use(createContactRouter(opts));
   router.use(createCheckoutRouter({ payments: opts.payments }));
   router.use(
-    createAdminRouter({ payments: opts.payments, outbox: opts.outbox, uploads: opts.uploads }),
+    createAdminRouter({
+      payments: opts.payments,
+      outbox: opts.outbox,
+      uploads: opts.uploads,
+      returns: opts.returns,
+    }),
   );
   return router;
 }

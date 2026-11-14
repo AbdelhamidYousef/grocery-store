@@ -11,6 +11,7 @@ import * as checkoutRepo from '../checkout/repo.ts';
 
 import type { ReturnsConfig } from './config.ts';
 import { assessEligibility } from './eligibility.ts';
+import { queueReturnEmail } from './mail.ts';
 import * as repo from './repo.ts';
 import { toReturnDto } from './view.ts';
 
@@ -125,6 +126,8 @@ export async function requestReturn(
       },
       items,
     );
-    return toReturnDto(row, order.number, await repo.listItems(tx, [row.id]));
+    const rows = await repo.listItems(tx, [row.id]);
+    await queueReturnEmail(tx, 'return_requested', order, row, rows);
+    return toReturnDto(row, order.number, rows);
   });
 }
