@@ -7,7 +7,7 @@ import type { PaymentGateway } from '../lib/stripe.ts';
 import type { Outbox } from '../modules/mail/outbox.ts';
 import { syncFlashSales } from '../modules/promotions/service.ts';
 
-import { releaseStaleReservations } from './release-stale-reservations.ts';
+import { runExclusiveSweep } from './release-stale-reservations.ts';
 
 // Scheduled work without a paid scheduler. A job is a name, a cadence and a function; the
 // `job_runs` table turns "run it twice" into "run it once":
@@ -91,17 +91,25 @@ export async function runJob(name: string, ctx: JobContext): Promise<RunOutcome>
   if (!job) throw new Error(`unknown job "${name}" (known: ${jobs.map((j) => j.name).join(', ')})`);
   const runKey = runKeyFor(job.every, ctx.now);
   if (!(await claim(name, runKey, ctx.now))) return { name, runKey, status: 'skipped' };
+  // Every write below is conditional on OUR claim (`started_at` = ctx.now): if a stale run was taken
+  // over by a newer caller, the old one finishing late must not mark the new claim finished, and
+  // its failure must not delete the new claim.
+  const mine = and(
+    eq(jobRuns.name, name),
+    eq(jobRuns.runKey, runKey),
+    eq(jobRuns.startedAt, ctx.now),
+  );
   try {
     const result = await job.run(ctx);
     await db
       .update(jobRuns)
       .set({ finishedAt: sql`now()` })
-      .where(and(eq(jobRuns.name, name), eq(jobRuns.runKey, runKey)));
+      .where(mine);
     return { name, runKey, status: 'ran', result };
   } catch (err) {
     ctx.log.error({ err, job: name }, 'job failed');
     // Give the period back so the next tick retries instead of waiting for the claim to go stale.
-    await db.delete(jobRuns).where(and(eq(jobRuns.name, name), eq(jobRuns.runKey, runKey)));
+    await db.delete(jobRuns).where(mine);
     return {
       name,
       runKey,
@@ -122,8 +130,9 @@ export async function runDueJobs(ctx: JobContext): Promise<RunOutcome[]> {
 registerJob({
   name: 'release-stale-reservations',
   every: 'hourly',
+  // Exclusive: the in-process sweeper and this job share one advisory lock, so they never overlap.
   run: (ctx) =>
-    releaseStaleReservations({
+    runExclusiveSweep({
       gateway: ctx.gateway,
       log: ctx.log,
       now: ctx.now,

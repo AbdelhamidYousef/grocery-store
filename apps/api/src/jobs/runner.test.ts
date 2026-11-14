@@ -87,6 +87,39 @@ describe('runJob', () => {
     expect(stale.status).toBe('ran');
   });
 
+  it('a stale run that finishes late cannot touch the newer claim that replaced it', async () => {
+    const start = new Date('2026-11-08T14:00:00Z');
+    let release!: () => void;
+    run.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          release = () => resolve('late');
+        }),
+    );
+    const slow = runJob('test-job', { ...ctxAt(start.toISOString()) });
+    await vi.waitFor(() => expect(run).toHaveBeenCalledTimes(1));
+    // the claim goes stale and a newer caller takes it over, and is still running
+    const later = new Date(start.getTime() + CLAIM_STALE_MS + 60_000);
+    let finishNewer!: () => void;
+    run.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishNewer = () => resolve('newer');
+        }),
+    );
+    const newer = runJob('test-job', ctxAt(later.toISOString()));
+    await vi.waitFor(() => expect(run).toHaveBeenCalledTimes(2));
+    release();
+    await slow;
+    const [row] = await db.select().from(jobRuns).where(eq(jobRuns.name, 'test-job'));
+    expect(row?.finishedAt).toBeNull();
+    expect(row?.startedAt.getTime()).toBe(later.getTime());
+    finishNewer();
+    await newer;
+    const [done] = await db.select().from(jobRuns).where(eq(jobRuns.name, 'test-job'));
+    expect(done?.finishedAt).toBeInstanceOf(Date);
+  });
+
   it('rejects an unknown job name', async () => {
     await expect(runJob('nope', ctxAt('2026-11-08T14:00:00Z'))).rejects.toThrow(/unknown job/);
   });
