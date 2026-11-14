@@ -127,7 +127,10 @@ export async function price(tx: Tx, req: PricingRequest): Promise<PricingResult>
   const serviceNotices: { key: ServiceNotice; refId?: string }[] = [];
   let code: repo.CodeRow | null = null;
   if (req.code) {
-    if (!codeRow || !codeRow.active || codeRow.archivedAt !== null) {
+    // A personal code (a reward, a referral) belongs to one account: to anyone else it does not
+    // exist, so its existence is not revealed either.
+    const foreign = codeRow?.ownerUserId != null && codeRow.ownerUserId !== req.userId;
+    if (!codeRow || !codeRow.active || codeRow.archivedAt !== null || foreign) {
       serviceNotices.push({ key: 'code_unknown' });
     } else {
       if (req.lockCode) await repo.lockCode(tx, codeRow.id);

@@ -162,6 +162,13 @@
       "when": 1794636873201,
       "tag": "0022_points_ledger",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1794636874574,
+      "tag": "0023_rewards",
+      "breakpoints": true
     }
   ]
 }

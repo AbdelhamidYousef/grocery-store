@@ -15,6 +15,7 @@ import { SafetyList } from '../features/admin/content/SafetyList';
 import { TestimonialsAdmin } from '../features/admin/content/TestimonialsAdmin';
 import { WithdrawalsAdmin } from '../features/admin/content/WithdrawalsAdmin';
 import { Dashboard } from '../features/admin/Dashboard';
+import { LoyaltyAdmin } from '../features/admin/loyalty/LoyaltyAdmin';
 import { NavigationAdmin } from '../features/admin/NavigationAdmin';
 import { OrderDetail } from '../features/admin/OrderDetail';
 import { OrdersList } from '../features/admin/OrdersList';
@@ -51,6 +52,7 @@ export default function AdminPage() {
         <Route path="navigation" element={<NavigationAdmin />} />
         <Route path="size-guides" element={<SizeGuidesAdmin />} />
         <Route path="bundles" element={<BundlesAdmin />} />
+        <Route path="loyalty" element={<LoyaltyAdmin />} />
         <Route path="guides" element={<GuidesList />} />
         <Route path="guides/new" element={<GuideEdit />} />
         <Route path="guides/:id" element={<GuideEdit />} />

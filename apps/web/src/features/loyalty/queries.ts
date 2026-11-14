@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { fetchPoints } from '../../api/loyalty';
+import { fetchMyCodes, fetchPoints, fetchRewards, redeemReward } from '../../api/loyalty';
 import { keys } from '../../lib/query-client';
 import { useAuthOptional } from '../auth/AuthProvider';
 
@@ -12,5 +12,31 @@ export function usePoints() {
     queryKey: keys.points,
     queryFn: ({ signal }) => fetchPoints(signal),
     enabled: user !== null,
+  });
+}
+
+// The shop window: public, the same for everyone.
+export const useRewards = () =>
+  useQuery({ queryKey: keys.rewards, queryFn: ({ signal }) => fetchRewards(signal) });
+
+export function useMyCodes() {
+  const { user } = useAuthOptional();
+  return useQuery({
+    queryKey: keys.myCodes,
+    queryFn: ({ signal }) => fetchMyCodes(signal),
+    enabled: user !== null,
+  });
+}
+
+// Spending points changes the balance and adds a code: refresh both.
+export function useRedeemReward() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: redeemReward,
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: keys.points }),
+        queryClient.invalidateQueries({ queryKey: keys.myCodes }),
+      ]),
   });
 }

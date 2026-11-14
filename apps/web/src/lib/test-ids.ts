@@ -12,6 +12,9 @@
 export const TEST_IDS = {
   pageHome: 'page-home',
   earnPoints: 'earn-points',
+  rewardCard: 'reward-card',
+  rewardRedeem: 'reward-redeem',
+  personalCode: 'personal-code',
   pointsRedeem: 'points-redeem',
   pointsApplied: 'points-applied',
   pointsBalance: 'points-balance',

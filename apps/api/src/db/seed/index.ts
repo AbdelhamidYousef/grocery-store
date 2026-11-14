@@ -45,6 +45,7 @@ import {
   pickMemberVariants,
 } from './promotions.ts';
 import { seedReviews } from './reviews.ts';
+import { seedRewards } from './rewards.ts';
 import { validateSeed } from './schema.ts';
 import { shippingMethods } from './shipping.ts';
 import { tags } from './tags.ts';
@@ -404,6 +405,7 @@ export async function runSeed(now = new Date()) {
     await seedContent(tx, content, productId);
     await seedHomeContent(tx);
     await seedMenuPromos(tx);
+    await seedRewards(tx);
 
     // ---- shipping ----
     await tx

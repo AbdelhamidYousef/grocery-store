@@ -51,3 +51,56 @@ export type AdminPointsAdjust = z.infer<typeof AdminPointsAdjustSchema>;
 export const AdminPointsAdjustResponseSchema = DataSchema(
   z.object({ balance: z.number().int(), entry: PointsEntrySchema }),
 );
+
+// ---------- rewards shop (19.4) ----------
+
+export const RewardKindSchema = z.enum(['coupon_fixed', 'free_shipping', 'gift']);
+export type RewardKind = z.infer<typeof RewardKindSchema>;
+
+export const RewardSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  costPoints: z.number().int().positive(),
+  kind: RewardKindSchema,
+  // Cents; 0 for free shipping.
+  valueCents: z.number().int().min(0),
+});
+export type Reward = z.infer<typeof RewardSchema>;
+export const RewardListResponseSchema = DataSchema(z.array(RewardSchema));
+
+export const AdminRewardSchema = RewardSchema.extend({ active: z.boolean() });
+export type AdminReward = z.infer<typeof AdminRewardSchema>;
+export const AdminRewardListResponseSchema = DataSchema(z.array(AdminRewardSchema));
+export const AdminRewardResponseSchema = DataSchema(AdminRewardSchema);
+
+export const AdminRewardInputSchema = z
+  .object({
+    name: z.string().trim().min(1, 'Required').max(80),
+    description: z.string().trim().max(200).default(''),
+    costPoints: z.number().int().min(1).max(1_000_000),
+    kind: RewardKindSchema,
+    valueCents: z.number().int().min(0).max(1_000_000),
+    active: z.boolean().default(true),
+  })
+  .refine((r) => (r.kind === 'free_shipping' ? r.valueCents === 0 : r.valueCents > 0), {
+    message: 'Free shipping has no value; every other reward needs one',
+    path: ['valueCents'],
+  });
+export type AdminRewardInput = z.input<typeof AdminRewardInputSchema>;
+
+export const PersonalCodeSchema = z.object({
+  code: z.string(),
+  kind: z.enum(['percent', 'fixed', 'free_shipping']),
+  value: z.number().int().min(0),
+  minSpendCents: z.number().int().min(0),
+  endsAt: z.string().nullable(),
+  used: z.boolean(),
+});
+export type PersonalCode = z.infer<typeof PersonalCodeSchema>;
+export const PersonalCodeListResponseSchema = DataSchema(z.array(PersonalCodeSchema));
+
+export const RedeemRewardResponseSchema = DataSchema(
+  z.object({ code: PersonalCodeSchema, balance: z.number().int() }),
+);
+export type RedeemRewardResponse = z.infer<typeof RedeemRewardResponseSchema>;

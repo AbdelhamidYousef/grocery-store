@@ -9,6 +9,7 @@ const LINKS = [
   { to: '/account/addresses', label: 'Addresses', end: false },
   { to: '/account/pets', label: 'Pets', end: false },
   { to: '/account/orders', label: 'Orders', end: false },
+  { to: '/account/rewards', label: 'Rewards', end: false },
 ] as const;
 
 // The side nav is a row of wrapping pills on phones and a column from `md` up, so there is never

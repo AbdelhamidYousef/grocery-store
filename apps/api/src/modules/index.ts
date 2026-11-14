@@ -19,7 +19,7 @@ import { guidesRouter } from './guides/router.ts';
 import { helpRouter } from './help/router.ts';
 import { homeRouter } from './home/router.ts';
 import { createJobsRouter } from './jobs/router.ts';
-import { createLoyaltyRouter } from './loyalty/router.ts';
+import { createLoyaltyRouter, rewardsRouter } from './loyalty/router.ts';
 import { registerLoyaltySubscribers } from './loyalty/service.ts';
 import type { Outbox } from './mail/outbox.ts';
 import { merchandisingRouter } from './merchandising/router.ts';
@@ -66,6 +66,7 @@ export function createModulesRouter(opts: {
   router.use(homeRouter);
   router.use(safetyRouter);
   router.use(promotionsRouter);
+  router.use(rewardsRouter);
   // Public and identical for everyone, so it sits before the session middleware like the catalog.
   router.use(createSearchRouter(opts));
   router.use(navigationRouter);
