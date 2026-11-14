@@ -2,6 +2,7 @@ import { createElement } from 'react';
 
 import { readRecentlyViewed } from '../../lib/recently-viewed';
 import { RecentlyViewed } from '../catalog/pdp/RecentlyViewed';
+import { ShoppableGallery } from '../gallery/ShoppableGallery';
 import { SeasonalCollectionSlot } from '../merchandising/SeasonalCollectionSlot';
 
 import { registerHomeSlot } from './slots';
@@ -17,3 +18,7 @@ registerHomeSlot({
   enabled: () => readRecentlyViewed().length > 0,
   render: () => createElement(RecentlyViewed),
 });
+
+// Phase 17: the customer gallery (#RealPawsomePets). It renders nothing until the API says there
+// is at least one published photo, so an empty gallery leaves no heading behind.
+registerHomeSlot({ id: 'customer-gallery', render: () => createElement(ShoppableGallery) });

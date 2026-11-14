@@ -29,6 +29,7 @@ import { SizeGuideButton } from '../features/catalog/pdp/SizeGuide';
 import { useProduct } from '../features/catalog/queries';
 import { variantFromSku } from '../features/catalog/resolve-variant';
 import { VariantPicker } from '../features/catalog/VariantPicker';
+import { ShoppableGallery } from '../features/gallery/ShoppableGallery';
 import { formatRating } from '../features/reviews/format';
 import { RatingStars } from '../features/reviews/RatingStars';
 import { ReviewsSection } from '../features/reviews/ReviewsSection';
@@ -288,6 +289,11 @@ function ProductView({ product }: { product: ProductDetail }) {
           }
         />
         <ReviewsSection product={product} />
+        <ShoppableGallery
+          productId={product.id}
+          heading="Customers with this product"
+          intro="Photos from real Pawsome pets. Tap one to shop what is in it."
+        />
         <KitsBlock kits={product.kits} currency={product.price.currency} />
         <BoughtTogether productSlug={product.slug} productName={product.name} variant={variant} />
         <RelatedStrip productSlug={product.slug} />
