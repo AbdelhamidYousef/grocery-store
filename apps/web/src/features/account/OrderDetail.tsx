@@ -8,6 +8,7 @@ import { formatDate } from '../../lib/format';
 import { TEST_IDS } from '../../lib/test-ids';
 import { OrderAddress, OrderSummary } from '../checkout/OrderSummary';
 import { ReorderButton } from '../reorder/ReorderButton';
+import { ReturnsSection } from '../returns/ReturnsSection';
 
 import { TIMELINE_LABEL } from './order-status';
 import { OrderStatusBadge } from './OrderStatusBadge';
@@ -127,6 +128,12 @@ export function OrderDetail() {
           <div className="mt-3">
             <OrderSummary items={order.items} totals={order.totals} />
           </div>
+          <ReturnsSection
+            orderNumber={order.number}
+            currency={order.totals.currency}
+            items={order.items}
+            status={order.status}
+          />
         </div>
         <div className="flex min-w-0 flex-col gap-5">
           <OrderAddress title="Shipping to" address={order.shippingAddress} />

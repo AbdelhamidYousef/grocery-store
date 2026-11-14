@@ -90,6 +90,7 @@ export const keys = {
     orders: ['account', 'orders'] as const,
     orderList: (page: number) => ['account', 'orders', 'list', page] as const,
     order: (number: string) => ['account', 'orders', 'detail', number] as const,
+    returns: (number: string) => ['account', 'orders', 'returns', number] as const,
   },
   // Back office data. Its own root so logging out can drop it in one call, and so the storefront
   // caches are never touched by an admin edit by accident.
@@ -109,6 +110,10 @@ export const keys = {
     menuPromos: ['admin', 'menu-promos'] as const,
     reviews: (status: string) => ['admin', 'reviews', status] as const,
     gallery: ['admin', 'gallery'] as const,
+    returns: ['admin', 'returns'] as const,
+    returnList: (status: string, page: number) =>
+      ['admin', 'returns', 'list', status, page] as const,
+    return: (id: string) => ['admin', 'returns', 'detail', id] as const,
     orders: ['admin', 'orders'] as const,
     orderList: (params: AdminOrderListParams) => ['admin', 'orders', 'list', params] as const,
     order: (number: string) => ['admin', 'orders', 'detail', number] as const,

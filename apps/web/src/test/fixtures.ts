@@ -11,7 +11,10 @@ import type {
   Brand,
   CategoryNode,
   Collection,
+  AdminReturnDetail,
   CustomerOrder,
+  CustomerReturn,
+  OrderReturns,
   Facets,
   GuideCard,
   GuideDetail,
@@ -752,6 +755,66 @@ export function makePoints(overrides: Partial<PointsSummary> = {}): PointsSummar
     tier: { id: 'pup', label: 'Pup', ratePercent: 100 },
     nextTier: { id: 'good_dog', label: 'Good Dog', pointsNeeded: 500 },
     entries: [],
+
+export function makeReturn(overrides: Partial<CustomerReturn> = {}): CustomerReturn {
+  return {
+    id: 'ret1',
+    orderNumber: 'PW-2026-000123',
+    status: 'requested',
+    reason: 'wrong_size',
+    note: null,
+    rejectReason: null,
+    refundCents: 1099,
+    refundShipping: false,
+    simulated: false,
+    items: [
+      {
+        id: 'ri1',
+        orderItemId: 'oi1',
+        productName: 'Rope Tug',
+        variantName: 'Small',
+        imageUrl: null,
+        quantity: 1,
+        reason: 'wrong_size',
+        refundCents: 1099,
+      },
+    ],
+    createdAt: '2026-11-05T10:00:00.000Z',
+    approvedAt: null,
+    receivedAt: null,
+    refundedAt: null,
+    ...overrides,
+  };
+}
+
+export function makeOrderReturns(overrides: Partial<OrderReturns> = {}): OrderReturns {
+  return {
+    returns: [],
+    eligibility: {
+      eligible: true,
+      reason: null,
+      deadline: '2026-12-04T10:00:00.000Z',
+      lines: [{ orderItemId: 'oi1', returnableQuantity: 2, paidCents: 1099 }],
+    },
+    ...overrides,
+  };
+}
+
+export function makeAdminReturnDetail(
+  overrides: Partial<AdminReturnDetail> = {},
+  ret: Partial<CustomerReturn> = {},
+): AdminReturnDetail {
+  const r = makeReturn(ret);
+  return {
+    return: r,
+    email: 'sam@example.test',
+    currency: 'EUR',
+    orderTotalCents: 2689,
+    shippingCents: 490,
+    shippingRefundable: true,
+    restockItemIds: r.items.filter((i) => i.reason !== 'damaged').map((i) => i.id),
+    allowedNext: ['approved', 'rejected'],
+    simulatedMode: false,
     ...overrides,
   };
 }

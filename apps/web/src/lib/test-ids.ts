@@ -218,6 +218,12 @@ export const TEST_IDS = {
 
   pageAdmin: 'page-admin',
   adminNav: 'admin-nav',
+  returnsSection: 'returns-section',
+  returnRequestForm: 'return-request-form',
+  returnCard: 'return-card',
+  returnTimeline: 'return-timeline',
+  adminReturnRow: 'admin-return-row',
+  adminReturnDetail: 'admin-return-detail',
   adminStat: 'admin-stat',
   adminTable: 'admin-table',
   adminRow: 'admin-row',

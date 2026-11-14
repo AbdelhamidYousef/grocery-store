@@ -93,6 +93,20 @@ export const server = setupServer(
   // No reviews and no gallery photos unless a test says so.
   http.get(`${API}/products/:slug/reviews`, () => HttpResponse.json(makeReviewList())),
   http.get(`${API}/gallery`, () => HttpResponse.json({ data: [] })),
+  // A delivered order's page asks for its returns: nothing returned and nothing eligible by default.
+  http.get(`${API}/orders/:number/returns`, () =>
+    HttpResponse.json({
+      data: {
+        returns: [],
+        eligibility: {
+          eligible: false,
+          reason: 'Only a delivered order can be returned',
+          deadline: null,
+          lines: [],
+        },
+      },
+    }),
+  ),
   // No safety notices unless a test says so.
   http.get(`${API}/safety-notices/active`, () => HttpResponse.json({ data: [] })),
   http.get(`${API}/home`, () => HttpResponse.json({ data: makeHome() })),
