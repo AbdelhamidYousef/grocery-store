@@ -22,7 +22,7 @@ import {
 // "first order" codes and trial limits of the demo logins are not used up by them.
 
 export const SALES_MARKER = 'seed:sales';
-export const RETURNS_DEMO_EMAIL = 'casey@pawsome.test';
+export const RETURNS_DEMO_EMAIL = 'casey@grocery.test';
 const DAY_MS = 86_400_000;
 const DAYS = 90;
 const GUESTS = 24;
@@ -125,7 +125,7 @@ export async function seedSales(tx: Tx, opts: { passwordHash: string; now: Date 
       plan.push({
         placedAt,
         status,
-        email: `shopper${String(guest).padStart(2, '0')}@pawsome.test`,
+        email: `shopper${String(guest).padStart(2, '0')}@grocery.test`,
         userId: null,
         lines,
       });

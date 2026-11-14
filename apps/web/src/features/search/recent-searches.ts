@@ -4,7 +4,7 @@ import { z } from 'zod';
 // table): a search history is personal, and the server gains nothing from it. Storage can be
 // missing or throw (private mode, blocked cookies), so every access is guarded and the list then
 // lives in memory for the visit.
-const KEY = 'pawsome.recentSearches';
+const KEY = 'grocery.recentSearches';
 export const MAX_RECENT = 6;
 
 const ListSchema = z.array(z.string().min(1).max(100)).max(MAX_RECENT);

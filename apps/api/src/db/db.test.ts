@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { db } from './client.ts';
 import { addresses, sessions, users } from './schema/index.ts';
 
-const email = 'db-smoke@pawsome.test';
+const email = 'db-smoke@grocery.test';
 
 async function insertUser() {
   const [user] = await db

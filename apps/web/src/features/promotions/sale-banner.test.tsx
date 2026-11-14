@@ -137,7 +137,7 @@ describe('sale banner', () => {
   });
 
   it('shows a different sale even though another one was dismissed', async () => {
-    window.localStorage.setItem('pawsome:sale-banner-dismissed', JSON.stringify(['s1']));
+    window.localStorage.setItem('grocery:sale-banner-dismissed', JSON.stringify(['s1']));
     serveBanner({ id: 's2', inMs: HOUR });
     renderWithProviders(<SaleBanner />);
     expect(await screen.findByTestId('sale-banner')).toBeInTheDocument();

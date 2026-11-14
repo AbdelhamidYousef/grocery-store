@@ -189,7 +189,7 @@ describe('merge on login', () => {
       .post('/api/v1/auth/register')
       .set('Origin', TEST_ORIGIN)
       .set('Cookie', cookie)
-      .send({ email: 'new@pawsome.test', password: PASSWORD, firstName: 'N', lastName: 'U' });
+      .send({ email: 'new@grocery.test', password: PASSWORD, firstName: 'N', lastName: 'U' });
     expect(res.status).toBe(201);
     expect(qtyOf(await cartAfter(res), variants[0]!.id)).toBe(2);
     expect(setCookieLine(res, 'cart_id')).toBeDefined();

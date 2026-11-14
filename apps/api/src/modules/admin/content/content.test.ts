@@ -21,7 +21,7 @@ const app = makeTestApp();
 let admin: Shopper;
 
 beforeEach(async () => {
-  admin = (await signedIn(app, 'admin', 'boss@pawsome.test')).shopper;
+  admin = (await signedIn(app, 'admin', 'boss@grocery.test')).shopper;
   await createShippingMethods();
 });
 
@@ -185,12 +185,12 @@ describe('testimonials', () => {
 
 describe('withdrawal queue', () => {
   it('lists requests and moves them new -> acknowledged -> done', async () => {
-    const { number } = await placeOrder(app, { email: 'ada@pawsome.test' });
+    const { number } = await placeOrder(app, { email: 'ada@grocery.test' });
     await simulate(app, number);
     const [order] = await db.select().from(orders).where(eq(orders.number, number));
     const [row] = await db
       .insert(withdrawalRequests)
-      .values({ orderId: order!.id, email: 'ada@pawsome.test', reason: 'x' })
+      .values({ orderId: order!.id, email: 'ada@grocery.test', reason: 'x' })
       .returning();
 
     const list = data<{ id: string; status: string; orderNumber: string; reference: string }[]>(
@@ -218,7 +218,7 @@ describe('contact messages', () => {
   it('marks a message handled and can reopen it', async () => {
     const [m] = await db
       .insert(contactMessages)
-      .values({ name: 'Ada', email: 'ada@pawsome.test', topic: 'order', message: 'Where is it?' })
+      .values({ name: 'Ada', email: 'ada@grocery.test', topic: 'order', message: 'Where is it?' })
       .returning();
     const handled = data<{ handledAt: string | null }>(
       await admin.call('patch', `/admin/contact-messages/${m!.id}`, { handled: true }),

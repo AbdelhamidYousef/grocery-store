@@ -111,7 +111,7 @@ describe('merging on login', () => {
     // an account that already had A
     const member = makeShopper(app);
     const reg = await member.call('post', '/auth/register', {
-      email: 'merge@pawsome.test',
+      email: 'merge@grocery.test',
       password: PASSWORD,
       firstName: 'Mo',
       lastName: 'Merge',
@@ -124,7 +124,7 @@ describe('merging on login', () => {
     await guest.call('post', '/wishlist/items', { productId: a.product.id });
     await guest.call('post', '/wishlist/items', { productId: b.product.id });
     expect(await db.select().from(wishlists)).toHaveLength(2);
-    expect((await login(guest, 'merge@pawsome.test')).status).toBe(200);
+    expect((await login(guest, 'merge@grocery.test')).status).toBe(200);
     const list = listOf(await guest.call('get', '/wishlist'));
     expect(list.items.map((i) => i.name).sort()).toEqual(['A', 'B']);
     expect(guest.jar.has('wishlist_id')).toBe(false);

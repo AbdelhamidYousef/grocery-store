@@ -32,7 +32,7 @@ let admin: Shopper;
 
 beforeEach(async () => {
   lines.length = 0;
-  admin = (await signedIn(app, 'admin', 'boss@pawsome.test')).shopper;
+  admin = (await signedIn(app, 'admin', 'boss@grocery.test')).shopper;
 });
 
 const HOUR = 3600 * 1000;

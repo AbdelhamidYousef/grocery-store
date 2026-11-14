@@ -20,7 +20,7 @@ beforeEach(async () => {
 
 const register = async (email: string, refCode?: string) => {
   const shopper = makeShopper(app);
-  if (refCode) shopper.jar.set('pawsome_ref', refCode);
+  if (refCode) shopper.jar.set('grocery_ref', refCode);
   const res = await shopper.call('post', '/auth/register', {
     email,
     password: 'correct-horse-battery',
@@ -43,7 +43,7 @@ async function paidOrder(
   const { variants } = await createProduct({ variants: [{ priceCents: opts.priceCents ?? 2500 }] });
   await shopper.addToCart(variants[0]!.id, 1);
   const res = await shopper.call('post', '/checkout', {
-    email: 'x@pawsome.test',
+    email: 'x@grocery.test',
     shippingAddress: opts.address ?? { ...TEST_ADDRESS, line1: '77 Different Road' },
     shippingMethodCode: 'standard',
   });
@@ -78,13 +78,13 @@ describe('the shareable code', () => {
 describe('attaching at registration', () => {
   it('records a pending referral from the cookie, and clears the cookie', async () => {
     const r = await referrer();
-    const { user } = await register('friend@pawsome.test', r.code);
+    const { user } = await register('friend@grocery.test', r.code);
     expect(await referralOf(user.id)).toMatchObject({ status: 'pending', referrerId: r.user.id });
   });
 
   it('ignores an unknown or malformed code', async () => {
-    const a = await register('a@pawsome.test', 'NOSUCH1');
-    const b = await register('b@pawsome.test', '<script>');
+    const a = await register('a@grocery.test', 'NOSUCH1');
+    const b = await register('b@grocery.test', '<script>');
     expect(await referralOf(a.user.id)).toBeUndefined();
     expect(await referralOf(b.user.id)).toBeUndefined();
   });
@@ -105,14 +105,14 @@ describe('attaching at registration', () => {
     const { variants } = await createProduct({ variants: [{ priceCents: 2500 }] });
     await guest.addToCart(variants[0]!.id, 1);
     const placed = await guest.call('post', '/checkout', {
-      email: 'old@pawsome.test',
+      email: 'old@grocery.test',
       shippingAddress: TEST_ADDRESS,
       shippingMethodCode: 'standard',
     });
     await simulate(app, bodyOf<{ data: { orderNumber: string } }>(placed).data.orderNumber).expect(
       200,
     );
-    const { user } = await register('old@pawsome.test', r.code);
+    const { user } = await register('old@grocery.test', r.code);
     expect(await referralOf(user.id)).toMatchObject({
       status: 'rejected',
       rejectReason: 'not_a_new_customer',
@@ -123,7 +123,7 @@ describe('attaching at registration', () => {
 describe('qualifying', () => {
   it('mints one code for each side on the first paid order of EUR 20 or more, once', async () => {
     const r = await referrer();
-    const { shopper, user } = await register('friend@pawsome.test', r.code);
+    const { shopper, user } = await register('friend@grocery.test', r.code);
     const order = await paidOrder(shopper);
     const referral = (await referralOf(user.id))!;
     expect(referral).toMatchObject({ status: 'qualified', qualifiedOrderId: order.id });
@@ -143,7 +143,7 @@ describe('qualifying', () => {
 
   it('a smaller first order leaves it pending; a later EUR 20 order qualifies it', async () => {
     const r = await referrer();
-    const { shopper, user } = await register('friend@pawsome.test', r.code);
+    const { shopper, user } = await register('friend@grocery.test', r.code);
     await paidOrder(shopper, { priceCents: 1500 });
     expect((await referralOf(user.id))?.status).toBe('pending');
     expect(await codesOf(r.user.id)).toHaveLength(0);
@@ -154,7 +154,7 @@ describe('qualifying', () => {
   it("rejects when the order ships to the referrer's address", async () => {
     const r = await referrer();
     await paidOrder(r.shopper, { address: TEST_ADDRESS });
-    const { shopper, user } = await register('friend@pawsome.test', r.code);
+    const { shopper, user } = await register('friend@grocery.test', r.code);
     await paidOrder(shopper, { address: { ...TEST_ADDRESS, line1: '1  BONE street' } });
     expect(addressHash(TEST_ADDRESS)).toBe(
       addressHash({ ...TEST_ADDRESS, line1: '1  BONE street' }),
@@ -177,7 +177,7 @@ describe('qualifying', () => {
         qualifiedAt: new Date(),
       })),
     );
-    const { shopper, user } = await register('eleventh@pawsome.test', r.code);
+    const { shopper, user } = await register('eleventh@grocery.test', r.code);
     await paidOrder(shopper);
     expect(await referralOf(user.id)).toMatchObject({
       status: 'rejected',
@@ -217,8 +217,8 @@ describe('the yearly limit under concurrency', () => {
         number: bodyOf<{ data: { orderNumber: string } }>(res).data.orderNumber,
       };
     };
-    const a = await place('a@pawsome.test', '10 First Road');
-    const b = await place('b@pawsome.test', '20 Second Road');
+    const a = await place('a@grocery.test', '10 First Road');
+    const b = await place('b@grocery.test', '20 Second Road');
     await Promise.all([simulate(app, a.number).expect(200), simulate(app, b.number).expect(200)]);
     const statuses = [(await referralOf(a.user.id))?.status, (await referralOf(b.user.id))?.status];
     expect(statuses.sort()).toEqual(['qualified', 'rejected']);
@@ -228,7 +228,7 @@ describe('the yearly limit under concurrency', () => {
 describe('voiding on refund', () => {
   it('switches off the unused codes when the qualifying order is fully refunded', async () => {
     const r = await referrer();
-    const { shopper, user } = await register('friend@pawsome.test', r.code);
+    const { shopper, user } = await register('friend@grocery.test', r.code);
     const order = await paidOrder(shopper);
     await simulate(app, order.number, 'charge.refunded').expect(200);
     for (const c of [...(await codesOf(r.user.id)), ...(await codesOf(user.id))]) {
@@ -239,7 +239,7 @@ describe('voiding on refund', () => {
 
   it('keeps the codes through a partial refund and voids them on the final one', async () => {
     const r = await referrer();
-    const { shopper, user } = await register('friend@pawsome.test', r.code);
+    const { shopper, user } = await register('friend@grocery.test', r.code);
     const order = await paidOrder(shopper);
     const refund = (refundId: string, full: boolean) =>
       db.transaction((tx) =>
@@ -263,7 +263,7 @@ describe('voiding on refund', () => {
 
   it('also switches off a code held by an UNPAID order, so it cannot revive when the hold is released', async () => {
     const r = await referrer();
-    const { shopper } = await register('friend@pawsome.test', r.code);
+    const { shopper } = await register('friend@grocery.test', r.code);
     const qualifying = await paidOrder(shopper);
     const [mine] = await codesOf(r.user.id);
     // the referrer puts their code on an order that is still pending_payment
@@ -271,7 +271,7 @@ describe('voiding on refund', () => {
     await r.shopper.addToCart(variants[0]!.id, 1);
     expect((await r.shopper.call('post', '/cart/code', { code: mine!.code })).status).toBe(200);
     const placed = await r.shopper.call('post', '/checkout', {
-      email: 'ref@pawsome.test',
+      email: 'ref@grocery.test',
       shippingAddress: { ...TEST_ADDRESS, line1: '5 Elsewhere Lane' },
       shippingMethodCode: 'standard',
     });
@@ -283,7 +283,7 @@ describe('voiding on refund', () => {
 
   it('keeps a code that was already used', async () => {
     const r = await referrer();
-    const { shopper, user } = await register('friend@pawsome.test', r.code);
+    const { shopper, user } = await register('friend@grocery.test', r.code);
     const order = await paidOrder(shopper);
     const [mine] = await codesOf(r.user.id);
     // the referrer spent their code on an order that was PAID (not the one being refunded)

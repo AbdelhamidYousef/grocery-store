@@ -299,7 +299,7 @@ describe('listing reviews', () => {
     expect(names).not.toContain('quokka');
   });
 
-  it("shows a first name and last initial, never the email, and 'A Pawsome customer' with no account", async () => {
+  it("shows a first name and last initial, never the email, and 'A Grocery customer' with no account", async () => {
     const { product } = await createProduct();
     const user = await createUser({ firstName: 'Ada', lastName: 'Lovelace' });
     await createReview(product.id, { userId: user.id, title: 'By Ada' });
@@ -309,7 +309,7 @@ describe('listing reviews', () => {
     const names = bodyOf<ListBody>(res)
       .data.map((r) => r.authorName)
       .sort();
-    expect(names).toEqual(['A Pawsome customer', 'Ada L.']);
+    expect(names).toEqual(['A Grocery customer', 'Ada L.']);
     expect(JSON.stringify(res.body)).not.toContain('@');
   });
 });

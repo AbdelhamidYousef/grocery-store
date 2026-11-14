@@ -1,7 +1,7 @@
 // The referral code a visitor arrived with (`/?ref=PAWABCDE`), kept for 30 days so it survives
 // browsing around before they register. A plain, functional cookie (not localStorage) because the
 // API has to read it when the account is created. It holds a public code and nothing else.
-export const REFERRAL_COOKIE = 'pawsome_ref';
+export const REFERRAL_COOKIE = 'grocery_ref';
 const MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 const VALID = /^[A-Za-z0-9-]{4,24}$/;
 

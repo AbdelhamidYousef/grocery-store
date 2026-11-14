@@ -119,7 +119,7 @@ describe('a reward code at checkout', () => {
   }
   const pay = (shopper: ReturnType<typeof makeShopper>) =>
     shopper.call('post', '/checkout', {
-      email: 'ada@pawsome.test',
+      email: 'ada@grocery.test',
       shippingAddress: TEST_ADDRESS,
       shippingMethodCode: 'standard',
     });

@@ -26,7 +26,7 @@ export const LEGAL_PAGES: readonly LegalPageDef[] = [
     path: 'about',
     titleKey: 'content.legal.about.title',
     descriptionKey: 'content.legal.about.description',
-    title: 'About Pawsome',
+    title: 'About Grocery',
     description: 'Who is behind this demo pet shop.',
     body: about,
   },

@@ -6,11 +6,11 @@ import type { EmailText } from './i18n/index.ts';
 // the layout is a single-column table-free block that degrades to readable text. Colours are the
 // store's brand tokens (apps/web/src/styles/tokens.css) written out, since email cannot read CSS
 // variables.
-const INK = '#1f1b2e';
-const MUTED = '#5b5670';
-const BG = '#fff7f0';
-const BORDER = '#e6d9cf';
-export const PRIMARY = '#d63a1f';
+const INK = '#13221a';
+const MUTED = '#4f5f55';
+const BG = '#f6faf5';
+const BORDER = '#d9e6dc';
+export const PRIMARY = '#0f7a3d';
 
 export interface Email {
   subject: string;
@@ -55,7 +55,7 @@ export function shell(
 <body style="margin:0;padding:0;background:${BG};color:${INK};font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;">
 <div style="display:none;max-height:0;overflow:hidden;">${escapeHtml(opts.preheader)}</div>
 <div style="max-width:560px;margin:0 auto;padding:24px 16px;">
-  <p style="margin:0 0 16px;font-size:22px;font-weight:bold;color:${PRIMARY};">Pawsome &#128062;</p>
+  <p style="margin:0 0 16px;font-size:22px;font-weight:bold;color:${PRIMARY};">Grocery</p>
   <div style="background:#ffffff;border:1px solid ${BORDER};border-radius:12px;padding:24px;">
     <h1 style="margin:0 0 12px;font-size:22px;line-height:1.25;color:${INK};">${escapeHtml(opts.heading)}</h1>
     ${opts.body}

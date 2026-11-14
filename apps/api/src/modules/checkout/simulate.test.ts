@@ -21,7 +21,7 @@ async function pendingOrder() {
   const guest = makeShopper(app);
   await guest.addToCart(variants[0]!.id, 2);
   const res = await guest.call('post', '/checkout', {
-    email: 'ada@pawsome.test',
+    email: 'ada@grocery.test',
     shippingAddress: {
       fullName: 'Ada Lovelace',
       line1: '1 Bone Street',
@@ -183,7 +183,7 @@ describe('with a real Stripe key (the gateway answers what Stripe holds)', () =>
     const shopper = makeShopper(real);
     await shopper.addToCart(variants[0]!.id, 1);
     const res = await shopper.call('post', '/checkout', {
-      email: 'ada@pawsome.test',
+      email: 'ada@grocery.test',
       shippingAddress: {
         fullName: 'Ada Lovelace',
         line1: '1 Bone Street',

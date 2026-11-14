@@ -162,7 +162,7 @@ export function createOutbox(opts: { transport: MailTransport; log: Logger }): O
           await transport.send({
             to: row.toEmail,
             ...email,
-            messageId: `<${row.id}@pawsome.local>`,
+            messageId: `<${row.id}@grocery.local>`,
           });
           await done(null);
           result.sent += 1;

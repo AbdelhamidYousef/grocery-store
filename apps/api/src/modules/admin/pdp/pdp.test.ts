@@ -25,7 +25,7 @@ let admin: Shopper;
 
 beforeEach(async () => {
   lines.length = 0;
-  admin = (await signedIn(app, 'admin', 'boss@pawsome.test')).shopper;
+  admin = (await signedIn(app, 'admin', 'boss@grocery.test')).shopper;
 });
 
 const data = <T>(res: Parameters<typeof bodyOf>[0]) => bodyOf<{ data: T }>(res).data;
@@ -43,7 +43,7 @@ describe('admin product content', () => {
     const { product } = await createProduct();
     const guest = makeShopper(app);
     expect((await guest.call('get', `/admin/products/${product.id}/content`)).status).toBe(401);
-    const customer = (await signedIn(app, 'customer', 'sam@pawsome.test')).shopper;
+    const customer = (await signedIn(app, 'customer', 'sam@grocery.test')).shopper;
     expect((await customer.call('put', `/admin/products/${product.id}/content`, {})).status).toBe(
       403,
     );

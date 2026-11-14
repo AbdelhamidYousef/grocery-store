@@ -34,7 +34,7 @@ let adminId: string;
 
 beforeEach(async () => {
   lines.length = 0;
-  const s = await signedIn(app, 'admin', 'boss@pawsome.test');
+  const s = await signedIn(app, 'admin', 'boss@grocery.test');
   admin = s.shopper;
   adminId = s.user.id;
 });

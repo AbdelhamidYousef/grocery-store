@@ -27,7 +27,7 @@ describe.skipIf(!key)('real Stripe test API', () => {
     currency: 'EUR',
     orderId: randomUUID(),
     orderNumber: 'PW-2026-000001',
-    email: 'test@pawsome.test',
+    email: 'test@grocery.test',
     idempotencyKey: `live-test:${randomUUID()}`,
   });
 

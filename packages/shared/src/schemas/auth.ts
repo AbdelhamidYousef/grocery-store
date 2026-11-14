@@ -75,6 +75,8 @@ const COMMON_PASSWORDS = new Set([
   'hello123456',
   'pawsome123',
   'pawsome1234',
+  'grocery123',
+  'grocery1234',
   'ilovemydog',
   'ilovemycat',
   'ilovemydog1',

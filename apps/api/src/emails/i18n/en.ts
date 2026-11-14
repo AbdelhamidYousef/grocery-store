@@ -8,8 +8,8 @@ import type { TextEntry } from '@store/shared';
 export const en = {
   // ----- shared -----
   'mail.footer':
-    'Pawsome is a fictional demo shop made for a portfolio. Nothing here is real and no card was charged.',
-  'mail.signoff': '- The Pawsome team',
+    'Grocery is a fictional demo shop made for a portfolio. Nothing here is real and no card was charged.',
+  'mail.signoff': '- The Grocery team',
   'mail.hello': 'Hello {name},',
   'mail.seeOrder': 'See your order',
   'mail.orderLine': 'Order: {url}',
@@ -25,7 +25,7 @@ export const en = {
   'order.deliveringTo': 'Delivering to:',
 
   // ----- order confirmation -----
-  'confirm.subject': 'Your Pawsome order {number} is confirmed',
+  'confirm.subject': 'Your Grocery order {number} is confirmed',
   'confirm.thanks': 'Thank you for your order, {name}!',
   'confirm.paid': 'Order {number} is paid and we are getting it ready.',
   'confirm.willEmail': "We'll email you again when it ships.",
@@ -37,7 +37,7 @@ export const en = {
   'confirm.trackNote': '(you will need the email address you ordered with).',
 
   // ----- order shipped -----
-  'shipped.subject': 'Your Pawsome order {number} is on its way',
+  'shipped.subject': 'Your Grocery order {number} is on its way',
   'shipped.good': 'Good news, {name}: order {number} has shipped!',
   'shipped.method': 'Shipping method: {method}',
   'shipped.preheader': 'Order {number} has shipped.',
@@ -66,7 +66,7 @@ export const en = {
   'return.approved.heading': 'Your return is approved',
   'return.approved.l1': 'Good news: your return {ref} for order {order} is approved.',
   'return.approved.l2':
-    'How to send it back: pack {list} in the original packaging if you can, write {ref} on the parcel, and post it to Pawsome Returns, 1 Bone Street, Riga LV-1010 (a made-up address: this is a demo shop).',
+    'How to send it back: pack {list} in the original packaging if you can, write {ref} on the parcel, and post it to Grocery Returns, 1 Bone Street, Riga LV-1010 (a made-up address: this is a demo shop).',
   'return.approved.l3':
     'When it arrives and we have checked it, we refund you and send another email.',
   'return.rejected.subject': 'About your return {ref}',
@@ -88,12 +88,12 @@ export const en = {
 
   // ----- newsletter -----
   'news.unsub.text':
-    'You get this because you subscribed to Pawsome news. Unsubscribe with one click: {url}',
-  'news.unsub.lead': 'You get this because you subscribed to Pawsome news.',
+    'You get this because you subscribed to Grocery news. Unsubscribe with one click: {url}',
+  'news.unsub.lead': 'You get this because you subscribed to Grocery news.',
   'news.unsub.link': 'Unsubscribe with one click',
-  'news.confirm.subject': 'Confirm your Pawsome subscription',
+  'news.confirm.subject': 'Confirm your Grocery subscription',
   'news.confirm.l1':
-    'One more step: please confirm that you want Pawsome news, offers and pet tips.',
+    'One more step: please confirm that you want Grocery news, offers and pet tips.',
   'news.confirm.link': 'Confirm: {url}',
   'news.confirm.button': 'Yes, subscribe me',
   'news.confirm.hours': {
@@ -103,7 +103,7 @@ export const en = {
   },
   'news.confirm.preheader': 'Confirm your address to get your welcome code',
   'news.confirm.heading': 'Confirm your subscription',
-  'news.welcome.subject': 'Welcome to Pawsome: {percent}% off your first order',
+  'news.welcome.subject': 'Welcome to Grocery: {percent}% off your first order',
   'news.welcome.l1': 'You are in. Thank you for subscribing!',
   'news.welcome.code': 'Your welcome code: {code}',
   'news.welcome.terms': {
@@ -135,7 +135,7 @@ export const en = {
   'contact.topic.other': 'Something else',
   'contact.ack.subject': 'We got your message ({reference})',
   'contact.ack.l1':
-    'Thank you for writing to Pawsome. A person will reply to this address, usually within two working days.',
+    'Thank you for writing to Grocery. A person will reply to this address, usually within two working days.',
   'contact.ack.reference': 'Reference: {reference}',
   'contact.ack.topic': 'Topic: {topic}',
   'contact.ack.order': 'Order: {order}',
@@ -146,7 +146,7 @@ export const en = {
   // ----- product safety notice, review approved -----
   'safety.recall': 'Product recall: {title}',
   'safety.notice': 'Product safety notice: {title}',
-  'safety.reason': 'You are receiving this because you bought an affected product from Pawsome.',
+  'safety.reason': 'You are receiving this because you bought an affected product from Grocery.',
   'review.subject': 'Your review of {product} is live',
   'review.l1':
     'Thank you for reviewing {product}! Your review has passed our check and is now on the product page, where it helps other pet owners choose.',

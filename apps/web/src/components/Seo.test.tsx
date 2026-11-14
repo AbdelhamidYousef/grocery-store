@@ -12,7 +12,7 @@ describe('Seo', () => {
     const { unmount } = render(
       <Seo title="Dogs" description="Dog stuff" canonical="https://x.test/c/dogs" noindex />,
     );
-    expect(document.title).toBe('Dogs | Pawsome');
+    expect(document.title).toBe('Dogs | Grocery');
     expect(document.head.querySelector('meta[name="description"]')).toHaveAttribute(
       'content',
       'Dog stuff',
@@ -32,8 +32,8 @@ describe('Seo', () => {
   });
 
   it('does not add a robots tag unless asked', () => {
-    render(<Seo title="Pawsome" />);
-    expect(document.title).toBe('Pawsome');
+    render(<Seo title="Grocery" />);
+    expect(document.title).toBe('Grocery');
     expect(document.head.querySelector('meta[name="robots"]')).toBeNull();
   });
 

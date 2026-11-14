@@ -104,7 +104,7 @@ async function topicsFor(productId: string, now: number): Promise<Topic[]> {
 }
 
 const authorName = (first: string | null, last: string | null) =>
-  first ? `${first} ${(last ?? '').charAt(0)}.`.replace(/ \.$/, '') : 'A Pawsome customer';
+  first ? `${first} ${(last ?? '').charAt(0)}.`.replace(/ \.$/, '') : 'A Grocery customer';
 
 export async function listReviews(
   slug: string,

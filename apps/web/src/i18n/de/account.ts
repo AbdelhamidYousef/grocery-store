@@ -113,7 +113,7 @@ export const account: Record<keyof typeof enNs, Entry> = {
   'account.timeline.refunded': 'Zahlung erstattet',
 
   'account.tracking.seoTitle': 'Bestellung verfolgen',
-  'account.tracking.seoDescription': 'Sehen Sie, wo Ihre Pawsome-Bestellung gerade ist.',
+  'account.tracking.seoDescription': 'Sehen Sie, wo Ihre Grocery-Bestellung gerade ist.',
   'account.tracking.intro':
     'Geben Sie die Bestellnummer aus Ihrer Bestätigungs-E-Mail und die verwendete E-Mail-Adresse ein. Ein Konto brauchen Sie dafür nicht.',
   'account.tracking.orderNumber': 'Bestellnummer',

@@ -196,7 +196,7 @@ describe('seeded reviews (phase 17)', () => {
     await runSeed();
     const [mine] = await db.execute<{ id: string }>(sql`select id from products limit 1`);
     const [user] = await db.execute<{ id: string }>(
-      sql`select id from users where email = 'sam@pawsome.test'`,
+      sql`select id from users where email = 'sam@grocery.test'`,
     );
     await db.execute(sql`insert into reviews (product_id, user_id, rating, title, body, would_recommend, status)
       values (${mine!.id}, ${user!.id}, 5, 'Mine', 'A review written by a real demo user.', true, 'approved')`);
@@ -279,7 +279,7 @@ describe('seeded sales and returns (phase 22)', () => {
   it('gives the demo customer the three returns', async () => {
     await runSeed();
     const [row] = await db.execute<{ n: number }>(sql`select count(*)::int as n from returns r
-      join users u on u.id = r.user_id where u.email = 'casey@pawsome.test'`);
+      join users u on u.id = r.user_id where u.email = 'casey@grocery.test'`);
     expect(row?.n).toBe(3);
   });
 });

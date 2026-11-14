@@ -32,7 +32,7 @@ async function variant(priceCents: number) {
 
 const checkout = (shopper: Shopper, extra: object = {}) =>
   shopper.call('post', '/checkout', {
-    email: 'ada@pawsome.test',
+    email: 'ada@grocery.test',
     shippingAddress: TEST_ADDRESS,
     shippingMethodCode: 'standard',
     ...extra,
@@ -117,7 +117,7 @@ describe('redeeming points at checkout', () => {
     for (const n of [1, 2]) {
       const g = makeShopper(app);
       await g.addToCart(await variant(2000));
-      const res = await checkout(g, { email: `guest${n}@pawsome.test` });
+      const res = await checkout(g, { email: `guest${n}@grocery.test` });
       ids.push((await orderByNumber(numberOf(res))).id);
     }
     const spend = (orderId: string) =>

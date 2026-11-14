@@ -74,16 +74,6 @@ export const ChevronDownIcon = (p: IconProps) => (
   </Svg>
 );
 
-export const PawIcon = (p: IconProps) => (
-  <Svg {...p} fill="currentColor" stroke="none">
-    <ellipse cx="6" cy="10.5" rx="2.1" ry="2.8" />
-    <ellipse cx="10" cy="6.2" rx="2.1" ry="2.8" />
-    <ellipse cx="14" cy="6.2" rx="2.1" ry="2.8" />
-    <ellipse cx="18" cy="10.5" rx="2.1" ry="2.8" />
-    <path d="M12 11c-3 0-5.5 3-5.5 5.4 0 1.9 1.5 2.6 3 2.6 1 0 1.6-.4 2.5-.4s1.5.4 2.5.4c1.5 0 3-.7 3-2.6C17.5 14 15 11 12 11z" />
-  </Svg>
-);
-
 const DogIcon = (p: IconProps) => (
   <Svg {...p}>
     <path d="M5 9c-1.5 0-2.5 1.5-2 4 .3 1.600 1.600 2 2.500 1.500M19 9c1.500 0 2.500 1.500 2 4-.3 1.600-1.600 2-2.500 1.500" />

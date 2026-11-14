@@ -13,7 +13,7 @@ import { createSession, hashToken } from './sessions.ts';
 
 const PASSWORD = 'correct horse battery staple';
 const registration = {
-  email: 'Ada@Pawsome.test',
+  email: 'Ada@grocery.test',
   password: PASSWORD,
   firstName: 'Ada',
   lastName: 'Lovelace',
@@ -38,7 +38,7 @@ describe('POST /auth/register', () => {
       data: {
         user: {
           id: expect.any(String) as string,
-          email: 'ada@pawsome.test',
+          email: 'ada@grocery.test',
           firstName: 'Ada',
           lastName: 'Lovelace',
           role: 'customer',
@@ -81,7 +81,7 @@ describe('POST /auth/register', () => {
     await post('/api/v1/auth/register', registration);
     const res = await post('/api/v1/auth/register', {
       ...registration,
-      email: 'ADA@pawsome.test',
+      email: 'ADA@grocery.test',
     });
     expect(res.status).toBe(409);
     expect(errorOf(res).code).toBe('CONFLICT');
@@ -110,12 +110,12 @@ describe('POST /auth/register', () => {
 
 describe('POST /auth/login', () => {
   async function seedUser() {
-    return createUser({ email: 'sam@pawsome.test', passwordHash: await hash(PASSWORD) });
+    return createUser({ email: 'sam@grocery.test', passwordHash: await hash(PASSWORD) });
   }
 
   it('signs in with the right password and sets a new session cookie', async () => {
     const user = await seedUser();
-    const res = await post('/api/v1/auth/login', { email: 'SAM@pawsome.test', password: PASSWORD });
+    const res = await post('/api/v1/auth/login', { email: 'SAM@grocery.test', password: PASSWORD });
 
     expect(res.status).toBe(200);
     expect(bodyOf<{ data: { user: { id: string } } }>(res).data.user.id).toBe(user.id);
@@ -126,9 +126,9 @@ describe('POST /auth/login', () => {
 
   it('gives the same generic answer for a wrong password and an unknown email', async () => {
     await seedUser();
-    const wrong = await post('/api/v1/auth/login', { email: 'sam@pawsome.test', password: 'nope' });
+    const wrong = await post('/api/v1/auth/login', { email: 'sam@grocery.test', password: 'nope' });
     const unknown = await post('/api/v1/auth/login', {
-      email: 'who@pawsome.test',
+      email: 'who@grocery.test',
       password: 'nope',
     });
 
@@ -143,9 +143,9 @@ describe('POST /auth/login', () => {
   it('spends a real password hash on an unknown email (no fast path to probe)', async () => {
     await seedUser();
     // Warm the cached dummy hash so only the verification itself is measured.
-    await post('/api/v1/auth/login', { email: 'warm@pawsome.test', password: 'x' });
+    await post('/api/v1/auth/login', { email: 'warm@grocery.test', password: 'x' });
     const started = performance.now();
-    await post('/api/v1/auth/login', { email: 'who@pawsome.test', password: 'nope' });
+    await post('/api/v1/auth/login', { email: 'who@grocery.test', password: 'nope' });
     // An argon2 verify at 64 MiB / 3 passes takes tens of ms; a skipped one takes about 2.
     expect(performance.now() - started).toBeGreaterThan(20);
   });
@@ -156,7 +156,7 @@ describe('POST /auth/login', () => {
 
     const res = await post(
       '/api/v1/auth/login',
-      { email: 'sam@pawsome.test', password: PASSWORD },
+      { email: 'sam@grocery.test', password: PASSWORD },
       planted.token,
     );
     const fresh = cookieValue(res, 'sid') ?? '';
@@ -173,7 +173,7 @@ describe('POST /auth/login', () => {
     const theirs = await createSession(other.id);
     await post(
       '/api/v1/auth/login',
-      { email: 'sam@pawsome.test', password: PASSWORD },
+      { email: 'sam@grocery.test', password: PASSWORD },
       theirs.token,
     );
     expect((await me(theirs.token)).status).toBe(401);
@@ -187,7 +187,7 @@ describe('POST /auth/login', () => {
       .update(sessions)
       .set({ expiresAt: new Date(Date.now() - 1000) })
       .where(eq(sessions.id, hashToken(dead.token)));
-    await post('/api/v1/auth/login', { email: 'sam@pawsome.test', password: PASSWORD });
+    await post('/api/v1/auth/login', { email: 'sam@grocery.test', password: PASSWORD });
     const ids = (await db.select().from(sessions)).map((r) => r.id);
     expect(ids).not.toContain(hashToken(dead.token));
   });
@@ -201,18 +201,18 @@ describe('POST /auth/login', () => {
         .set('Origin', TEST_ORIGIN)
         .send({ email, password: 'wrong' });
 
-    for (let i = 0; i < 3; i++) expect((await attempt('sam@pawsome.test')).status).toBe(401);
-    const blocked = await attempt('sam@pawsome.test');
+    for (let i = 0; i < 3; i++) expect((await attempt('sam@grocery.test')).status).toBe(401);
+    const blocked = await attempt('sam@grocery.test');
     expect(blocked.status).toBe(429);
     expect(errorOf(blocked).code).toBe('RATE_LIMITED');
     // The key includes the email, so another account from the same IP still gets its own budget.
-    expect((await attempt('other@pawsome.test')).status).toBe(401);
+    expect((await attempt('other@grocery.test')).status).toBe(401);
     // And the key ignores case and padding, so retyping the email cannot dodge the limit.
-    expect((await attempt('  SAM@pawsome.test ')).status).toBe(429);
+    expect((await attempt('  SAM@grocery.test ')).status).toBe(429);
   });
 
   it('rejects a body without a password with VALIDATION_ERROR', async () => {
-    const res = await post('/api/v1/auth/login', { email: 'sam@pawsome.test' });
+    const res = await post('/api/v1/auth/login', { email: 'sam@grocery.test' });
     expect(res.status).toBe(400);
   });
 });

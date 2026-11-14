@@ -18,7 +18,7 @@ export const shell: Record<keyof typeof enNs, Entry> = {
     other: 'Warenkorb, {count} Artikel',
   },
   'shell.header.openMenu': 'Menü öffnen',
-  'shell.header.home': 'Pawsome Startseite',
+  'shell.header.home': 'Grocery Startseite',
   'shell.header.wishlist': 'Wunschliste',
   'shell.account.label': 'Konto',
   'shell.account.myAccount': 'Mein Konto',
@@ -41,7 +41,7 @@ export const shell: Record<keyof typeof enNs, Entry> = {
   'shell.footer.paymentNote':
     'Zahlungen laufen im Stripe-Testmodus: Es werden keine echten Bestellungen angenommen und keine Karte wird belastet.',
   'shell.footer.copyright':
-    '© {year} Pawsome Demo-Shop, ein fiktives Unternehmen. Keine Rechtsberatung.',
+    '© {year} Grocery Demo-Shop, ein fiktives Unternehmen. Keine Rechtsberatung.',
   'shell.footer.shop': 'Shop',
   'shell.footer.brands': 'Marken',
   'shell.footer.guides': 'Ratgeber',
@@ -62,7 +62,7 @@ export const shell: Record<keyof typeof enNs, Entry> = {
   'shell.footer.withdraw': 'Vertrag widerrufen',
   'shell.footer.legalShipping': 'Versand',
   'shell.footer.legalReturns': 'Rücksendung und Widerruf',
-  'shell.footer.legalAbout': 'Über Pawsome',
+  'shell.footer.legalAbout': 'Über Grocery',
   'shell.footer.legalAccessibility': 'Erklärung zur Barrierefreiheit',
   'shell.footer.legalPrivacy': 'Datenschutzerklärung',
   'shell.footer.legalTerms': 'Allgemeine Geschäftsbedingungen',

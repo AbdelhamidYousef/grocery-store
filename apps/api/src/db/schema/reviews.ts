@@ -30,7 +30,7 @@ export const reviews = pgTable(
     productId: uuid('product_id')
       .notNull()
       .references(() => products.id, { onDelete: 'cascade' }),
-    // SET NULL, not cascade: deleting an account keeps the review text (shown as "a Pawsome
+    // SET NULL, not cascade: deleting an account keeps the review text (shown as "a Grocery
     // customer") so the product's rating does not silently change.
     userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
     // The paid order that made this a verified purchase; null for unverified reviews.

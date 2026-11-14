@@ -45,13 +45,13 @@ describe('contact page', () => {
     const user = userEvent.setup();
     renderApp('/contact');
     await user.type(await screen.findByLabelText('Your name'), 'Ada');
-    await user.type(screen.getByLabelText('Email'), 'ada@pawsome.test');
+    await user.type(screen.getByLabelText('Email'), 'ada@grocery.test');
     await user.selectOptions(screen.getByLabelText('What is it about?'), 'order');
     await user.type(screen.getByLabelText('Your message'), 'Where is my parcel please?');
     await user.click(screen.getByRole('button', { name: 'Send message' }));
     expect(await screen.findByTestId('contact-success')).toHaveTextContent('MSG-ABCD1234');
     expect(seen).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'Ada', topic: 'order', email: 'ada@pawsome.test' }),
+      expect.objectContaining({ name: 'Ada', topic: 'order', email: 'ada@grocery.test' }),
     );
   });
 
@@ -64,7 +64,7 @@ describe('contact page', () => {
     const user = userEvent.setup();
     renderApp('/contact');
     await user.type(await screen.findByLabelText('Your name'), 'Ada');
-    await user.type(screen.getByLabelText('Email'), 'ada@pawsome.test');
+    await user.type(screen.getByLabelText('Email'), 'ada@grocery.test');
     await user.selectOptions(screen.getByLabelText('What is it about?'), 'other');
     await user.type(screen.getByLabelText('Your message'), 'Hello there, a question.');
     await user.click(screen.getByRole('button', { name: 'Send message' }));

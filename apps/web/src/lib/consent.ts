@@ -9,7 +9,7 @@
 //
 // The record lives in localStorage, not a cookie: remembering "I saw the notice" must not itself
 // need a cookie.
-export const CONSENT_KEY = 'pawsome_consent_v1';
+export const CONSENT_KEY = 'grocery_consent_v1';
 
 export type ConsentCategory = 'necessary' | 'preferences' | 'analytics' | 'marketing';
 

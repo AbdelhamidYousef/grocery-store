@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { renderApp } from '../test/render';
 import { API, server } from '../test/server';
 
-async function fill(email = 'ada@pawsome.test') {
+async function fill(email = 'ada@grocery.test') {
   const user = userEvent.setup();
   await user.type(await screen.findByLabelText('Order number'), 'PW-2026-000007');
   await user.type(screen.getByLabelText('Email used for the order'), email);
@@ -48,7 +48,7 @@ describe('withdraw page', () => {
       ),
     );
     renderApp('/withdraw');
-    await fill('wrong@pawsome.test');
+    await fill('wrong@grocery.test');
     expect(await screen.findByTestId('form-error')).toHaveTextContent('could not find an order');
   });
 

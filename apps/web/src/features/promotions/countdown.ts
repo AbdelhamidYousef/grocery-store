@@ -19,7 +19,7 @@ export function formatCountdown(ms: number, t: TFunction = english): string {
 
 // Dismissed sale ids live in localStorage. Storage can be missing or throw (private mode, blocked
 // cookies, a full disk): every access is wrapped and the banner then simply forgets on reload.
-const KEY = 'pawsome:sale-banner-dismissed';
+const KEY = 'grocery:sale-banner-dismissed';
 const KEEP = 20;
 
 export function readDismissed(): string[] {

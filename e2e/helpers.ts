@@ -59,7 +59,7 @@ export async function api<T = unknown>(
   }
 }
 
-export const ADMIN = { email: 'admin@pawsome.test', password: 'Pawsome-demo-1!' };
+export const ADMIN = { email: 'admin@grocery.test', password: 'Grocery-demo-1!' };
 
 // A run that buys seeded products uses up their stock, and the dev database keeps it between runs:
 // after enough runs the add-to-cart button says "Sold out" and the spec times out. A spec that buys

@@ -39,14 +39,14 @@ describe('track order page', () => {
       }),
     );
     renderApp('/track-order');
-    await fill('PW-2026-000007', 'ada@pawsome.test');
+    await fill('PW-2026-000007', 'ada@grocery.test');
     expect(await screen.findByTestId('track-status')).toHaveTextContent('On its way');
     const steps = within(screen.getByRole('list', { name: 'Order progress' })).getAllByRole(
       'listitem',
     );
     expect(steps).toHaveLength(3);
     expect(screen.getByText('Rope Tug', { exact: false })).toBeInTheDocument();
-    expect(seen).toHaveBeenCalledWith({ orderNumber: 'PW-2026-000007', email: 'ada@pawsome.test' });
+    expect(seen).toHaveBeenCalledWith({ orderNumber: 'PW-2026-000007', email: 'ada@grocery.test' });
   });
 
   it('prefills the order number from the link in the email, never the address', async () => {
@@ -62,7 +62,7 @@ describe('track order page', () => {
       ),
     );
     renderApp('/track-order');
-    await fill('PW-2026-000007', 'wrong@pawsome.test');
+    await fill('PW-2026-000007', 'wrong@grocery.test');
     expect(await screen.findByTestId('form-error')).toHaveTextContent(
       'could not find an order with that number and email',
     );
@@ -83,7 +83,7 @@ describe('track order page', () => {
       ),
     );
     renderApp('/track-order');
-    await fill('PW-2026-000007', 'ada@pawsome.test');
+    await fill('PW-2026-000007', 'ada@grocery.test');
     expect(await screen.findByTestId('form-error')).toHaveTextContent('Too many tries');
   });
 });

@@ -45,7 +45,7 @@ onOrderRefunded((_tx, e) => {
 
 let admin: Shopper;
 beforeEach(async () => {
-  admin = (await signedIn(app, 'admin', 'boss@pawsome.test')).shopper;
+  admin = (await signedIn(app, 'admin', 'boss@grocery.test')).shopper;
   await createShippingMethods();
   transport.sent.length = 0;
   events.length = 0;
@@ -151,7 +151,7 @@ describe('admin returns: full flow', () => {
       .select()
       .from(inventoryAdjustments)
       .where(eq(inventoryAdjustments.variantId, o.variantId));
-    expect(adj).toMatchObject([{ delta: 2, reason: 'return', actor: 'admin:boss@pawsome.test' }]);
+    expect(adj).toMatchObject([{ delta: 2, reason: 'return', actor: 'admin:boss@grocery.test' }]);
 
     const refunded = bodyOf<Detail>(await act(id, 'refund'));
     expect(refunded.data.return).toMatchObject({
@@ -225,7 +225,7 @@ describe('admin returns: full flow', () => {
       ],
     });
     const kit = bodyOf<{ data: { variantId: string } }>(made).data;
-    const buyer = await signedIn(app, 'customer', 'kitbuyer@pawsome.test');
+    const buyer = await signedIn(app, 'customer', 'kitbuyer@grocery.test');
     await buyer.shopper.addToCart(kit.variantId, 1);
     const placed = await buyer.shopper.call('post', '/checkout', {
       email: buyer.user.email,
@@ -470,7 +470,7 @@ describe('admin returns: refund safety', () => {
       outbox,
       config: { returns: { windowDays: 30, simulated: true } },
     });
-    const adminSim = (await signedIn(simulated, 'admin', 'sim@pawsome.test')).shopper;
+    const adminSim = (await signedIn(simulated, 'admin', 'sim@grocery.test')).shopper;
     const o = await deliveredOrder(simulated, { quantity: 1 });
     const [line] = await lines(o.number);
     const id = bodyOf<{ data: { id: string } }>(

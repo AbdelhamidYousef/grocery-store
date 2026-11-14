@@ -21,7 +21,7 @@ export const loyalty: Record<keyof typeof enNs, Entry> = {
     '(ein erfundenes Tierheim) hat bisher {amount} erhalten. Nur eine Demo: Es fließt kein Geld.',
   'loyalty.charity.seoTitle': 'Unser Tierheim',
   'loyalty.charity.seoDescription':
-    'Whisker Hollow Rescue, das (fiktive) Tierheim, das Pawsome unterstützt. Eine Demo: Es fließt kein Geld.',
+    'Whisker Hollow Rescue, das (fiktive) Tierheim, das Grocery unterstützt. Eine Demo: Es fließt kein Geld.',
   'loyalty.charity.note':
     'Dies ist ein Demo-Shop und das Tierheim ist erfunden. Spenden werden hier gezählt, aber es fließt nirgendwohin Geld.',
   'loyalty.charity.error': 'Die Summe konnte gerade nicht geladen werden.',
@@ -131,7 +131,7 @@ export const loyalty: Record<keyof typeof enNs, Entry> = {
 
   // Newsletter
   'loyalty.newsletter.seoTitle': 'Newsletter',
-  'loyalty.newsletter.seoDescription': 'Tipps für Tiere und Angebote von Pawsome.',
+  'loyalty.newsletter.seoDescription': 'Tipps für Tiere und Angebote von Grocery.',
   'loyalty.newsletter.pageTitle': 'Werden Sie Teil des Rudels',
   'loyalty.newsletter.pageText':
     'Abonnieren Sie den Newsletter und erhalten Sie 10 % Rabatt auf Ihre erste Bestellung, sobald Sie Ihre Adresse bestätigt haben.',
@@ -143,7 +143,7 @@ export const loyalty: Record<keyof typeof enNs, Entry> = {
   'loyalty.newsletter.email': 'E-Mail',
   'loyalty.newsletter.pets': 'Welche Tiere haben Sie?',
   'loyalty.newsletter.consent':
-    'Senden Sie mir Neuigkeiten, Angebote und Tipps für meine Tiere von Pawsome. Ich kann mich jederzeit mit einem Klick abmelden.',
+    'Senden Sie mir Neuigkeiten, Angebote und Tipps für meine Tiere von Grocery. Ich kann mich jederzeit mit einem Klick abmelden.',
   'loyalty.newsletter.consentRequired': 'Bitte setzen Sie das Häkchen, um zu abonnieren',
   'loyalty.newsletter.honeypot': 'Bitte leer lassen',
   'loyalty.newsletter.submit': 'Abonnieren und 10 % Rabatt sichern',

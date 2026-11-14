@@ -28,12 +28,12 @@ describe('recently viewed ids', () => {
 
   it('is empty for a first-time visitor and ignores anything in storage that is not a list of ids', () => {
     expect(readRecentlyViewed()).toEqual([]);
-    window.localStorage.setItem('pawsome.recently-viewed', '{"not":"a list"}');
+    window.localStorage.setItem('grocery.recently-viewed', '{"not":"a list"}');
     expect(readRecentlyViewed()).toEqual([]);
-    window.localStorage.setItem('pawsome.recently-viewed', 'not json');
+    window.localStorage.setItem('grocery.recently-viewed', 'not json');
     expect(readRecentlyViewed()).toEqual([]);
     window.localStorage.setItem(
-      'pawsome.recently-viewed',
+      'grocery.recently-viewed',
       JSON.stringify([id(1), 42, '<script>', 'nope', id(2)]),
     );
     expect(readRecentlyViewed()).toEqual([id(1), id(2)]);

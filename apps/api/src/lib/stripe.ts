@@ -140,7 +140,7 @@ export function createStripeGateway(options: StripeGatewayOptions): PaymentGatew
               // Lets Stripe offer whatever payment methods the dashboard enables, without a code change.
               automatic_payment_methods: { enabled: true },
               receipt_email: input.email,
-              description: `Pawsome order ${input.orderNumber}`,
+              description: `Grocery order ${input.orderNumber}`,
               // The webhook finds the order from our own table by intent id; the metadata is for
               // humans reading the Stripe dashboard.
               metadata: { orderId: input.orderId, orderNumber: input.orderNumber },

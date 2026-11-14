@@ -135,7 +135,7 @@ export const catalog = {
   'catalog.category.subcategories': 'Subcategories',
   'catalog.brand.loadError': 'We could not load this brand',
   'catalog.brand.loading': 'Loading brand',
-  'catalog.brands.description': 'The Pawsome house brands: bakes, beds, habitat gear and more.',
+  'catalog.brands.description': 'The Grocery house brands: bakes, beds, habitat gear and more.',
   'catalog.brands.title': 'Our brands',
   'catalog.brands.intro':
     'Every brand here is our own, made up by us and tested by a very fussy panel of pets.',

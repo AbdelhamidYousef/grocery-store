@@ -22,7 +22,7 @@ beforeEach(async () => {
 });
 
 const move = (number: string, to: Parameters<typeof transitionOrder>[2], note?: string) =>
-  transitionOrder({ gateway: fake, log }, number, to, { actor: 'admin:boss@pawsome.test', note });
+  transitionOrder({ gateway: fake, log }, number, to, { actor: 'admin:boss@grocery.test', note });
 
 const historyOf = async (orderId: string) =>
   (await db.select().from(orderStatusHistory).where(eq(orderStatusHistory.orderId, orderId)))
@@ -38,8 +38,8 @@ describe('transitionOrder (side effects through the state machine)', () => {
     const delivered = await move(number, 'delivered');
     expect(delivered.status).toBe('delivered');
     const history = await historyOf(delivered.id);
-    expect(history).toContain('shipped>delivered@admin:boss@pawsome.test');
-    expect(history).toContain('paid>processing@admin:boss@pawsome.test');
+    expect(history).toContain('shipped>delivered@admin:boss@grocery.test');
+    expect(history).toContain('paid>processing@admin:boss@grocery.test');
   });
 
   it('rejects a skipped step with 409 details and changes nothing', async () => {

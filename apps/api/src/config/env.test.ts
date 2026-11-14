@@ -7,7 +7,7 @@ const prod = {
   ...base,
   NODE_ENV: 'production',
   COOKIE_SECRET: 'x'.repeat(32),
-  WEB_ORIGIN: 'https://pawsome.example.app',
+  WEB_ORIGIN: 'https://grocery.example.app',
 };
 
 function problems(source: Record<string, string>): string[] {
@@ -83,7 +83,7 @@ describe('production safety', () => {
     const withoutOrigin: Record<string, string> = { ...complete };
     delete withoutOrigin.WEB_ORIGIN;
     expect(problems(withoutOrigin)).toEqual(['WEB_ORIGIN']);
-    expect(problems({ ...complete, WEB_ORIGIN: 'http://pawsome.example.app' })).toEqual([
+    expect(problems({ ...complete, WEB_ORIGIN: 'http://grocery.example.app' })).toEqual([
       'WEB_ORIGIN',
     ]);
     expect(problems({ ...complete, NODE_ENV: 'development' })).toEqual([]);
@@ -91,8 +91,8 @@ describe('production safety', () => {
 
   it('reduces WEB_ORIGIN to an origin, so a trailing path or slash does not break the CSRF check', () => {
     expect(
-      envSchema.parse({ ...complete, WEB_ORIGIN: 'https://pawsome.example.app/shop/' }).WEB_ORIGIN,
-    ).toBe('https://pawsome.example.app');
+      envSchema.parse({ ...complete, WEB_ORIGIN: 'https://grocery.example.app/shop/' }).WEB_ORIGIN,
+    ).toBe('https://grocery.example.app');
   });
 
   it('rejects live Stripe keys even when everything else is right', () => {

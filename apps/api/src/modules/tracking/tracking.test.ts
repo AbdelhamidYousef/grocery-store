@@ -27,9 +27,9 @@ interface Tracked {
 
 describe('POST /orders/track', () => {
   it('shows status, items and the timeline to someone who knows number and email', async () => {
-    const { number } = await placeOrder(app, { email: 'ada@pawsome.test', quantity: 2 });
+    const { number } = await placeOrder(app, { email: 'ada@grocery.test', quantity: 2 });
     await simulate(app, number);
-    const res = await track({ orderNumber: number, email: 'ada@pawsome.test' });
+    const res = await track({ orderNumber: number, email: 'ada@grocery.test' });
     expect(res.status).toBe(200);
     const { data } = bodyOf<Tracked>(res);
     expect(data).toMatchObject({ orderNumber: number, status: 'paid', tracking: null });
@@ -41,18 +41,18 @@ describe('POST /orders/track', () => {
   });
 
   it('compares the email without case and the number without case or spaces', async () => {
-    const { number } = await placeOrder(app, { email: 'ada@pawsome.test' });
+    const { number } = await placeOrder(app, { email: 'ada@grocery.test' });
     const res = await track({
       orderNumber: ` ${number.toLowerCase()} `,
-      email: ' ADA@Pawsome.TEST ',
+      email: ' ADA@grocery.test ',
     });
     expect(res.status).toBe(200);
   });
 
   it('answers a wrong email and an unknown order with the identical 404', async () => {
-    const { number } = await placeOrder(app, { email: 'ada@pawsome.test' });
-    const wrongEmail = await track({ orderNumber: number, email: 'mallory@pawsome.test' });
-    const unknown = await track({ orderNumber: 'PW-2026-999999', email: 'ada@pawsome.test' });
+    const { number } = await placeOrder(app, { email: 'ada@grocery.test' });
+    const wrongEmail = await track({ orderNumber: number, email: 'mallory@grocery.test' });
+    const unknown = await track({ orderNumber: 'PW-2026-999999', email: 'ada@grocery.test' });
     const garbage = await track({ orderNumber: 'not an order', email: 'not an email' });
     expect(wrongEmail.status).toBe(404);
     expect(unknown.status).toBe(404);
@@ -62,9 +62,9 @@ describe('POST /orders/track', () => {
   });
 
   it('leaks no address, payment or money data', async () => {
-    const { number } = await placeOrder(app, { email: 'ada@pawsome.test' });
+    const { number } = await placeOrder(app, { email: 'ada@grocery.test' });
     await simulate(app, number);
-    const res = await track({ orderNumber: number, email: 'ada@pawsome.test' });
+    const res = await track({ orderNumber: number, email: 'ada@grocery.test' });
     const text = JSON.stringify(res.body);
     for (const secret of [
       TEST_ADDRESS.fullName,
@@ -72,7 +72,7 @@ describe('POST /orders/track', () => {
       TEST_ADDRESS.postalCode,
       'pi_',
       'Cents',
-      'ada@pawsome.test',
+      'ada@grocery.test',
       'admin:',
       'system:',
     ]) {

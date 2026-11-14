@@ -111,7 +111,7 @@ describe('POST /admin/safety-notices/:id/notify', () => {
     admin = undefined;
   });
   async function adminCall(id: string) {
-    admin ??= await signedIn(app, 'admin', 'boss@pawsome.test');
+    admin ??= await signedIn(app, 'admin', 'boss@grocery.test');
     return admin.shopper.call('post', `/admin/safety-notices/${id}/notify`, {});
   }
 
@@ -126,11 +126,11 @@ describe('POST /admin/safety-notices/:id/notify', () => {
   it('emails each past buyer of an affected variant once, guests included', async () => {
     const { variants } = await createProduct();
     const variantId = variants[0]!.id;
-    const a = await placeOrder(app, { variantId, email: 'guest@pawsome.test' });
-    const b = await placeOrder(app, { variantId, email: 'second@pawsome.test' });
-    const again = await placeOrder(app, { variantId, email: 'GUEST@pawsome.test' });
-    const unrelated = await placeOrder(app, { email: 'unrelated@pawsome.test' });
-    const unpaid = await placeOrder(app, { variantId, email: 'unpaid@pawsome.test' });
+    const a = await placeOrder(app, { variantId, email: 'guest@grocery.test' });
+    const b = await placeOrder(app, { variantId, email: 'second@grocery.test' });
+    const again = await placeOrder(app, { variantId, email: 'GUEST@grocery.test' });
+    const unrelated = await placeOrder(app, { email: 'unrelated@grocery.test' });
+    const unpaid = await placeOrder(app, { variantId, email: 'unpaid@grocery.test' });
     for (const o of [a, b, again, unrelated]) await simulate(app, o.number);
     void unpaid;
     const n = await notice([variantId]);
@@ -144,10 +144,10 @@ describe('POST /admin/safety-notices/:id/notify', () => {
       .filter((m) => m.subject.includes('recall'))
       .map((m) => m.to.toLowerCase())
       .sort();
-    expect(recipients).toEqual(['guest@pawsome.test', 'second@pawsome.test']);
+    expect(recipients).toEqual(['guest@grocery.test', 'second@grocery.test']);
     expect(
       transport.sent.find(
-        (m) => m.to.toLowerCase() === 'guest@pawsome.test' && m.subject.includes('recall'),
+        (m) => m.to.toLowerCase() === 'guest@grocery.test' && m.subject.includes('recall'),
       )?.text,
     ).toContain('red');
   });
@@ -155,7 +155,7 @@ describe('POST /admin/safety-notices/:id/notify', () => {
   it('sends nothing the second time, and only the new buyers after more orders', async () => {
     const { variants } = await createProduct();
     const variantId = variants[0]!.id;
-    const first = await placeOrder(app, { variantId, email: 'one@pawsome.test' });
+    const first = await placeOrder(app, { variantId, email: 'one@grocery.test' });
     await simulate(app, first.number);
     const n = await notice([variantId]);
 
@@ -167,10 +167,10 @@ describe('POST /admin/safety-notices/:id/notify', () => {
     });
     await outbox.drain();
     expect(
-      transport.sent.filter((m) => m.to === 'one@pawsome.test' && m.subject.includes('recall')),
+      transport.sent.filter((m) => m.to === 'one@grocery.test' && m.subject.includes('recall')),
     ).toHaveLength(1);
 
-    const late = await placeOrder(app, { variantId, email: 'late@pawsome.test' });
+    const late = await placeOrder(app, { variantId, email: 'late@grocery.test' });
     await simulate(app, late.number);
     const third = await adminCall(n.id);
     expect(bodyOf<{ data: { queued: number } }>(third).data.queued).toBe(1);

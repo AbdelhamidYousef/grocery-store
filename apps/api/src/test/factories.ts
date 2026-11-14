@@ -37,7 +37,7 @@ export async function createUser(overrides: Partial<typeof users.$inferInsert> =
     await db
       .insert(users)
       .values({
-        email: `user${n}@pawsome.test`,
+        email: `user${n}@grocery.test`,
         // Not a real hash: hashing with argon2 would slow every test; login tests hash on their own.
         passwordHash: 'test-hash',
         firstName: 'Test',

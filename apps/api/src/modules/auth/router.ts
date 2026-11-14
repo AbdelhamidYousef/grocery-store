@@ -19,7 +19,7 @@ import { mergeGuestWishlist } from '../wishlist/service.ts';
 
 import * as service from './service.ts';
 
-// The referral cookie (`pawsome_ref`, set by the web when someone arrives through a friend's link)
+// The referral cookie (`grocery_ref`, set by the web when someone arrives through a friend's link)
 // is read once, when the account is created. Like the cart merge it must never fail a
 // registration: an error is logged and the sign-up goes through.
 async function attachReferral(
@@ -27,14 +27,14 @@ async function attachReferral(
   res: Response,
   user: { id: string; email: string },
 ): Promise<void> {
-  const raw = (req.cookies as Record<string, unknown> | undefined)?.pawsome_ref;
+  const raw = (req.cookies as Record<string, unknown> | undefined)?.grocery_ref;
   if (typeof raw !== 'string') return;
   try {
     await attachOnRegister(user, raw);
   } catch (err) {
     req.log.error({ err }, 'referral attach failed');
   }
-  res.clearCookie('pawsome_ref', { path: '/' });
+  res.clearCookie('grocery_ref', { path: '/' });
 }
 
 const meta = (req: Request) => ({ ip: req.ip, userAgent: req.get('user-agent') });

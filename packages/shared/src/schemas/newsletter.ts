@@ -9,7 +9,7 @@ import { DataSchema } from './common.ts';
 
 /** The exact sentence the subscriber agrees to; stored with the row as proof of what they saw. */
 export const NEWSLETTER_CONSENT_TEXT =
-  'Send me Pawsome news, offers and tips for my pets. I can unsubscribe with one click at any time.';
+  'Send me Grocery news, offers and tips for my pets. I can unsubscribe with one click at any time.';
 
 export const NEWSLETTER_CONFIRM_HOURS = 48;
 export const WELCOME_CODE_PERCENT = 10;

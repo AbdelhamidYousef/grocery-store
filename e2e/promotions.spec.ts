@@ -29,7 +29,7 @@ const ADDRESS = {
   city: 'Berlin',
   country: 'DE',
 };
-const MEMBER = { email: 'sam@pawsome.test', password: 'Pawsome-demo-1!' };
+const MEMBER = { email: 'sam@grocery.test', password: 'Grocery-demo-1!' };
 
 async function variantId(page: Page, slug: string, sku: string): Promise<string> {
   const res = await api<{ data: { variants: { id: string; sku: string }[] } }>(

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { db } from './client.ts';
 import { orderItems, orders, webhookEvents } from './schema/index.ts';
 
-const email = 'order-test@pawsome.test';
+const email = 'order-test@grocery.test';
 
 const base = {
   email,

@@ -10,7 +10,7 @@ const order: Order = {
   number: 'PW-2026-000007',
   status: 'paid',
   paymentStatus: 'succeeded',
-  email: 'ada@pawsome.test',
+  email: 'ada@grocery.test',
   totals: {
     currency: 'EUR',
     subtotalCents: 2598,
@@ -62,7 +62,7 @@ describe('order emails', () => {
       expect(part).toContain(formatMoney(490, 'EUR'));
     }
     expect(email.html.startsWith('<!doctype html>')).toBe(true);
-    expect(email.html).toContain('Pawsome');
+    expect(email.html).toContain('Grocery');
   });
 
   it('escapes customer-supplied text in the HTML but not in the plain text', () => {

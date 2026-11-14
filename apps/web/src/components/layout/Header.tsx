@@ -5,7 +5,8 @@ import { MegaMenu } from '../../features/navigation/MegaMenu';
 import { StoreSwitcher } from '../../features/stores/StoreSwitcher';
 import { useT } from '../../i18n';
 import { TEST_IDS } from '../../lib/test-ids';
-import { CartIcon, HeartIcon, MenuIcon, PawIcon } from '../icons';
+import { CartIcon, HeartIcon, MenuIcon } from '../icons';
+import { Logo } from '../Logo';
 
 import { AccountMenu } from './AccountMenu';
 import { Container } from './Container';
@@ -58,12 +59,9 @@ export function Header({
           to="/"
           aria-label={t('shell.header.home')}
           data-testid="logo"
-          className="mr-auto flex min-h-11 items-center gap-2 rounded-control font-display text-2xl font-bold text-primary-strong lg:mr-0"
+          className="mr-auto flex min-h-11 items-center rounded-control text-primary-strong lg:mr-0"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-bright text-ink">
-            <PawIcon width={22} height={22} />
-          </span>
-          Pawsome
+          <Logo />
         </Link>
 
         {/* Desktop: search sits inline. Mobile: it wraps to its own full-width row (order-last). */}

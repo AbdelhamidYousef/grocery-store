@@ -32,7 +32,7 @@ describe('brands page', () => {
     expect(within(cards[0]!).getByText('12 products')).toBeInTheDocument();
     expect(within(cards[1]!).getByText('1 product')).toBeInTheDocument();
     expect(spy).toHaveBeenCalledWith({ name: 'view_brands' });
-    expect(document.title).toBe('Brands | Pawsome');
+    expect(document.title).toBe('Brands | Grocery');
   });
 
   it('says so, with a retry, when the brands cannot load', async () => {

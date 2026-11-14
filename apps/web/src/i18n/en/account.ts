@@ -111,7 +111,7 @@ export const account = {
   'account.timeline.refunded': 'Payment refunded',
 
   'account.tracking.seoTitle': 'Track your order',
-  'account.tracking.seoDescription': 'See where your Pawsome order is.',
+  'account.tracking.seoDescription': 'See where your Grocery order is.',
   'account.tracking.intro':
     'Enter the order number from your confirmation email and the email address you used. You do not need an account.',
   'account.tracking.orderNumber': 'Order number',

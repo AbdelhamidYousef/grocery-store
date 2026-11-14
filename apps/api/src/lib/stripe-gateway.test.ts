@@ -58,7 +58,7 @@ describe('createPaymentIntent', () => {
       currency: 'EUR',
       orderId: 'o-1',
       orderNumber: 'PAW-1',
-      email: 'ada@pawsome.test',
+      email: 'ada@grocery.test',
       idempotencyKey: 'order-o-1',
     });
     expect(info).toEqual({

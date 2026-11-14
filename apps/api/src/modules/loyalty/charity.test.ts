@@ -32,7 +32,7 @@ async function checkout(shopper: Shopper, priceCents: number, roundUp: boolean) 
   const { variants } = await createProduct({ variants: [{ priceCents }] });
   await shopper.addToCart(variants[0]!.id, 1);
   const res = await shopper.call('post', '/checkout', {
-    email: 'ada@pawsome.test',
+    email: 'ada@grocery.test',
     shippingAddress: TEST_ADDRESS,
     shippingMethodCode: 'standard',
     roundUpDonation: roundUp,

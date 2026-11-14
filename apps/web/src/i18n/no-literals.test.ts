@@ -19,7 +19,7 @@ function walk(dir: string): string[] {
 // `Promise<unknown>;` style generics are not text; a dotted key (`shell.x`), the order-number example
 // and the brand name are not translatable text either.
 const JSX_TEXT = />\s*[A-Z][a-z]+[^<>{}=;]*[a-z.!?]\s*</;
-const ALLOWED = /Promise<|PW-2026-|title="Pawsome"|="[a-z]+\.[a-zA-Z.]+"/;
+const ALLOWED = /Promise<|PW-2026-|title="Grocery"|>Grocery<\/span>|="[a-z]+\.[a-zA-Z.]+"/;
 const TEXT_PROP = /\b(aria-label|title|placeholder|label|hint)="[A-Za-z][^"]*"/;
 
 describe('storefront strings', () => {

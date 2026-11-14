@@ -128,7 +128,7 @@ const CART_LINES_MAX = 20;
 export const searchCatalog = defineTool({
   name: 'search_catalog',
   description:
-    'Search the Pawsome pet-supplies catalogue. Returns compact product cards (id, slug, name, ' +
+    'Search the Grocery catalogue. Returns compact product cards (id, slug, name, ' +
     'price range in cents, in-stock flag). Use get_product for variants and their ids.',
   inputSchema: z.object({
     query: z.string().trim().max(100).optional().describe('Free-text search, e.g. "rope toy".'),

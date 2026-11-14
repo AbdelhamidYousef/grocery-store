@@ -30,11 +30,11 @@ beforeEach(async () => {
 
 const queued = async () => (await db.select().from(emailOutbox)).map((r) => r.kind).sort();
 const ship = (number: string) =>
-  transitionOrder({ gateway: fake, log }, number, 'shipped', { actor: 'admin:boss@pawsome.test' });
+  transitionOrder({ gateway: fake, log }, number, 'shipped', { actor: 'admin:boss@grocery.test' });
 
 describe('order emails through the outbox', () => {
   it('queues the confirmation in the payment transaction and sends it to the order email', async () => {
-    const { number } = await placeOrder(app, { email: 'grace@pawsome.test' });
+    const { number } = await placeOrder(app, { email: 'grace@grocery.test' });
     expect(await queued()).toEqual([]); // nothing owed until it is paid
 
     await simulate(app, number);
@@ -42,7 +42,7 @@ describe('order emails through the outbox', () => {
 
     await outbox.drain();
     expect(transport.sent).toHaveLength(1);
-    expect(transport.sent[0]).toMatchObject({ to: 'grace@pawsome.test' });
+    expect(transport.sent[0]).toMatchObject({ to: 'grace@grocery.test' });
     expect(transport.sent[0]?.subject).toContain(number);
     expect(transport.sent[0]?.html).toContain('Thank you for your order');
   });
@@ -52,7 +52,7 @@ describe('order emails through the outbox', () => {
     const shopper = makeShopper(app, undefined, 'de-de');
     await shopper.addToCart(variants[0]!.id, 1);
     const res = await shopper.call('post', '/checkout', {
-      email: 'hanna@pawsome.test',
+      email: 'hanna@grocery.test',
       shippingAddress: { ...TEST_ADDRESS, country: 'DE' },
       shippingMethodCode: 'standard',
     });
@@ -64,8 +64,8 @@ describe('order emails through the outbox', () => {
     await ship(number);
     await outbox.drain();
     expect(transport.sent.map((m) => m.subject)).toEqual([
-      `Ihre Pawsome-Bestellung ${number} ist bestätigt`,
-      `Ihre Pawsome-Bestellung ${number} ist unterwegs`,
+      `Ihre Grocery-Bestellung ${number} ist bestätigt`,
+      `Ihre Grocery-Bestellung ${number} ist unterwegs`,
     ]);
     expect(transport.sent[0]?.html).toContain('Vielen Dank für Ihre Bestellung');
   });

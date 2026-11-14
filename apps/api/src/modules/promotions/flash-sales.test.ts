@@ -344,7 +344,7 @@ describe('sale prices in the cart and at checkout', () => {
     country: 'DE',
   };
   const checkoutBody = {
-    email: 'ada@pawsome.test',
+    email: 'ada@grocery.test',
     shippingAddress: addr,
     shippingMethodCode: 'standard',
   };
@@ -489,7 +489,7 @@ describe('GET /promotions/banner and /promotions/rules', () => {
 
 describe('admin price edits and the price history', () => {
   it('appends a base row when a price changes, and none when it does not', async () => {
-    const admin = await signedIn(app, 'admin', 'boss@pawsome.test');
+    const admin = await signedIn(app, 'admin', 'boss@grocery.test');
     const v = await variant(1000);
     await history(v.id, 1000, ago(60 * DAY));
     const patch = (body: object) => admin.shopper.call('patch', `/admin/variants/${v.id}`, body);
@@ -509,7 +509,7 @@ describe('admin price edits and the price history', () => {
   });
 
   it('writes the first history row when a variant is created', async () => {
-    const admin = await signedIn(app, 'admin', 'boss@pawsome.test');
+    const admin = await signedIn(app, 'admin', 'boss@grocery.test');
     const product = (await variant(1000)).productId;
     const res = await admin.shopper.call('post', `/admin/products/${product}/variants`, {
       sku: 'NEW-SKU-1',

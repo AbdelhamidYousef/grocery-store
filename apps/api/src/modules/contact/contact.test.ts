@@ -22,7 +22,7 @@ beforeEach(() => {
 
 const valid = {
   name: 'Ada',
-  email: 'ada@pawsome.test',
+  email: 'ada@grocery.test',
   topic: 'order',
   orderNumber: 'PW-2026-000001',
   message: 'Where is my parcel? It was due on Monday.',
@@ -46,12 +46,12 @@ describe('POST /contact', () => {
     });
 
     await outbox.drain();
-    const toCustomer = transport.sent.find((m) => m.to === 'ada@pawsome.test');
+    const toCustomer = transport.sent.find((m) => m.to === 'ada@grocery.test');
     const toShop = transport.sent.find((m) => m.to === env.SHOP_INBOX_EMAIL);
     expect(toCustomer?.subject).toContain(reference);
     expect(toCustomer?.text).toContain('Where is my parcel?');
     expect(toShop?.subject).toContain('Ada');
-    expect(toShop?.text).toContain('ada@pawsome.test');
+    expect(toShop?.text).toContain('ada@grocery.test');
   });
 
   it('escapes the visitor text in the HTML of both emails', async () => {

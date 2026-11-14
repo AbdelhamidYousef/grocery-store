@@ -6,7 +6,7 @@ import { useT } from '../../i18n';
 import { useActiveSafetyNotices } from './queries';
 import { SafetyNoticeBox } from './SafetyNoticeBox';
 
-const KEY = 'pawsome_dismissed_notices';
+const KEY = 'grocery_dismissed_notices';
 
 function readDismissed(): string[] {
   try {

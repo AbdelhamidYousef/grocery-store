@@ -37,7 +37,7 @@ const address = {
   country: 'DE',
 };
 const checkoutBody = (extra: object = {}) => ({
-  email: 'ada@pawsome.test',
+  email: 'ada@grocery.test',
   shippingAddress: address,
   shippingMethodCode: 'standard',
   ...extra,
@@ -87,7 +87,7 @@ describe('POST /checkout', () => {
     expect(order).toMatchObject({
       number: body.orderNumber,
       status: 'pending_payment',
-      email: 'ada@pawsome.test',
+      email: 'ada@grocery.test',
       userId: null,
       totalCents: 3190,
       shippingMethodCode: 'standard',
@@ -156,13 +156,13 @@ describe('POST /checkout', () => {
   });
 
   it('uses the account email and owner for a signed-in user', async () => {
-    const user = await createUser({ email: 'member@pawsome.test' });
+    const user = await createUser({ email: 'member@grocery.test' });
     const { token } = await createSession(user.id);
     const { variants } = await createProduct();
     const member = makeShopper(app, token);
     await member.addToCart(variants[0]!.id);
-    await member.call('post', '/checkout', checkoutBody({ email: 'other@pawsome.test' }));
-    expect(await allOrders()).toMatchObject([{ userId: user.id, email: 'member@pawsome.test' }]);
+    await member.call('post', '/checkout', checkoutBody({ email: 'other@grocery.test' }));
+    expect(await allOrders()).toMatchObject([{ userId: user.id, email: 'member@grocery.test' }]);
   });
 
   it('keeps billing and notes when given, and null billing means "same as shipping"', async () => {

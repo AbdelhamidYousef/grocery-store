@@ -50,7 +50,7 @@ export default function HomePage() {
 
   return (
     <div data-testid={TEST_IDS.pageHome}>
-      <Seo title="Pawsome" canonical="/" description={t('shell.home.seoDescription')} />
+      <Seo title="Grocery" canonical="/" description={t('shell.home.seoDescription')} />
 
       <SafetyBanner />
 

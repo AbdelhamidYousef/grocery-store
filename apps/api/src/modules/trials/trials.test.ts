@@ -73,14 +73,14 @@ describe('trial size at checkout and payment', () => {
     const first = await placeOrder(app, {
       variantId: trial,
       quantity: 1,
-      email: 'Ada@Pawsome.test',
+      email: 'Ada@grocery.test',
     });
     // Nothing is redeemed until the money arrives.
     expect(await db.select().from(trialRedemptions)).toHaveLength(0);
     await simulate(app, first.number);
     const rows = await db.select().from(trialRedemptions);
     expect(rows).toMatchObject([
-      { customerKey: 'ada@pawsome.test', variantId: trial, releasedAt: null },
+      { customerKey: 'ada@grocery.test', variantId: trial, releasedAt: null },
     ]);
 
     // A fresh guest cart, the same person (different capitalisation): the cart accepts it (it
@@ -88,7 +88,7 @@ describe('trial size at checkout and payment', () => {
     const shopper = makeShopper(app);
     expect((await shopper.addToCart(trial)).status).toBe(200);
     const res = await shopper.call('post', '/checkout', {
-      email: 'ada@PAWSOME.test',
+      email: 'ada@grocery.test',
       shippingAddress: {
         fullName: 'A',
         line1: '1 St',
@@ -105,7 +105,7 @@ describe('trial size at checkout and payment', () => {
     const other = await placeOrder(app, {
       variantId: trial,
       quantity: 1,
-      email: 'bo@pawsome.test',
+      email: 'bo@grocery.test',
     });
     expect(other.number).toBeTruthy();
   });
@@ -124,7 +124,7 @@ describe('trial size at checkout and payment', () => {
     const { number } = await placeOrder(app, {
       variantId: trial,
       quantity: 1,
-      email: 'ada@pawsome.test',
+      email: 'ada@grocery.test',
     });
     await simulate(app, number);
     const admin = await signedIn(app, 'admin');
@@ -140,7 +140,7 @@ describe('trial size at checkout and payment', () => {
     const again = await placeOrder(app, {
       variantId: trial,
       quantity: 1,
-      email: 'ada@pawsome.test',
+      email: 'ada@grocery.test',
     });
     expect(again.number).not.toBe(number);
   });
@@ -150,13 +150,13 @@ describe('trial size at checkout and payment', () => {
     const { number } = await placeOrder(app, {
       variantId: trial,
       quantity: 1,
-      email: 'ada@pawsome.test',
+      email: 'ada@grocery.test',
     });
     await simulate(app, number);
     const [row] = await db.select().from(trialRedemptions);
     await expect(
       db.insert(trialRedemptions).values({
-        customerKey: 'ada@pawsome.test',
+        customerKey: 'ada@grocery.test',
         variantId: trial,
         orderId: row!.orderId,
       }),
@@ -201,7 +201,7 @@ describe('order events registry', () => {
     };
     onOrderPaid(handler);
     onOrderPaid(handler);
-    const { number } = await placeOrder(app, { email: 'ada@pawsome.test' });
+    const { number } = await placeOrder(app, { email: 'ada@grocery.test' });
     await simulate(app, number);
     const order = await orderByNumber(number);
     expect(seen).toEqual([order.id]);

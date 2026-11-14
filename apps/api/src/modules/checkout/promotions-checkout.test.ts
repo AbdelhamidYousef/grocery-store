@@ -29,7 +29,7 @@ beforeEach(async () => {
   await createShippingMethods();
 });
 
-const body = (email = 'ada@pawsome.test') => ({
+const body = (email = 'ada@grocery.test') => ({
   email,
   shippingAddress: {
     fullName: 'Ada Lovelace',
@@ -139,14 +139,14 @@ describe('checkout through the promotions engine', () => {
     const first = makeShopper(app);
     await first.addToCart(await variant(3000));
     await first.call('post', '/cart/code', { code: 'ONEEACH' });
-    expect((await first.call('post', '/checkout', body('sam@pawsome.test'))).status).toBe(200);
+    expect((await first.call('post', '/checkout', body('sam@grocery.test'))).status).toBe(200);
     const used = await db.select().from(discountRedemptions);
-    expect(used).toMatchObject([{ codeId: code!.id, customerKey: 'sam@pawsome.test' }]);
+    expect(used).toMatchObject([{ codeId: code!.id, customerKey: 'sam@grocery.test' }]);
 
     const again = makeShopper(app);
     await again.addToCart(await variant(3000));
     await again.call('post', '/cart/code', { code: 'ONEEACH' });
-    const res = await again.call('post', '/checkout', body('SAM@pawsome.test'));
+    const res = await again.call('post', '/checkout', body('SAM@grocery.test'));
     expect(res.status).toBe(400);
     expect(errorOf(res).message).toBe("You've already used this code");
   });
@@ -169,7 +169,7 @@ describe('checkout through the promotions engine', () => {
       await s.call('post', '/cart/code', { code: 'LAST' });
     }
     const results = await Promise.all(
-      shoppers.map((s, i) => s.call('post', '/checkout', body(`racer${i}@pawsome.test`))),
+      shoppers.map((s, i) => s.call('post', '/checkout', body(`racer${i}@grocery.test`))),
     );
     expect(results.map((r) => r.status).sort()).toEqual([200, 400]);
     expect(await db.select().from(discountRedemptions)).toHaveLength(1);
@@ -186,7 +186,7 @@ describe('checkout through the promotions engine', () => {
       return order!;
     };
 
-    const unpaid = await placeWithCode('unpaid@pawsome.test');
+    const unpaid = await placeWithCode('unpaid@grocery.test');
     await db.transaction((tx) => cancelPendingOrder(tx, unpaid.id, { actor: 'test', note: 'x' }));
     const [released] = await db
       .select()
@@ -194,7 +194,7 @@ describe('checkout through the promotions engine', () => {
       .where(eq(discountRedemptions.orderId, unpaid.id));
     expect(released?.releasedAt).not.toBeNull();
 
-    const paid = await placeWithCode('paid@pawsome.test');
+    const paid = await placeWithCode('paid@grocery.test');
     await db.update(payments).set({ status: 'succeeded' }).where(eq(payments.orderId, paid.id));
     await db.transaction((tx) => cancelPendingOrder(tx, paid.id, { actor: 'test', note: 'x' }));
     const [kept] = await db

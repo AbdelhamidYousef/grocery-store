@@ -31,7 +31,7 @@ describe('GET /account/orders and /account/orders/:number', () => {
     const { number } = await placeOrder(app, { shopper: me.shopper, quantity: 2 });
     await simulate(app, number);
     await transitionOrder({ gateway: fake, log: pino({ level: 'silent' }) }, number, 'processing', {
-      actor: 'admin:boss@pawsome.test',
+      actor: 'admin:boss@grocery.test',
       note: 'secret internal note',
     });
 
@@ -44,7 +44,7 @@ describe('GET /account/orders and /account/orders/:number', () => {
     expect(data.timeline.map((t) => t.status)).toEqual(['pending_payment', 'paid', 'processing']);
     // Actors and notes are the shop's audit trail, not the customer's.
     expect(JSON.stringify(res.body)).not.toMatch(
-      /boss@pawsome|secret internal note|system:webhook/,
+      /boss@grocery|secret internal note|system:webhook/,
     );
   });
 

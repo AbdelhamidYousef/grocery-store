@@ -35,7 +35,7 @@ async function paidOrder(
   const [order] = await db
     .insert(orders)
     .values({
-      email: 'buyer@pawsome.test',
+      email: 'buyer@grocery.test',
       status,
       subtotalCents: 1000,
       shippingCents: 0,

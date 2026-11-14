@@ -23,7 +23,7 @@ import { applyTransition } from '../../orders/transition.ts';
 const app = makeTestApp({ payments: new FakeStripe() });
 let admin: Shopper;
 beforeEach(async () => {
-  admin = (await signedIn(app, 'admin', 'boss@pawsome.test')).shopper;
+  admin = (await signedIn(app, 'admin', 'boss@grocery.test')).shopper;
   await createShippingMethods();
 });
 
@@ -69,7 +69,7 @@ const stockOf = async (variantId: string) => {
 describe('admin bundles', () => {
   it('is for admins only', async () => {
     expect((await makeShopper(app).call('get', '/admin/bundles')).status).toBe(401);
-    const customer = (await signedIn(app, 'customer', 'sam@pawsome.test')).shopper;
+    const customer = (await signedIn(app, 'customer', 'sam@grocery.test')).shopper;
     expect((await customer.call('get', '/admin/bundles')).status).toBe(403);
   });
 
@@ -177,7 +177,7 @@ describe('kits on the storefront', () => {
 describe('kits in the cart and checkout', () => {
   const checkout = (shopper: Shopper) =>
     shopper.call('post', '/checkout', {
-      email: 'ada@pawsome.test',
+      email: 'ada@grocery.test',
       shippingAddress: {
         fullName: 'Ada Lovelace',
         line1: '1 Bone Street',
@@ -262,7 +262,7 @@ describe('kits in the cart and checkout', () => {
 describe('editing a kit after an order was placed', () => {
   const checkout = (shopper: Shopper) =>
     shopper.call('post', '/checkout', {
-      email: 'ada@pawsome.test',
+      email: 'ada@grocery.test',
       shippingAddress: {
         fullName: 'Ada Lovelace',
         line1: '1 Bone Street',
@@ -329,7 +329,7 @@ describe('editing a kit after an order was placed', () => {
 describe('kits and shared components', () => {
   const checkout = (shopper: Shopper) =>
     shopper.call('post', '/checkout', {
-      email: 'ada@pawsome.test',
+      email: 'ada@grocery.test',
       shippingAddress: {
         fullName: 'Ada Lovelace',
         line1: '1 Bone Street',

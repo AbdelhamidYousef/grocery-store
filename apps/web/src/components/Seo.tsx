@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 
 import { useStorePath } from '../features/stores/StoreContext';
 
-const SITE = 'Pawsome';
+const SITE = 'Grocery';
 
 interface SeoProps {
   title: string;

@@ -140,7 +140,7 @@ export const catalog: Record<keyof typeof enNs, Entry> = {
   'catalog.brand.loadError': 'Diese Marke konnte nicht geladen werden',
   'catalog.brand.loading': 'Marke wird geladen',
   'catalog.brands.description':
-    'Die Pawsome-Hausmarken: Leckereien, Betten, Terrarienzubehör und mehr.',
+    'Die Grocery-Hausmarken: Leckereien, Betten, Terrarienzubehör und mehr.',
   'catalog.brands.title': 'Unsere Marken',
   'catalog.brands.intro':
     'Jede Marke hier ist unsere eigene, von uns erfunden und von einer sehr wählerischen Testgruppe aus Haustieren geprüft.',

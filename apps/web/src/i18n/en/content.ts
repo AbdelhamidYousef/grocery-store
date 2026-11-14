@@ -53,7 +53,7 @@ export const content = {
   // Legal pages (the Markdown bodies stay English)
   'content.legal.notice':
     'Demo store, fictional company. This text is an example and is not legal advice.',
-  'content.legal.about.title': 'About Pawsome',
+  'content.legal.about.title': 'About Grocery',
   'content.legal.about.description': 'Who is behind this demo pet shop.',
   'content.legal.shipping.title': 'Shipping',
   'content.legal.shipping.description': 'Delivery options, prices and times.',
@@ -70,7 +70,7 @@ export const content = {
 
   // Contact
   'content.contact.title': 'Contact us',
-  'content.contact.seoDescription': 'Write to the Pawsome team.',
+  'content.contact.seoDescription': 'Write to the Grocery team.',
   'content.contact.intro':
     'Questions about an order, a product or your data? Write to us and a person will answer. You may find a quick answer in the',
   'content.contact.helpLink': 'help centre',
@@ -105,7 +105,7 @@ export const content = {
   // /developers
   'content.dev.seoTitle': 'For developers: agent tools',
   'content.dev.seoDescription':
-    'Pawsome offers structured WebMCP tools so browser AI agents can search the demo catalogue and fill a cart. Experimental, test data only.',
+    'Grocery offers structured WebMCP tools so browser AI agents can search the demo catalogue and fill a cart. Experimental, test data only.',
   'content.dev.title': 'Shop with an AI agent',
   'content.dev.note':
     'This is a demo store on test data, and WebMCP is an experimental browser feature. Nothing here is a stable public API.',

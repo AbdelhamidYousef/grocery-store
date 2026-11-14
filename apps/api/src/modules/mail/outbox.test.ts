@@ -27,7 +27,7 @@ async function anOrder() {
 const enqueue = async (
   orderId: string,
   kind: 'order_confirmation' | 'order_shipped' = 'order_confirmation',
-) => db.transaction((tx) => enqueueEmail(tx, { kind, orderId, to: 'ada@pawsome.test' }));
+) => db.transaction((tx) => enqueueEmail(tx, { kind, orderId, to: 'ada@grocery.test' }));
 const rows = () => db.select().from(emailOutbox);
 
 describe('email outbox', () => {
@@ -37,7 +37,7 @@ describe('email outbox', () => {
     const outbox = createOutbox({ transport, log });
     expect(await outbox.drain()).toEqual({ sent: 1, failed: 0, skipped: 0 });
     expect(transport.sent).toHaveLength(1);
-    expect(transport.sent[0]).toMatchObject({ to: 'ada@pawsome.test' });
+    expect(transport.sent[0]).toMatchObject({ to: 'ada@grocery.test' });
     expect(transport.sent[0]?.subject).toContain(order.number);
     expect((await rows())[0]?.sentAt).toBeInstanceOf(Date);
     // Nothing left to do on the next pass.
@@ -124,7 +124,7 @@ describe('email outbox', () => {
     await enqueue(order.id);
     const [row] = await rows();
     await createOutbox({ transport, log }).drain();
-    expect(transport.sent[0]?.messageId).toBe(`<${row!.id}@pawsome.local>`);
+    expect(transport.sent[0]?.messageId).toBe(`<${row!.id}@grocery.local>`);
   });
 
   it('survives an order that vanished: the row records the error and does not crash the drain', async () => {

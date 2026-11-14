@@ -74,7 +74,7 @@ describe('PATCH /account', () => {
     const { call, user } = await signedIn();
     const res = await call('patch', '/account', {
       firstName: 'X',
-      email: 'new@pawsome.test',
+      email: 'new@grocery.test',
       role: 'admin',
     });
     expect(res.status).toBe(200);
@@ -332,7 +332,7 @@ describe('address ownership (no IDOR)', () => {
 describe('GET /account/orders', () => {
   const order = (userId: string | null, status: 'paid' | 'pending_payment') => ({
     userId,
-    email: 'x@pawsome.test',
+    email: 'x@grocery.test',
     status,
     subtotalCents: 1000,
     shippingCents: 490,

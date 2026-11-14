@@ -18,7 +18,7 @@ beforeEach(async () => {
 });
 
 const body = {
-  email: 'ada@pawsome.test',
+  email: 'ada@grocery.test',
   shippingAddress: {
     fullName: 'Ada Lovelace',
     line1: '1 Bone Street',

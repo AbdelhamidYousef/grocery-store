@@ -23,7 +23,7 @@ async function contentCounts() {
 
 // A throwaway content folder, so a test can break exactly one file.
 function contentDir(files: { guides?: Record<string, string>; help?: Record<string, string> }) {
-  const dir = mkdtempSync(join(tmpdir(), 'pawsome-content-'));
+  const dir = mkdtempSync(join(tmpdir(), 'grocery-content-'));
   for (const kind of ['guides', 'help'] as const) {
     mkdirSync(join(dir, kind));
     for (const [name, text] of Object.entries(files[kind] ?? {})) {

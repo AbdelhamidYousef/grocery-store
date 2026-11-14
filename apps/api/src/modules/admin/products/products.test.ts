@@ -27,7 +27,7 @@ let admin: { shopper: Shopper; user: { id: string; email: string } };
 let categoryId: string;
 
 beforeEach(async () => {
-  admin = await signedIn(app, 'admin', 'boss@pawsome.test');
+  admin = await signedIn(app, 'admin', 'boss@grocery.test');
   categoryId = (await createCategory()).id;
   await createShippingMethods();
 });
@@ -108,7 +108,7 @@ describe('POST /admin/products', () => {
     expect(adjustments[0]).toMatchObject({
       delta: 10,
       reason: 'restock',
-      actor: 'admin:boss@pawsome.test',
+      actor: 'admin:boss@grocery.test',
     });
   });
 
@@ -432,7 +432,7 @@ describe('PATCH /admin/inventory/:variantId', () => {
         [15, 'restock'],
       ].sort(),
     );
-    expect(log.find((l) => l.note === 'Delivery #4')?.actor).toBe('admin:boss@pawsome.test');
+    expect(log.find((l) => l.note === 'Delivery #4')?.actor).toBe('admin:boss@grocery.test');
   });
 
   it('records nothing when the count already matches', async () => {

@@ -60,7 +60,7 @@ describe('admin review moderation', () => {
     const body = bodyOf<AdminList>(res);
     expect(body.data.map((r) => r.title)).toEqual(['Older', 'Newer']);
     expect(body.data[0]?.photos).toHaveLength(1);
-    expect(body.data[0]?.authorEmail).toMatch(/@pawsome\.test$/);
+    expect(body.data[0]?.authorEmail).toMatch(/@grocery\.test$/);
     expect(body.meta.total).toBe(2);
     const approved = bodyOf<AdminList>(await shopper.call('get', '/admin/reviews?status=approved'));
     expect(approved.data).toHaveLength(1);
@@ -68,7 +68,7 @@ describe('admin review moderation', () => {
 
   it('approves: status, moderated time, aggregate, and a thank-you email', async () => {
     const { product } = await createProduct({ name: 'Cloud Bed' });
-    const author = await createUser({ firstName: 'Ada', email: 'ada.review@pawsome.test' });
+    const author = await createUser({ firstName: 'Ada', email: 'ada.review@grocery.test' });
     const r = await createReview(product.id, { userId: author.id, status: 'pending', rating: 4 });
     const { shopper } = await signedIn(app, 'admin');
     const res = await shopper.call('post', `/admin/reviews/${r.id}/approve`);
@@ -80,7 +80,7 @@ describe('admin review moderation', () => {
     expect(p).toMatchObject({ ratingCount: 1, ratingSum: 4 });
 
     await outbox.drain();
-    const mail = transport.sent.find((m) => m.to === 'ada.review@pawsome.test');
+    const mail = transport.sent.find((m) => m.to === 'ada.review@grocery.test');
     expect(mail?.subject).toBe('Your review of Cloud Bed is live');
     expect(mail?.text).toContain(`/products/${product.slug}#reviews`);
 

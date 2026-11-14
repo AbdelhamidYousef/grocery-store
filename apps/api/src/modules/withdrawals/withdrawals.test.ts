@@ -26,7 +26,7 @@ beforeEach(async () => {
 const withdraw = (body: object, a = app) =>
   request(a).post('/api/v1/withdrawals').set('Origin', TEST_ORIGIN).send(body);
 
-async function paidOrder(email = 'ada@pawsome.test') {
+async function paidOrder(email = 'ada@grocery.test') {
   const { number } = await placeOrder(app, { email });
   await simulate(app, number);
   return number;
@@ -37,7 +37,7 @@ describe('POST /withdrawals', () => {
     const number = await paidOrder();
     const res = await withdraw({
       orderNumber: number,
-      email: 'ADA@pawsome.test',
+      email: 'ADA@grocery.test',
       itemsText: 'the red rope',
       reason: 'Changed my mind',
     });
@@ -50,12 +50,12 @@ describe('POST /withdrawals', () => {
     expect(rows[0]).toMatchObject({
       status: 'new',
       itemsText: 'the red rope',
-      email: 'ada@pawsome.test',
+      email: 'ada@grocery.test',
     });
 
     await outbox.drain();
     const mail = transport.sent.find((m) => m.subject.includes('withdrawal'));
-    expect(mail?.to).toBe('ada@pawsome.test');
+    expect(mail?.to).toBe('ada@grocery.test');
     expect(mail?.text).toContain(data.reference);
     expect(mail?.text).toContain('the red rope');
     // The timestamp is written in the email body (the durable-medium proof).
@@ -64,24 +64,24 @@ describe('POST /withdrawals', () => {
 
   it('answers a wrong email and an unknown order with the same 404 and stores nothing', async () => {
     const number = await paidOrder();
-    const wrong = await withdraw({ orderNumber: number, email: 'mallory@pawsome.test' });
-    const unknown = await withdraw({ orderNumber: 'PW-2026-999999', email: 'ada@pawsome.test' });
+    const wrong = await withdraw({ orderNumber: number, email: 'mallory@grocery.test' });
+    const unknown = await withdraw({ orderNumber: 'PW-2026-999999', email: 'ada@grocery.test' });
     expect(wrong.status).toBe(404);
     expect(wrong.body).toEqual(unknown.body);
     expect(await db.select().from(withdrawalRequests)).toHaveLength(0);
   });
 
   it('refuses an order that was never paid', async () => {
-    const { number } = await placeOrder(app, { email: 'ada@pawsome.test' });
-    const res = await withdraw({ orderNumber: number, email: 'ada@pawsome.test' });
+    const { number } = await placeOrder(app, { email: 'ada@grocery.test' });
+    const res = await withdraw({ orderNumber: number, email: 'ada@grocery.test' });
     expect(res.status).toBe(409);
     expect(await db.select().from(withdrawalRequests)).toHaveLength(0);
   });
 
   it('allows a second request for the same order, each with its own email', async () => {
     const number = await paidOrder();
-    await withdraw({ orderNumber: number, email: 'ada@pawsome.test', itemsText: 'one' });
-    await withdraw({ orderNumber: number, email: 'ada@pawsome.test', itemsText: 'two' });
+    await withdraw({ orderNumber: number, email: 'ada@grocery.test', itemsText: 'one' });
+    await withdraw({ orderNumber: number, email: 'ada@grocery.test', itemsText: 'two' });
     await outbox.drain();
     expect(transport.sent.filter((m) => m.subject.includes('withdrawal'))).toHaveLength(2);
   });
@@ -100,7 +100,7 @@ describe('POST /withdrawals', () => {
 
   it('keeps the order untouched', async () => {
     const number = await paidOrder();
-    await withdraw({ orderNumber: number, email: 'ada@pawsome.test' });
+    await withdraw({ orderNumber: number, email: 'ada@grocery.test' });
     const [order] = await db.select().from(orders).where(eq(orders.number, number));
     // Withdrawal is a request for an admin to act on; it never changes the order by itself.
     expect(order?.status).toBe('paid');

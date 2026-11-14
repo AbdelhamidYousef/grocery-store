@@ -16,7 +16,7 @@ const order = {
   number: 'PW-2026-000007',
   status: 'paid' as const,
   paymentStatus: 'succeeded' as const,
-  email: 'ada@pawsome.test',
+  email: 'ada@grocery.test',
   totals: {
     currency: 'EUR',
     subtotalCents: 2598,
@@ -76,7 +76,7 @@ describe('email dictionaries', () => {
 describe('order emails in the order language', () => {
   it('confirmation in German: German words, euros in the German format, store-prefixed link', () => {
     const mail = orderConfirmation(order, emailText('de-de'));
-    expect(mail.subject).toBe('Ihre Pawsome-Bestellung PW-2026-000007 ist bestätigt');
+    expect(mail.subject).toBe('Ihre Grocery-Bestellung PW-2026-000007 ist bestätigt');
     expect(mail.text).toContain('Vielen Dank für Ihre Bestellung, Ada Lovelace!');
     expect(mail.text).toContain('Zwischensumme: 25,98');
     expect(mail.text).toContain('Gesamtsumme: 30,88');
@@ -87,7 +87,7 @@ describe('order emails in the order language', () => {
 
   it('English keeps the number format of en-DE and the shipped mail follows the same language', () => {
     const mail = orderShipped(order, emailText('de-en'));
-    expect(mail.subject).toBe('Your Pawsome order PW-2026-000007 is on its way');
+    expect(mail.subject).toBe('Your Grocery order PW-2026-000007 is on its way');
     expect(mail.text).toContain('€25.98');
     expect(orderShipped(order, emailText('de-de')).subject).toContain('ist unterwegs');
   });
@@ -98,7 +98,7 @@ describe('order emails in the order language', () => {
         { confirmUrl: 'https://x/c', unsubscribeUrl: 'https://x/u', hours: 48 },
         emailText('de-de'),
       ).subject,
-    ).toBe('Bestätigen Sie Ihr Pawsome-Abonnement');
+    ).toBe('Bestätigen Sie Ihr Grocery-Abonnement');
     expect(
       renderQueuedEmail(
         'newsletter_confirm',

@@ -17,7 +17,7 @@ const app = makeTestApp({ payments: fake, outbox });
 
 let admin: { shopper: Shopper };
 beforeEach(async () => {
-  admin = await signedIn(app, 'admin', 'boss@pawsome.test');
+  admin = await signedIn(app, 'admin', 'boss@grocery.test');
   await createShippingMethods();
   transport.sent.length = 0;
 });
@@ -37,8 +37,8 @@ const move = (number: string, body: object) =>
 
 describe('GET /admin/orders', () => {
   it('lists orders of every status, newest first, paginated, with units and payment status', async () => {
-    const a = await placeOrder(app, { quantity: 3, email: 'ada@pawsome.test' });
-    const b = await placeOrder(app, { email: 'grace@pawsome.test' });
+    const a = await placeOrder(app, { quantity: 3, email: 'ada@grocery.test' });
+    const b = await placeOrder(app, { email: 'grace@grocery.test' });
     await simulate(app, a.number);
 
     const res = await admin.shopper.call('get', '/admin/orders?limit=1');
@@ -59,8 +59,8 @@ describe('GET /admin/orders', () => {
   });
 
   it('filters by status and searches by number or email, case-insensitively', async () => {
-    const a = await placeOrder(app, { email: 'Ada@Pawsome.test' });
-    const b = await placeOrder(app, { email: 'grace@pawsome.test' });
+    const a = await placeOrder(app, { email: 'Ada@grocery.test' });
+    const b = await placeOrder(app, { email: 'grace@grocery.test' });
     await simulate(app, a.number);
     const numbers = async (qs: string) =>
       bodyOf<{ data: { number: string }[] }>(
@@ -79,7 +79,7 @@ describe('GET /admin/orders', () => {
 
 describe('GET /admin/orders/:number', () => {
   it('returns the order with payment, full history, the customer and the allowed next moves', async () => {
-    const buyer = await signedIn(app, 'customer', 'buyer@pawsome.test');
+    const buyer = await signedIn(app, 'customer', 'buyer@grocery.test');
     const { number } = await placeOrder(app, { shopper: buyer.shopper });
     await simulate(app, number);
 
@@ -89,7 +89,7 @@ describe('GET /admin/orders/:number', () => {
       status: 'succeeded',
       providerPaymentIntentId: expect.stringMatching(/^pi_fake_\d+$/) as string,
     });
-    expect(data.customer?.email).toBe('buyer@pawsome.test');
+    expect(data.customer?.email).toBe('buyer@grocery.test');
     expect(data.history.map((h) => [h.toStatus, h.actor])).toEqual([
       ['pending_payment', 'customer'],
       ['paid', 'system:webhook'],
@@ -117,14 +117,14 @@ describe('POST /admin/orders/:number/transition', () => {
     expect(data.order.status).toBe('processing');
     expect(data.history.at(-1)).toMatchObject({
       toStatus: 'processing',
-      actor: 'admin:boss@pawsome.test',
+      actor: 'admin:boss@grocery.test',
       note: 'Packing now',
     });
     expect(data.allowedNext).toEqual(['shipped', 'cancelled']);
   });
 
   it('sends the shipped email when an order is marked shipped', async () => {
-    const { number } = await placeOrder(app, { email: 'ada@pawsome.test' });
+    const { number } = await placeOrder(app, { email: 'ada@grocery.test' });
     await simulate(app, number);
     await move(number, { to: 'processing' });
     await move(number, { to: 'shipped' });
@@ -132,7 +132,7 @@ describe('POST /admin/orders/:number/transition', () => {
     const subjects = transport.sent.map((m) => m.subject);
     expect(subjects.some((s) => s.includes('on its way'))).toBe(true);
     expect(transport.sent.find((m) => m.subject.includes('on its way'))?.to).toBe(
-      'ada@pawsome.test',
+      'ada@grocery.test',
     );
   });
 
@@ -177,11 +177,11 @@ describe('POST /admin/orders/:number/transition', () => {
 
 describe('GET /admin/customers', () => {
   it('lists customers with their placed-order count and never a password hash', async () => {
-    const buyer = await signedIn(app, 'customer', 'buyer@pawsome.test');
+    const buyer = await signedIn(app, 'customer', 'buyer@grocery.test');
     const paid = await placeOrder(app, { shopper: buyer.shopper });
     await simulate(app, paid.number);
     await placeOrder(app, { shopper: buyer.shopper }); // unpaid: does not count
-    await createUser({ email: 'quiet@pawsome.test' });
+    await createUser({ email: 'quiet@grocery.test' });
 
     const res = await admin.shopper.call('get', '/admin/customers');
     const body = bodyOf<{
@@ -190,13 +190,13 @@ describe('GET /admin/customers', () => {
     }>(res);
     // The admin account is not a customer.
     expect(body.data.map((c) => c.email).sort()).toEqual([
-      'buyer@pawsome.test',
-      'quiet@pawsome.test',
+      'buyer@grocery.test',
+      'quiet@grocery.test',
     ]);
-    expect(body.data.find((c) => c.email === 'buyer@pawsome.test')).toMatchObject({
+    expect(body.data.find((c) => c.email === 'buyer@grocery.test')).toMatchObject({
       orderCount: 1,
     });
-    expect(body.data.find((c) => c.email === 'quiet@pawsome.test')).toMatchObject({
+    expect(body.data.find((c) => c.email === 'quiet@grocery.test')).toMatchObject({
       orderCount: 0,
       lastOrderAt: null,
     });
@@ -204,15 +204,15 @@ describe('GET /admin/customers', () => {
   });
 
   it('paginates and searches by email or name', async () => {
-    await createUser({ email: 'ada@pawsome.test', firstName: 'Ada', lastName: 'Lovelace' });
-    await createUser({ email: 'grace@pawsome.test', firstName: 'Grace', lastName: 'Hopper' });
+    await createUser({ email: 'ada@grocery.test', firstName: 'Ada', lastName: 'Lovelace' });
+    await createUser({ email: 'grace@grocery.test', firstName: 'Grace', lastName: 'Hopper' });
     const emails = async (qs: string) =>
       bodyOf<{ data: { email: string }[] }>(
         await admin.shopper.call('get', `/admin/customers?${qs}`),
       ).data.map((c) => c.email);
-    expect(await emails('q=lovelace')).toEqual(['ada@pawsome.test']);
-    expect(await emails('q=grace hopper')).toEqual(['grace@pawsome.test']);
-    expect(await emails('q=PAWSOME')).toHaveLength(2);
+    expect(await emails('q=lovelace')).toEqual(['ada@grocery.test']);
+    expect(await emails('q=grace hopper')).toEqual(['grace@grocery.test']);
+    expect(await emails('q=GROCERY')).toHaveLength(2);
     const page = bodyOf<{ data: object[]; meta: { total: number; totalPages: number } }>(
       await admin.shopper.call('get', '/admin/customers?limit=1'),
     );

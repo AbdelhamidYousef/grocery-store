@@ -131,7 +131,7 @@ async function run(seed: number, steps: number) {
         await entry.shopper.addToCart(random.pick(variantIds), random.int(3) + 1);
       }
       const res = await entry.shopper.call('post', '/checkout', {
-        email: 'ada@pawsome.test',
+        email: 'ada@grocery.test',
         shippingAddress: TEST_ADDRESS,
         shippingMethodCode: 'standard',
       });
@@ -168,7 +168,7 @@ async function run(seed: number, steps: number) {
           order.number,
           random.pick([...requestableNext(order.status)]),
           {
-            actor: 'admin:test@pawsome.test',
+            actor: 'admin:test@grocery.test',
           },
         ),
       );
@@ -205,7 +205,7 @@ async function run(seed: number, steps: number) {
   for (const o of (await known()).filter((x) => x.status === 'pending_payment')) {
     await tolerate(() =>
       transitionOrder({ gateway: fake, log }, o.number, 'cancelled', {
-        actor: 'admin:test@pawsome.test',
+        actor: 'admin:test@grocery.test',
       }),
     );
   }

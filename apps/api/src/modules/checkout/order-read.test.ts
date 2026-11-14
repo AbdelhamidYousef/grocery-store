@@ -15,7 +15,7 @@ beforeEach(async () => {
 });
 
 const checkoutBody = {
-  email: 'ada@pawsome.test',
+  email: 'ada@grocery.test',
   shippingAddress: {
     fullName: 'Ada Lovelace',
     line1: '1 Bone Street',
@@ -132,7 +132,7 @@ describe('GET /checkout/orders/:number', () => {
     expect(order).toMatchObject({
       number,
       status: 'pending_payment',
-      email: 'ada@pawsome.test',
+      email: 'ada@grocery.test',
       notes: 'Ring twice',
       totals: { totalCents: 2590 },
       billingAddress: null,

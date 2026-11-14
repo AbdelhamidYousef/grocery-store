@@ -2,7 +2,7 @@
 // sent anywhere except the ids the strip asks the catalog about). Ids, not products: the strip
 // asks the API for current names and prices. Every storage access is guarded: private windows and
 // blocked storage throw, and the shop must work (without the strip) when they do.
-const KEY = 'pawsome.recently-viewed';
+const KEY = 'grocery.recently-viewed';
 export const RECENTLY_VIEWED_MAX = 12;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

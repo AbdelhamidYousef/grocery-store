@@ -64,7 +64,7 @@ async function pendingOrder() {
   const shopper = makeShopper(app);
   await shopper.addToCart(variants[0]!.id, 2);
   const res = await shopper.call('post', '/checkout', {
-    email: 'ada@pawsome.test',
+    email: 'ada@grocery.test',
     shippingAddress: address,
     shippingMethodCode: 'standard',
   });

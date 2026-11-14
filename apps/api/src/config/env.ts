@@ -89,10 +89,10 @@ export const envSchema = z
       .pipe(z.string().startsWith('re_', 'Resend API keys start with re_').optional()),
     // Resend without a verified domain only accepts `onboarding@resend.dev` as sender, and only
     // delivers to the account owner's address.
-    MAIL_FROM: z.string().trim().min(3).default('Pawsome <orders@pawsome.test>'),
+    MAIL_FROM: z.string().trim().min(3).default('Grocery <orders@grocery.test>'),
     // Where the contact form's notification for the shop goes (Mailpit locally). With the Resend
     // free tier and no verified domain it must be the account owner's address.
-    SHOP_INBOX_EMAIL: z.string().trim().min(3).default('hello@pawsome.test'),
+    SHOP_INBOX_EMAIL: z.string().trim().min(3).default('hello@grocery.test'),
     // Review photo uploads (phase 17). Relative paths resolve from apps/api. UPLOADS_ENABLED=false
     // turns live upload off (the public demo: Render's free disk is ephemeral, see lib/uploads.ts).
     UPLOAD_DIR: z.string().trim().min(1).default('uploads'),

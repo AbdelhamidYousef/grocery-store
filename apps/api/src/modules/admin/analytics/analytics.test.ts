@@ -20,7 +20,7 @@ const app = makeTestApp();
 let admin: Shopper;
 
 beforeEach(async () => {
-  admin = (await signedIn(app, 'admin', 'boss@pawsome.test')).shopper;
+  admin = (await signedIn(app, 'admin', 'boss@grocery.test')).shopper;
   await createShippingMethods();
 });
 

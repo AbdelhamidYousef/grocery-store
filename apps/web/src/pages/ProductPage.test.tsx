@@ -22,7 +22,7 @@ describe('product page', () => {
     expect(attrs.getByText('Material')).toBeInTheDocument();
     expect(attrs.getByText('Cotton rope')).toBeInTheDocument();
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ name: 'view_item' }));
-    expect(document.title).toBe('Rope Tug | Pawsome');
+    expect(document.title).toBe('Rope Tug | Grocery');
     spy.mockRestore();
   });
 

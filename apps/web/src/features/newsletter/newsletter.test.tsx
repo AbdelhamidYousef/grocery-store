@@ -24,7 +24,7 @@ describe('newsletter sign-up', () => {
     expect(await screen.findByText('Please tick the box to subscribe')).toBeInTheDocument();
     expect(bodies).toHaveLength(0);
 
-    await user.click(screen.getByLabelText(/Send me Pawsome news/));
+    await user.click(screen.getByLabelText(/Send me Grocery news/));
     await user.click(screen.getByRole('button', { name: /subscribe/i }));
     expect(await screen.findByTestId('newsletter-done')).toHaveTextContent('confirmation link');
     expect(bodies[0]).toMatchObject({ email: 'pat@example.com', pets: ['dog'], consent: true });

@@ -5,8 +5,8 @@ import type { EmailKey } from './en.ts';
 // Deutsche E-Mail-Texte (Sie-Form). Dieselben Schlüssel und Platzhalter wie en.ts.
 export const de: Record<EmailKey, TextEntry> = {
   'mail.footer':
-    'Pawsome ist ein fiktiver Demo-Shop für ein Portfolio. Nichts hier ist echt und keine Karte wurde belastet.',
-  'mail.signoff': '- Ihr Pawsome-Team',
+    'Grocery ist ein fiktiver Demo-Shop für ein Portfolio. Nichts hier ist echt und keine Karte wurde belastet.',
+  'mail.signoff': '- Ihr Grocery-Team',
   'mail.hello': 'Hallo {name},',
   'mail.seeOrder': 'Bestellung ansehen',
   'mail.orderLine': 'Bestellung: {url}',
@@ -20,7 +20,7 @@ export const de: Record<EmailKey, TextEntry> = {
   'order.shippingTo': 'Lieferadresse:',
   'order.deliveringTo': 'Wir liefern an:',
 
-  'confirm.subject': 'Ihre Pawsome-Bestellung {number} ist bestätigt',
+  'confirm.subject': 'Ihre Grocery-Bestellung {number} ist bestätigt',
   'confirm.thanks': 'Vielen Dank für Ihre Bestellung, {name}!',
   'confirm.paid': 'Die Bestellung {number} ist bezahlt und wir machen sie versandfertig.',
   'confirm.willEmail': 'Wir schreiben Ihnen noch einmal, sobald sie versendet wird.',
@@ -32,7 +32,7 @@ export const de: Record<EmailKey, TextEntry> = {
   'confirm.track': 'Bestellung verfolgen',
   'confirm.trackNote': '(Sie brauchen dafür die E-Mail-Adresse, mit der Sie bestellt haben).',
 
-  'shipped.subject': 'Ihre Pawsome-Bestellung {number} ist unterwegs',
+  'shipped.subject': 'Ihre Grocery-Bestellung {number} ist unterwegs',
   'shipped.good': 'Gute Nachrichten, {name}: Die Bestellung {number} wurde versendet!',
   'shipped.method': 'Versandart: {method}',
   'shipped.preheader': 'Bestellung {number} wurde versendet.',
@@ -61,7 +61,7 @@ export const de: Record<EmailKey, TextEntry> = {
   'return.approved.l1':
     'Gute Nachrichten: Ihre Rücksendung {ref} zur Bestellung {order} ist genehmigt.',
   'return.approved.l2':
-    'So senden Sie zurück: Verpacken Sie {list} wenn möglich in der Originalverpackung, schreiben Sie {ref} auf das Paket und schicken Sie es an Pawsome Returns, 1 Bone Street, Riga LV-1010 (eine erfundene Adresse: Dies ist ein Demo-Shop).',
+    'So senden Sie zurück: Verpacken Sie {list} wenn möglich in der Originalverpackung, schreiben Sie {ref} auf das Paket und schicken Sie es an Grocery Returns, 1 Bone Street, Riga LV-1010 (eine erfundene Adresse: Dies ist ein Demo-Shop).',
   'return.approved.l3':
     'Sobald das Paket angekommen und geprüft ist, erstatten wir Ihnen den Betrag und schreiben Ihnen erneut.',
   'return.rejected.subject': 'Zu Ihrer Rücksendung {ref}',
@@ -85,12 +85,12 @@ export const de: Record<EmailKey, TextEntry> = {
     'Sie erscheint in der Regel innerhalb weniger Tage auf Ihrer Karte, je nach Bank.',
 
   'news.unsub.text':
-    'Sie erhalten diese E-Mail, weil Sie die Pawsome-News abonniert haben. Mit einem Klick abmelden: {url}',
-  'news.unsub.lead': 'Sie erhalten diese E-Mail, weil Sie die Pawsome-News abonniert haben.',
+    'Sie erhalten diese E-Mail, weil Sie die Grocery-News abonniert haben. Mit einem Klick abmelden: {url}',
+  'news.unsub.lead': 'Sie erhalten diese E-Mail, weil Sie die Grocery-News abonniert haben.',
   'news.unsub.link': 'Mit einem Klick abmelden',
-  'news.confirm.subject': 'Bestätigen Sie Ihr Pawsome-Abonnement',
+  'news.confirm.subject': 'Bestätigen Sie Ihr Grocery-Abonnement',
   'news.confirm.l1':
-    'Noch ein Schritt: Bitte bestätigen Sie, dass Sie Pawsome-News, Angebote und Haustier-Tipps erhalten möchten.',
+    'Noch ein Schritt: Bitte bestätigen Sie, dass Sie Grocery-News, Angebote und Haustier-Tipps erhalten möchten.',
   'news.confirm.link': 'Bestätigen: {url}',
   'news.confirm.button': 'Ja, anmelden',
   'news.confirm.hours': {
@@ -100,7 +100,7 @@ export const de: Record<EmailKey, TextEntry> = {
   },
   'news.confirm.preheader': 'Bestätigen Sie Ihre Adresse, um Ihren Willkommenscode zu erhalten',
   'news.confirm.heading': 'Bestätigen Sie Ihr Abonnement',
-  'news.welcome.subject': 'Willkommen bei Pawsome: {percent} % Rabatt auf Ihre erste Bestellung',
+  'news.welcome.subject': 'Willkommen bei Grocery: {percent} % Rabatt auf Ihre erste Bestellung',
   'news.welcome.l1': 'Sie sind dabei. Danke für Ihre Anmeldung!',
   'news.welcome.code': 'Ihr Willkommenscode: {code}',
   'news.welcome.terms': {
@@ -130,7 +130,7 @@ export const de: Record<EmailKey, TextEntry> = {
   'contact.topic.other': 'Etwas anderes',
   'contact.ack.subject': 'Wir haben Ihre Nachricht erhalten ({reference})',
   'contact.ack.l1':
-    'Vielen Dank für Ihre Nachricht an Pawsome. Eine Person antwortet an diese Adresse, in der Regel innerhalb von zwei Werktagen.',
+    'Vielen Dank für Ihre Nachricht an Grocery. Eine Person antwortet an diese Adresse, in der Regel innerhalb von zwei Werktagen.',
   'contact.ack.reference': 'Referenz: {reference}',
   'contact.ack.topic': 'Thema: {topic}',
   'contact.ack.order': 'Bestellung: {order}',
@@ -141,7 +141,7 @@ export const de: Record<EmailKey, TextEntry> = {
   'safety.recall': 'Produktrückruf: {title}',
   'safety.notice': 'Produktsicherheitshinweis: {title}',
   'safety.reason':
-    'Sie erhalten diese Nachricht, weil Sie ein betroffenes Produkt bei Pawsome gekauft haben.',
+    'Sie erhalten diese Nachricht, weil Sie ein betroffenes Produkt bei Grocery gekauft haben.',
   'review.subject': 'Ihre Bewertung von {product} ist veröffentlicht',
   'review.l1':
     'Vielen Dank für Ihre Bewertung von {product}! Sie hat unsere Prüfung bestanden und steht jetzt auf der Produktseite, wo sie anderen Tierhaltern bei der Auswahl hilft.',

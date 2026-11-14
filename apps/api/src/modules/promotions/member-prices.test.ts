@@ -144,7 +144,7 @@ describe('cart and checkout charge the member price', () => {
     country: 'DE',
   };
   const checkoutBody = {
-    email: 'ada@pawsome.test',
+    email: 'ada@grocery.test',
     shippingAddress: addr,
     shippingMethodCode: 'standard',
   };
@@ -219,7 +219,7 @@ describe('cart and checkout charge the member price', () => {
 
 describe('admin member price', () => {
   it('appends a member history row when set or changed, and none when unchanged or cleared', async () => {
-    const admin = await signedIn(app, 'admin', 'boss@pawsome.test');
+    const admin = await signedIn(app, 'admin', 'boss@grocery.test');
     const p = await memberProduct(null, 2000);
     const patch = (body: object) => admin.shopper.call('patch', `/admin/variants/${p.id}`, body);
     expect((await patch({ memberPriceCents: 1800 })).status).toBe(200);
@@ -242,7 +242,7 @@ describe('admin member price', () => {
   });
 
   it('refuses a member price at or above the regular price', async () => {
-    const admin = await signedIn(app, 'admin', 'boss@pawsome.test');
+    const admin = await signedIn(app, 'admin', 'boss@grocery.test');
     const p = await memberProduct(null, 2000);
     const patch = (body: object) => admin.shopper.call('patch', `/admin/variants/${p.id}`, body);
     expect((await patch({ memberPriceCents: 2000 })).status).toBe(400);
@@ -253,7 +253,7 @@ describe('admin member price', () => {
   });
 
   it('records the member price of a new variant in the history', async () => {
-    const admin = await signedIn(app, 'admin', 'boss@pawsome.test');
+    const admin = await signedIn(app, 'admin', 'boss@grocery.test');
     const p = await memberProduct(null);
     const res = await admin.shopper.call('post', `/admin/products/${p.productId}/variants`, {
       sku: 'MEMBER-SKU-1',

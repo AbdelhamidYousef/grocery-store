@@ -1,6 +1,6 @@
 ## Who we are
 
-Pawsome is a make-believe pet shop. We were dreamed up for a portfolio project, so there is no warehouse, no staff and no parcel on its way to you.
+Grocery is a make-believe pet shop. We were dreamed up for a portfolio project, so there is no warehouse, no staff and no parcel on its way to you.
 
 ## What we pretend to care about
 

@@ -6,7 +6,7 @@ import { envSchema } from '../config/env.ts';
 import { createMailTransport, MemoryTransport } from './mailer.ts';
 
 const log = pino({ level: 'silent' });
-const from = 'Pawsome <orders@pawsome.test>';
+const from = 'Grocery <orders@grocery.test>';
 
 describe('createMailTransport', () => {
   it('is disabled in production without any mail configuration (the API still boots)', () => {
@@ -34,7 +34,7 @@ describe('mail environment variables', () => {
     COOKIE_SECRET: 'x'.repeat(32),
     STRIPE_SECRET_KEY: 'sk_test_x',
     STRIPE_WEBHOOK_SECRET: 'whsec_x',
-    WEB_ORIGIN: 'https://pawsome.example.app',
+    WEB_ORIGIN: 'https://grocery.example.app',
   };
 
   it('are all optional, in production too', () => {

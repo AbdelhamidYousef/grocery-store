@@ -160,7 +160,7 @@ describe('related and recently viewed on the product page', () => {
     expect(within(strip).getByText('Seen Before')).toBeInTheDocument();
     expect(asked).toBe(other);
     // The page recorded its own id, first in the list.
-    expect(window.localStorage.getItem('pawsome.recently-viewed')).toContain('p1');
+    expect(window.localStorage.getItem('grocery.recently-viewed')).toContain('p1');
   });
 
   it('shows no strip for a first-time visitor and asks the API for nothing', async () => {

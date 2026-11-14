@@ -43,7 +43,7 @@ export async function placeOrder(
   const added = await shopper.addToCart(variantId, opts.quantity ?? 2);
   if (added.status >= 400) throw new Error(`add to cart failed: ${added.status}`);
   const res = await shopper.call('post', '/checkout', {
-    email: opts.email ?? 'ada@pawsome.test',
+    email: opts.email ?? 'ada@grocery.test',
     shippingAddress: TEST_ADDRESS,
     shippingMethodCode: 'standard',
   });
@@ -112,7 +112,7 @@ export async function deliveredOrder(
   const buyer = await signedIn(
     app,
     'customer',
-    `buyer${Math.random().toString(36).slice(2, 8)}@pawsome.test`,
+    `buyer${Math.random().toString(36).slice(2, 8)}@grocery.test`,
   );
   const placed = await placeOrder(app, {
     shopper: buyer.shopper,

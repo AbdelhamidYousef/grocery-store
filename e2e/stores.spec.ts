@@ -181,14 +181,14 @@ test('German store: German words and euros; English store: euros, checkout, Engl
   await page.goto(`/de-de/products/${PRODUCT}`);
   await expect(page.getByTestId('add-to-cart')).toHaveText('In den Warenkorb');
   await expect(page.getByTestId('price-current').first()).toContainText('€');
-  const deMail = `de-${Date.now()}@pawsome.test`;
+  const deMail = `de-${Date.now()}@grocery.test`;
   const deNumber = await buyIn(page, 'de-de', deMail, 'DE');
   await page.goto(`/de-de/checkout/confirmation/${deNumber}`);
   await expect(page.getByTestId('confirmation-status')).toHaveAttribute('data-state', 'paid', {
     timeout: 15_000,
   });
   await expect(page.getByTestId('order-summary').getByTestId('order-total')).toContainText('€');
-  expect(await mailSubject(deMail)).toBe(`Ihre Pawsome-Bestellung ${deNumber} ist bestätigt`);
+  expect(await mailSubject(deMail)).toBe(`Ihre Grocery-Bestellung ${deNumber} ist bestätigt`);
 
   // --- switch to /de-en: English words, still euros ---
   await page.getByTestId('store-switcher').selectOption('de-en');
@@ -204,7 +204,7 @@ test('German store: German words and euros; English store: euros, checkout, Engl
   await expect(page.getByTestId('cart-line').first()).toContainText('€');
 
   // --- checkout through the fake gateway: the confirmation shows euros, the mail is English ---
-  const enMail = `en-${Date.now()}@pawsome.test`;
+  const enMail = `en-${Date.now()}@grocery.test`;
   const enNumber = await buyIn(page, 'de-en', enMail, 'DE');
   await page.goto(`/de-en/checkout/confirmation/${enNumber}`);
   await expect(page.getByTestId('confirmation-status')).toHaveAttribute('data-state', 'paid', {
@@ -212,7 +212,7 @@ test('German store: German words and euros; English store: euros, checkout, Engl
   });
   const total = page.getByTestId('order-summary').getByTestId('order-total');
   await expect(total).toContainText('€');
-  expect(await mailSubject(enMail)).toBe(`Your Pawsome order ${enNumber} is confirmed`);
+  expect(await mailSubject(enMail)).toBe(`Your Grocery order ${enNumber} is confirmed`);
 
   // A French address is refused: the shop ships to Germany only.
   await page.goto(`/de-en/products/${PRODUCT}`);

@@ -25,7 +25,7 @@ function withTrackedKicks(real: Outbox): Outbox {
 }
 
 // One folder per test process: nothing in the repo is ever written by the suite.
-export const TEST_UPLOAD_DIR = join(tmpdir(), `pawsome-test-uploads-${process.pid}`);
+export const TEST_UPLOAD_DIR = join(tmpdir(), `grocery-test-uploads-${process.pid}`);
 export const TEST_ORIGIN = 'http://localhost:5174';
 export const TEST_HOOK_SECRET = 'unit-test-hook-secret-0000';
 

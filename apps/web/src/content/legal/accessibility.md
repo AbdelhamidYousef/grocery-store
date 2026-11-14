@@ -1,6 +1,6 @@
 ## Our aim
 
-We want everyone to be able to use Pawsome. We aim to meet the Web Content Accessibility Guidelines (WCAG) 2.2 level AA.
+We want everyone to be able to use Grocery. We aim to meet the Web Content Accessibility Guidelines (WCAG) 2.2 level AA.
 
 ## What we do
 

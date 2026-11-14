@@ -15,7 +15,7 @@ import { imageRowsFor } from './images.ts';
 // Photos reuse the catalogue's own product pictures (`/products/...`, already committed and
 // credited in apps/web/public/products/CREDITS.md): no new art, and nothing to keep in step.
 
-export const REVIEWER_EMAIL_DOMAIN = '@pawsome.test';
+export const REVIEWER_EMAIL_DOMAIN = '@grocery.test';
 const REVIEWER_NAMES: [string, string][] = [
   ['Mara', 'Kowalski'],
   ['Jonas', 'Berg'],

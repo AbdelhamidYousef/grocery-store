@@ -54,7 +54,7 @@ export const content: Record<keyof typeof enNs, Entry> = {
   // Legal pages (the Markdown bodies stay English)
   'content.legal.notice':
     'Demo-Shop, fiktives Unternehmen. Dieser Text ist ein Beispiel und stellt keine Rechtsberatung dar.',
-  'content.legal.about.title': 'Über Pawsome',
+  'content.legal.about.title': 'Über Grocery',
   'content.legal.about.description': 'Wer hinter diesem Demo-Tiershop steckt.',
   'content.legal.shipping.title': 'Versand',
   'content.legal.shipping.description': 'Lieferoptionen, Preise und Zeiten.',
@@ -73,7 +73,7 @@ export const content: Record<keyof typeof enNs, Entry> = {
 
   // Contact
   'content.contact.title': 'Kontakt',
-  'content.contact.seoDescription': 'Schreiben Sie dem Pawsome-Team.',
+  'content.contact.seoDescription': 'Schreiben Sie dem Grocery-Team.',
   'content.contact.intro':
     'Fragen zu einer Bestellung, einem Produkt oder Ihren Daten? Schreiben Sie uns, und ein Mensch antwortet Ihnen. Vielleicht finden Sie schnell eine Antwort im',
   'content.contact.helpLink': 'Hilfecenter',
@@ -108,7 +108,7 @@ export const content: Record<keyof typeof enNs, Entry> = {
   // /developers
   'content.dev.seoTitle': 'Für Entwickler: Agent-Tools',
   'content.dev.seoDescription':
-    'Pawsome bietet strukturierte WebMCP-Tools, damit KI-Agenten im Browser den Demo-Katalog durchsuchen und einen Warenkorb füllen können. Experimentell, nur Testdaten.',
+    'Grocery bietet strukturierte WebMCP-Tools, damit KI-Agenten im Browser den Demo-Katalog durchsuchen und einen Warenkorb füllen können. Experimentell, nur Testdaten.',
   'content.dev.title': 'Einkaufen mit einem KI-Agenten',
   'content.dev.note':
     'Dies ist ein Demo-Shop mit Testdaten, und WebMCP ist eine experimentelle Browser-Funktion. Nichts davon ist eine stabile öffentliche API.',

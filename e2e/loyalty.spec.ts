@@ -138,18 +138,18 @@ test('newsletter: confirm from the inbox, get the welcome code, use it once', as
   // The consent box is a real choice: without it nothing is sent.
   await form.getByRole('button', { name: /subscribe/i }).click();
   await expect(form.getByText('Please tick the box to subscribe')).toBeVisible();
-  await form.getByLabel(/Send me Pawsome news/).check();
+  await form.getByLabel(/Send me Grocery news/).check();
   await form.getByRole('button', { name: /subscribe/i }).click();
   await expect(page.getByTestId('newsletter-done')).toBeVisible();
 
   // Double opt-in: only the click in the inbox confirms. No welcome mail exists yet.
-  const confirmMail = await mailText(email, /Confirm your Pawsome subscription/);
+  const confirmMail = await mailText(email, /Confirm your Grocery subscription/);
   const link = confirmMail.match(/https?:\/\/\S+\/newsletter\/confirm\?token=\S+/)?.[0];
   expect(link, confirmMail).toBeTruthy();
   await page.goto(new URL(link!).pathname + new URL(link!).search);
   await expect(page.getByTestId('newsletter-confirmed')).toContainText('You are subscribed');
 
-  const welcome = await mailText(email, /Welcome to Pawsome/);
+  const welcome = await mailText(email, /Welcome to Grocery/);
   const code = welcome.match(/WELCOME-[A-Z0-9]{4}/)?.[0];
   expect(code, welcome).toBeTruthy();
   expect(welcome).toMatch(/newsletter\/unsubscribe\?token=/);

@@ -20,7 +20,7 @@ export const loyalty = {
     '(a pretend shelter) has received {amount} so far. Demo only: no money moves.',
   'loyalty.charity.seoTitle': 'Our shelter',
   'loyalty.charity.seoDescription':
-    'Whisker Hollow Rescue, the (fictional) shelter Pawsome supports. A demo: no money moves.',
+    'Whisker Hollow Rescue, the (fictional) shelter Grocery supports. A demo: no money moves.',
   'loyalty.charity.note':
     'This is a demo store and the shelter is made up. Donations here are counted, but no money moves anywhere.',
   'loyalty.charity.error': 'We could not load the total just now.',
@@ -125,7 +125,7 @@ export const loyalty = {
 
   // Newsletter
   'loyalty.newsletter.seoTitle': 'Newsletter',
-  'loyalty.newsletter.seoDescription': 'Pet tips and offers from Pawsome.',
+  'loyalty.newsletter.seoDescription': 'Pet tips and offers from Grocery.',
   'loyalty.newsletter.pageTitle': 'Join the pack',
   'loyalty.newsletter.pageText':
     'Subscribe and get 10% off your first order once you confirm your address.',
@@ -136,7 +136,7 @@ export const loyalty = {
   'loyalty.newsletter.email': 'Email',
   'loyalty.newsletter.pets': 'Which pets do you have?',
   'loyalty.newsletter.consent':
-    'Send me Pawsome news, offers and tips for my pets. I can unsubscribe with one click at any time.',
+    'Send me Grocery news, offers and tips for my pets. I can unsubscribe with one click at any time.',
   'loyalty.newsletter.consentRequired': 'Please tick the box to subscribe',
   'loyalty.newsletter.honeypot': 'Leave this empty',
   'loyalty.newsletter.submit': 'Subscribe and get 10% off',
