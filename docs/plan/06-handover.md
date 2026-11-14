@@ -82,7 +82,7 @@ Lanes for wave 2 are listed in the table; everything else is on `main`. Tax stay
 Paused on 2026-11-08 at the owner's request. To resume:
 - Both builders were stopped mid-step; their unfinished work is uncommitted in the worktrees (`git -C ../ecommerce-p16 status`, `git -C ../ecommerce-p15 status`). Finish and commit that step first (gates below), then continue with the next step in the phase doc.
 - Phase 16 16.7 (in progress): shared `delivery.ts` + tests, a checkout/shipping API change, and `DeliveryEstimate` on the PDP. Its journal and decisions lines are staged in that worktree.
-- Phase 19 19.1 (in progress): only the `job_runs` table and its generated migration `0018_job_runs` exist. Phase 16's migrations will also need numbers: whichever of 16 and 19 merges second regenerates its migrations on top of `main` (drizzle-kit generate, re-append hand-written triggers, drop stale `_journal.json` entries).
+- Phase 19 19.1 (in progress): only the `job_runs` table and its generated migration `0020_job_runs` exist. Phase 16's migrations will also need numbers: whichever of 16 and 19 merges second regenerates its migrations on top of `main` (drizzle-kit generate, re-append hand-written triggers, drop stale `_journal.json` entries).
 - Merge order stays 16, 17, 19. Review each phase's diff before it merges; update this table and the README test counts at each merge.
 - Gates before every commit: delete stale `*.tsbuildinfo` outside node_modules, `pnpm typecheck && pnpm lint && pnpm format:check`, then the unit suites one package at a time; before `pnpm e2e`, check the lane's e2e ports with `ss -ltnp`.
 
