@@ -1,6 +1,5 @@
 export * from './delivery.ts';
 export * from './errors.ts';
-export * from './feeding.ts';
 export * from './money.ts';
 export * from './pets.ts';
 export * from './pet-profiles.ts';

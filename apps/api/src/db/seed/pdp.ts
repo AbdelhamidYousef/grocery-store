@@ -1,4 +1,4 @@
-import { findBandProblems, type FeedingRow, type SizeGuideTable } from '@store/shared';
+import type { SizeGuideTable } from '@store/shared';
 
 import type { ProductSeed } from './expand.ts';
 
@@ -9,7 +9,6 @@ import type { ProductSeed } from './expand.ts';
 export interface PdpSeed {
   specs: { label: string; value: string }[];
   faqs: { question: string; answer: string }[];
-  feeding: FeedingRow[];
   /** Basis points per key (kcal is plain kcal per 100 g); same for every variant of the product. */
   constituents: Record<'protein' | 'fat' | 'fibre' | 'ash' | 'moisture' | 'kcal', number> | null;
   sizeGuideSlug: string | null;
@@ -36,55 +35,6 @@ const FED_CATEGORIES = new Set([
   'fish-food',
   'reptile-food',
 ]);
-// Pets whose treats and foods get a weight-based feeding table.
-const FEEDING_CATEGORIES = new Set(['dog-treats', 'cat-treats', 'small-food']);
-
-// Weight bands in grams of pet weight (half-open), and daily grams per band. Treat allowances are
-// deliberately small: a treat is not a meal.
-const BANDS: Record<string, { min: number; max: number; daily: number }[]> = {
-  'dog-treats': [
-    { min: 1000, max: 5000, daily: 15 },
-    { min: 5000, max: 10000, daily: 30 },
-    { min: 10000, max: 20000, daily: 50 },
-    { min: 20000, max: 30000, daily: 70 },
-    { min: 30000, max: 45000, daily: 90 },
-  ],
-  'cat-treats': [
-    { min: 2000, max: 3500, daily: 8 },
-    { min: 3500, max: 5000, daily: 12 },
-    { min: 5000, max: 7000, daily: 16 },
-    { min: 7000, max: 10000, daily: 20 },
-  ],
-  'small-food': [
-    { min: 100, max: 500, daily: 12 },
-    { min: 500, max: 1000, daily: 25 },
-    { min: 1000, max: 2000, daily: 45 },
-    { min: 2000, max: 4000, daily: 70 },
-  ],
-};
-
-function feedingFor(p: ProductSeed): FeedingRow[] {
-  if (!FEEDING_CATEGORIES.has(p.categorySlug)) return [];
-  const bands = BANDS[p.categorySlug] ?? [];
-  // Puppies and kittens eat more for their weight; a senior table is a little lower. Products for
-  // all ages share one table (`any`).
-  const stages =
-    p.ageStage === 'puppy' || p.ageStage === 'kitten'
-      ? ([['puppy', 130]] as const)
-      : p.ageStage === 'senior'
-        ? ([['senior', 90]] as const)
-        : ([['any', 100]] as const);
-  return stages.flatMap(([lifeStage, percent]) =>
-    bands.map((b) => ({
-      petWeightGMin: b.min,
-      petWeightGMax: b.max,
-      // Integer maths: round half up of daily * percent / 100.
-      dailyG: Math.floor((b.daily * percent + 50) / 100),
-      lifeStage,
-    })),
-  );
-}
-
 function constituentsFor(p: ProductSeed): PdpSeed['constituents'] {
   if (!FED_CATEGORIES.has(p.categorySlug)) return null;
   const h = hash(p.slug);
@@ -142,7 +92,7 @@ function faqsFor(p: ProductSeed): PdpSeed['faqs'] {
       {
         question: 'Can it replace a regular meal?',
         answer:
-          'No. It is a complementary product: use the feeding guide for a daily amount and cut the main meal a little on days you give more.',
+          'No. It is a complementary product: cut the main meal a little on days you give more.',
       },
       {
         question: 'What if my pet is not eating it?',
@@ -189,7 +139,6 @@ export function pdpFor(p: ProductSeed): PdpSeed {
   return {
     specs: specsFor(p),
     faqs: faqsFor(p),
-    feeding: feedingFor(p),
     constituents: constituentsFor(p),
     sizeGuideSlug: sizeGuideFor(p),
     deliveryNote: deliveryNoteFor(p),
@@ -259,11 +208,3 @@ export const sizeGuides: SizeGuideSeed[] = [
     tip: 'In between sizes? Size up.',
   },
 ];
-
-// Fails the seed (and its test) if any generated feeding table has a gap or an overlap.
-export function assertFeedingTablesTile(products: readonly ProductSeed[]): void {
-  for (const p of products) {
-    const problems = findBandProblems(feedingFor(p));
-    if (problems.length > 0) throw new Error(`feeding table of ${p.slug}: ${problems[0]?.message}`);
-  }
-}

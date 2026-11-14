@@ -2,7 +2,6 @@ import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 
 import { db, type Tx } from '../../../db/client.ts';
 import {
-  feedingRows,
   productFaqs,
   productRelations,
   productSpecs,
@@ -48,18 +47,6 @@ export const listFaqs = (run: Run, productId: string) =>
     .where(eq(productFaqs.productId, productId))
     .orderBy(asc(productFaqs.sortOrder), asc(productFaqs.id));
 
-export const listFeeding = (run: Run, productId: string) =>
-  run
-    .select({
-      petWeightGMin: feedingRows.petWeightGMin,
-      petWeightGMax: feedingRows.petWeightGMax,
-      dailyG: feedingRows.dailyG,
-      lifeStage: feedingRows.lifeStage,
-    })
-    .from(feedingRows)
-    .where(eq(feedingRows.productId, productId))
-    .orderBy(asc(feedingRows.lifeStage), asc(feedingRows.petWeightGMin));
-
 export const listVariantIds = (run: Run, productId: string) =>
   run
     .select({ id: productVariants.id })
@@ -103,15 +90,6 @@ export async function replaceFaqs(
       .insert(productFaqs)
       .values(faqs.map((f, sortOrder) => ({ productId, ...f, sortOrder })));
   }
-}
-
-export async function replaceFeeding(
-  tx: Tx,
-  productId: string,
-  rows: Omit<typeof feedingRows.$inferInsert, 'productId'>[],
-) {
-  await tx.delete(feedingRows).where(eq(feedingRows.productId, productId));
-  if (rows.length > 0) await tx.insert(feedingRows).values(rows.map((r) => ({ ...r, productId })));
 }
 
 export async function replaceConstituents(

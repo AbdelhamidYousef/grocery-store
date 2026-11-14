@@ -22,7 +22,6 @@ import {
   categories,
   collectionProducts,
   collections,
-  feedingRows,
   inventory,
   orderItems,
   orders,
@@ -569,12 +568,6 @@ export interface ProductDetailRows {
   deliveryNote: string | null;
   specs: { label: string; value: string }[];
   faqs: { id: string; question: string; answer: string }[];
-  feeding: {
-    petWeightGMin: number;
-    petWeightGMax: number;
-    dailyG: number;
-    lifeStage: 'puppy' | 'adult' | 'senior' | 'any';
-  }[];
   sizeGuide: SizeGuideRow | null;
   /** variant id -> constituents, so the Specs tab can follow the selected variant. */
   constituents: Map<string, { key: ConstituentKey; valueBp: number }[]>;
@@ -696,10 +689,10 @@ export async function getProductBySlug(slug: string): Promise<ProductDetailRows 
   };
 }
 
-// The structured content of a product page (phase 16): specs, FAQs, feeding table, size guide and
-// the per-variant constituents. Five small indexed reads, run together.
+// The structured content of a product page (phase 16): specs, FAQs, size guide and
+// the per-variant constituents. Four small indexed reads, run together.
 async function getContent(productId: string, sizeGuideId: string | null) {
-  const [specs, faqs, feeding, guide, constituentRows] = await Promise.all([
+  const [specs, faqs, guide, constituentRows] = await Promise.all([
     db
       .select({ label: productSpecs.label, value: productSpecs.value })
       .from(productSpecs)
@@ -710,16 +703,6 @@ async function getContent(productId: string, sizeGuideId: string | null) {
       .from(productFaqs)
       .where(eq(productFaqs.productId, productId))
       .orderBy(asc(productFaqs.sortOrder), asc(productFaqs.id)),
-    db
-      .select({
-        petWeightGMin: feedingRows.petWeightGMin,
-        petWeightGMax: feedingRows.petWeightGMax,
-        dailyG: feedingRows.dailyG,
-        lifeStage: feedingRows.lifeStage,
-      })
-      .from(feedingRows)
-      .where(eq(feedingRows.productId, productId))
-      .orderBy(asc(feedingRows.lifeStage), asc(feedingRows.petWeightGMin)),
     sizeGuideId
       ? db
           .select({
@@ -748,7 +731,7 @@ async function getContent(productId: string, sizeGuideId: string | null) {
     list.push({ key: r.key as ConstituentKey, valueBp: r.valueBp });
     constituents.set(r.variantId, list);
   }
-  return { specs, faqs, feeding, sizeGuide: guide[0] ?? null, constituents };
+  return { specs, faqs, sizeGuide: guide[0] ?? null, constituents };
 }
 
 // ---------- swatches ----------

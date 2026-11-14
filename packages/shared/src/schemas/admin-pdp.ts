@@ -1,7 +1,5 @@
 import { z } from 'zod';
 
-import { FeedingRowSchema, FeedingTableInputSchema } from '../feeding.ts';
-
 import { DataSchema, optionalText } from './common.ts';
 import { ConstituentSchema, SizeGuideTableSchema, SpecSchema } from './pdp.ts';
 
@@ -64,7 +62,6 @@ export const AdminProductContentInputSchema = z.object({
     })
     .optional(),
   faqs: z.array(AdminFaqInputSchema).max(20).optional(),
-  feedingTable: FeedingTableInputSchema.optional(),
   constituents: z.array(AdminConstituentsInputSchema).max(60).optional(),
   deliveryNote: optionalText(300),
   sizeGuideId: z.uuid().nullable().optional(),
@@ -99,7 +96,6 @@ export type AdminProductContentInput = z.input<typeof AdminProductContentInputSc
 export const AdminProductContentSchema = z.object({
   specs: z.array(SpecSchema),
   faqs: z.array(AdminFaqInputSchema.extend({ id: z.string() })),
-  feedingTable: z.array(FeedingRowSchema),
   constituents: z.array(z.object({ variantId: z.string(), values: z.array(ConstituentSchema) })),
   deliveryNote: z.string().nullable(),
   sizeGuideId: z.string().nullable(),

@@ -51,7 +51,6 @@ export const TEST_IDS = {
   pageSearch: 'page-search',
   pageProduct: 'page-product',
   productTabs: 'product-tabs',
-  feedingCalculator: 'feeding-calculator',
   deliveryEstimate: 'delivery-estimate',
   bundlePanel: 'bundle-panel',
   bundleSaving: 'bundle-saving',

@@ -19,7 +19,6 @@ beforeEach(() => {
 const content = (over: Record<string, unknown> = {}) => ({
   specs: [{ label: 'Origin', value: 'Nowhere' }],
   faqs: [{ id: 'f1', question: 'Is it washable?', answer: 'Yes.' }],
-  feedingTable: [{ petWeightGMin: 0, petWeightGMax: 5000, dailyG: 40, lifeStage: 'any' }],
   constituents: [
     { variantId: 'v1', values: [{ key: 'protein', valueBp: 2650 }] },
     { variantId: 'v2', values: [] },
@@ -54,7 +53,6 @@ describe('product content editor', () => {
       'Specs',
       'Constituents',
       'FAQ',
-      'Feeding',
       'Recommendations',
       'Size guide and delivery',
     ]);
@@ -77,40 +75,15 @@ describe('product content editor', () => {
     expect(within(section).queryByLabelText('Question 2')).toBeNull();
   });
 
-  it('saves percent as basis points and kg as grams', async () => {
+  it('saves percent as basis points', async () => {
     const user = userEvent.setup();
     const { section, saved } = await openContent();
-    await user.click(within(section).getByRole('tab', { name: 'Feeding' }));
-    await user.clear(within(section).getByLabelText('Band 1 up to (kg)'));
-    await user.type(within(section).getByLabelText('Band 1 up to (kg)'), '7.5');
     await user.click(within(section).getByRole('button', { name: 'Save page content' }));
     await waitFor(() => expect(saved()).toBeTruthy());
     const body = saved() as {
-      feedingTable: { petWeightGMax: number }[];
       constituents: { values: { key: string; valueBp: number }[] }[];
     };
-    expect(body.feedingTable[0]?.petWeightGMax).toBe(7500);
     expect(body.constituents[0]?.values).toEqual([{ key: 'protein', valueBp: 2650 }]);
-  });
-
-  it('flags a gap in the feeding table while typing and refuses to save it', async () => {
-    const user = userEvent.setup();
-    const { section, saved } = await openContent();
-    await user.click(within(section).getByRole('tab', { name: 'Feeding' }));
-    await user.click(within(section).getByRole('button', { name: 'Add a band' }));
-    // The new band starts where the last one ended; move it away to make a gap.
-    const from = within(section).getByLabelText('Band 2 from (kg)');
-    expect(from).toHaveValue('5');
-    await user.clear(from);
-    await user.type(from, '6');
-    await user.type(within(section).getByLabelText('Band 2 up to (kg)'), '10');
-    await user.type(within(section).getByLabelText('Band 2 grams a day'), '70');
-    expect(await within(section).findByText('Gap between 5 kg and 6 kg')).toBeInTheDocument();
-    await user.click(within(section).getByRole('button', { name: 'Save page content' }));
-    expect(
-      await within(section).findByRole('tab', { name: /Feeding \(needs attention\)/ }),
-    ).toBeInTheDocument();
-    expect(saved()).toBeUndefined();
   });
 
   it('shows the server sentence when the save is refused', async () => {

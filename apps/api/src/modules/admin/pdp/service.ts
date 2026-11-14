@@ -25,10 +25,9 @@ const fieldErrors = (errors: Record<string, string>) =>
 export async function getContent(productId: string): Promise<AdminProductContent> {
   const product = await repo.findProduct(db, productId);
   if (!product) throw notFound('Product not found');
-  const [specs, faqs, feedingTable, variants, relations] = await Promise.all([
+  const [specs, faqs, variants, relations] = await Promise.all([
     repo.listSpecs(db, productId),
     repo.listFaqs(db, productId),
-    repo.listFeeding(db, productId),
     repo.listVariantIds(db, productId),
     repo.listRelations(db, productId),
   ]);
@@ -39,7 +38,6 @@ export async function getContent(productId: string): Promise<AdminProductContent
   return {
     specs,
     faqs,
-    feedingTable,
     // One entry per variant (empty values when none stored), so the editor can render every row.
     constituents: variants.map((v) => ({
       variantId: v.id,
@@ -94,7 +92,6 @@ export async function putContent(
 
     if (input.specs) await repo.replaceSpecs(tx, productId, input.specs);
     if (input.faqs) await repo.replaceFaqs(tx, productId, input.faqs);
-    if (input.feedingTable) await repo.replaceFeeding(tx, productId, input.feedingTable);
     if (input.relations) await repo.replaceRelations(tx, productId, input.relations);
     for (const c of input.constituents ?? []) {
       await repo.replaceConstituents(tx, c.variantId, c.values);

@@ -29,7 +29,6 @@ export const pdp: Record<keyof typeof enNs, Entry> = {
   'pdp.tabs.label': 'Informations sur le produit',
   'pdp.tabs.description': 'Description',
   'pdp.tabs.specs': 'Caractéristiques',
-  'pdp.tabs.feeding': 'Guide d’alimentation',
   'pdp.tabs.delivery': 'Livraison et retours',
 
   // ---- specs ----
@@ -48,46 +47,6 @@ export const pdp: Record<keyof typeof enNs, Entry> = {
 
   // ---- FAQ ----
   'pdp.faq.heading': 'Questions et réponses',
-
-  // ---- feeding ----
-  'pdp.feeding.stage.any': 'Tous les stades de vie',
-  'pdp.feeding.stage.puppy': 'Chiot ou chaton',
-  'pdp.feeding.stage.adult': 'Adulte',
-  'pdp.feeding.stage.senior': 'Senior',
-  'pdp.feeding.table.caption':
-    'Quantité quotidienne selon le poids de l’animal. À titre indicatif.',
-  'pdp.feeding.table.stage': 'Stade de vie',
-  'pdp.feeding.table.weight': 'Poids de l’animal',
-  'pdp.feeding.table.perDay': 'Par jour',
-  'pdp.feeding.table.weightRange': '{from} à {to} kg',
-  'pdp.feeding.heading': 'Quelle quantité donner ?',
-  'pdp.feeding.weightLabel': 'Poids de l’animal (kg)',
-  'pdp.feeding.stageLabel': 'Stade de vie',
-  'pdp.feeding.mealsLabel': 'Repas par jour',
-  'pdp.feeding.sliderLabel': 'Curseur du poids de l’animal',
-  'pdp.feeding.invalidWeight': 'Saisissez le poids de votre animal en kg, par exemple 7,5.',
-  'pdp.feeding.daily.1': 'Environ {daily} par jour, un repas',
-  'pdp.feeding.daily.2': 'Environ {daily} par jour, deux repas de {portion}',
-  'pdp.feeding.daily.3': 'Environ {daily} par jour, trois repas de {portion}',
-  'pdp.feeding.daily.4': 'Environ {daily} par jour, quatre repas de {portion}',
-  'pdp.feeding.clampBelow':
-    'Notre guide commence à {from} kg : voici donc la quantité pour {from} kg. Demandez conseil à votre vétérinaire pour un animal aussi léger.',
-  'pdp.feeding.clampAbove':
-    'Notre guide s’arrête à {to} kg : voici donc la quantité pour {last} kg. Demandez conseil à votre vétérinaire pour un animal aussi lourd.',
-  'pdp.feeding.bagLessThanDay': 'Ce sac ne suffit pas pour une journée.',
-  'pdp.feeding.bagLasts': {
-    one: 'Ce sac dure environ {count} jour, soit environ {price} par jour.',
-    other: 'Ce sac dure environ {count} jours, soit environ {price} par jour.',
-  },
-  'pdp.feeding.pickMonth': 'Choisissez le format de sac qui dure un mois',
-  'pdp.feeding.pickMonthNote': {
-    one: '{name} : environ {count} jour.',
-    other: '{name} : environ {count} jours.',
-  },
-  'pdp.feeding.alreadyMonth': 'Ce format dure déjà un mois ou plus.',
-  'pdp.feeding.disclaimer':
-    'Un guide, pas un avis vétérinaire. Chaque animal est différent : demandez conseil à votre vétérinaire si votre animal est malade, gestant, très jeune ou très âgé.',
-  'pdp.feeding.rangeKg': '{value} kg',
 
   // ---- delivery panel ----
   'pdp.delivery.heading': 'Livraison',

@@ -130,7 +130,6 @@ export const server = setupServer(
       data: {
         specs: [],
         faqs: [],
-        feedingTable: [],
         constituents: [],
         deliveryNote: null,
         sizeGuideId: null,

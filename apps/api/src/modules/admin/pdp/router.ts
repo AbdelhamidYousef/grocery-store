@@ -14,7 +14,7 @@ import { setAudit } from '../audit.ts';
 
 import * as service from './service.ts';
 
-// Product-page content (specs, FAQs, feeding table, constituents, size guide) and the size guide
+// Product-page content (specs, FAQs, constituents, size guide) and the size guide
 // library. Mounted under /admin behind requireAdmin and the audit log. PUT replaces whole sections
 // because the editors submit whole lists.
 export function createPdpAdminRouter(): Router {

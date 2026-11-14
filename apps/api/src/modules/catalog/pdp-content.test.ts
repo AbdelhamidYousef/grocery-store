@@ -5,7 +5,6 @@ import { describe, expect, it } from 'vitest';
 
 import { db } from '../../db/client.ts';
 import {
-  feedingRows,
   productFaqs,
   productSpecs,
   products,
@@ -30,7 +29,6 @@ describe('structured product content in GET /products/:slug', () => {
     expect(data).toMatchObject({
       specs: [],
       faqs: [],
-      feedingTable: [],
       sizeGuide: null,
       deliveryNote: null,
     });
@@ -72,34 +70,6 @@ describe('structured product content in GET /products/:slug', () => {
       { key: 'kcal', valueBp: 365 },
     ]);
     expect(byId.get(variants[1]!.id)).toEqual([{ key: 'protein', valueBp: 2700 }]);
-  });
-
-  it('returns the feeding table ordered by life stage and weight', async () => {
-    const { product } = await createProduct({ slug: 'fed' });
-    await db.insert(feedingRows).values([
-      {
-        productId: product.id,
-        petWeightGMin: 5000,
-        petWeightGMax: 10000,
-        dailyG: 80,
-        lifeStage: 'adult',
-      },
-      {
-        productId: product.id,
-        petWeightGMin: 0,
-        petWeightGMax: 5000,
-        dailyG: 40,
-        lifeStage: 'adult',
-      },
-    ]);
-    const { data } = await detail('fed');
-    expect(data.feedingTable.map((r) => r.petWeightGMin)).toEqual([0, 5000]);
-    expect(data.feedingTable[0]).toEqual({
-      petWeightGMin: 0,
-      petWeightGMax: 5000,
-      dailyG: 40,
-      lifeStage: 'adult',
-    });
   });
 
   it('returns the size guide and the delivery note', async () => {
@@ -160,26 +130,6 @@ describe('database rules for the content tables', () => {
     // kcal is a plain number, allowed above 10000 bp but capped.
     await expect(
       db.insert(variantConstituents).values({ variantId, key: 'kcal', valueBp: 9001 }),
-    ).rejects.toThrow();
-  });
-
-  it('refuses an upside-down weight band and a zero daily amount', async () => {
-    const { product } = await createProduct();
-    await expect(
-      db.insert(feedingRows).values({
-        productId: product.id,
-        petWeightGMin: 5000,
-        petWeightGMax: 5000,
-        dailyG: 10,
-      }),
-    ).rejects.toThrow();
-    await expect(
-      db.insert(feedingRows).values({
-        productId: product.id,
-        petWeightGMin: 0,
-        petWeightGMax: 5000,
-        dailyG: 0,
-      }),
     ).rejects.toThrow();
   });
 });

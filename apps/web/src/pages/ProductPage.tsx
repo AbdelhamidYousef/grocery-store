@@ -293,7 +293,6 @@ function ProductView({ product }: { product: ProductDetail }) {
         <ProductTabs
           product={product}
           variant={variant}
-          onPickVariant={selectVariant}
           attributes={
             <dl
               data-testid={TEST_IDS.productAttributes}

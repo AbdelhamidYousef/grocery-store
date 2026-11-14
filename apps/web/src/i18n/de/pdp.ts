@@ -29,7 +29,6 @@ export const pdp: Record<keyof typeof enNs, Entry> = {
   'pdp.tabs.label': 'Produktinformationen',
   'pdp.tabs.description': 'Beschreibung',
   'pdp.tabs.specs': 'Daten',
-  'pdp.tabs.feeding': 'Fütterungsempfehlung',
   'pdp.tabs.delivery': 'Lieferung & Rücksendung',
 
   // ---- specs ----
@@ -48,45 +47,6 @@ export const pdp: Record<keyof typeof enNs, Entry> = {
 
   // ---- FAQ ----
   'pdp.faq.heading': 'Fragen und Antworten',
-
-  // ---- feeding ----
-  'pdp.feeding.stage.any': 'Alle Lebensphasen',
-  'pdp.feeding.stage.puppy': 'Welpe oder Kitten',
-  'pdp.feeding.stage.adult': 'Erwachsen',
-  'pdp.feeding.stage.senior': 'Senior',
-  'pdp.feeding.table.caption': 'Tagesmenge nach Gewicht des Tieres. Nur als Richtwert.',
-  'pdp.feeding.table.stage': 'Lebensphase',
-  'pdp.feeding.table.weight': 'Gewicht des Tieres',
-  'pdp.feeding.table.perDay': 'Pro Tag',
-  'pdp.feeding.table.weightRange': '{from} bis {to} kg',
-  'pdp.feeding.heading': 'Wie viel soll ich füttern?',
-  'pdp.feeding.weightLabel': 'Gewicht des Tieres (kg)',
-  'pdp.feeding.stageLabel': 'Lebensphase',
-  'pdp.feeding.mealsLabel': 'Mahlzeiten pro Tag',
-  'pdp.feeding.sliderLabel': 'Schieberegler für das Gewicht des Tieres',
-  'pdp.feeding.invalidWeight': 'Geben Sie das Gewicht Ihres Tieres in kg ein, zum Beispiel 7,5.',
-  'pdp.feeding.daily.1': 'Etwa {daily} pro Tag, eine Mahlzeit',
-  'pdp.feeding.daily.2': 'Etwa {daily} pro Tag, zwei Mahlzeiten à {portion}',
-  'pdp.feeding.daily.3': 'Etwa {daily} pro Tag, drei Mahlzeiten à {portion}',
-  'pdp.feeding.daily.4': 'Etwa {daily} pro Tag, vier Mahlzeiten à {portion}',
-  'pdp.feeding.clampBelow':
-    'Unsere Empfehlung beginnt bei {from} kg, daher gilt diese Menge für {from} kg. Fragen Sie Ihre Tierärztin oder Ihren Tierarzt zu einem so leichten Tier.',
-  'pdp.feeding.clampAbove':
-    'Unsere Empfehlung endet bei {to} kg, daher gilt diese Menge für {last} kg. Fragen Sie Ihre Tierärztin oder Ihren Tierarzt zu einem so schweren Tier.',
-  'pdp.feeding.bagLessThanDay': 'Dieser Sack reicht nicht für einen ganzen Tag.',
-  'pdp.feeding.bagLasts': {
-    one: 'Dieser Sack reicht etwa {count} Tag, etwa {price} pro Tag.',
-    other: 'Dieser Sack reicht etwa {count} Tage, etwa {price} pro Tag.',
-  },
-  'pdp.feeding.pickMonth': 'Wählen Sie die Sackgröße, die einen Monat reicht',
-  'pdp.feeding.pickMonthNote': {
-    one: '{name}: etwa {count} Tag.',
-    other: '{name}: etwa {count} Tage.',
-  },
-  'pdp.feeding.alreadyMonth': 'Diese Größe reicht bereits einen Monat oder länger.',
-  'pdp.feeding.disclaimer':
-    'Eine Empfehlung, keine tierärztliche Beratung. Jedes Tier ist anders: Fragen Sie Ihre Tierärztin oder Ihren Tierarzt, wenn Ihr Tier krank, trächtig, sehr jung oder sehr alt ist.',
-  'pdp.feeding.rangeKg': '{value} kg',
 
   // ---- delivery panel ----
   'pdp.delivery.heading': 'Lieferung',

@@ -266,10 +266,6 @@ describe('product tabs', () => {
             { id: 'f1', question: 'Is it washable?', answer: 'Yes, at 30 degrees.' },
             { id: 'f2', question: 'Does it float?', answer: 'No.' },
           ],
-          feedingTable: [
-            { petWeightGMin: 0, petWeightGMax: 5000, dailyG: 40, lifeStage: 'any' },
-            { petWeightGMin: 5000, petWeightGMax: 10000, dailyG: 70, lifeStage: 'any' },
-          ],
           deliveryNote: 'Ships in its own box.',
           variants: [
             makeVariant({
@@ -298,7 +294,7 @@ describe('product tabs', () => {
   it('shows Description first and leaves out tabs with nothing to show', async () => {
     renderApp('/products/rope-tug');
     const tabs = await screen.findAllByRole('tab');
-    // The fixture has no specs, FAQs or feeding table: only Description and Delivery remain.
+    // The fixture has no specs, or FAQs: only Description and Delivery remain.
     expect(tabs.map((t) => t.textContent)).toEqual(['Description', 'Delivery & returns']);
     expect(screen.getByRole('tab', { name: 'Description' })).toHaveAttribute(
       'aria-selected',
@@ -307,7 +303,7 @@ describe('product tabs', () => {
     expect(screen.getByText('A sturdy braided tug for happy games.')).toBeInTheDocument();
   });
 
-  it('lists all four tabs for a product with content, and switches with the arrow keys', async () => {
+  it('lists all three tabs for a product with content, and switches with the arrow keys', async () => {
     server.use(withContent());
     const user = userEvent.setup();
     const router = renderApp('/products/rope-tug');
@@ -315,7 +311,6 @@ describe('product tabs', () => {
     expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual([
       'Description',
       'Specs',
-      'Feeding guide',
       'Delivery & returns',
     ]);
     first.focus();
@@ -328,18 +323,15 @@ describe('product tabs', () => {
     expect(screen.getByTestId('delivery-note')).toHaveTextContent('Ships in its own box.');
   });
 
-  it('opens the tab named by the hash and falls back for an unknown one', async () => {
+  it('opens the tab named by the hash', async () => {
     server.use(withContent());
-    renderApp('/products/rope-tug#feeding');
-    expect(await screen.findByTestId('feeding-table')).toHaveTextContent('5 to 10 kg');
-    expect(screen.getByRole('tab', { name: 'Feeding guide' })).toHaveAttribute(
-      'aria-selected',
-      'true',
-    );
+    renderApp('/products/rope-tug#specs');
+    expect(await screen.findByTestId('specs-table')).toHaveTextContent('Nowhere');
+    expect(screen.getByRole('tab', { name: 'Specs' })).toHaveAttribute('aria-selected', 'true');
   });
 
   it('ignores a hash for a tab the product does not have', async () => {
-    renderApp('/products/rope-tug#feeding');
+    renderApp('/products/rope-tug#specs');
     expect(await screen.findByRole('tab', { name: 'Description' })).toHaveAttribute(
       'aria-selected',
       'true',
@@ -393,50 +385,6 @@ describe('product tabs', () => {
       '/returns',
     );
     expect(screen.queryByTestId('delivery-note')).toBeNull();
-  });
-
-  it('puts the feeding calculator above the table and lets it pick a bag, keeping the tab', async () => {
-    const small = makeVariant({
-      id: 'v1',
-      sku: 'KIB-500',
-      name: '500 g bag',
-      options: { pack: '500g' },
-      priceCents: 600,
-      netAmount: 500,
-      netUnit: 'g',
-      isDefault: true,
-    });
-    const big = makeVariant({
-      id: 'v2',
-      sku: 'KIB-2000',
-      name: '2 kg bag',
-      options: { pack: '2kg' },
-      priceCents: 1800,
-      netAmount: 2000,
-      netUnit: 'g',
-    });
-    server.use(
-      http.get(`${API}/products/rope-tug`, () =>
-        HttpResponse.json({
-          data: makeProduct({
-            optionKeys: ['pack'],
-            variants: [small, big],
-            feedingTable: [
-              { petWeightGMin: 1000, petWeightGMax: 20000, dailyG: 40, lifeStage: 'any' },
-            ],
-          }),
-        }),
-      ),
-    );
-    const router = renderApp('/products/rope-tug#feeding');
-    expect(await screen.findByTestId('feeding-calculator')).toBeInTheDocument();
-    expect(screen.getByTestId('feeding-table')).toBeInTheDocument();
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Pick the bag size that lasts a month' }),
-    );
-    expect(router.state.location.search).toContain('variant=KIB-2000');
-    expect(router.state.location.hash).toBe('#feeding');
-    expect(screen.getByTestId('feeding-bag')).toHaveTextContent('about 50 days');
   });
 
   it('shows a Size guide button next to the picker only for a product that has one, and highlights the size', async () => {

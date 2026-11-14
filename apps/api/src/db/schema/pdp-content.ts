@@ -79,33 +79,6 @@ export const productSpecs = pgTable(
   ],
 );
 
-export const lifeStage = pgEnum('life_stage', ['puppy', 'adult', 'senior', 'any']);
-
-// Daily amount for a pet weight band. A band covers min <= weight < max (half-open), so the next
-// band starts exactly where this one ends: no overlap and no gap (checked in packages/shared and
-// by the admin form).
-export const feedingRows = pgTable(
-  'feeding_rows',
-  {
-    id: id(),
-    productId: uuid('product_id')
-      .notNull()
-      .references(() => products.id, { onDelete: 'cascade' }),
-    petWeightGMin: integer('pet_weight_g_min').notNull(),
-    petWeightGMax: integer('pet_weight_g_max').notNull(),
-    dailyG: integer('daily_g').notNull(),
-    lifeStage: lifeStage('life_stage').notNull().default('any'),
-  },
-  (t) => [
-    check(
-      'feeding_rows_band_check',
-      sql`${t.petWeightGMin} >= 0 and ${t.petWeightGMax} > ${t.petWeightGMin}`,
-    ),
-    check('feeding_rows_daily_check', sql`${t.dailyG} > 0`),
-    index('feeding_rows_product_idx').on(t.productId, t.lifeStage, t.petWeightGMin),
-  ],
-);
-
 export const relationKind = pgEnum('relation_kind', ['bought_together', 'related']);
 
 // Editor-chosen recommendations. When a product has none, the API falls back to co-purchase counts

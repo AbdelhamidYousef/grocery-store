@@ -7,30 +7,23 @@ import { TEST_IDS } from '../../../lib/test-ids';
 
 import { DeliveryPanel } from './DeliveryPanel';
 import { FaqAccordion } from './FaqAccordion';
-import { FeedingCalculator } from './FeedingCalculator';
-import { FeedingTable } from './FeedingTable';
 import { SpecsPanel } from './SpecsPanel';
 
-export const TAB_IDS = ['description', 'specs', 'feeding', 'delivery'] as const;
+export const TAB_IDS = ['description', 'specs', 'delivery'] as const;
 export type ProductTabId = (typeof TAB_IDS)[number];
 
-// Which tabs this product has. A tab with nothing to show is left out (a toy has no feeding
-// guide), so the strip never offers an empty panel.
+// Which tabs this product has. A tab with nothing to show is left out (a product with no specs
+// has no specs tab), so the strip never offers an empty panel.
 export function availableTabs(
   product: ProductDetail,
   variant: Variant | undefined,
 ): ProductTabId[] {
   const hasSpecs =
     product.specs.length > 0 || product.faqs.length > 0 || (variant?.constituents.length ?? 0) > 0;
-  return [
-    'description',
-    ...(hasSpecs ? (['specs'] as const) : []),
-    ...(product.feedingTable.length > 0 ? (['feeding'] as const) : []),
-    'delivery',
-  ];
+  return ['description', ...(hasSpecs ? (['specs'] as const) : []), 'delivery'];
 }
 
-// The tab lives in the URL hash (#feeding), so a link opens that tab and Back does not step
+// The tab lives in the URL hash (#specs), so a link opens that tab and Back does not step
 // through every click (replace). An unknown or unavailable hash falls back to the first tab.
 export function tabFromHash(hash: string, available: readonly ProductTabId[]): ProductTabId {
   const id = hash.replace(/^#/, '');
@@ -40,7 +33,6 @@ export function tabFromHash(hash: string, available: readonly ProductTabId[]): P
 const LABELS: Record<ProductTabId, StringKey> = {
   description: 'pdp.tabs.description',
   specs: 'pdp.tabs.specs',
-  feeding: 'pdp.tabs.feeding',
   delivery: 'pdp.tabs.delivery',
 };
 
@@ -48,13 +40,10 @@ export function ProductTabs({
   product,
   variant,
   attributes,
-  onPickVariant,
 }: {
   product: ProductDetail;
   variant: Variant | undefined;
   attributes: React.ReactNode;
-  /** Called when the feeding calculator suggests another pack size. */
-  onPickVariant: (variant: Variant) => void;
 }) {
   const { t } = useT();
   const location = useLocation();
@@ -78,12 +67,6 @@ export function ProductTabs({
         />
         <FaqAccordion faqs={product.faqs} />
       </>
-    ),
-    feeding: (
-      <div className="flex flex-col gap-6">
-        <FeedingCalculator product={product} variant={variant} onPickVariant={onPickVariant} />
-        <FeedingTable rows={product.feedingTable} />
-      </div>
     ),
     delivery: <DeliveryPanel note={product.deliveryNote} />,
   };

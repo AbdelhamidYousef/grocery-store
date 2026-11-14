@@ -27,7 +27,6 @@ export const pdp = {
   'pdp.tabs.label': 'Product information',
   'pdp.tabs.description': 'Description',
   'pdp.tabs.specs': 'Specs',
-  'pdp.tabs.feeding': 'Feeding guide',
   'pdp.tabs.delivery': 'Delivery & returns',
 
   // ---- specs ----
@@ -46,45 +45,6 @@ export const pdp = {
 
   // ---- FAQ ----
   'pdp.faq.heading': 'Questions and answers',
-
-  // ---- feeding ----
-  'pdp.feeding.stage.any': 'All life stages',
-  'pdp.feeding.stage.puppy': 'Puppy or kitten',
-  'pdp.feeding.stage.adult': 'Adult',
-  'pdp.feeding.stage.senior': 'Senior',
-  'pdp.feeding.table.caption': 'Daily amount by pet weight. Guidance only.',
-  'pdp.feeding.table.stage': 'Life stage',
-  'pdp.feeding.table.weight': 'Pet weight',
-  'pdp.feeding.table.perDay': 'Per day',
-  'pdp.feeding.table.weightRange': '{from} to {to} kg',
-  'pdp.feeding.heading': 'How much should I feed?',
-  'pdp.feeding.weightLabel': 'Pet weight (kg)',
-  'pdp.feeding.stageLabel': 'Life stage',
-  'pdp.feeding.mealsLabel': 'Meals a day',
-  'pdp.feeding.sliderLabel': 'Pet weight slider',
-  'pdp.feeding.invalidWeight': "Enter your pet's weight in kg, for example 7.5.",
-  'pdp.feeding.daily.1': 'About {daily} a day, one meal',
-  'pdp.feeding.daily.2': 'About {daily} a day, two meals of {portion}',
-  'pdp.feeding.daily.3': 'About {daily} a day, three meals of {portion}',
-  'pdp.feeding.daily.4': 'About {daily} a day, four meals of {portion}',
-  'pdp.feeding.clampBelow':
-    'Our guide starts at {from} kg, so this is the amount for {from} kg. Ask your vet about a pet this light.',
-  'pdp.feeding.clampAbove':
-    'Our guide stops at {to} kg, so this is the amount for {last} kg. Ask your vet about a pet this heavy.',
-  'pdp.feeding.bagLessThanDay': 'This bag is less than a day of food.',
-  'pdp.feeding.bagLasts': {
-    one: 'This bag lasts about {count} day, about {price} a day.',
-    other: 'This bag lasts about {count} days, about {price} a day.',
-  },
-  'pdp.feeding.pickMonth': 'Pick the bag size that lasts a month',
-  'pdp.feeding.pickMonthNote': {
-    one: '{name}: about {count} day.',
-    other: '{name}: about {count} days.',
-  },
-  'pdp.feeding.alreadyMonth': 'This size already lasts a month or more.',
-  'pdp.feeding.disclaimer':
-    'A guide, not veterinary advice. Every pet is different: ask your vet if your pet is unwell, pregnant, very young or very old.',
-  'pdp.feeding.rangeKg': '{value} kg',
 
   // ---- delivery panel ----
   'pdp.delivery.heading': 'Delivery',

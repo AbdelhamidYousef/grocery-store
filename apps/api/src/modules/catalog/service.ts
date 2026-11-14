@@ -510,7 +510,6 @@ export async function getProduct(
     safetyNotices: await noticesForVariants(rows.variants.map((v) => v.id)),
     specs: rows.specs,
     faqs: rows.faqs,
-    feedingTable: rows.feeding,
     sizeGuide: rows.sizeGuide && {
       slug: rows.sizeGuide.slug,
       title: rows.sizeGuide.title,

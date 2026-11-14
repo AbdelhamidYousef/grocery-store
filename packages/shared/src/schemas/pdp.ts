@@ -1,7 +1,5 @@
 import { z } from 'zod';
 
-import { FeedingRowSchema } from '../feeding.ts';
-
 // Structured product-page content as the public API serves it (phase 16). Basis points and grams
 // are integers end to end; the web formats them.
 
@@ -47,5 +45,3 @@ export const SizeGuideSchema = z.object({
   tip: z.string().nullable(),
 });
 export type SizeGuide = z.infer<typeof SizeGuideSchema>;
-
-export { FeedingRowSchema };

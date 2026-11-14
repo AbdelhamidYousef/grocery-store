@@ -34,17 +34,9 @@ beforeEach(async () => {
 const data = <T>(res: Parameters<typeof bodyOf>[0]) => bodyOf<{ data: T }>(res).data;
 const audits = () => lines.filter((l) => l.audit === true);
 
-const band = (min: number, max: number, dailyG = 40, lifeStage = 'any') => ({
-  petWeightGMin: min,
-  petWeightGMax: max,
-  dailyG,
-  lifeStage,
-});
-
 type Content = {
   specs: { label: string; value: string }[];
   faqs: { id: string; question: string }[];
-  feedingTable: { petWeightGMin: number }[];
   constituents: { variantId: string; values: { key: string; valueBp: number }[] }[];
   deliveryNote: string | null;
   sizeGuideId: string | null;
@@ -67,7 +59,7 @@ describe('admin product content', () => {
     const res = await admin.call('get', `/admin/products/${product.id}/content`);
     expect(res.status).toBe(200);
     const content = data<Content>(res);
-    expect(content).toMatchObject({ specs: [], faqs: [], feedingTable: [], deliveryNote: null });
+    expect(content).toMatchObject({ specs: [], faqs: [], deliveryNote: null });
     expect(content.constituents.map((c) => c.variantId).sort()).toEqual(
       variants.map((v) => v.id).sort(),
     );
@@ -84,7 +76,6 @@ describe('admin product content', () => {
         { question: 'One?', answer: 'Yes.' },
         { question: 'Two?', answer: 'No.' },
       ],
-      feedingTable: [band(5000, 10000, 60), band(0, 5000, 30)],
       constituents: [
         {
           variantId: variants[0]!.id,
@@ -100,7 +91,6 @@ describe('admin product content', () => {
     const content = data<Content>(res);
     expect(content.specs.map((s) => s.label)).toEqual(['Origin', 'Grain']);
     expect(content.faqs.map((f) => f.question)).toEqual(['One?', 'Two?']);
-    expect(content.feedingTable.map((r) => r.petWeightGMin)).toEqual([0, 5000]);
     expect(content.constituents[0]?.values).toEqual([
       { key: 'protein', valueBp: 2650 },
       { key: 'kcal', valueBp: 365 },
@@ -124,20 +114,6 @@ describe('admin product content', () => {
     const cleared = data<Content>(await admin.call('put', path, { faqs: [] }));
     expect(cleared.faqs).toEqual([]);
     expect(cleared.specs).toHaveLength(1);
-  });
-
-  it('refuses a feeding table with an overlap or a gap and stores nothing', async () => {
-    const { product } = await createProduct();
-    const path = `/admin/products/${product.id}/content`;
-    const res = await admin.call('put', path, {
-      specs: [{ label: 'Should not be saved', value: 'x' }],
-      feedingTable: [band(0, 5000), band(4000, 9000)],
-    });
-    expect(res.status).toBe(400);
-    expect(JSON.stringify(errorOf(res).details)).toContain('Overlaps the band');
-    const gap = await admin.call('put', path, { feedingTable: [band(0, 5000), band(6000, 9000)] });
-    expect(gap.status).toBe(400);
-    expect(data<Content>(await admin.call('get', path)).specs).toEqual([]);
   });
 
   it('refuses duplicate spec labels and a percentage above 100 %', async () => {

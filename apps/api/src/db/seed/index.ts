@@ -10,7 +10,6 @@ import {
   collectionProducts,
   collections as collectionsTable,
   discountCodes,
-  feedingRows,
   giftRules,
   inventory,
   productFaqs,
@@ -36,7 +35,7 @@ import { FORCED_STOCK, expandVariants, stockLevels } from './expand.ts';
 import { seedHomeContent } from './home.ts';
 import { imageRowsFor } from './images.ts';
 import { seedMenuPromos } from './menu-promos.ts';
-import { assertFeedingTablesTile, pdpFor, sizeGuides } from './pdp.ts';
+import { pdpFor, sizeGuides } from './pdp.ts';
 import { seedGbpPrices } from './prices.ts';
 import { products } from './products.ts';
 import {
@@ -65,7 +64,6 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export async function runSeed(now = new Date()) {
   // A typo in any seed file fails here, naming the product, before the database is touched.
   validateSeed(products);
-  assertFeedingTablesTile(products);
   const passwordHash = await hashDemoPassword();
   // Read and validated before the transaction opens: a bad Markdown file stops the seed up front.
   const content = loadContent();
@@ -337,7 +335,7 @@ export async function runSeed(now = new Date()) {
       }),
     );
 
-    // ---- product page content (phase 16): specs, FAQs, feeding tables, constituents, size
+    // ---- product page content (phase 16): specs, FAQs, constituents, size
     // guides. Replaced wholesale for the seeded products, so a re-seed gives the same rows. ----
     const guideRows = await tx
       .insert(sizeGuidesTable)
@@ -364,7 +362,6 @@ export async function runSeed(now = new Date()) {
     const seededIds = [...productId.values()];
     await tx.delete(productSpecs).where(inArray(productSpecs.productId, seededIds));
     await tx.delete(productFaqs).where(inArray(productFaqs.productId, seededIds));
-    await tx.delete(feedingRows).where(inArray(feedingRows.productId, seededIds));
     await tx.delete(variantConstituents).where(
       inArray(
         variantConstituents.variantId,
@@ -381,9 +378,6 @@ export async function runSeed(now = new Date()) {
       await tx
         .insert(productFaqs)
         .values(pdp.faqs.map((f, sortOrder) => ({ productId: id, ...f, sortOrder })));
-      if (pdp.feeding.length > 0) {
-        await tx.insert(feedingRows).values(pdp.feeding.map((r) => ({ productId: id, ...r })));
-      }
       if (pdp.constituents) {
         const values = Object.entries(pdp.constituents);
         const ids = expandVariants(p).map((v) => variantId.get(v.sku) ?? '');

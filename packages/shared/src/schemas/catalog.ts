@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
 import { BADGES, BADGE_SLUGS } from '../badges.ts';
-import { FeedingRowSchema } from '../feeding.ts';
 import { NetUnitSchema } from '../pets.ts';
 
 import { BundleDetailSchema, KitTeaserSchema } from './bundles.ts';
@@ -205,8 +204,6 @@ export const ProductDetailSchema = z.object({
   safetyNotices: z.array(SafetyNoticeSchema),
   specs: z.array(SpecSchema),
   faqs: z.array(FaqSchema),
-  // Empty for products that are not fed (a toy), and then the Feeding guide tab is left out.
-  feedingTable: z.array(FeedingRowSchema),
   sizeGuide: SizeGuideSchema.nullable(),
   deliveryNote: z.string().nullable(),
   // Set on a kit's own page (what is inside, what it saves); null for an ordinary product.

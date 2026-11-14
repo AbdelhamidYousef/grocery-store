@@ -1,21 +1,17 @@
 import { expect, test } from '@playwright/test';
 
-// Needs the seeded dev database: Soft Training Bites (feeding table, sizes), the Everyday Webbing
+// Needs the seeded dev database: Soft Training Bites (specs, sizes), the Everyday Webbing
 // Collar (size guide) and the three seeded kits (the Fetch & Tug Play Kit has plenty of stock).
 
-test('food page: tabs by keyboard, feeding calculator and the suggested bag', async ({ page }) => {
+test('food page: tabs by keyboard and the tab in the URL', async ({ page }) => {
   await page.goto('/products/soft-training-bites');
   const tabs = page.getByTestId('product-tabs');
   const description = tabs.getByRole('tab', { name: 'Description' });
   await description.focus();
   await page.keyboard.press('ArrowRight');
   await expect(tabs.getByRole('tab', { name: 'Specs' })).toBeFocused();
-  await page.keyboard.press('ArrowRight');
-  await expect(tabs.getByRole('tab', { name: 'Feeding guide' })).toHaveAttribute(
-    'aria-selected',
-    'true',
-  );
-  await expect(page).toHaveURL(/#feeding/);
+  await expect(tabs.getByRole('tab', { name: 'Specs' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page).toHaveURL(/#specs/);
   await page.keyboard.press('End');
   await expect(tabs.getByRole('tab', { name: 'Delivery & returns' })).toHaveAttribute(
     'aria-selected',
@@ -23,20 +19,6 @@ test('food page: tabs by keyboard, feeding calculator and the suggested bag', as
   );
   await page.keyboard.press('Home');
   await expect(description).toHaveAttribute('aria-selected', 'true');
-
-  // The calculator: a typed weight gives a daily amount in words, and the suggested bag size
-  // becomes the selected variant.
-  await tabs.getByRole('tab', { name: 'Feeding guide' }).click();
-  const calc = page.getByTestId('feeding-calculator');
-  await calc.getByTestId('feeding-weight').fill('10');
-  await expect(calc.getByTestId('feeding-daily')).toContainText(
-    /About \d+ g a day, two meals of \d+ g/,
-  );
-  const pick = calc.getByTestId('feeding-pick-month');
-  await expect(pick).toBeVisible();
-  const skuBefore = await page.getByTestId('variant-sku').innerText();
-  await pick.click();
-  await expect(page.getByTestId('variant-sku')).not.toHaveText(skuBefore);
 });
 
 test('size guide opens on a harness-type product, highlights the size and returns focus', async ({

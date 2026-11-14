@@ -206,7 +206,6 @@ export function makeProduct(overrides: Partial<ProductDetail> = {}): ProductDeta
     safetyNotices: [],
     specs: [],
     faqs: [],
-    feedingTable: [],
     sizeGuide: null,
     deliveryNote: null,
     bundle: null,
