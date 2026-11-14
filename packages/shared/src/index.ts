@@ -12,3 +12,4 @@ export * from './bundles.ts';
 export * from './order-status.ts';
 export * from './unit-price.ts';
 export * from './pricing/index.ts';
+export * from './loyalty.ts';

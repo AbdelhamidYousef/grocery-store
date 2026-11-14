@@ -19,6 +19,8 @@ import { guidesRouter } from './guides/router.ts';
 import { helpRouter } from './help/router.ts';
 import { homeRouter } from './home/router.ts';
 import { createJobsRouter } from './jobs/router.ts';
+import { createLoyaltyRouter } from './loyalty/router.ts';
+import { registerLoyaltySubscribers } from './loyalty/service.ts';
 import type { Outbox } from './mail/outbox.ts';
 import { merchandisingRouter } from './merchandising/router.ts';
 import { navigationRouter } from './navigation/router.ts';
@@ -54,6 +56,7 @@ export function createModulesRouter(opts: {
   // Features that react to an order changing register here, once (see orders/events.ts).
   registerTrialSubscribers();
   registerPromotionSubscribers();
+  registerLoyaltySubscribers();
   router.use(catalogRouter);
   router.use(merchandisingRouter);
   router.use(guidesRouter);
@@ -90,6 +93,7 @@ export function createModulesRouter(opts: {
   router.use(createAccountRouter(opts));
   router.use(createPetsRouter());
   router.use(createReviewsRouter(opts));
+  router.use(createLoyaltyRouter());
   router.use(cartRouter);
   router.use(createTrackingRouter(opts));
   router.use(createWithdrawalsRouter(opts));

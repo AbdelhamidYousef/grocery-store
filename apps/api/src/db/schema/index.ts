@@ -21,6 +21,7 @@ export * from './orders.ts';
 export * from './payments.ts';
 export * from './pets.ts';
 export * from './pdp-content.ts';
+export * from './points-ledger.ts';
 export * from './product-images.ts';
 export * from './product-variants.ts';
 export * from './products.ts';

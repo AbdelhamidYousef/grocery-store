@@ -11,6 +11,7 @@ import {
   makeList,
   makeOrder,
   makeQuote,
+  makePoints,
   makeProduct,
   makeReviewList,
   makeUser,
@@ -29,6 +30,8 @@ export const server = setupServer(
       { status: 401 },
     ),
   ),
+  // A signed-in visitor has no points yet unless a test says so.
+  http.get(`${API}/me/points`, () => HttpResponse.json({ data: makePoints() })),
   // A signed-in visitor has no pets unless a test says so.
   http.get(`${API}/account/pets`, () => HttpResponse.json({ data: [] })),
   // No menu data unless a test says so: the header then shows plain links to each pet's page.

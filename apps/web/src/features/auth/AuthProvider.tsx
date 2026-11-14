@@ -45,3 +45,9 @@ export function useAuth(): AuthState {
 export function useIsSignedIn(): boolean {
   return useContext(AuthContext)?.user != null;
 }
+
+// Like `useAuth` but tolerant of a missing provider (a card or a price line rendered alone in a
+// unit test): no provider means "not signed in", never a crash.
+export function useAuthOptional(): AuthState {
+  return useContext(AuthContext) ?? { user: null, status: 'anonymous' };
+}

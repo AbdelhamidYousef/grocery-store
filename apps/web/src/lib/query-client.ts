@@ -55,6 +55,8 @@ export const keys = {
   // Signed-in user (or null). Written directly on login/logout, so it never needs a refetch.
   me: ['me'] as const,
   cart: ['cart'] as const,
+  // Loyalty balance, tier and ledger of the signed-in shopper.
+  points: ['points'] as const,
   // The API's own health check, polled by the "server unreachable" banner.
   health: ['health'] as const,
   // The site-wide flash-sale banner (active or next scheduled sale, plus the server's clock).

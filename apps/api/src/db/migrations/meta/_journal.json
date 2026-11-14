@@ -155,6 +155,13 @@
       "when": 1794636871975,
       "tag": "0021_job_runs",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1794636873201,
+      "tag": "0022_points_ledger",
+      "breakpoints": true
     }
   ]
 }

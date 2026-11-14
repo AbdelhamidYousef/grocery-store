@@ -11,6 +11,10 @@
 // components; new features add theirs here.
 export const TEST_IDS = {
   pageHome: 'page-home',
+  earnPoints: 'earn-points',
+  pointsBalance: 'points-balance',
+  pointsTier: 'points-tier',
+  pointsLedgerRow: 'points-ledger-row',
   priceSlider: 'price-slider',
   quickChips: 'quick-chips',
   quickChip: 'quick-chip',

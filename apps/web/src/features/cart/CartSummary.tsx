@@ -8,6 +8,7 @@ import { cn } from '../../lib/cn';
 import { freeShippingProgress } from '../../lib/shipping';
 import { TEST_IDS } from '../../lib/test-ids';
 import { useFreeShippingThreshold } from '../checkout/queries';
+import { EarnPoints } from '../loyalty/EarnPoints';
 
 import { CartCode } from './CartCode';
 import { DiscountsCombine } from './DiscountsCombine';
@@ -97,6 +98,7 @@ export function CartSummary({
               </dd>
             </div>
           </dl>
+          <EarnPoints merchandiseCents={pricing.merchandiseCents} returnTo="/cart" />
           <p className="text-sm text-muted">Demo store: no tax is charged.</p>
           <DiscountsCombine />
         </>

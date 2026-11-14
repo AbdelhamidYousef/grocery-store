@@ -33,6 +33,7 @@ import { ShoppableGallery } from '../features/gallery/ShoppableGallery';
 import { formatRating } from '../features/reviews/format';
 import { RatingStars } from '../features/reviews/RatingStars';
 import { ReviewsSection } from '../features/reviews/ReviewsSection';
+import { EarnPoints } from '../features/loyalty/EarnPoints';
 import { SafetyNoticeBox } from '../features/safety/SafetyNoticeBox';
 import { accentForPetAttribute, petBySlug } from '../lib/pets';
 import { recordRecentlyViewed } from '../lib/recently-viewed';
@@ -235,6 +236,18 @@ function ProductView({ product }: { product: ProductDetail }) {
 
             {product.bundle && (
               <BundlePanel bundle={product.bundle} currency={product.price.currency} />
+            )}
+
+            {variant && (
+              <EarnPoints
+                merchandiseCents={Math.min(
+                  variant.priceCents,
+                  variant.sale?.priceCents ?? Infinity,
+                  variant.member?.priceCents ?? Infinity,
+                )}
+                returnTo={`${location.pathname}${location.search}`}
+                className="-mt-3"
+              />
             )}
 
             {variant && (

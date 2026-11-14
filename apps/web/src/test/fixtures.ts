@@ -19,6 +19,7 @@ import type {
   HomeResponse,
   Order,
   OrderSummary,
+  PointsSummary,
   ProductCard,
   ProductDetail,
   ProductListResponse,
@@ -740,5 +741,15 @@ export function makeReviewList(
       uploadsEnabled: true,
       ...summary,
     },
+  };
+}
+export function makePoints(overrides: Partial<PointsSummary> = {}): PointsSummary {
+  return {
+    balance: 0,
+    lifetimeEarned: 0,
+    tier: { id: 'pup', label: 'Pup', ratePercent: 100 },
+    nextTier: { id: 'good_dog', label: 'Good Dog', pointsNeeded: 500 },
+    entries: [],
+    ...overrides,
   };
 }
