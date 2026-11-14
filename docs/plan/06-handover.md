@@ -60,7 +60,7 @@ Merged into `main` (all gates green on 2026-11-07: shared 180, web 607, API 951 
 | 16 PDP depth | done, merged 2026-11-14 (structured content, tabs, feeding calculator, size guide, recommendations, delivery estimate, kits with component snapshot on orders; review fixes for kit stock; API 1,063+ pass, e2e 60 + 1 skipped). Kits reuse a component photo until there is art |
 | 17 Reviews | done, merged 2026-11-14 (reviews with verified buyer, photo upload to local disk via multer + sharp, helpful votes, ratings on cards/PDP, moderation, shoppable gallery; security-review fixes; API 1,140+ pass, e2e 62 + 1 skipped). Set `UPLOADS_ENABLED=false` on the free-tier demo (ephemeral disk). `sweepOrphanUploads` waits for the phase 19 job runner |
 | 22 Post-purchase | building 2026-11-14 on `feat/phase-22` (`../ecommerce-p17` folder, DB `ecommerce_p17`, API 3117, e2e 3217/5217) |
-| 24 Agent-ready | building 2026-11-14 on `feat/phase-24` (`../ecommerce-p24`, DB `ecommerce_p24`, API 3124, e2e 3224/5224) |
+| 24 Agent-ready | done, merged 2026-11-14 (tool registry: search, product, cart read/update, policies/FAQ; WebMCP adapter feature-detected on `document.modelContext`, falls back to `navigator.modelContext`; 30 calls/min client limit; /developers page; web 895, API 1,254 + 2 skipped, e2e 68 + 1 skipped). Manual check in Chrome 146+ with `chrome://flags/#enable-webmcp-testing` left to the owner |
 | 21 Stores & languages | queued: last, alone |
 | 17 Reviews | building 2026-11-14 on `feat/phase-17` (`../ecommerce-p17`, DB `ecommerce_p17`, API 3117, e2e 3217/5217) |
 | 21, 22, 24 | queued 2026-11-14: 22 ‖ 24 after 17/19, then 21 alone (touches every screen) |
