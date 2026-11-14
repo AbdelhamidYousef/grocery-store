@@ -67,7 +67,12 @@ describe('admin gallery', () => {
 
   it('refuses a full URL, a protocol-relative path and an unknown product', async () => {
     const { shopper } = await signedIn(app, 'admin');
-    for (const path of ['https://evil.example/x.jpg', '//evil.example/x.jpg', 'x.jpg']) {
+    for (const path of [
+      'https://evil.example/x.jpg',
+      '//evil.example/x.jpg',
+      '/\\evil.example/x.jpg',
+      'x.jpg',
+    ]) {
       expect((await shopper.call('post', '/admin/gallery', { path })).status).toBe(400);
     }
     const res = await shopper.call('post', '/admin/gallery', {

@@ -196,15 +196,20 @@ export const AdminGalleryPhotoSchema = z.object({
 });
 export type AdminGalleryPhoto = z.infer<typeof AdminGalleryPhotoSchema>;
 
+export const GALLERY_PATH_RE = /^\/(api\/v1\/uploads|products|reviews)\/[\w./-]+$/;
+
 export const GalleryInputSchema = z.object({
-  // A path on our own site ("/api/v1/uploads/..." or a committed "/reviews/..." photo): never a
-  // full URL, so the gallery cannot be pointed at somebody else's server.
+  // A path on our own site: an uploaded file ("/api/v1/uploads/...") or a committed photo
+  // ("/products/...", "/reviews/..."), never a full URL, so the gallery cannot be pointed at
+  // somebody else's server. An allow-list, not "starts with /": browsers read `/\evil.com` as
+  // `//evil.com`, so backslashes (and any `..` segment) are refused.
   path: z
     .string()
     .trim()
     .min(2)
     .max(300)
-    .refine((p) => p.startsWith('/') && !p.startsWith('//'), 'Must be a path on this site'),
+    .regex(GALLERY_PATH_RE, 'Must be a path on this site')
+    .refine((p) => !p.includes('..'), 'Must be a path on this site'),
   caption: z.string().trim().max(200).default(''),
   petName: z.string().trim().max(60).default(''),
   sortOrder: z.coerce.number().int().min(0).max(10_000).default(0),
