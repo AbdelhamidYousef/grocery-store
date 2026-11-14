@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { fetchMyCodes, fetchPoints, fetchRewards, redeemReward } from '../../api/loyalty';
+import {
+  donatePoints,
+  fetchCharityTotal,
+  fetchMyCodes,
+  fetchPoints,
+  fetchRewards,
+  redeemReward,
+} from '../../api/loyalty';
 import { keys } from '../../lib/query-client';
 import { useAuthOptional } from '../auth/AuthProvider';
 
@@ -37,6 +44,26 @@ export function useRedeemReward() {
       Promise.all([
         queryClient.invalidateQueries({ queryKey: keys.points }),
         queryClient.invalidateQueries({ queryKey: keys.myCodes }),
+      ]),
+  });
+}
+
+// The shelter's running total (public). A failure only hides the line: nothing depends on it.
+export const useCharityTotal = () =>
+  useQuery({
+    queryKey: keys.charityTotal,
+    queryFn: ({ signal }) => fetchCharityTotal(signal),
+    staleTime: 60_000,
+  });
+
+export function useDonatePoints() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: donatePoints,
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: keys.points }),
+        queryClient.invalidateQueries({ queryKey: keys.charityTotal }),
       ]),
   });
 }

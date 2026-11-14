@@ -30,6 +30,20 @@ export const server = setupServer(
       { status: 401 },
     ),
   ),
+  // The footer's charity line: a shelter with nothing given yet.
+  http.get(`${API}/charity/total`, () =>
+    HttpResponse.json({
+      data: {
+        charity: {
+          slug: 'whisker-hollow-rescue',
+          name: 'Whisker Hollow Rescue',
+          description: 'Fictional.',
+        },
+        totalCents: 0,
+        donations: 0,
+      },
+    }),
+  ),
   // A signed-in visitor has no points yet unless a test says so.
   http.get(`${API}/me/points`, () => HttpResponse.json({ data: makePoints() })),
   // A signed-in visitor has no pets unless a test says so.

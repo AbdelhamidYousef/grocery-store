@@ -195,6 +195,7 @@ async function reserveAndSave(
       },
       lockCode: true,
       exceptOrderId: pending?.id,
+      roundUpDonation: input.roundUpDonation === true,
       credits:
         requestedPoints > 0
           ? [
@@ -219,6 +220,7 @@ async function reserveAndSave(
     const { priced } = result;
     const subtotalCents = priced.subtotalCents;
     const discountCents = priced.discountCents;
+    const donationCents = priced.donationCents;
     const shippingCents = priced.shippingCents;
     // Tax is out of scope for this project; the column stays so orders look like real ones.
     const taxCents = 0;
@@ -261,6 +263,7 @@ async function reserveAndSave(
       currency: cart.currency,
       subtotalCents,
       discountCents,
+      donationCents,
       shippingCents,
       taxCents,
       totalCents,

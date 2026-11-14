@@ -137,6 +137,12 @@ function Body({ detail }: { detail: AdminOrderDetail }) {
               <dd className="text-right">-{money(totals.discountCents)}</dd>
             </>
           )}
+          {totals.donationCents > 0 && (
+            <>
+              <dt>Donation</dt>
+              <dd className="text-right">{money(totals.donationCents)}</dd>
+            </>
+          )}
           {totals.taxCents > 0 && (
             <>
               <dt>Tax</dt>

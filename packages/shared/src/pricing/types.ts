@@ -153,7 +153,8 @@ export interface PricedCart {
   merchandiseCents: number;
   shippingCents: number;
   totalCents: number;
-  // Hook for phase 19 (round-up donation): a separate order field, never part of a line.
+  // The round-up donation (phase 19): a separate order field, never part of a line, and included
+  // in `totalCents`. 0 unless the input asked for it.
   donationCents: number;
   gift: { variantId: string; qty: 1; unitCents: 0 } | null;
   progress: {

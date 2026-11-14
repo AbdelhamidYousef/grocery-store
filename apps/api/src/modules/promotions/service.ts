@@ -45,6 +45,8 @@ export interface PricingRequest {
   // Prepaid value taken off the merchandise last (loyalty points, referral credit); the engine caps
   // it at what is left, so it can never make the total negative or touch shipping.
   credits?: NonNullable<PriceCartInput['credits']>;
+  // Round the payable total up to the next whole euro as a separate donation line.
+  roundUpDonation?: boolean;
   // Checkout only: lock the code row before counting its uses (the cap race), and leave out the
   // redemption of the pending order being re-placed.
   lockCode?: boolean;
@@ -176,6 +178,7 @@ export async function price(tx: Tx, req: PricingRequest): Promise<PricingResult>
       freeOverCents: req.shipping.freeOverCents ?? undefined,
     },
     credits: req.credits ?? [],
+    roundUpDonation: req.roundUpDonation ?? false,
   });
 
   return {

@@ -65,6 +65,8 @@ export const orders = pgTable(
     subtotalCents: integer('subtotal_cents').notNull(),
     shippingCents: integer('shipping_cents').notNull(),
     discountCents: integer('discount_cents').notNull().default(0),
+    // The round-up donation (phase 19): a separate amount on top of the goods, never discounted.
+    donationCents: integer('donation_cents').notNull().default(0),
     taxCents: integer('tax_cents').notNull().default(0),
     totalCents: integer('total_cents').notNull(),
     // Snapshots of the chosen shipping method: it may be edited or retired later.
@@ -88,11 +90,11 @@ export const orders = pgTable(
     // can never be stored.
     check(
       'orders_total_check',
-      sql`${t.totalCents} = ${t.subtotalCents} + ${t.shippingCents} + ${t.taxCents} - ${t.discountCents}`,
+      sql`${t.totalCents} = ${t.subtotalCents} + ${t.shippingCents} + ${t.taxCents} + ${t.donationCents} - ${t.discountCents}`,
     ),
     check(
       'orders_amounts_check',
-      sql`${t.subtotalCents} >= 0 AND ${t.shippingCents} >= 0 AND ${t.discountCents} >= 0 AND ${t.taxCents} >= 0 AND ${t.totalCents} >= 0`,
+      sql`${t.subtotalCents} >= 0 AND ${t.shippingCents} >= 0 AND ${t.discountCents} >= 0 AND ${t.taxCents} >= 0 AND ${t.donationCents} >= 0 AND ${t.totalCents} >= 0`,
     ),
   ],
 );

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import { LEGAL_PAGES } from '../../features/legal/pages';
+import { CharityTotalNote } from '../../features/loyalty/CharityTotalNote';
 import { PETS } from '../../lib/pets';
 import { track } from '../../lib/track';
 import { PawIcon } from '../icons';
@@ -86,6 +87,7 @@ export function Footer() {
           <p className="max-w-xs text-surface">
             Happy-tail supplies for dogs, cats, birds, fish, reptiles and small pets.
           </p>
+          <CharityTotalNote />
         </div>
 
         {/* One click handler per group (events bubble), so a later analytics project sees which

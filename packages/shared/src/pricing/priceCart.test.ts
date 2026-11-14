@@ -555,10 +555,38 @@ describe('priceCart step 5: credits', () => {
     expect(r.totalCents).toBe(1000);
   });
 
-  it('round-up donation hook is a no-op for now', () => {
-    const r = priceCart(cart({ lines: [line('a', 1001)], roundUpDonation: true }));
-    expect(r.donationCents).toBe(0);
-    expect(r.totalCents).toBe(1501);
+  describe('round-up donation', () => {
+    const shipping0 = { methodCents: 0 };
+    const total = (cents: number, roundUp = true) =>
+      priceCart(cart({ lines: [line('a', cents)], shipping: shipping0, roundUpDonation: roundUp }));
+
+    it('rounds 23.50 up to 24.00 with a 50 cent donation, added to the total', () => {
+      const r = total(2350);
+      expect(r.donationCents).toBe(50);
+      expect(r.merchandiseCents).toBe(2350);
+      expect(r.totalCents).toBe(2400);
+    });
+    it('adds nothing to a whole-euro total, and nothing when not asked', () => {
+      expect(total(2300).donationCents).toBe(0);
+      expect(total(2350, false)).toMatchObject({ donationCents: 0, totalCents: 2350 });
+    });
+    it('counts shipping in what is rounded, and never discounts the donation', () => {
+      const r = priceCart(
+        cart({
+          lines: [line('a', 2000)],
+          shipping: { methodCents: 490 },
+          roundUpDonation: true,
+        }),
+      );
+      expect(r.totalCents).toBe(2500);
+      expect(r.donationCents).toBe(10);
+    });
+    it('adds nothing to an empty cart', () => {
+      expect(priceCart(cart({ lines: [], roundUpDonation: true }))).toMatchObject({
+        donationCents: 0,
+        totalCents: 0,
+      });
+    });
   });
 });
 

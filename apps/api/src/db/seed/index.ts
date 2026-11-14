@@ -29,6 +29,7 @@ import {
 import { HOUSE_BRAND, brands } from './brands.ts';
 import { seedBundles } from './bundles.ts';
 import { categories } from './categories.ts';
+import { seedCharity } from './charity.ts';
 import { collections, windowDates } from './collections.ts';
 import { loadContent, seedContent } from './content.ts';
 import { FORCED_STOCK, expandVariants, stockLevels } from './expand.ts';
@@ -406,6 +407,7 @@ export async function runSeed(now = new Date()) {
     await seedHomeContent(tx);
     await seedMenuPromos(tx);
     await seedRewards(tx);
+    await seedCharity(tx);
 
     // ---- shipping ----
     await tx

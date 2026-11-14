@@ -104,3 +104,22 @@ export const RedeemRewardResponseSchema = DataSchema(
   z.object({ code: PersonalCodeSchema, balance: z.number().int() }),
 );
 export type RedeemRewardResponse = z.infer<typeof RedeemRewardResponseSchema>;
+
+// ---------- charity (19.5) ----------
+
+export const CharityTotalSchema = z.object({
+  charity: z.object({ slug: z.string(), name: z.string(), description: z.string() }),
+  // Everything donated so far (points and round-ups, minus reversed round-ups). DEMO: no money moves.
+  totalCents: z.number().int().min(0),
+  donations: z.number().int().min(0),
+});
+export type CharityTotal = z.infer<typeof CharityTotalSchema>;
+export const CharityTotalResponseSchema = DataSchema(CharityTotalSchema);
+
+export const DonatePointsSchema = z.object({
+  points: z.number().int().min(1).max(1_000_000),
+});
+export type DonatePoints = z.infer<typeof DonatePointsSchema>;
+export const DonatePointsResponseSchema = DataSchema(
+  z.object({ balance: z.number().int(), donatedCents: z.number().int().positive() }),
+);

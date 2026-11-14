@@ -86,6 +86,9 @@ export function CheckoutSummary({
           ...(totals && totals.discountCents > 0
             ? [{ label: 'Discount', cents: -totals.discountCents }]
             : []),
+          ...(totals && totals.donationCents > 0
+            ? [{ label: 'Donation (demo)', cents: totals.donationCents }]
+            : []),
         ]}
         total={{ cents: totals?.totalCents ?? null, fallback: 'Confirmed at payment' }}
       />

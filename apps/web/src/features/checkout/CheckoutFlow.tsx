@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { WebCart } from '../../api/cart';
 import type { PlacedOrder } from '../../api/checkout';
 import { ApiError } from '../../api/client';
+import { Checkbox } from '../../components/ui/Checkbox';
 import { paymentsConfigured } from '../../lib/stripe';
 import { TEST_IDS } from '../../lib/test-ids';
 import { track } from '../../lib/track';
@@ -73,6 +74,7 @@ export function CheckoutFlow({
   const [error, setError] = useState<string | null>(null);
   const [codeError, setCodeError] = useState<string | null>(null);
   const [points, setPoints] = useState(0);
+  const [roundUp, setRoundUp] = useState(false);
   const [pointsError, setPointsError] = useState<string | null>(null);
 
   const place = usePlaceOrder();
@@ -106,6 +108,7 @@ export function CheckoutFlow({
         shippingAddress: details.shippingAddress,
         shippingMethodCode: quote.code,
         ...(user && points > 0 && { pointsToRedeem: points }),
+        ...(roundUp && { roundUpDonation: true }),
       },
       {
         onSuccess: (order) => {
@@ -199,6 +202,18 @@ export function CheckoutFlow({
                   problem={pointsError}
                 />
               )}
+              <div className="mb-4">
+                <Checkbox
+                  label="Round my total up to the next euro for Whisker Hollow Rescue"
+                  data-testid={TEST_IDS.roundUp}
+                  checked={roundUp}
+                  onChange={(e) => setRoundUp(e.target.checked)}
+                />
+                <p className="ml-8 text-sm text-muted">
+                  The extra cents are a separate line on your order. A pretend shelter: no money
+                  moves.
+                </p>
+              </div>
               <ShippingStep
                 country={details.shippingAddress.country}
                 selected={shippingCode}

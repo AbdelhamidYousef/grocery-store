@@ -62,6 +62,7 @@ export function itemsTable(order: Order): string {
     ${total('Subtotal', order.totals.subtotalCents)}
     ${total(`Shipping (${escapeHtml(order.shippingMethod.name)})`, order.totals.shippingCents)}
     ${order.totals.discountCents > 0 ? total('Discount', -order.totals.discountCents) : ''}
+    ${order.totals.donationCents > 0 ? total('Donation to Whisker Hollow Rescue (demo)', order.totals.donationCents) : ''}
     ${total('Total', order.totals.totalCents, true)}
   </table>`;
 }
@@ -88,6 +89,11 @@ export function itemsText(order: Order): string {
     `Shipping (${order.shippingMethod.name}): ${formatMoney(order.totals.shippingCents, order.totals.currency)}`,
     ...(order.totals.discountCents > 0
       ? [`Discount: -${formatMoney(order.totals.discountCents, order.totals.currency)}`]
+      : []),
+    ...(order.totals.donationCents > 0
+      ? [
+          `Donation to Whisker Hollow Rescue (demo): ${formatMoney(order.totals.donationCents, order.totals.currency)}`,
+        ]
       : []),
     `Total: ${formatMoney(order.totals.totalCents, order.totals.currency)}`,
   ].join('\n');

@@ -15,6 +15,7 @@ const order: Order = {
     subtotalCents: 2598,
     shippingCents: 490,
     discountCents: 0,
+    donationCents: 0,
     taxCents: 0,
     totalCents: 3088,
   },

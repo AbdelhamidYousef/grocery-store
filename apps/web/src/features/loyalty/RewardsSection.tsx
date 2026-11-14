@@ -1,4 +1,6 @@
 import { formatMoney, type PersonalCode, type PointKind, type Reward } from '@store/shared';
+import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 
 import { ApiError } from '../../api/client';
 import { Seo } from '../../components/Seo';
@@ -9,7 +11,14 @@ import { useToast } from '../../components/ui/Toast';
 import { formatDate } from '../../lib/format';
 import { TEST_IDS } from '../../lib/test-ids';
 
-import { useMyCodes, usePoints, useRedeemReward, useRewards } from './queries';
+import {
+  useCharityTotal,
+  useDonatePoints,
+  useMyCodes,
+  usePoints,
+  useRedeemReward,
+  useRewards,
+} from './queries';
 
 const KIND_LABEL: Record<PointKind, string> = {
   earn: 'Earned',
@@ -26,6 +35,61 @@ const codeValue = (c: PersonalCode) =>
     : c.kind === 'fixed'
       ? `${formatMoney(c.value, 'EUR')} off`
       : `${c.value}% off`;
+
+// Give points to the (pretend) shelter: 1 point = 1 cent.
+function DonateBox({ balance }: { balance: number }) {
+  const donate = useDonatePoints();
+  const toast = useToast();
+  const total = useCharityTotal().data;
+  const [text, setText] = useState('');
+  const points = Number.parseInt(text, 10);
+  const valid = Number.isInteger(points) && points >= 1 && points <= balance;
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!valid) return;
+    donate.mutate(points, {
+      onSuccess: () => {
+        toast.show(`Thank you! ${points} points went to the shelter.`, 'success');
+        setText('');
+      },
+      onError: (err) =>
+        toast.show(err instanceof ApiError ? err.message : 'We could not donate that.', 'error'),
+    });
+  };
+  return (
+    <form
+      onSubmit={submit}
+      data-testid={TEST_IDS.donatePoints}
+      className="mt-3 flex flex-col gap-2 rounded-card border-2 border-line p-4"
+    >
+      <p>
+        Give points to{' '}
+        <Link to="/charity" className="font-semibold text-primary-strong underline">
+          {total?.charity.name ?? 'Whisker Hollow Rescue'}
+        </Link>
+        , a pretend shelter (1 point = 1 cent; demo only, no money moves).
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <label htmlFor="donate-points" className="sr-only">
+          Points to donate
+        </label>
+        <input
+          id="donate-points"
+          type="number"
+          inputMode="numeric"
+          min={1}
+          max={balance}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          className="min-h-11 w-32 rounded-control border-2 border-line bg-surface px-3"
+        />
+        <Button type="submit" variant="secondary" disabled={!valid} loading={donate.isPending}>
+          Donate
+        </Button>
+      </div>
+    </form>
+  );
+}
 
 function RewardCard({ reward, balance }: { reward: Reward; balance: number }) {
   const redeem = useRedeemReward();
@@ -128,6 +192,9 @@ export function RewardsSection() {
           ))}
         </ul>
       )}
+
+      <h3 className="mt-8 font-display text-xl font-bold">Or give them away</h3>
+      <DonateBox balance={Math.max(0, data?.balance ?? 0)} />
 
       <h3 className="mt-8 font-display text-xl font-bold">Your codes</h3>
       {codes.data && codes.data.length === 0 && (

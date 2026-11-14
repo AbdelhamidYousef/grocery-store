@@ -7,6 +7,7 @@ export const totalsOf = (order: OrderRow): Order['totals'] => ({
   subtotalCents: order.subtotalCents,
   shippingCents: order.shippingCents,
   discountCents: order.discountCents,
+  donationCents: order.donationCents,
   taxCents: order.taxCents,
   totalCents: order.totalCents,
 });

@@ -1,5 +1,7 @@
 import {
   AdminPointsAdjustResponseSchema,
+  CharityTotalResponseSchema,
+  DonatePointsResponseSchema,
   AdminRewardListResponseSchema,
   AdminRewardResponseSchema,
   PersonalCodeListResponseSchema,
@@ -8,6 +10,7 @@ import {
   RewardListResponseSchema,
   type AdminPointsAdjust,
   type AdminReward,
+  type CharityTotal,
   type AdminRewardInput,
   type PersonalCode,
   type PointsSummary,
@@ -93,6 +96,27 @@ export async function adjustPoints(input: AdminPointsAdjust) {
       method: 'POST',
       body: input,
       schema: AdminPointsAdjustResponseSchema,
+    })
+  ).data;
+}
+
+// ---------- charity ----------
+
+export async function fetchCharityTotal(signal?: AbortSignal): Promise<CharityTotal> {
+  return (
+    await apiFetch('/charity/total', {
+      schema: CharityTotalResponseSchema,
+      ...(signal && { signal }),
+    })
+  ).data;
+}
+
+export async function donatePoints(points: number) {
+  return (
+    await apiFetch('/me/points/donate', {
+      method: 'POST',
+      body: { points },
+      schema: DonatePointsResponseSchema,
     })
   ).data;
 }

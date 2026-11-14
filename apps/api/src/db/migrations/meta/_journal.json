@@ -169,6 +169,13 @@
       "when": 1794636874574,
       "tag": "0023_rewards",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794636875843,
+      "tag": "0024_charity_donations",
+      "breakpoints": true
     }
   ]
 }

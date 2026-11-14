@@ -202,6 +202,13 @@ export function priceCart(rawInput: PriceCartInput): PricedCart {
   }
   const merchandise = remaining.reduce((a, b) => a + b, 0);
 
+  // ---- 6. round-up donation: up to the next whole euro, on what the customer pays ----
+  // A separate line: never discounted, never part of the merchandise or a line, and not counted
+  // towards any threshold (those were decided above). A total that is already whole adds nothing.
+  const payable = merchandise + shippingCents;
+  const donationCents =
+    input.roundUpDonation && lines.length > 0 && payable > 0 ? (100 - (payable % 100)) % 100 : 0;
+
   // ---- result ----
   const pricedLines: PricedLine[] = lines.map((l, i) => ({
     variantId: l.line.variantId,
@@ -242,8 +249,9 @@ export function priceCart(rawInput: PriceCartInput): PricedCart {
     discountCents,
     merchandiseCents: merchandise,
     shippingCents,
-    totalCents: merchandise + shippingCents,
-    donationCents: 0,
+    // What the customer is charged: merchandise + shipping + the round-up donation.
+    totalCents: payable + donationCents,
+    donationCents,
     gift,
     progress: { freeShipping, gift: giftProgress, nextTier },
     notices,

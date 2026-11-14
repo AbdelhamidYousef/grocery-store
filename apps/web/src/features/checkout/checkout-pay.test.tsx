@@ -59,6 +59,7 @@ const placed = {
     subtotalCents: 2198,
     shippingCents: 490,
     discountCents: 0,
+    donationCents: 0,
     taxCents: 0,
     totalCents: 2688,
   },

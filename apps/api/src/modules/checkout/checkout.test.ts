@@ -76,6 +76,7 @@ describe('POST /checkout', () => {
       subtotalCents: 2500,
       shippingCents: 690,
       discountCents: 0,
+      donationCents: 0,
       taxCents: 0,
       totalCents: 3190,
     });

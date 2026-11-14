@@ -56,6 +56,9 @@ export const CheckoutRequestSchema = z.object({
   // Loyalty points to pay part of the merchandise with (1 point = 1 cent). Signed-in only; the
   // server checks the balance under a lock and caps it at what is left of the merchandise.
   pointsToRedeem: z.number().int().min(0).max(10_000_000).optional(),
+  // Round the total up to the next whole euro for the shelter (a separate line, demo: no money
+  // moves to a real charity).
+  roundUpDonation: z.boolean().optional(),
 });
 export type CheckoutRequestInput = z.input<typeof CheckoutRequestSchema>;
 export type CheckoutRequest = z.output<typeof CheckoutRequestSchema>;
@@ -67,6 +70,8 @@ export const OrderTotalsSchema = z.object({
   subtotalCents: z.number().int().min(0),
   shippingCents: z.number().int().min(0),
   discountCents: z.number().int().min(0),
+  // The round-up donation, included in `totalCents`; 0 unless the shopper chose it.
+  donationCents: z.number().int().min(0),
   // Always 0 for now (tax is out of scope); the field exists so the UI will not change later.
   taxCents: z.number().int().min(0),
   totalCents: z.number().int().min(0),

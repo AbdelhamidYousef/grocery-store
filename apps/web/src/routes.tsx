@@ -8,6 +8,7 @@ import BrandPage from './pages/BrandPage';
 import BrandsPage from './pages/BrandsPage';
 import CartPage from './pages/CartPage';
 import CategoryPage from './pages/CategoryPage';
+import CharityPage from './pages/CharityPage';
 import CollectionPage from './pages/CollectionPage';
 import ContactPage from './pages/ContactPage';
 import GiftFinderPage from './pages/GiftFinderPage';
@@ -52,6 +53,7 @@ export const routes: RouteObject[] = [
           { path: 'brands/:slug', element: <BrandPage /> },
           { path: 'collections/:slug', element: <CollectionPage /> },
           { path: 'search', element: <SearchPage /> },
+          { path: 'charity', element: <CharityPage /> },
           { path: 'gift-finder', element: <GiftFinderPage /> },
           { path: 'gift-finder/result', element: <GiftResultPage /> },
           { path: 'contact', element: <ContactPage /> },

@@ -111,6 +111,9 @@ export function OrderSummary({ items, totals }: { items: OrderItem[]; totals: Or
           ...(totals.discountCents > 0
             ? [{ label: 'Discount', cents: -totals.discountCents }]
             : []),
+          ...(totals.donationCents > 0
+            ? [{ label: 'Donation (demo)', cents: totals.donationCents }]
+            : []),
           ...(totals.taxCents > 0 ? [{ label: 'Tax', cents: totals.taxCents }] : []),
         ]}
         total={{ cents: totals.totalCents, fallback: '' }}
