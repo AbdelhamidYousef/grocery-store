@@ -2,13 +2,13 @@ import { expect, test, type Browser, type Page } from '@playwright/test';
 
 import { ADMIN, api, register, uniqueEmail } from './helpers';
 
-// Reviews and the customer gallery, end to end: a buyer writes a review with a photo, an admin
+// Reviews, end to end: a buyer writes a review with a photo, an admin
 // approves it, it appears with the "Verified buyer" tag, another shopper votes it helpful and
-// sorts by photos, and a gallery photo opens a modal where a product goes into the cart.
+// sorts by photos.
 //
 // Money moves through the same simulated payment as admin.spec.ts (fake gateway +
 // POST /test/webhooks/simulate, both only under NODE_ENV=test). Each test creates its own product,
-// so specs can run in parallel. The public catalog and gallery are cached for 60 s, so storefront
+// so specs can run in parallel. The public catalog is cached for 60 s, so storefront
 // checks use a brand-new browser context.
 
 const HOOK_HEADERS: Record<string, string> = process.env.TEST_HOOK_SECRET
@@ -177,44 +177,4 @@ test('a buyer reviews with a photo, an admin approves it, others vote and sort',
   await admin.context.close();
   await buyerCtx.close();
   await voterCtx.close();
-});
-
-test('a gallery photo opens a modal and its product goes into the cart', async ({ browser }) => {
-  const admin = await adminSession(browser);
-  const product = await createProduct(admin.page, `E2E Gallery Tug ${unique('')}`);
-  const caption = `E2E gallery ${unique('')}`;
-  const created = await api<{ data: { id: string } }>(admin.page, 'POST', '/admin/gallery', {
-    path: '/products/dog-toys/braided-tug-rope-1.webp',
-    caption,
-    petName: 'Testy',
-    sortOrder: 0,
-    published: true,
-    productIds: [product.id],
-  });
-  expect(created.status, JSON.stringify(created.body)).toBe(201);
-
-  try {
-    const shopperCtx = await browser.newContext();
-    const shopper = await shopperCtx.newPage();
-    await shopper.goto('/');
-    await expect(shopper.getByRole('heading', { name: '#RealPawsomePets' })).toBeVisible();
-    await shopper.getByRole('button', { name: `Open photo: ${caption}` }).click();
-    const modal = shopper.getByTestId('gallery-modal');
-    await expect(modal).toContainText(caption);
-    await expect(modal.getByRole('link', { name: /E2E Gallery Tug/ })).toBeVisible();
-    await modal.getByRole('button', { name: /^Add E2E Gallery Tug .* to cart$/ }).click();
-    await expect(shopper.getByTestId('cart-count')).toHaveText('1');
-    await shopperCtx.close();
-
-    // On the product's own page the gallery shows only photos that feature it.
-    const pdpCtx = await browser.newContext();
-    const pdp = await pdpCtx.newPage();
-    await pdp.goto(`/products/${product.slug}`);
-    await expect(pdp.getByRole('heading', { name: 'Customers with this product' })).toBeVisible();
-    await expect(pdp.getByTestId('gallery-item')).toHaveCount(1);
-    await pdpCtx.close();
-  } finally {
-    await api(admin.page, 'DELETE', `/admin/gallery/${created.body.data.id}`);
-    await admin.context.close();
-  }
 });

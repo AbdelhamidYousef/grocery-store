@@ -152,20 +152,6 @@ export const shell: Record<keyof typeof enNs, Entry> = {
     other: '{average} sur 5, par {count} clients heureux',
   },
   'shell.seasonal.seeAll': 'Voir toute la collection',
-  'shell.gallery.heading': '#RealPawsomePets',
-  'shell.gallery.intro':
-    "De vrais clients, de vrais animaux. Touchez une photo pour découvrir ce qu'ils utilisent.",
-  'shell.gallery.open': 'Ouvrir la photo : {name}',
-  'shell.gallery.customerPhotoLower': 'photo de client',
-  'shell.gallery.customerPhoto': 'Photo de client',
-  'shell.gallery.aCustomer': 'Un client',
-  'shell.gallery.petOf': "L'animal de {name}",
-  'shell.gallery.pictured': 'Sur la photo : {name}',
-  'shell.gallery.shop': 'Acheter cette photo',
-  'shell.gallery.noProducts': "Aucun produit n'est associé à cette photo.",
-  'shell.gallery.addAria': 'Ajouter {name} au panier',
-  'shell.gallery.add': 'Ajouter au panier',
-  'shell.gallery.soldOut': 'Épuisé',
 
   // Safety notices
   'shell.safety.info': 'Avis',

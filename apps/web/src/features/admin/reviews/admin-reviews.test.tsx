@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { makeAdminRow } from '../../../test/fixtures';
 import { renderApp } from '../../../test/render';
 import { API, server, signedInAs } from '../../../test/server';
 
@@ -173,125 +172,12 @@ describe('admin review moderation', () => {
     expect(await screen.findByText('Spam link')).toBeInTheDocument();
   });
 
-  it('has Reviews and Gallery in the admin menu', async () => {
+  it('has Reviews in the admin menu', async () => {
     renderApp('/admin');
     const nav = await screen.findByRole('navigation', { name: 'Admin' });
     expect(within(nav).getByRole('link', { name: 'Reviews' })).toHaveAttribute(
       'href',
       '/admin/reviews',
     );
-    expect(within(nav).getByRole('link', { name: 'Gallery' })).toHaveAttribute(
-      'href',
-      '/admin/gallery',
-    );
-  });
-});
-
-const photo = (n: number, over: object = {}) => ({
-  id: `g${n}`,
-  path: `/reviews/p${n}.webp`,
-  caption: `Photo ${n}`,
-  petName: 'Biscuit',
-  sortOrder: n,
-  published: n === 1,
-  productIds: ['p1'],
-  ...over,
-});
-
-describe('admin gallery', () => {
-  it('lists photos with their state', async () => {
-    server.use(
-      http.get(`${API}/admin/gallery`, () => HttpResponse.json({ data: [photo(1), photo(2)] })),
-    );
-    renderApp('/admin/gallery');
-    const rows = await screen.findAllByTestId('admin-gallery-row');
-    expect(rows).toHaveLength(2);
-    expect(within(rows[0]!).getByText('Published')).toBeInTheDocument();
-    expect(within(rows[1]!).getByText('Draft')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Move Photo 1 up' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Move Photo 2 down' })).toBeDisabled();
-  });
-
-  it('publishes a draft', async () => {
-    let patch: unknown = null;
-    server.use(
-      http.get(`${API}/admin/gallery`, () => HttpResponse.json({ data: [photo(2)] })),
-      http.patch(`${API}/admin/gallery/g2`, async ({ request }) => {
-        patch = await request.json();
-        return HttpResponse.json({ data: photo(2, { published: true }) });
-      }),
-    );
-    renderApp('/admin/gallery');
-    await userEvent.click(await screen.findByRole('button', { name: /^Publish/ }));
-    await waitFor(() => expect(patch).toEqual({ published: true }));
-  });
-
-  it('moves a photo down by swapping the two sort numbers', async () => {
-    const patches: Record<string, unknown> = {};
-    server.use(
-      http.get(`${API}/admin/gallery`, () => HttpResponse.json({ data: [photo(1), photo(2)] })),
-      http.patch(`${API}/admin/gallery/:id`, async ({ params, request }) => {
-        patches[String(params.id)] = await request.json();
-        return HttpResponse.json({ data: photo(1) });
-      }),
-    );
-    renderApp('/admin/gallery');
-    await userEvent.click(await screen.findByRole('button', { name: 'Move Photo 1 down' }));
-    await waitFor(() => expect(Object.keys(patches)).toHaveLength(2));
-    expect(patches).toEqual({ g1: { sortOrder: 2 }, g2: { sortOrder: 1 } });
-  });
-
-  it('adds a photo by path, linking a searched product', async () => {
-    let created: unknown = null;
-    server.use(
-      http.get(`${API}/admin/gallery`, () => HttpResponse.json({ data: [] })),
-      http.get(`${API}/admin/products`, () =>
-        HttpResponse.json({
-          data: [makeAdminRow({ id: '11111111-1111-4111-8111-111111111111' })],
-          meta: { page: 1, limit: 5, total: 1, totalPages: 1 },
-        }),
-      ),
-      http.post(`${API}/admin/gallery`, async ({ request }) => {
-        created = await request.json();
-        return HttpResponse.json({ data: photo(1) }, { status: 201 });
-      }),
-    );
-    renderApp('/admin/gallery');
-    const form = await screen.findByTestId('gallery-form');
-    await userEvent.type(within(form).getByLabelText('Photo path'), '/reviews/biscuit.webp');
-    await userEvent.type(within(form).getByLabelText('Caption'), 'Biscuit and his rope');
-    await userEvent.type(within(form).getByLabelText(/Link products/), 'rope');
-    await userEvent.click(await within(form).findByRole('button', { name: 'Add Rope Tug' }));
-    await userEvent.click(within(form).getByRole('button', { name: 'Add photo' }));
-    await waitFor(() => expect(created).not.toBeNull());
-    expect(created).toMatchObject({
-      path: '/reviews/biscuit.webp',
-      caption: 'Biscuit and his rope',
-      published: true,
-      productIds: ['11111111-1111-4111-8111-111111111111'],
-    });
-  });
-
-  it('shows the server refusal for a bad path', async () => {
-    server.use(
-      http.get(`${API}/admin/gallery`, () => HttpResponse.json({ data: [] })),
-      http.post(`${API}/admin/gallery`, () =>
-        HttpResponse.json(
-          {
-            error: {
-              code: 'VALIDATION_ERROR',
-              message: 'Request validation failed',
-              details: { fieldErrors: { path: ['Must be a path on this site'] } },
-            },
-          },
-          { status: 400 },
-        ),
-      ),
-    );
-    renderApp('/admin/gallery');
-    const form = await screen.findByTestId('gallery-form');
-    await userEvent.type(within(form).getByLabelText('Photo path'), 'https://evil.example/x.jpg');
-    await userEvent.click(within(form).getByRole('button', { name: 'Add photo' }));
-    expect(await screen.findByText('path: Must be a path on this site')).toBeInTheDocument();
   });
 });

@@ -1,26 +1,19 @@
-import { inArray, like, sql } from 'drizzle-orm';
+import { inArray, sql } from 'drizzle-orm';
 
 import type { Tx } from '../client.ts';
-import {
-  galleryPhotoProducts,
-  galleryPhotos,
-  reviewPhotos,
-  reviews,
-  users,
-} from '../schema/index.ts';
+import { reviewPhotos, reviews, users } from '../schema/index.ts';
 
 import type { ProductSeed } from './expand.ts';
 import { imageRowsFor } from './images.ts';
 
 // Phase 17 demo content: about 60 invented reviews spread over 22 products (mixed ratings, some
-// pending or rejected, some with pet details or a photo) and 12 gallery photos. Everything is
+// pending or rejected, some with pet details or a photo). Everything is
 // generated deterministically from a fixed seed, so every run (and every machine) gets the same
 // rows and the seed stays idempotent. No real person or brand: reviewers are made-up names on the
 // reserved `.test` domain.
 //
 // Photos reuse the catalogue's own product pictures (`/products/...`, already committed and
 // credited in apps/web/public/products/CREDITS.md): no new art, and nothing to keep in step.
-// TODO(image task): real customer-style photos can replace these paths later (admin gallery).
 
 export const REVIEWER_EMAIL_DOMAIN = '@pawsome.test';
 const REVIEWER_NAMES: [string, string][] = [
@@ -98,35 +91,6 @@ const WEIGHT_G: Record<string, [number, number]> = {
 
 export const SEEDED_REVIEW_TARGET = 60;
 const PRODUCT_COUNT = 22;
-
-const GALLERY_CAPTIONS = [
-  'Nap time on the new bed',
-  'Tug of war champion',
-  'Walkies in the new harness',
-  'Dinner is served',
-  'Zoomies after the first parcel',
-  'Supervising the unboxing',
-  'Quality time with the favourite toy',
-  'Best seat in the house',
-  'Training day treats',
-  'Cosy corner finally finished',
-  'Weekend adventure',
-  'Sunday morning stretch',
-];
-const GALLERY_PET_NAMES = [
-  'Biscuit',
-  'Luna',
-  'Pepper',
-  'Mochi',
-  'Waffles',
-  'Juniper',
-  'Ziggy',
-  'Olive',
-  'Basil',
-  'Nugget',
-  'Clover',
-  'Tango',
-];
 
 export async function seedReviews(
   tx: Tx,
@@ -246,35 +210,4 @@ export async function seedReviews(
       rating_sum = (select coalesce(sum(r.rating), 0)::int from reviews r
         where r.product_id = products.id and r.status = 'approved')
   `);
-
-  // ---- gallery: twelve photos built from catalogue pictures ----
-  await tx.delete(galleryPhotos).where(like(galleryPhotos.path, '/products/%'));
-  const withPhoto = products.filter((p) => {
-    const img = imageRowsFor(p)[0];
-    return img && !img.url.endsWith('.svg') && productId.has(p.slug);
-  });
-  const gStep = Math.max(1, Math.floor(withPhoto.length / 12));
-  for (let i = 0; i < 12; i++) {
-    const main = withPhoto[(i * gStep + 3) % withPhoto.length]!;
-    const [photo] = await tx
-      .insert(galleryPhotos)
-      .values({
-        path: imageRowsFor(main)[0]!.url,
-        caption: GALLERY_CAPTIONS[i]!,
-        petName: GALLERY_PET_NAMES[i]!,
-        sortOrder: i + 1,
-        // One stays a draft, so the admin screen has both states to show.
-        published: i !== 11,
-      })
-      .returning({ id: galleryPhotos.id });
-    if (!photo) throw new Error('gallery insert returned no row');
-    // The main product plus up to two more of the same pet, so the modal has something to browse.
-    const mates = withPhoto
-      .filter((p) => p.pet === main.pet && p.slug !== main.slug)
-      .slice(i % 3, (i % 3) + (i % 3 === 0 ? 1 : 2));
-    const linked = [main, ...mates].map((p) => productId.get(p.slug)!);
-    await tx
-      .insert(galleryPhotoProducts)
-      .values([...new Set(linked)].map((pid) => ({ photoId: photo.id, productId: pid })));
-  }
 }

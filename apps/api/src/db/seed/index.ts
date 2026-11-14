@@ -500,7 +500,7 @@ export async function runSeed(now = new Date()) {
         },
       });
 
-    // ---- reviews and the customer gallery (phase 17): after the products and the users ----
+    // ---- reviews (phase 17): after the products and the users ----
     await seedReviews(tx, { products, productId, passwordHash, now });
 
     // ---- ~90 days of sales history and sample returns (phase 22): after products and users ----

@@ -71,7 +71,7 @@ export async function reencode(buf: Buffer): Promise<Buffer> {
 export async function savePhoto(
   cfg: UploadConfig,
   input: Buffer,
-  folder: 'reviews' | 'gallery' = 'reviews',
+  folder: 'reviews' = 'reviews',
 ): Promise<string> {
   if (!cfg.enabled) throw validation(undefined, 'Photo upload is switched off in this demo.');
   if (!sniffImage(input)) {
@@ -89,7 +89,7 @@ export async function savePhoto(
 export async function removePhotos(cfg: UploadConfig, urls: string[]): Promise<void> {
   await Promise.all(
     urls.map((u) => {
-      const m = /^\/api\/v1\/uploads\/(reviews|gallery)\/([\w-]+\.webp)$/.exec(u);
+      const m = /^\/api\/v1\/uploads\/(reviews)\/([\w-]+\.webp)$/.exec(u);
       // The strict pattern (random uuid names only) is what keeps a crafted path from escaping the folder.
       return m ? unlink(join(cfg.dir, m[1]!, m[2]!)).catch(() => undefined) : Promise.resolve();
     }),
@@ -136,32 +136,5 @@ export const parseReviewUpload: RequestHandler = (req, res, next) => {
       return;
     }
     next(err);
-  });
-};
-
-// Admin gallery upload: exactly one file in the `photo` field, same limits, same re-encoding.
-const single = multer({
-  storage: multer.memoryStorage(),
-  limits: { files: 1, fileSize: MAX_REVIEW_PHOTO_BYTES, fields: 2, parts: 4 },
-}).single('photo');
-
-export const parseGalleryUpload: RequestHandler = (req, res, next) => {
-  single(req, res, (err?: unknown) => {
-    if (err instanceof multer.MulterError) {
-      next(
-        err.code === 'LIMIT_FILE_SIZE'
-          ? new AppError(
-              ErrorCode.VALIDATION_ERROR,
-              'The photo can be at most 3 MB.',
-              undefined,
-              413,
-            )
-          : validation(undefined, 'The upload could not be read.'),
-      );
-      return;
-    }
-    if (err) next(err);
-    else if (!req.file) next(validation(undefined, 'Attach one photo in the "photo" field.'));
-    else next();
   });
 };

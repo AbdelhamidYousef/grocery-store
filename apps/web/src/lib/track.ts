@@ -32,7 +32,6 @@ export type AnalyticsEvent =
   | { name: 'remove_from_cart'; item: TrackItem; quantity: number }
   | { name: 'review_submitted'; productId: string; rating: number; photos: number }
   | { name: 'review_helpful'; reviewId: string; voted: boolean }
-  | { name: 'gallery_open'; photoId: string }
   | { name: 'return_requested'; orderNumber: string; items: number; reason: string }
   | { name: 'pet_added'; species: string }
   | { name: 'pet_activated'; species: string | null }

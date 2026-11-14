@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
-  fetchGallery,
   fetchReviews,
   submitReview,
   toggleHelpful,
@@ -42,12 +41,5 @@ export function useHelpful() {
       track({ name: 'review_helpful', reviewId, voted: result.voted });
       void queryClient.invalidateQueries({ queryKey: keys.reviews.all });
     },
-  });
-}
-
-export function useGallery(productId?: string) {
-  return useQuery({
-    queryKey: keys.gallery(productId),
-    queryFn: ({ signal }) => fetchGallery(productId, signal),
   });
 }

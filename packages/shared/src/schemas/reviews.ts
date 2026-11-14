@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { DataSchema, PaginationMetaSchema } from './common.ts';
 
-// Customer reviews and the shoppable gallery (phase 17). Weight is integer grams and age integer
+// Customer reviews (phase 17). Weight is integer grams and age integer
 // months everywhere: no floats cross the wire.
 
 export const REVIEW_STATUSES = ['pending', 'approved', 'rejected'] as const;
@@ -157,65 +157,3 @@ export const AdminReviewListResponseSchema = z.object({
 });
 export const AdminReviewResponseSchema = DataSchema(AdminReviewSchema);
 export const RejectReviewBodySchema = z.object({ reason: z.string().trim().min(3).max(300) });
-
-// ---------- gallery ----------
-
-export const GalleryProductSchema = z.object({
-  id: z.string(),
-  slug: z.string(),
-  name: z.string(),
-  imageUrl: z.string().nullable(),
-  priceCents: z.number().int().min(0),
-  currency: z.string(),
-  // The variant "add to cart" uses (the product's default one); null when none can be bought.
-  variantId: z.string().nullable(),
-  inStock: z.boolean(),
-});
-export type GalleryProduct = z.infer<typeof GalleryProductSchema>;
-
-export const GalleryPhotoSchema = z.object({
-  id: z.string(),
-  path: z.string(),
-  caption: z.string(),
-  petName: z.string(),
-  products: z.array(GalleryProductSchema),
-});
-export type GalleryPhoto = z.infer<typeof GalleryPhotoSchema>;
-
-export const GalleryQuerySchema = z.object({ productId: z.string().uuid().optional() });
-export const GalleryResponseSchema = DataSchema(z.array(GalleryPhotoSchema));
-
-export const AdminGalleryPhotoSchema = z.object({
-  id: z.string(),
-  path: z.string(),
-  caption: z.string(),
-  petName: z.string(),
-  sortOrder: z.number().int(),
-  published: z.boolean(),
-  productIds: z.array(z.string()),
-});
-export type AdminGalleryPhoto = z.infer<typeof AdminGalleryPhotoSchema>;
-
-export const GALLERY_PATH_RE = /^\/(api\/v1\/uploads|products|reviews)\/[\w./-]+$/;
-
-export const GalleryInputSchema = z.object({
-  // A path on our own site: an uploaded file ("/api/v1/uploads/...") or a committed photo
-  // ("/products/...", "/reviews/..."), never a full URL, so the gallery cannot be pointed at
-  // somebody else's server. An allow-list, not "starts with /": browsers read `/\evil.com` as
-  // `//evil.com`, so backslashes (and any `..` segment) are refused.
-  path: z
-    .string()
-    .trim()
-    .min(2)
-    .max(300)
-    .regex(GALLERY_PATH_RE, 'Must be a path on this site')
-    .refine((p) => !p.includes('..'), 'Must be a path on this site'),
-  caption: z.string().trim().max(200).default(''),
-  petName: z.string().trim().max(60).default(''),
-  sortOrder: z.coerce.number().int().min(0).max(10_000).default(0),
-  published: z.boolean().default(false),
-  productIds: z.array(z.string().uuid()).max(8).default([]),
-});
-export const GalleryUpdateSchema = GalleryInputSchema.partial();
-export const AdminGalleryListResponseSchema = DataSchema(z.array(AdminGalleryPhotoSchema));
-export const AdminGalleryResponseSchema = DataSchema(AdminGalleryPhotoSchema);

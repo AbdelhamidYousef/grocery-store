@@ -30,7 +30,6 @@ import { useProduct } from '../features/catalog/queries';
 import { variantFromSku } from '../features/catalog/resolve-variant';
 import { VariantPicker } from '../features/catalog/VariantPicker';
 import { VetBanner } from '../features/checkout/VetBanner';
-import { ShoppableGallery } from '../features/gallery/ShoppableGallery';
 import { EarnPoints } from '../features/loyalty/EarnPoints';
 import { formatRating } from '../features/reviews/format';
 import { RatingStars } from '../features/reviews/RatingStars';
@@ -316,11 +315,6 @@ function ProductView({ product }: { product: ProductDetail }) {
           }
         />
         <ReviewsSection product={product} />
-        <ShoppableGallery
-          productId={product.id}
-          heading={t('pdp.page.gallery.heading')}
-          intro={t('pdp.page.gallery.intro')}
-        />
         <KitsBlock kits={product.kits} currency={product.price.currency} />
         <BoughtTogether productSlug={product.slug} productName={product.name} variant={variant} />
         <RelatedStrip productSlug={product.slug} />

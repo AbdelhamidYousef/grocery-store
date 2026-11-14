@@ -15,14 +15,8 @@ describe('home slot registry', () => {
   it('orders slots by the fixed id list, whatever the registration order', () => {
     registerHomeSlot(slot('newsletter'));
     registerHomeSlot(slot('seasonal'));
-    registerHomeSlot(slot('customer-gallery'));
     registerHomeSlot(slot('recently-viewed'));
-    expect(getHomeSlots().map((s) => s.id)).toEqual([
-      'seasonal',
-      'recently-viewed',
-      'customer-gallery',
-      'newsletter',
-    ]);
+    expect(getHomeSlots().map((s) => s.id)).toEqual(['seasonal', 'recently-viewed', 'newsletter']);
   });
 
   it('skips unregistered and disabled slots', () => {

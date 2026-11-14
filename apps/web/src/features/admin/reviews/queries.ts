@@ -3,15 +3,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   approveAdminReview,
-  createAdminGalleryPhoto,
-  deleteAdminGalleryPhoto,
   deleteAdminReview,
-  fetchAdminGallery,
   fetchAdminReviews,
   rejectAdminReview,
-  updateAdminGalleryPhoto,
-  uploadAdminGalleryFile,
-  type GalleryInput,
 } from '../../../api/admin-reviews';
 import { keys } from '../../../lib/query-client';
 
@@ -52,44 +46,3 @@ export const useDeleteReview = () => {
   const refresh = useRefreshAfter();
   return useMutation({ mutationFn: deleteAdminReview, onSuccess: refresh });
 };
-
-export function useAdminGallery() {
-  return useQuery({
-    queryKey: keys.admin.gallery,
-    queryFn: ({ signal }) => fetchAdminGallery(signal),
-    staleTime: 0,
-  });
-}
-
-function useRefreshGallery() {
-  const queryClient = useQueryClient();
-  return () =>
-    Promise.all([
-      queryClient.invalidateQueries({ queryKey: keys.admin.gallery }),
-      queryClient.invalidateQueries({ queryKey: ['gallery'] }),
-    ]);
-}
-
-export const useCreateGalleryPhoto = () => {
-  const refresh = useRefreshGallery();
-  return useMutation({
-    mutationFn: (input: GalleryInput) => createAdminGalleryPhoto(input),
-    onSuccess: refresh,
-  });
-};
-
-export const useUpdateGalleryPhoto = () => {
-  const refresh = useRefreshGallery();
-  return useMutation({
-    mutationFn: (v: { id: string; input: Partial<GalleryInput> }) =>
-      updateAdminGalleryPhoto(v.id, v.input),
-    onSuccess: refresh,
-  });
-};
-
-export const useDeleteGalleryPhoto = () => {
-  const refresh = useRefreshGallery();
-  return useMutation({ mutationFn: deleteAdminGalleryPhoto, onSuccess: refresh });
-};
-
-export const useUploadGalleryFile = () => useMutation({ mutationFn: uploadAdminGalleryFile });

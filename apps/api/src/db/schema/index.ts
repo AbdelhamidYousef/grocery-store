@@ -7,7 +7,6 @@ export * from './charity.ts';
 export * from './collections.ts';
 export * from './contact-messages.ts';
 export * from './email-outbox.ts';
-export * from './gallery.ts';
 export * from './guide-categories.ts';
 export * from './guides.ts';
 export * from './help-articles.ts';

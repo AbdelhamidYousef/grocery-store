@@ -165,8 +165,8 @@ describe('seed: product page content', () => {
   });
 });
 
-describe('seeded reviews and gallery (phase 17)', () => {
-  it('writes about 60 reviews in all three states, 12 gallery photos, and is idempotent', async () => {
+describe('seeded reviews (phase 17)', () => {
+  it('writes about 60 reviews in all three states and is idempotent', async () => {
     await runSeed();
     const q = async () =>
       (
@@ -176,9 +176,6 @@ describe('seeded reviews and gallery (phase 17)', () => {
           pending: number;
           rejected: number;
           photos: number;
-          gallery: number;
-          published: number;
-          links: number;
           products_rated: number;
         }>(sql`select
           (select count(*)::int from reviews) as total,
@@ -186,9 +183,6 @@ describe('seeded reviews and gallery (phase 17)', () => {
           (select count(*)::int from reviews where status = 'pending') as pending,
           (select count(*)::int from reviews where status = 'rejected') as rejected,
           (select count(*)::int from review_photos) as photos,
-          (select count(*)::int from gallery_photos) as gallery,
-          (select count(*)::int from gallery_photos where published) as published,
-          (select count(*)::int from gallery_photo_products) as links,
           (select count(*)::int from products where rating_count > 0) as products_rated`)
       )[0]!;
     const first = await q();
@@ -197,9 +191,6 @@ describe('seeded reviews and gallery (phase 17)', () => {
     expect(first.pending).toBeGreaterThanOrEqual(3);
     expect(first.rejected).toBeGreaterThanOrEqual(1);
     expect(first.photos).toBeGreaterThanOrEqual(3);
-    expect(first.gallery).toBe(12);
-    expect(first.published).toBe(11);
-    expect(first.links).toBeGreaterThanOrEqual(12);
     expect(first.products_rated).toBeGreaterThan(10);
     await runSeed();
     expect(await q()).toEqual(first);

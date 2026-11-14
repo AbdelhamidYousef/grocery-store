@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { GalleryInputSchema, averageTenths, reviewInputSchema } from './reviews.ts';
+import { averageTenths, reviewInputSchema } from './reviews.ts';
 
 const valid = {
   rating: 5,
@@ -57,28 +57,5 @@ describe('averageTenths', () => {
     [2, 9, 45],
   ])('count %i, sum %i -> %i', (count, sum, expected) => {
     expect(averageTenths(count, sum)).toBe(expected);
-  });
-});
-
-describe('GalleryInputSchema path', () => {
-  it.each([
-    '/api/v1/uploads/gallery/0b0e0d0e-1111-4111-8111-111111111111.webp',
-    '/products/dog-toys/braided-tug-rope-1.webp',
-    '/reviews/biscuit.webp',
-  ])('accepts %s', (path) => {
-    expect(GalleryInputSchema.safeParse({ path }).success).toBe(true);
-  });
-
-  it.each([
-    '/\\evil.com/x.png',
-    '//evil.com/x.png',
-    'https://evil.com/x.png',
-    '/products/../admin/x.png',
-    '/products/a\\b.png',
-    '/other/x.png',
-    '/products/',
-    '/products/x.png?x=1',
-  ])('refuses %s', (path) => {
-    expect(GalleryInputSchema.safeParse({ path }).success).toBe(false);
   });
 });

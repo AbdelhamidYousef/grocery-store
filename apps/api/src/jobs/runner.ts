@@ -186,7 +186,7 @@ registerJob({
   run: (ctx) => sendPetMessages({ now: ctx.now, outbox: ctx.outbox, log: ctx.log }),
 });
 
-// Review and gallery photos nobody references any more (phase 17): removed after 24 h. Relative
+// Review photos nobody references any more (phase 17): removed after 24 h. Relative
 // UPLOAD_DIR resolves from apps/api, as in index.ts.
 const API_ROOT = fileURLToPath(new URL('../..', import.meta.url));
 registerJob({

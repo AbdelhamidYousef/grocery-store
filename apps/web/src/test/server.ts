@@ -90,9 +90,8 @@ export const server = setupServer(
       data: makeOrder({ status: 'pending_payment', paymentStatus: 'processing' }),
     }),
   ),
-  // No reviews and no gallery photos unless a test says so.
+  // No reviews unless a test says so.
   http.get(`${API}/products/:slug/reviews`, () => HttpResponse.json(makeReviewList())),
-  http.get(`${API}/gallery`, () => HttpResponse.json({ data: [] })),
   // A delivered order's page asks for its returns: nothing returned and nothing eligible by default.
   http.get(`${API}/orders/:number/returns`, () =>
     HttpResponse.json({

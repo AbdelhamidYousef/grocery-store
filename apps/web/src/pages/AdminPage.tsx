@@ -31,7 +31,6 @@ import { PromotionsLayout } from '../features/admin/promotions/PromotionsLayout'
 import { TiersAdmin } from '../features/admin/promotions/TiersAdmin';
 import { ReturnDetail } from '../features/admin/returns/ReturnDetail';
 import { ReturnsAdmin } from '../features/admin/returns/ReturnsAdmin';
-import { GalleryAdmin } from '../features/admin/reviews/GalleryAdmin';
 import { ReviewsAdmin } from '../features/admin/reviews/ReviewsAdmin';
 import { TagsAdmin } from '../features/admin/TagsAdmin';
 import { TranslationsAdmin } from '../features/admin/translations/TranslationsAdmin';
@@ -53,7 +52,6 @@ export default function AdminPage() {
         <Route path="vet-approvals" element={<VetApprovalsAdmin />} />
         <Route path="returns/:id" element={<ReturnDetail />} />
         <Route path="reviews" element={<ReviewsAdmin />} />
-        <Route path="gallery" element={<GalleryAdmin />} />
         <Route path="orders/:number" element={<OrderDetail />} />
         <Route path="brands" element={<BrandsAdmin />} />
         <Route path="collections" element={<CollectionsAdmin />} />

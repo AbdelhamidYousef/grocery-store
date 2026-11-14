@@ -14,7 +14,6 @@ import { catalogRouter } from './catalog/router.ts';
 import { createCheckoutRouter } from './checkout/router.ts';
 import { createTestRouter } from './checkout/test-router.ts';
 import { createContactRouter } from './contact/router.ts';
-import { galleryRouter } from './gallery/router.ts';
 import { guidesRouter } from './guides/router.ts';
 import { helpRouter } from './help/router.ts';
 import { homeRouter } from './home/router.ts';
@@ -74,7 +73,6 @@ export function createModulesRouter(opts: {
   router.use(merchandisingRouter);
   router.use(guidesRouter);
   // Public and the same for everyone (published photos, active products), so before the session.
-  router.use(galleryRouter);
   router.use(helpRouter);
   router.use(homeRouter);
   router.use(safetyRouter);

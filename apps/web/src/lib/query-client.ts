@@ -109,7 +109,6 @@ export const keys = {
     tags: ['admin', 'tags'] as const,
     menuPromos: ['admin', 'menu-promos'] as const,
     reviews: (status: string) => ['admin', 'reviews', status] as const,
-    gallery: ['admin', 'gallery'] as const,
     vetAll: ['admin', 'vet-approvals'] as const,
     vet: (decision: string, page: number) => ['admin', 'vet-approvals', decision, page] as const,
     analytics: (from: string, to: string, interval: string, currency = 'EUR') =>
@@ -159,7 +158,6 @@ export const keys = {
     all: ['reviews'] as const,
     list: (slug: string, params: object) => ['reviews', 'list', slug, params] as const,
   },
-  gallery: (productId: string | undefined) => ['gallery', productId ?? 'all'] as const,
   // The mega-menu data (pets, categories, brands, promos): one cached call.
   navigation: ['navigation'] as const,
   categories: {

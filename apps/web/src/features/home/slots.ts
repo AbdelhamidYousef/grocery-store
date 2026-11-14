@@ -1,16 +1,11 @@
 import type { ReactNode } from 'react';
 
 // The homepage's extension points. This phase owns HomePage; later phases (recently viewed,
-// customer gallery, newsletter) only register their component here and never edit the page.
+// newsletter) only register their component here and never edit the page.
 //  - The order is fixed by HOME_SLOT_IDS, not by who registers first, so import order cannot
 //    shuffle the page.
 //  - A slot nobody registered (or one that says it is not enabled) renders nothing at all.
-export const HOME_SLOT_IDS = [
-  'seasonal',
-  'recently-viewed',
-  'customer-gallery',
-  'newsletter',
-] as const;
+export const HOME_SLOT_IDS = ['seasonal', 'recently-viewed', 'newsletter'] as const;
 export type HomeSlotId = (typeof HOME_SLOT_IDS)[number];
 
 export interface HomeSlot {

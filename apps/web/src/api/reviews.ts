@@ -1,5 +1,4 @@
 import {
-  GalleryResponseSchema,
   HelpfulResponseSchema,
   ReviewCreatedResponseSchema,
   ReviewListResponseSchema,
@@ -48,15 +47,6 @@ export async function toggleHelpful(reviewId: string) {
     await apiFetch(`/reviews/${encodeURIComponent(reviewId)}/helpful`, {
       method: 'POST',
       schema: HelpfulResponseSchema,
-    })
-  ).data;
-}
-
-export async function fetchGallery(productId?: string, signal?: AbortSignal) {
-  return (
-    await apiFetch(`/gallery${productId ? `?productId=${encodeURIComponent(productId)}` : ''}`, {
-      schema: GalleryResponseSchema,
-      ...(signal && { signal }),
     })
   ).data;
 }

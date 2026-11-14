@@ -20,8 +20,6 @@ export const pdp = {
   'pdp.page.attr.size': 'Size',
   'pdp.page.attr.brand': 'Brand',
   'pdp.page.attr.goodFor': 'Good for',
-  'pdp.page.gallery.heading': 'Customers with this product',
-  'pdp.page.gallery.intro': 'Photos from real Pawsome pets. Tap one to shop what is in it.',
 
   // ---- tabs ----
   'pdp.tabs.label': 'Product information',
