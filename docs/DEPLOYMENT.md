@@ -1,156 +1,110 @@
-# Deploying Pawsome (free tiers, Stripe test mode)
+# Deploying Pawsome (free tiers, no card, Stripe test mode)
 
-Three hosts, all free, no card needed: **Neon** (Postgres), **Render** (API), **Vercel** (web).
-The browser only ever talks to the Vercel URL: Vercel forwards `/api/*` to Render, so the session
-cookie stays first-party. Do the steps in this order, because each one produces a value the next
-needs. Keep a scratch note of the values (never commit them).
+Live demo: <https://pawsome-store-tau.vercel.app> (deployed 2026-11-14).
 
-| Value                         | Comes from            | Goes to                          |
-| ----------------------------- | --------------------- | -------------------------------- |
-| Neon pooled + direct URL      | step 1                | Render `DATABASE_URL`, your shell |
-| Render URL (`*.onrender.com`) | step 3                | `apps/web/vercel.json`, Stripe   |
-| Vercel URL (`*.vercel.app`)   | step 4                | Render `WEB_ORIGIN`              |
-| `sk_test_`, `pk_test_`        | step 5                | Render, Vercel                   |
-| `whsec_` signing secret       | step 5                | Render `STRIPE_WEBHOOK_SECRET`   |
-| `re_` API key                 | step 6                | Render `RESEND_API_KEY`          |
+The whole app runs on **one Vercel project**: the React build is served as static files, and the
+Express API runs as a Vercel Function on the same origin (`/api/*`). The database is **Neon**.
+Payments are **Stripe test mode**. Scheduled jobs are triggered by **GitHub Actions**. Nothing here
+needs a card. (Render was the first plan; its free plan now asks for a card, so it was dropped. See
+the decisions log, 2026-11-14.)
+
+```
+browser ──► Vercel ── static files (apps/web/dist)
+                  └── /api/* ──► Function api/index.js ──► apps/api (Express) ──► Neon (pooled)
+Stripe ──webhook──► /api/v1/webhooks/stripe
+GitHub Actions (hourly) ──► POST /api/v1/internal/jobs/run
+```
 
 ## 0. GitHub
 
-1. Create an empty repository on GitHub (no README).
-2. `git remote add origin gh_y33:<user>/<repo>.git && git push -u origin main`
-3. Actions secrets are optional: CI (`ci.yml`) needs none. Render and Vercel deploy from the repo
-   on their own, so no deploy key goes in GitHub.
+1. Create an empty repository (no README) and push: `git remote add origin gh_y33:<user>/<repo>.git && git push -u origin main`.
+2. CI (`ci.yml`) needs no secrets.
 
 ## 1. Neon (database)
 
-1. neon.com > sign up (free) > **Create project**. Name `pawsome`, pick the region nearest you
-   (use the same region family for Render), Postgres 17 or the default.
-2. **Connect** dialog: copy two strings.
-   - **Direct** connection (toggle "Connection pooling" off): host without `-pooler`.
-   - **Pooled** connection (toggle on): host contains `-pooler`.
-3. Use the **direct** URL for migrations and seed (the migrator takes a session-level lock that a
-   transaction pooler can break), and the **pooled** URL for the running API (many short
-   connections, which is what the pooler is for). If the API ever logs "prepared statement ...
-   does not exist", switch the API to the direct URL too: the app opens at most 10 connections.
-4. From your machine, passing the URL through the shell only (never write it into `.env`):
+1. neon.com > sign up (free) > create a project in the region nearest your users (the demo uses
+   AWS Frankfurt).
+2. **Connect** dialog: copy the **pooled** URL (host contains `-pooler`). The **direct** URL is the
+   same without `-pooler`.
+3. Migrate and seed from your machine with the **direct** URL, passed through the shell only (never
+   written into `.env`):
 
    ```sh
-   export PATH=$HOME/.local/bin:$PATH
    DATABASE_URL='<direct url>' pnpm db:migrate
    DATABASE_URL='<direct url>' pnpm db:seed
    ```
 
-   The seed prints the demo logins (`admin@pawsome.test` and two customers, one shared password).
-   It is safe to run again. A **public** demo with a published admin password is intended; if you
-   would rather not, change `DEMO_PASSWORD` in `apps/api/src/db/seed/users.ts` before seeding.
-
-Neon suspends the compute after 5 minutes idle; the first query afterwards takes a second or two.
+   The seed prints the demo logins (`admin@pawsome.test` and customers, one shared password).
 
 ## 2. Stripe (test mode)
 
-1. dashboard.stripe.com > sign up (free). Make sure the **Test mode** toggle is on. No business
-   details are needed for test mode.
-2. **Developers > API keys**: copy the **Publishable key** (`pk_test_...`) and reveal the **Secret
-   key** (`sk_test_...`). The API refuses to boot with a live key.
-3. The webhook endpoint is created in step 5, once the Render URL exists.
+1. dashboard.stripe.com > sign up (free). Stay in **test mode** (sandbox); no business details are
+   needed.
+2. **Developers > API keys**: the publishable key (`pk_test_...`) and the secret key
+   (`sk_test_...`). The API refuses to boot with a live key.
+3. Webhook endpoint (after step 3 gives you the URL), in the dashboard or with the API:
+   URL `https://<vercel-domain>/api/v1/webhooks/stripe`, events `payment_intent.succeeded`,
+   `payment_intent.payment_failed`, `payment_intent.canceled`, `charge.refunded`. Keep its signing
+   secret (`whsec_...`).
 
-## 3. Render (API)
+## 3. Vercel (web + API)
 
-Blueprint route (reproducible, recommended):
+1. vercel.com > sign up (Hobby, free) > **Add New > Project** > import the GitHub repo (install the
+   Vercel GitHub app on that repository only).
+2. **Root Directory**: `apps/web`. Framework preset: Vite. Leave build and output settings alone:
+   `apps/web/vercel.json` sets the build command (`pnpm --filter @store/api build && pnpm build`),
+   the function and the rewrites.
+3. **Environment Variables** (Production). The dashboard accepts a pasted `.env` block:
 
-1. render.com > sign up (free) > connect GitHub > grant access to the repo.
-2. **New > Blueprint** > pick the repo. Render reads `render.yaml` and proposes the `pawsome-api`
-   service on the free plan. It asks for the values marked `sync: false`.
-3. Fill the variables below, then **Apply**. The first build takes a few minutes. Its URL is
-   `https://pawsome-api.onrender.com` (or with a suffix if the name is taken: use the real one).
+   | Variable                      | Value                                                   |
+   | ----------------------------- | ------------------------------------------------------- |
+   | `DATABASE_URL`                | Neon **pooled** URL                                     |
+   | `WEB_ORIGIN`                  | the production URL, e.g. `https://<project>.vercel.app` |
+   | `COOKIE_SECRET`               | 32+ random characters                                   |
+   | `STRIPE_SECRET_KEY`           | `sk_test_...`                                           |
+   | `STRIPE_WEBHOOK_SECRET`       | `whsec_...`                                             |
+   | `STRIPE_PUBLISHABLE_KEY`      | `pk_test_...`                                           |
+   | `VITE_STRIPE_PUBLISHABLE_KEY` | `pk_test_...` (read at build time by the web app)       |
+   | `MAIL_FROM`                   | `Pawsome <onboarding@resend.dev>`                       |
+   | `UPLOADS_ENABLED`             | `false` (function disks are not persistent)             |
+   | `ENABLE_JOBS`                 | `false` (no timers in a function)                       |
+   | `JOBS_SECRET`                 | 16+ random characters, same as the GitHub secret        |
+   | `RESEND_API_KEY`              | optional, `re_...`; without it emails are skipped       |
+   | `LOG_LEVEL`                   | `info` (optional)                                       |
 
-Manual route (same result): **New > Web Service** > the repo, Runtime **Node**, Instance type
-**Free**, Build command `pnpm install --frozen-lockfile --prod=false && pnpm --filter @store/api build`,
-Start command `node apps/api/dist/index.js`, Health check path `/api/v1/health`, then add the
-variables.
+   Random values: `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`.
 
-| Variable                | Value                                                                         |
-| ----------------------- | ----------------------------------------------------------------------------- |
-| `NODE_ENV`              | `production` (set by the blueprint)                                           |
-| `NODE_VERSION`          | `22` (set by the blueprint)                                                   |
-| `DATABASE_URL`          | Neon **pooled** URL (step 1)                                                  |
-| `WEB_ORIGIN`            | Vercel URL, `https://<project>.vercel.app`, no path. Set after step 4         |
-| `COOKIE_SECRET`         | generated by the blueprint; manually: `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` |
-| `STRIPE_SECRET_KEY`     | `sk_test_...` (step 2)                                                        |
-| `STRIPE_WEBHOOK_SECRET` | `whsec_...` (step 5)                                                          |
-| `RESEND_API_KEY`        | `re_...` (step 6), optional: without it emails are logged and skipped         |
-| `MAIL_FROM`             | `Pawsome <onboarding@resend.dev>` (set by the blueprint)                      |
-| `LOG_LEVEL`             | `info` (optional)                                                             |
-| `UPLOADS_ENABLED`       | `false` (set by the blueprint): the free disk is ephemeral                    |
-| `JOBS_SECRET`           | 16+ random characters; the same value as the GitHub Actions secret `JOBS_SECRET` |
+4. Deploy. Every push to `main` redeploys.
 
-The API refuses to boot (the deploy fails with a readable message in the logs) if `DATABASE_URL`,
-`COOKIE_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` is missing, if `WEB_ORIGIN` is not an
-`https://` URL, or if a Stripe key is not a test key. Until `WEB_ORIGIN` and `whsec_` exist, put a
-placeholder (`https://example.vercel.app`, `whsec_placeholder`), then replace them and let it
-redeploy.
+Check: `https://<domain>/api/v1/health` returns `{"status":"ok","db":"ok",...}`.
 
-Check: `https://<render-url>/api/v1/health` returns `{"status":"ok","db":"ok",...}`.
+## 4. Scheduled jobs (GitHub Actions)
 
-## 4. Vercel (web)
+Repository **Settings > Secrets and variables > Actions**: variable `API_URL` = the production URL,
+secret `JOBS_SECRET` = the same value as on Vercel. `.github/workflows/jobs.yml` then calls the jobs
+route every hour (stale reservations, email retries, flash sales, stock alerts, pet emails, upload
+sweep). Runs are claimed per period, so an extra or late trigger is harmless.
 
-1. **Edit the rewrite target first**: open `apps/web/vercel.json` and replace
-   `https://pawsome-api.onrender.com` (the only place it appears) with your Render URL. Commit and
-   push.
-2. vercel.com > sign up with GitHub (Hobby, free) > **Add New > Project** > import the repo.
-3. **Root Directory**: `apps/web`. Framework preset: Vite (auto-detected). Leave the build
-   command (`pnpm build`) and output (`dist`) as detected. Vercel installs from the workspace root
-   automatically.
-4. **Environment Variables**: `VITE_STRIPE_PUBLISHABLE_KEY` = `pk_test_...`. Do **not** set
-   `VITE_API_URL`: empty means "same origin", which the rewrite serves.
-5. **Deploy**. Copy the production URL, put it in Render's `WEB_ORIGIN` (no trailing path), and let
-   Render redeploy.
+## 5. Resend (email, optional)
 
-Preview deployments for pull requests come free; the API only accepts the one production
-`WEB_ORIGIN`, so previews can browse but not sign in or check out.
+resend.com > sign up > API key `re_...` into `RESEND_API_KEY`. Without a verified domain Resend only
+sends from `onboarding@resend.dev` and only delivers to the account owner's address.
 
-## 5. Stripe webhook
+## 6. Smoke checklist
 
-1. Stripe dashboard (test mode) > **Developers > Webhooks > Add endpoint**.
-2. Endpoint URL: `https://<render-url>/api/v1/webhooks/stripe`
-3. Events to select: `payment_intent.succeeded`, `payment_intent.payment_failed`,
-   `payment_intent.canceled`, `charge.refunded`.
-4. After creating it, **Reveal** the signing secret (`whsec_...`) and put it in Render
-   `STRIPE_WEBHOOK_SECRET`.
-
-## 6. Resend (email, optional)
-
-1. resend.com > sign up (free) > **API Keys > Create API key** (sending access) > `re_...` into
-   Render `RESEND_API_KEY`.
-2. Without a verified domain Resend only sends from `onboarding@resend.dev` and **only delivers to
-   the address you signed up with**. For the smoke test use that address as the checkout email.
-   Other customers' confirmations are rejected by Resend; the order still completes.
-
-## 7. Smoke checklist
-
-- [ ] `https://<render-url>/api/v1/health` is `ok` with `"db":"ok"`.
-- [ ] `https://<vercel-url>/` shows the shop with products and images (the first load can take
-      about a minute while Render wakes up).
-- [ ] Register or sign in (`sam@pawsome.test`), reload: still signed in (cookie works through the
-      rewrite).
-- [ ] Add to cart, check out with card `4242 4242 4242 4242`, any future date, any CVC, using your
-      Resend address as email.
-- [ ] Confirmation page shows the order as paid.
-- [ ] Stripe > Developers > Webhooks > your endpoint: recent deliveries are `200`.
-- [ ] The confirmation email arrives.
-- [ ] Admin (`admin@pawsome.test`) opens `/admin`, marks the order as processing/shipped.
-- [ ] Open the Vercel URL on a phone.
-- [ ] Put the Vercel URL in the README.
+1. Home and a product page load with images and prices.
+2. Sign in with a demo login; the account page shows the name.
+3. Add to cart, check out as a guest, pay with `4242 4242 4242 4242` (any future date, any CVC);
+   the confirmation page turns to **paid** (the webhook arrived).
+4. Admin: `admin@pawsome.test` sees the order.
+5. `curl -X POST -H "X-Jobs-Secret: <secret>" -H 'Content-Type: application/json' -d '{}' https://<domain>/api/v1/internal/jobs/run`
+   lists the jobs as `ran`; a wrong secret gets 401.
 
 ## Free-tier caveats
 
-- **Render** free web services sleep after 15 minutes without traffic; the next request takes
-  roughly 30 to 60 seconds. The first load of a demo can look broken: open it once before showing
-  it. The stale-reservation sweeper restarts with the service, and also runs 10 s after boot.
-- **Neon** suspends after 5 minutes idle (about a second to resume) and has a monthly compute
-  allowance; plenty for a demo.
-- **Stripe test mode** never moves real money. Test webhooks to a sleeping Render service are
-  retried by Stripe, so a first purchase after idle still confirms.
-- **Resend** free: 100 emails/day, owner address only without a domain.
-- Rotating a secret: edit it in the host's dashboard; Render redeploys, Vercel needs a redeploy
-  for `VITE_` values because they are baked in at build time.
+- After idle time the first request is slower (function cold start plus Neon waking its compute,
+  roughly 1 to 4 seconds).
+- Review photo upload is off on the demo; seeded photos are served with the web app.
+- The in-process timers of the long-running server (`apps/api/src/index.ts`) do not exist on
+  Vercel; the hourly GitHub job replaces them, so a stale reservation is released within the hour
+  rather than within minutes.

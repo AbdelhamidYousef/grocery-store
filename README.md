@@ -2,7 +2,7 @@
 
 A full-stack e-commerce store for a fictional pet supplies shop. React and TypeScript on the front end, an Express 5 API, Postgres through Drizzle, and Stripe in test mode. It is a portfolio project, built to show how a store behaves when two shoppers want the last item, when a webhook arrives twice, or when the payment provider is slow.
 
-- **Live demo:** coming soon. Nothing is deployed yet; the guide to deploy it is [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+- **Live demo:** <https://pawsome-store-tau.vercel.app> (Stripe test mode: pay with `4242 4242 4242 4242`). How it is deployed: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 - **Test card:** `4242 4242 4242 4242`, any future expiry, any CVC, any postcode. Stripe test mode never moves money.
 - **Scope:** browse and search, variants (colour by size), a server-side cart that survives login, guest and account checkout, order history, and an admin area for products, stock and orders.
 - **Content:** the brand, products and copy are made up, there are no live animals for sale, and the product images are AI-generated (see [image credits](apps/web/public/products/CREDITS.md)).
@@ -48,7 +48,7 @@ flowchart LR
   Shared -. "imported by" .-> API
 ```
 
-A pnpm monorepo with three packages: `apps/web`, `apps/api` and `packages/shared`. The shared package holds the Zod schemas for every request and response, so the contract is one definition that both sides compile against, and the web client parses every response with it at runtime. In production the browser only talks to the Vercel origin, which forwards `/api/*` to the API, so the session cookie stays first-party.
+A pnpm monorepo with three packages: `apps/web`, `apps/api` and `packages/shared`. The shared package holds the Zod schemas for every request and response, so the contract is one definition that both sides compile against, and the web client parses every response with it at runtime. In production web and API share one Vercel origin (the API runs as a Vercel Function under `/api/*`), so the session cookie is first-party.
 
 ## Stack, and why
 
@@ -229,7 +229,7 @@ Statement coverage at the end of phase 11: shared 100 %, web 95.0 %, API 96.5 % 
 ## What I would do differently, and what's next
 
 - **No real Stripe run yet.** The Stripe code is covered against a fake gateway, and the card test is written but skipped until test keys are added. Until a real card has gone through the Payment Element, the Stripe path is tested but not proven end to end.
-- **Not deployed yet.** The demo link above is a placeholder. The free tiers have known costs: Render's free API sleeps after 15 minutes idle, so the first request takes roughly 30 to 60 seconds (the confirmation page says so when it happens), and Neon suspends its compute after five idle minutes.
+- **Free-tier demo.** After idle time the first request is slower (function cold start plus Neon waking its compute, roughly 1 to 4 seconds). Scheduled jobs run hourly from GitHub Actions instead of in-process timers.
 - **Email on the demo.** Resend's free tier without a verified domain only delivers to the account owner's address, so other customers' confirmation emails are rejected while the order still completes.
 - **Product images are AI-generated.** They are original and record their prompts in the credits file, but they are not photographs of real products.
 - **The catalog query is simple on purpose.** The variant summary aggregates all active variants on each request. At the seeded 47 products the filtered list query runs in under a millisecond and a local load check gave about 500 requests per second; at a hundred times the catalog I would cache it or keep a materialised summary.
@@ -267,7 +267,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the commit style and branch flow.
 
 ## Deployment
 
-Free tiers only, no card needed: Neon (Postgres), Render (API) and Vercel (web), with Stripe in test mode and Resend for email. The step-by-step guide, including the order to do things in and a smoke checklist, is [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+Free tiers only, no card needed: Neon (Postgres) and Vercel (web plus the API as a function), with Stripe in test mode, GitHub Actions for scheduled jobs and Resend for email. The step-by-step guide, including the order to do things in and a smoke checklist, is [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Licence and credits
 

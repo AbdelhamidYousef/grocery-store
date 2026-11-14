@@ -23,13 +23,11 @@ account was created, nothing is deployed.
 
 ## Waiting on you
 
-1. **Stripe test account** → put `sk_test_`/`pk_test_`/`whsec_` in `.env`, then run `pnpm test`
-   (2 live tests un-skip) and `pnpm e2e` (the real-card test un-skips). This path has never run.
-2. **GitHub repo** → name it (plan suggests `pawsome-store`), `git remote add origin gh_y33:<user>/<repo>.git`,
-   push, confirm CI green, then enable branch protection (settings listed in the journal, 11.4).
-   Optionally add `STRIPE_SECRET_KEY` as an Actions secret.
-3. **Deploy (12.2–12.5)** → Neon, Render, Vercel, Resend sign-ups following `docs/DEPLOYMENT.md`;
-   then put the demo URL in the README.
+1. ~~Stripe, GitHub, deploy~~ **Done 2026-11-14.** Live at <https://pawsome-store-tau.vercel.app>
+   (web + API on Vercel, Neon Frankfurt, Stripe sandbox in test mode, hourly jobs from GitHub
+   Actions). A real test-card payment went through and its webhook marked the order paid. Repo:
+   <https://github.com/AbdelhamidYousef/pawsome-store>. Optional: a Resend key for real emails;
+   branch protection on `main`; triage the Dependabot PRs.
 4. **13.5 decision** → publish admin demo credentials with a nightly data reset? (plan default: yes).
 5. **13.6** → interview notes, written by you with a session's help; then prune `docs/plan/`
    (the README links into it — update those links when pruning).
