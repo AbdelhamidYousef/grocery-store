@@ -60,9 +60,15 @@ export interface PaymentGateway {
   retrievePaymentIntent(id: string): Promise<PaymentIntentInfo>;
   // Idempotent: cancelling an already-cancelled intent returns it instead of throwing.
   cancelPaymentIntent(id: string): Promise<PaymentIntentInfo>;
-  // Returns the whole charge to the customer. Idempotent per key, and an already-refunded intent
-  // is an answer ("done"), not a failure, so a retry after a timeout is always safe.
-  refundPaymentIntent(id: string, idempotencyKey: string): Promise<RefundInfo>;
+  // Returns money to the customer: the whole remaining charge, or `amountCents` of it (a partial
+  // refund, used by returns). Idempotent per key, and an already-refunded intent is an answer
+  // ("done"), not a failure, so a retry after a timeout is always safe. Asking for more than is
+  // left to refund is a provider error (502), never silently clamped.
+  refundPaymentIntent(
+    id: string,
+    idempotencyKey: string,
+    amountCents?: number,
+  ): Promise<RefundInfo>;
   /** `rawBody` must be the exact bytes Stripe sent: the signature covers them, not the JSON. */
   constructWebhookEvent(rawBody: Buffer, signature: string | undefined): StripeEvent;
 }
@@ -154,10 +160,15 @@ export function createStripeGateway(options: StripeGatewayOptions): PaymentGatew
         }
       }),
 
-    refundPaymentIntent: (id, idempotencyKey) =>
+    refundPaymentIntent: (id, idempotencyKey, amountCents) =>
       call(async () => {
         try {
-          const refund = await stripe.refunds.create({ payment_intent: id }, { idempotencyKey });
+          // Stripe's `amount` is in the currency's smallest unit (cents), like ours. Left out, the
+          // refund covers whatever is still refundable on the charge.
+          const refund = await stripe.refunds.create(
+            { payment_intent: id, ...(amountCents !== undefined && { amount: amountCents }) },
+            { idempotencyKey },
+          );
           return { id: refund.id, status: refund.status ?? 'pending' };
         } catch (err) {
           if (err instanceof Stripe.errors.StripeError && err.code === 'charge_already_refunded') {

@@ -976,3 +976,10 @@ Learn: derive what can drift (kit stock), store what is a decision (kit price), 
 1. Why does the adapter probe `document.modelContext` and `navigator.modelContext` and register nothing otherwise, instead of shipping a polyfill?
 2. The client limits an agent to 30 calls a minute. Why is that not a security measure, and which server-side rules actually keep an agent from doing more than a shopper?
 3. Why is there no checkout tool, and how does a cart tool let the human see what the agent did?
+
+## Phase 22 — post-purchase ops
+
+### 22.1 — gateway: partial refunds
+- `PaymentGateway.refundPaymentIntent` takes an optional `amountCents`; the Stripe adapter passes it as `amount`, the fake keeps a ledger of refunded cents per intent and refuses to refund more than was charged. `RETURN_WINDOW_DAYS` and `RETURNS_SIMULATED` env flags exist for the later steps.
+- Learn: the idempotency key identifies ONE intended refund. Replaying it must return the same answer without moving money again (Stripe remembers keys for 24 h; the fake remembers them for ever). A partial refund per return uses the key `return-<id>`, so a retry after a timeout is safe, while the full-order refund keeps its own key `refund:<orderId>`. Refusing an over-refund is the provider's job, but the fake does it too so a bug in our amount maths fails a test instead of passing silently.
+- Tests: api 4 fake-gateway tests (partial then remainder, over-refund and zero rejected, replayed key, already refunded), 1 adapter test (amount sent in cents).

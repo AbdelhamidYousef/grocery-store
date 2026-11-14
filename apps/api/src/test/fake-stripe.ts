@@ -21,7 +21,9 @@ export class FakeStripe implements PaymentGateway {
   readonly cancelled: string[] = [];
   /** Intent ids refunded through `refundPaymentIntent` (one entry per distinct idempotency key). */
   readonly refunded: string[] = [];
-  private refundKeys = new Set<string>();
+  // One answer per idempotency key: replaying a key returns the first refund and moves no money.
+  private refundsByKey = new Map<string, RefundInfo>();
+  private refundedCentsByIntent = new Map<string, number>();
   private failures: Method[] = [];
   private counter = 0;
 
@@ -33,6 +35,11 @@ export class FakeStripe implements PaymentGateway {
   // The next call to `method` (and only that one) rejects like an unavailable provider.
   failNext(method: Method): void {
     this.failures.push(method);
+  }
+
+  /** Cents refunded so far on an intent, across every distinct idempotency key. */
+  refundedCents(id: string): number {
+    return this.refundedCentsByIntent.get(id) ?? 0;
   }
 
   callsTo(method: Method) {
@@ -112,15 +119,31 @@ export class FakeStripe implements PaymentGateway {
     });
   }
 
-  refundPaymentIntent(id: string, idempotencyKey: string): Promise<RefundInfo> {
+  // Mirrors Stripe where tests lean on it: a key is answered once; an explicit amount may not
+  // exceed what is left to refund; no amount refunds what is left; nothing left is "already
+  // refunded" (a success, as the real adapter reports it).
+  refundPaymentIntent(
+    id: string,
+    idempotencyKey: string,
+    amountCents?: number,
+  ): Promise<RefundInfo> {
     return Promise.resolve().then(() => {
-      this.enter('refund', id, idempotencyKey);
-      this.require(id);
-      if (!this.refundKeys.has(idempotencyKey)) {
-        this.refundKeys.add(idempotencyKey);
-        this.refunded.push(id);
+      this.enter('refund', id, idempotencyKey, amountCents);
+      const pi = this.require(id);
+      const replay = this.refundsByKey.get(idempotencyKey);
+      if (replay) return replay;
+      const charged = pi.amountReceivedCents || pi.amountCents;
+      const left = charged - this.refundedCents(id);
+      if (amountCents !== undefined && (amountCents <= 0 || amountCents > left)) {
+        throw paymentProvider(`Refund of ${amountCents} exceeds the ${left} left on ${id}`);
       }
-      return { id: `re_fake_${this.refunded.length}`, status: 'succeeded' };
+      const amount = amountCents ?? left;
+      if (amount === 0) return { id: 'already_refunded', status: 'succeeded' };
+      this.refundedCentsByIntent.set(id, this.refundedCents(id) + amount);
+      this.refunded.push(id);
+      const info = { id: `re_fake_${this.refunded.length}`, status: 'succeeded' };
+      this.refundsByKey.set(idempotencyKey, info);
+      return info;
     });
   }
 

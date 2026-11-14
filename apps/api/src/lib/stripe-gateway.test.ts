@@ -143,6 +143,15 @@ describe('refundPaymentIntent', () => {
     );
   });
 
+  it('sends the amount for a partial refund (in cents) and nothing extra for a full one', async () => {
+    sdk.refunds.create.mockResolvedValue({ id: 're_3', status: 'succeeded' });
+    await gateway.refundPaymentIntent('pi_1', 'return-1', 450);
+    expect(sdk.refunds.create).toHaveBeenCalledWith(
+      { payment_intent: 'pi_1', amount: 450 },
+      { idempotencyKey: 'return-1' },
+    );
+  });
+
   it('reports pending when Stripe leaves the status out', async () => {
     sdk.refunds.create.mockResolvedValue({ id: 're_2', status: null });
     expect((await gateway.refundPaymentIntent('pi_1', 'k')).status).toBe('pending');

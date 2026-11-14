@@ -100,6 +100,15 @@ export const envSchema = z
       .enum(['true', 'false'])
       .default('true')
       .transform((v) => v === 'true'),
+    // Returns (phase 22). Days after delivery a customer may ask for a return.
+    RETURN_WINDOW_DAYS: z.coerce.number().int().min(1).max(365).default(30),
+    // Stripe is not configured on a plain dev server, so a return refund would answer 502. With
+    // this on (and ONLY then, and only when there is no gateway) the refund is recorded as
+    // simulated: `provider_refund_id = sim_...`, labelled so in the admin UI. Never moves money.
+    RETURNS_SIMULATED: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((v) => v === 'true'),
     // Background jobs inside the API process (the stale-reservation sweeper). Tests call the job
     // functions directly, so this only matters for a running server.
     ENABLE_JOBS: z
