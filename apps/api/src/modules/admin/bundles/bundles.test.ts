@@ -3,7 +3,13 @@ import { eq } from 'drizzle-orm';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { db } from '../../../db/client.ts';
-import { bundleItems, inventory, orders } from '../../../db/schema/index.ts';
+import {
+  bundleItems,
+  inventory,
+  orders,
+  productVariants,
+  products,
+} from '../../../db/schema/index.ts';
 import { makeTestApp } from '../../../test/app.ts';
 import { createProduct, createShippingMethods } from '../../../test/factories.ts';
 import { FakeStripe } from '../../../test/fake-stripe.ts';
@@ -317,5 +323,76 @@ describe('editing a kit after an order was placed', () => {
     expect(await stockOf(rope.variants[0]!.id)).toEqual({ quantity: 10, reserved: 0 });
     expect(await stockOf(ball.variants[0]!.id)).toEqual({ quantity: 10, reserved: 0 });
     expect(await stockOf(extra.variants[0]!.id)).toEqual({ quantity: 0, reserved: 0 });
+  });
+});
+
+describe('kits and shared components', () => {
+  const checkout = (shopper: Shopper) =>
+    shopper.call('post', '/checkout', {
+      email: 'ada@pawsome.test',
+      shippingAddress: {
+        fullName: 'Ada Lovelace',
+        line1: '1 Bone Street',
+        city: 'Riga',
+        postalCode: 'LV-1010',
+        country: 'LV',
+      },
+      shippingMethodCode: 'standard',
+    });
+
+  it('checks stock per component across lines: a kit and its part on their own', async () => {
+    // Kit = 2 ropes + 1 ball; 5 ropes in stock.
+    const { res, rope } = await makeKit({ ropeStock: 5 });
+    const kit = data<Bundle>(res);
+    const ropeId = rope.variants[0]!.id;
+    const shopper = makeShopper(app);
+    await shopper.addToCart(kit.variantId, 1); // takes 2 ropes
+    // 3 more ropes fit exactly, a 4th does not (checkout would refuse the merged demand).
+    expect((await shopper.addToCart(ropeId, 4)).status).toBe(409);
+    expect((await shopper.addToCart(ropeId, 3)).status).toBe(200);
+    expect((await checkout(shopper)).status).toBe(200);
+    expect(await stockOf(ropeId)).toEqual({ quantity: 5, reserved: 5 });
+    // And the other way round: a second kit no longer fits next to 3 loose ropes.
+    expect((await shopper.addToCart(kit.variantId, 1)).status).toBe(409);
+  });
+
+  it('clamps with a warning, not a checkout 409, when the part is short for the kit', async () => {
+    const { res, rope } = await makeKit({ ropeStock: 5 });
+    const kit = data<Bundle>(res);
+    const ropeId = rope.variants[0]!.id;
+    const shopper = makeShopper(app);
+    await shopper.addToCart(kit.variantId, 1);
+    await shopper.addToCart(ropeId, 3);
+    // Stock drops to 3 ropes: kit (2) + loose ropes (3) = 5 > 3.
+    await db.update(inventory).set({ quantity: 3 }).where(eq(inventory.variantId, ropeId));
+    const cart = data<Cart>(await shopper.call('get', '/cart'));
+    expect(cart.warnings.map((w) => w.code)).toContain('QTY_REDUCED');
+    expect(cart.items.find((i) => i.variantId === ropeId)?.quantity).toBe(1);
+    expect((await checkout(shopper)).status).toBe(200);
+  });
+
+  it('is sold out, and not purchasable, when a component is archived', async () => {
+    const { res, rope } = await makeKit();
+    const kit = data<Bundle>(res);
+    const shopper = makeShopper(app);
+    await shopper.addToCart(kit.variantId, 1);
+    await db
+      .update(productVariants)
+      .set({ status: 'archived' })
+      .where(eq(productVariants.id, rope.variants[0]!.id));
+    const page = data<ProductDetail>(await makeShopper(app).call('get', '/products/play-kit'));
+    expect(page.variants[0]?.available).toBe(false);
+    expect((await makeShopper(app).addToCart(kit.variantId, 1)).status).toBe(409);
+    const cart = data<Cart>(await shopper.call('get', '/cart'));
+    expect(cart.warnings.map((w) => w.code)).toContain('OUT_OF_STOCK');
+    expect(cart.subtotalCents).toBe(0);
+    expect((await checkout(shopper)).status).toBe(409);
+  });
+
+  it('is sold out when the component product is archived', async () => {
+    const { res, ball } = await makeKit();
+    const kit = data<Bundle>(res);
+    await db.update(products).set({ status: 'archived' }).where(eq(products.id, ball.product.id));
+    expect((await makeShopper(app).addToCart(kit.variantId, 1)).status).toBe(409);
   });
 });

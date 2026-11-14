@@ -12,7 +12,7 @@ import {
 
 import { db, type Tx } from '../../db/client.ts';
 import { AppError, conflict, notFound } from '../../lib/errors.ts';
-import { listActiveShippingMethods } from '../checkout/repo.ts';
+import { bundleComponentsOf, listActiveShippingMethods } from '../checkout/repo.ts';
 import { estimateRule, priceBeforeThreshold } from '../checkout/shipping.ts';
 import * as promotions from '../promotions/service.ts';
 import { customerKey, isRedeemed, trialLimit } from '../trials/service.ts';
@@ -33,6 +33,55 @@ function pickImage(images: repo.ImageRow[], line: repo.LineRow): repo.ImageRow |
   );
 }
 
+// ---------- stock planning across lines ----------
+//
+// Stock belongs to COMPONENTS, and one component can sit in several lines (a kit holding 1 rope
+// plus 3 ropes on their own). Checking each line alone would pass a cart that checkout's merged
+// reservation then refuses, so every check here works on per-variant demand across the whole cart.
+interface StockPlan {
+  partsOf(variantId: string): { variantId: string; qty: number }[];
+  free: Map<string, number>;
+}
+
+async function planStock(tx: Tx, variantIds: string[]): Promise<StockPlan> {
+  const kits = await bundleComponentsOf(tx, variantIds);
+  const partsOf = (variantId: string) => kits.get(variantId) ?? [{ variantId, qty: 1 }];
+  const free = await repo.freeUnits(tx, [
+    ...new Set(variantIds.flatMap((v) => partsOf(v).map((p) => p.variantId))),
+  ]);
+  return { partsOf, free };
+}
+
+function addDemand(plan: StockPlan, demand: Map<string, number>, variantId: string, qty: number) {
+  for (const p of plan.partsOf(variantId)) {
+    demand.set(p.variantId, (demand.get(p.variantId) ?? 0) + p.qty * qty);
+  }
+}
+
+// How many units of this line still fit once `demand` (the other lines) has taken its share.
+function capacity(plan: StockPlan, demand: Map<string, number>, variantId: string): number {
+  let fit = Number.POSITIVE_INFINITY;
+  for (const p of plan.partsOf(variantId)) {
+    const left = (plan.free.get(p.variantId) ?? 0) - (demand.get(p.variantId) ?? 0);
+    fit = Math.min(fit, Math.floor(Math.max(0, left) / p.qty));
+  }
+  return Number.isFinite(fit) ? fit : 0;
+}
+
+// Demand of every line in the cart except the one for `exceptVariantId` (the line being changed).
+async function demandOfOthers(
+  tx: Tx,
+  cartId: string,
+  exceptVariantId: string,
+  variantId: string,
+): Promise<{ plan: StockPlan; demand: Map<string, number> }> {
+  const others = (await repo.listItems(tx, cartId)).filter((i) => i.variantId !== exceptVariantId);
+  const plan = await planStock(tx, [variantId, ...others.map((i) => i.variantId)]);
+  const demand = new Map<string, number>();
+  for (const i of others) addDemand(plan, demand, i.variantId, i.quantity);
+  return { plan, demand };
+}
+
 // Builds the priced, stock-checked view of a cart and repairs the stored rows to match. Must run
 // inside a transaction (the caller's, so a mutation can return its own result) because it takes
 // the cart row lock: reading and repairing concurrently with an add could otherwise clamp a line
@@ -49,6 +98,11 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
   const lines = await repo.listLines(tx, cartId);
   const images = await repo.listImages(tx, [...new Set(lines.map((l) => l.productId))]);
 
+  const plan = await planStock(
+    tx,
+    lines.map((l) => l.variantId),
+  );
+  const demand = new Map<string, number>();
   const warnings: CartWarning[] = [];
   const removeIds: string[] = [];
   const items: CartItem[] = [];
@@ -70,7 +124,9 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
       continue;
     }
 
-    const available = Math.max(0, (line.stock ?? 0) - (line.reserved ?? 0));
+    // What is left for this line after the lines above it took their components (a kit and its
+    // own part on a separate line draw on the same units).
+    const available = capacity(plan, demand, line.variantId);
     const maxQty = Math.min(MAX_LINE_QUANTITY, available);
     let quantity = line.quantity;
 
@@ -97,6 +153,9 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
       }
       await repo.setLastSeenPrice(tx, line.itemId, line.priceCents);
     }
+
+    // Only what the shopper can actually buy takes stock from the lines below.
+    if (available > 0) addDemand(plan, demand, line.variantId, quantity);
 
     const image = pickImage(images, line);
     const lineTotal = line.priceCents * quantity;
@@ -242,7 +301,9 @@ async function addLine(
 ): Promise<void> {
   const stock = await repo.findPurchasable(tx, variantId);
   if (!stock) throw notFound('Product variant not found');
-  const maxQty = Math.min(MAX_LINE_QUANTITY, stock.available);
+  // Stock left for this variant once the OTHER lines (kits expanded) have their share.
+  const others = await demandOfOthers(tx, cartId, variantId, variantId);
+  const maxQty = Math.min(MAX_LINE_QUANTITY, capacity(others.plan, others.demand, variantId));
 
   const existing = await repo.findItemByVariant(tx, cartId, variantId);
   const inCart = existing?.quantity ?? 0;
@@ -306,7 +367,11 @@ export async function updateItem(cartId: string, itemId: string, quantity: numbe
     const stock = await repo.findPurchasable(tx, item.variantId);
     if (!stock) throw notFound('Product variant not found');
     if (stock.isTrial) await assertTrialAddable(tx, cart, item.variantId, quantity);
-    const maxQty = Math.min(MAX_LINE_QUANTITY, stock.available);
+    const others = await demandOfOthers(tx, cartId, item.variantId, item.variantId);
+    const maxQty = Math.min(
+      MAX_LINE_QUANTITY,
+      capacity(others.plan, others.demand, item.variantId),
+    );
     if (quantity > maxQty) {
       throw outOfStock({
         variantId: item.variantId,

@@ -280,3 +280,22 @@ export async function listItems(tx: Tx, cartId: string): Promise<CartItemRow[]> 
 export async function setDiscountCode(tx: Tx, cartId: string, code: string | null): Promise<void> {
   await tx.update(carts).set({ discountCode: code }).where(eq(carts.id, cartId));
 }
+
+// How many units of each variant a shopper could still take right now: stock minus reservations,
+// 0 when the variant or its product is not active or has no stock row. Components of kits and
+// plain variants alike; the cart plans per-variant demand against this (see cart/service.ts).
+export async function freeUnits(tx: Tx, variantIds: string[]): Promise<Map<string, number>> {
+  const free = new Map<string, number>();
+  if (variantIds.length === 0) return free;
+  const rows = await tx
+    .select({
+      variantId: productVariants.id,
+      free: sql<number>`case when ${productVariants.status} = 'active' and ${products.status} = 'active' then greatest(coalesce(${inventory.quantity} - ${inventory.reserved}, 0), 0) else 0 end`,
+    })
+    .from(productVariants)
+    .innerJoin(products, eq(products.id, productVariants.productId))
+    .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
+    .where(inArray(productVariants.id, variantIds));
+  for (const r of rows) free.set(r.variantId, Number(r.free));
+  return free;
+}
