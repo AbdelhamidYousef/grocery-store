@@ -1,46 +1,47 @@
-# CLAUDE.md — Pawsome, e-commerce portfolio project
+# CLAUDE.md: Grocery, quick-delivery e-commerce portfolio project
 
-Tracked agent instructions. Keep under ~100 lines; move one-off detail inline next to the code.
+The shop's public name is simply **Grocery**: names here are plain and say what the thing is, never clever.
+
+Tracked agent instructions. Keep under ~100 lines.
 
 ## What this is
-Full-stack e-commerce store, a public portfolio piece: a colourful fictional **pet supplies** shop
-("Pawsome"). React + TS (Vite SPA) front end, Node (Express 5) API, Postgres (Drizzle), Stripe
-**test mode only**. pnpm monorepo: `apps/web`, `apps/api`, `packages/shared`. Public demo on free
-tiers (Vercel + Render + Neon). Original content only: made-up brand and products, no live animals.
+The second e-commerce portfolio piece: a fictional **quick home-delivery shop** for groceries and home
+basics (Amazon Now / Getir style). Copied from the owner's Pawsome repo (pet supplies) with full
+history. Same stack: React + TS (Vite SPA), Node (Express 5) API, Postgres (Drizzle), Stripe **test mode
+only**. pnpm monorepo: `apps/web`, `apps/api`, `packages/shared`. Original content only: a made-up brand, made-up products and generated images.
 
 ## The plan
-`docs/plan/00-overview.md` is the master plan; phases `phase-00` … `phase-13`, one small step = one
-commit. Reference docs: `01-data-model.md`, `02-api-contract.md`, `03-conventions.md`,
-`04-decisions-log.md` (append every decision). Read the step's "Learn / explain" before coding.
+`docs/plan/00-overview.md` is the master plan (phases G0–G11). Start at G0. Pawsome's plan stays in
+`docs/pawsome-plan/` as a reference for the engine. Don't edit it. Write each phase file when its phase
+starts, then keep `docs/plan/04-decisions-log.md`, `05-build-journal.md` and `06-handover.md` current with every step.
 
 ## Rules
 - He must understand every part: explain choices as you go; no tools outside the stack without asking.
-- One proper build, no throwaway v1.
-- No secrets in the repo: `.env` (ignored) + `.env.example` (documented). Only `sk_test_`/`pk_test_` keys.
-- Original content: no real brand, no employer-client code or data; record image licences in `CREDITS.md`.
-- Nothing paid, ever. Free-tier sign-ups (Stripe, Neon, Render, Vercel, Resend) are approved; say when one happens.
-- Git: commit and push **only when he says**. Remote via SSH alias `gh_y33`. Conventional commits, scoped.
-- He decides everything; where he delegates, decide, then log it in `docs/plan/04-decisions-log.md`.
-- Later projects (CRO/A-B, CWV, SEO, GA4) are out of scope; keep the guard-rails in the plan (URL state,
-  `<Seo>`, `track()` stub, `data-testid`, no fetches inside components).
+- He delegates technical decisions: pick the recommended option, say it in one line, log it. Ask only
+  about money, public presentation and taste (name, colours).
+- No secrets in the repo: `.env` (ignored) + `.env.example`. Only `sk_test_`/`pk_test_` keys.
+- Nothing paid, ever, and no card on any sign-up. Free-tier sign-ups are approved; say when one happens.
+- Git: commit locally per step; push at phase ends to his personal GitHub (`gh_y33`), as approved in
+  `work/KICKOFF.md` (2026-11-14), which also approves the public deploy. Conventional commits, scoped.
+- Images: Gemini in the Playwright browser, the same pipeline as Pawsome (`pnpm images:brief` / `images:process`).
+- The portfolio story is **logistics** (areas, slots, expiry, weight, substitutions): don't redo what Pawsome already shows.
+- Shared-engine fixes from Pawsome: `git fetch pawsome` then cherry-pick; never merge Pawsome wholesale.
 
 ## Gates (run before any commit; all must pass)
 ```
 pnpm typecheck && pnpm lint && pnpm format:check && pnpm test
-pnpm e2e   # before push / at phase end (needs docker compose up and, for payments, `stripe listen`)
+pnpm e2e   # at phase end
 ```
 
-## Local
+## Local (ports differ from Pawsome so both can run at once; set in G0)
 ```
-docker compose up -d          # postgres (5432) + mailpit (8025)
+docker compose up -d          # postgres 5433 + mailpit 8026
 pnpm db:migrate && pnpm db:seed
-pnpm dev                      # web :5173 (proxies /api → :3000), api :3000
-stripe listen --forward-to localhost:3000/api/v1/webhooks/stripe
+pnpm dev                      # web :5174 (proxies /api → :3001), api :3001
 ```
 
 ## Traps
-- Stripe webhook route must be mounted before `express.json()` (raw body for signature).
-- Never run `drizzle-kit push` outside local experiments; migrations are the source of truth.
-- Prod web and API are on different origins → `/api/*` goes through Vercel rewrites so cookies work.
-- Money is integer cents everywhere. No floats.
-- Resend free tier without a domain delivers only to his own address.
+- Until G0 is done, ports still clash with Pawsome (5432/8025/5173/3000).
+- Stripe webhook route must be mounted before `express.json()`.
+- Migrations are the source of truth; never `drizzle-kit push` outside experiments.
+- Money is integer cents everywhere, including weighed items (price per kg × grams, rounded once, documented).
