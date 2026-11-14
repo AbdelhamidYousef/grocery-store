@@ -1,4 +1,4 @@
-import { MAX_LINE_QUANTITY, formatMoney } from '@store/shared';
+import { HelpTopicSchema, MAX_LINE_QUANTITY, formatMoney } from '@store/shared';
 import { z } from 'zod';
 
 import {
@@ -10,8 +10,9 @@ import {
 } from '../../api/cart';
 import { fetchProduct, fetchProducts } from '../../api/catalog';
 import { ApiError } from '../../api/client';
+import { searchHelp } from '../../api/help';
 
-// The tools a browser AI agent may call (phase 24). Each one is a thin wrapper over the typed API
+// The six tools a browser AI agent may call (phase 24). Each one is a thin wrapper over the typed API
 // client the pages already use, so an agent can never do what a shopper cannot: the same
 // validation, stock rules, trial limits, CSRF/origin check and rate limits apply on the server.
 // Deliberately absent: checkout, payment, account and order data. An agent fills the cart and
@@ -119,7 +120,7 @@ const productUrl = (slug: string) => `/products/${slug}`;
 const truncate = (text: string, max: number) =>
   text.length > max ? `${text.slice(0, max - 1)}…` : text;
 
-// ---------- the tools ----------
+// ---------- the six tools ----------
 
 const SEARCH_LIMIT_MAX = 24;
 const CART_LINES_MAX = 20;
@@ -252,10 +253,33 @@ export const updateCartLines = defineTool({
     `Assistant changed ${input.lines.length} ${input.lines.length === 1 ? 'line' : 'lines'} in your cart`,
 });
 
+export const searchPoliciesAndFaqs = defineTool({
+  name: 'search_shop_policies_and_faqs',
+  description:
+    'Search the help centre (shipping, returns, payments, accounts) for policy and FAQ answers.',
+  inputSchema: z.object({
+    query: z.string().trim().min(1).max(100),
+    topic: HelpTopicSchema.optional(),
+  }),
+  readOnly: true,
+  async run({ query, topic }) {
+    const hits = await searchHelp({ q: query, topic });
+    return {
+      results: hits.slice(0, 8).map((h) => ({
+        title: h.question,
+        topic: h.topic,
+        answer: truncate(h.answerMd, 1200),
+        url: `/help?topic=${h.topic}&q=${encodeURIComponent(h.question)}`,
+      })),
+    };
+  },
+});
+
 export const AGENT_TOOLS: readonly AgentTool[] = [
   searchCatalog,
   getProduct,
   addToCart,
   getCart,
   updateCartLines,
+  searchPoliciesAndFaqs,
 ];

@@ -946,3 +946,7 @@ Learn: derive what can drift (kit stock), store what is a decision (kit price), 
 - 24.1: read the W3C WebML CG draft and Chrome's preview notes; the API moved from `navigator.modelContext` to `document.modelContext.registerTool(tool, { signal })`. Recorded in the decisions log with the flag (`chrome://flags/#enable-webmcp-testing`, Chrome 146+).
 - 24.2: `features/agent/tools.ts` holds five tools (catalogue search, product, add to cart, get cart, update lines) as wrappers over `api/cart.ts` and `api/catalog.ts`; results are compact JSON, errors are `{ error: { code, message } }`.
 - Learn / explain: thin wrappers mean no new business rules, so an agent cannot do what a shopper cannot; validating with the same Zod schema that later becomes the JSON Schema keeps the contract in one place; there is deliberately no checkout tool, the human pays.
+
+### 24.3 — policies and FAQ tool
+- The sixth tool, over phase 20's `searchHelp`; query required (an empty one would dump the whole help centre into an agent's context), topic limited to the shared `HelpTopicSchema` enum.
+- Learn / explain: reuse the existing client function so the agent sees exactly what the help page shows; cap and truncate what goes into an agent's context window, it is a cost the shopper's browser does not have.

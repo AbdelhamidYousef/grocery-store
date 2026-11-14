@@ -16,6 +16,7 @@ import {
   getCart,
   getProduct,
   searchCatalog,
+  searchPoliciesAndFaqs,
   updateCartLines,
 } from './tools';
 
@@ -26,9 +27,11 @@ const api = vi.hoisted(() => ({
   updateCartItem: vi.fn(),
   fetchProduct: vi.fn(),
   fetchProducts: vi.fn(),
+  searchHelp: vi.fn(),
 }));
 vi.mock('../../api/cart', () => api);
 vi.mock('../../api/catalog', () => api);
+vi.mock('../../api/help', () => api);
 
 const VARIANT = '2f6d3a52-5b2c-4d57-9a41-0d6f1f0f7a10';
 
@@ -188,5 +191,38 @@ describe('update_cart_lines', () => {
     });
     expect(result).toMatchObject({ error: { code: 'CART_CHANGED' } });
     expect(api.updateCartItem).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('search_shop_policies_and_faqs', () => {
+  it('needs a query and only accepts a known topic', () => {
+    const s = searchPoliciesAndFaqs.inputSchema;
+    expect(s.safeParse({ query: 'returns' }).success).toBe(true);
+    expect(s.safeParse({ query: '' }).success).toBe(false);
+    expect(s.safeParse({ query: 'x', topic: 'weather' }).success).toBe(false);
+  });
+
+  it('calls searchHelp and returns title, answer text and a help page URL', async () => {
+    api.searchHelp.mockResolvedValue([
+      {
+        slug: 'return-window',
+        topic: 'returns',
+        question: 'How long do I have to return?',
+        answerMd: 'You have 30 days.',
+        snippet: null,
+      },
+    ]);
+    const result = await searchPoliciesAndFaqs.execute({ query: 'return', topic: 'returns' });
+    expect(api.searchHelp).toHaveBeenCalledWith({ q: 'return', topic: 'returns' });
+    expect(result).toEqual({
+      results: [
+        {
+          title: 'How long do I have to return?',
+          topic: 'returns',
+          answer: 'You have 30 days.',
+          url: '/help?topic=returns&q=How%20long%20do%20I%20have%20to%20return%3F',
+        },
+      ],
+    });
   });
 });
