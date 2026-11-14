@@ -47,3 +47,4 @@ export * from './withdrawal-requests.ts';
 export * from './returns.ts';
 export * from './order-vet-details.ts';
 export * from './translations.ts';
+export * from './variant-prices.ts';

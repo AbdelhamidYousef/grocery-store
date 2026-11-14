@@ -27,6 +27,8 @@ async function seed() {
     description: 'A bone that squeaks.',
     categoryId: category.id,
     brandId: brand.id,
+    // Priced in GBP too, or the UK store would not sell it at all.
+    variants: [{ gbpCents: 899 }],
   });
   return { category, brand, product };
 }

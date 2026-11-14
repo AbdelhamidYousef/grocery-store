@@ -3,6 +3,7 @@ import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 import { stockQuantity, stockReserved } from '../../db/available.ts';
 import { db } from '../../db/client.ts';
 import { bundleItems, inventory, productVariants, products } from '../../db/schema/index.ts';
+import { hasPriceIn, priceIn } from '../i18n/prices.ts';
 
 export interface BundleLineRow {
   bundleVariantId: string;
@@ -25,7 +26,8 @@ export async function listBundleLines(bundleVariantIds: string[]): Promise<Bundl
       productName: products.name,
       variantName: productVariants.name,
       qty: bundleItems.qty,
-      priceCents: productVariants.priceCents,
+      // A part with no price in this store counts as 0 in the saving; the kit itself is hidden if unpriced.
+      priceCents: sql<number>`coalesce(${priceIn()}, 0)`,
     })
     .from(bundleItems)
     .innerJoin(productVariants, eq(productVariants.id, bundleItems.componentVariantId))
@@ -53,7 +55,7 @@ export async function listKitsContaining(productId: string): Promise<KitRow[]> {
       variantId: productVariants.id,
       slug: products.slug,
       name: products.name,
-      priceCents: productVariants.priceCents,
+      priceCents: priceIn(),
       quantity: sql<number>`coalesce(${stockQuantity(productVariants.id)}, 0)`,
       reserved: sql<number>`coalesce(${stockReserved(productVariants.id)}, 0)`,
     })
@@ -66,9 +68,10 @@ export async function listKitsContaining(productId: string): Promise<KitRow[]> {
         inArray(bundleItems.componentVariantId, mine),
         eq(products.status, 'active'),
         eq(productVariants.status, 'active'),
+        hasPriceIn(),
       ),
     )
-    .orderBy(asc(productVariants.priceCents), asc(products.slug));
+    .orderBy(asc(priceIn()), asc(products.slug));
   return rows.map((r) => ({
     variantId: r.variantId,
     slug: r.slug,

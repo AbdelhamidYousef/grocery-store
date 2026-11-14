@@ -11,6 +11,8 @@ import {
   productVariants,
   products,
 } from '../../db/schema/index.ts';
+import { currentStore } from '../i18n/context.ts';
+import { hasPriceIn, priceIn } from '../i18n/prices.ts';
 
 export interface ProductRef {
   id: string;
@@ -116,8 +118,8 @@ export async function sellableVariants(
       id: productVariants.id,
       sku: productVariants.sku,
       name: productVariants.name,
-      priceCents: productVariants.priceCents,
-      currency: productVariants.currency,
+      priceCents: priceIn(),
+      currency: sql<string>`${currentStore().currency}::char(3)`,
       isDefault: productVariants.isDefault,
     })
     .from(productVariants)
@@ -127,13 +129,14 @@ export async function sellableVariants(
         inArray(productVariants.productId, productIds),
         eq(productVariants.status, 'active'),
         eq(productVariants.isTrial, false),
+        hasPriceIn(),
         sql`coalesce(${stockQuantity(productVariants.id)} - ${stockReserved(productVariants.id)}, 0) > 0`,
       ),
     )
     .orderBy(
       asc(productVariants.productId),
       desc(productVariants.isDefault),
-      asc(productVariants.priceCents),
+      asc(priceIn()),
       asc(productVariants.id),
     );
   const byProduct = new Map<string, SellableVariantRow>();

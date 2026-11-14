@@ -10,6 +10,8 @@ import {
   productVariants,
   products,
 } from '../../db/schema/index.ts';
+import { currentStore } from '../i18n/context.ts';
+import { hasPriceIn, priceIn } from '../i18n/prices.ts';
 
 export type CartRow = typeof carts.$inferSelect;
 type Db = typeof db | Tx;
@@ -88,7 +90,9 @@ export type LineRow = {
   variantId: string;
   variantName: string;
   sku: string;
-  priceCents: number;
+  // Null: the variant has no price in the cart's currency (the store was switched), so the line
+  // cannot be bought here.
+  priceCents: number | null;
   lastSeenPriceCents: number | null;
   currency: string;
   weightGrams: number;
@@ -107,7 +111,11 @@ export type LineRow = {
 
 // One query joins everything a priced line needs. `inventory` is a LEFT join so a variant that
 // somehow has no stock row reads as sold out instead of vanishing from the cart.
-export async function listLines(tx: Tx, cartId: string): Promise<LineRow[]> {
+export async function listLines(
+  tx: Tx,
+  cartId: string,
+  currency: string = currentStore().currency,
+): Promise<LineRow[]> {
   return (
     tx
       .select({
@@ -116,9 +124,9 @@ export async function listLines(tx: Tx, cartId: string): Promise<LineRow[]> {
         variantId: productVariants.id,
         variantName: productVariants.name,
         sku: productVariants.sku,
-        priceCents: productVariants.priceCents,
+        priceCents: sql<number | null>`${priceIn(currency)}`,
         lastSeenPriceCents: cartItems.lastSeenPriceCents,
-        currency: productVariants.currency,
+        currency: sql<string>`${currency}::char(3)`,
         weightGrams: productVariants.weightGrams,
         isTrial: productVariants.isTrial,
         isBundle: sql<boolean>`exists (select 1 from bundle_items where bundle_variant_id = ${productVariants.id})`,
@@ -227,12 +235,13 @@ export async function findItemByVariant(
 export async function findPurchasable(
   tx: Tx,
   variantId: string,
+  currency: string = currentStore().currency,
 ): Promise<{ available: number; priceCents: number; isTrial: boolean } | undefined> {
   const [row] = await tx
     .select({
       stock: stockQuantity(productVariants.id),
       reserved: stockReserved(productVariants.id),
-      priceCents: productVariants.priceCents,
+      priceCents: priceIn(currency),
       isTrial: productVariants.isTrial,
     })
     .from(productVariants)
@@ -243,6 +252,7 @@ export async function findPurchasable(
         eq(productVariants.id, variantId),
         eq(productVariants.status, 'active'),
         eq(products.status, 'active'),
+        hasPriceIn(currency),
       ),
     );
   if (!row) return undefined;

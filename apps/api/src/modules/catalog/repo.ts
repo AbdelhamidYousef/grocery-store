@@ -37,7 +37,8 @@ import {
   variantConstituents,
 } from '../../db/schema/index.ts';
 import type { ProductAttributes } from '../../db/schema/products.ts';
-import { currentLang } from '../i18n/context.ts';
+import { currentLang, currentStore } from '../i18n/context.ts';
+import { compareAtIn, hasPriceIn, priceIn } from '../i18n/prices.ts';
 
 export type CategoryRow = typeof categories.$inferSelect & { productCount: number };
 
@@ -136,18 +137,19 @@ export interface ProductListParams {
 // price for the "from" line, and whether any variant has stock left. Products with no active
 // variant have no row here, so an inner join also hides products nobody could buy.
 export function variantSummary() {
+  const price = priceIn();
   return db
     .select({
       productId: productVariants.productId,
-      minCents: sql<number>`min(${productVariants.priceCents})`.as('min_cents'),
-      maxCents: sql<number>`max(${productVariants.priceCents})`.as('max_cents'),
-      currency: sql<string>`min(${productVariants.currency})`.as('currency'),
+      minCents: sql<number>`min(${price})`.as('min_cents'),
+      maxCents: sql<number>`max(${price})`.as('max_cents'),
+      currency: sql<string>`${currentStore().currency}::char(3)`.as('currency'),
       // Unit price of the default variant, integer cents per kg/L, in SQL so it can be sorted on.
       // Same rule as unitPriceCents() in packages/shared: round half up, bigint so price * 1000
       // cannot overflow a 32-bit integer. Null when the default variant has no net amount.
       unitCents: sql<
         number | null
-      >`max(case when ${productVariants.isDefault} and ${productVariants.netAmount} is not null then ((2 * ${productVariants.priceCents}::bigint * 1000 + ${productVariants.netAmount}) / (2 * ${productVariants.netAmount}))::int end)`.as(
+      >`max(case when ${productVariants.isDefault} and ${productVariants.netAmount} is not null then ((2 * ${price}::bigint * 1000 + ${productVariants.netAmount}) / (2 * ${productVariants.netAmount}))::int end)`.as(
         'unit_cents',
       ),
       unitPer: sql<
@@ -162,7 +164,15 @@ export function variantSummary() {
     })
     .from(productVariants)
     .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
-    .where(and(eq(productVariants.status, 'active'), eq(productVariants.isTrial, false)))
+    .where(
+      and(
+        eq(productVariants.status, 'active'),
+        eq(productVariants.isTrial, false),
+        // No price in this store's currency: not sold here, and a product with no such variant has
+        // no row, so the inner join hides it.
+        hasPriceIn(),
+      ),
+    )
     .groupBy(productVariants.productId)
     .as('variant_summary');
 }
@@ -321,8 +331,8 @@ function filterConditions(f: ProductFilters, v: ReturnType<typeof variantSummary
       eq(productVariants.productId, products.id),
       eq(productVariants.status, 'active'),
       eq(productVariants.isTrial, false),
-      ...(f.minPriceCents !== undefined ? [gte(productVariants.priceCents, f.minPriceCents)] : []),
-      ...(f.maxPriceCents !== undefined ? [lte(productVariants.priceCents, f.maxPriceCents)] : []),
+      ...(f.minPriceCents !== undefined ? [gte(priceIn(), f.minPriceCents)] : []),
+      ...(f.maxPriceCents !== undefined ? [lte(priceIn(), f.maxPriceCents)] : []),
     ];
     conds.push(
       exists(
@@ -624,9 +634,10 @@ export async function getProductBySlug(slug: string): Promise<ProductDetailRows 
         sku: productVariants.sku,
         name: productVariants.name,
         options: productVariants.options,
-        priceCents: productVariants.priceCents,
-        compareAtPriceCents: productVariants.compareAtPriceCents,
-        currency: productVariants.currency,
+        priceCents: priceIn(),
+        // A strike-through price is a EUR fact (sale history is EUR-only): none in other stores.
+        compareAtPriceCents: compareAtIn(),
+        currency: sql<string>`${currentStore().currency}::char(3)`,
         isDefault: productVariants.isDefault,
         netAmount: productVariants.netAmount,
         netUnit: productVariants.netUnit,
@@ -640,10 +651,14 @@ export async function getProductBySlug(slug: string): Promise<ProductDetailRows 
       .from(productVariants)
       .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
       .where(
-        and(eq(productVariants.productId, head.product.id), eq(productVariants.status, 'active')),
+        and(
+          eq(productVariants.productId, head.product.id),
+          eq(productVariants.status, 'active'),
+          hasPriceIn(),
+        ),
       )
       // Cheapest first so the picker's order is stable; default variant is flagged, not sorted.
-      .orderBy(asc(productVariants.priceCents), asc(productVariants.name), asc(productVariants.id)),
+      .orderBy(asc(priceIn()), asc(productVariants.name), asc(productVariants.id)),
     db
       .select({
         id: productImages.id,
@@ -783,7 +798,7 @@ export async function listSwatches(productIds: string[]): Promise<SwatchRow[]> {
       sql`${productVariants.options}->>'color'`,
       // Prefer the colour's variant that has a picture, then the cheapest, for stable output.
       sql`img.id is null`,
-      productVariants.priceCents,
+      priceIn(),
       productVariants.id,
     );
 }
@@ -822,15 +837,15 @@ export async function listBadgeFacts(): Promise<BadgeFactRow[]> {
     db
       .select({
         productId: productVariants.productId,
-        priceCents: productVariants.priceCents,
-        compareAtPriceCents: productVariants.compareAtPriceCents,
+        priceCents: priceIn(),
+        compareAtPriceCents: compareAtIn(),
         isDefault: productVariants.isDefault,
         availableUnits: sql<number>`coalesce(${stockQuantity(productVariants.id)} - ${stockReserved(productVariants.id)}, 0)`,
         lowStockThreshold: sql<number>`coalesce(${inventory.lowStockThreshold}, 0)`,
       })
       .from(productVariants)
       .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
-      .where(eq(productVariants.status, 'active')),
+      .where(and(eq(productVariants.status, 'active'), hasPriceIn())),
   ]);
   const byProduct = new Map<string, BadgeFactRow['variants']>();
   for (const { productId, ...variant } of variantRows) {

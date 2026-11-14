@@ -35,7 +35,7 @@ function relaxedNote(
   if (relaxed.includes('budget')) {
     parts.push(
       answers.budget > 0
-        ? t('pets.gift.relaxed.budget', { amount: fmt.money(answers.budget, 'EUR') })
+        ? t('pets.gift.relaxed.budget', { amount: fmt.money(answers.budget) })
         : t('pets.gift.relaxed.budgetAny'),
     );
   }
@@ -94,7 +94,7 @@ export function GiftResult() {
       <p className="mt-2 text-muted" data-testid="gift-summary">
         {goalWord(complete, t).replace(/^./, (c) => c.toUpperCase())}
         {complete.budget > 0
-          ? t('pets.gift.summary.budget', { amount: fmt.money(complete.budget, 'EUR') })
+          ? t('pets.gift.summary.budget', { amount: fmt.money(complete.budget) })
           : t('pets.gift.summary.anyBudget')}
         {complete.age !== 'any' ? t(`pets.gift.summary.age.${complete.age}`) : ''}
       </p>

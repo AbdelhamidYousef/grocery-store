@@ -17,6 +17,7 @@ import {
   productVariants,
   products,
 } from '../../db/schema/index.ts';
+import { currentStore } from '../i18n/context.ts';
 
 type Run = typeof db | Tx;
 
@@ -304,7 +305,11 @@ export async function activeSales(
   run: Run,
   by: { variantIds: string[] } | { productIds: string[] },
   now: Date,
+  currency: string = currentStore().currency,
 ): Promise<ActiveSaleRow[]> {
+  // Flash-sale prices are EUR amounts and there is no sale price per currency in v1: in any other
+  // store a sale simply does not apply (never converted, never struck through).
+  if (currency !== 'EUR') return [];
   const scope =
     'variantIds' in by
       ? by.variantIds.length > 0
@@ -352,7 +357,10 @@ export interface MemberPriceRow {
 export async function memberPrices(
   run: Run,
   by: { variantIds: string[] } | { productIds: string[] },
+  currency: string = currentStore().currency,
 ): Promise<MemberPriceRow[]> {
+  // Member prices are EUR-only in v1 (see activeSales).
+  if (currency !== 'EUR') return [];
   const ids = 'variantIds' in by ? by.variantIds : by.productIds;
   if (ids.length === 0) return [];
   return run

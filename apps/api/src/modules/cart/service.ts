@@ -119,7 +119,12 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
     };
 
     // Archived (or draft) products and variants cannot be bought; drop the line and say so.
-    if (line.variantStatus !== 'active' || line.productStatus !== 'active') {
+    // (Or with no price in this store's currency: it was added in another store view.)
+    if (
+      line.variantStatus !== 'active' ||
+      line.productStatus !== 'active' ||
+      line.priceCents === null
+    ) {
       removeIds.push(line.itemId);
       warnings.push({ code: 'VARIANT_UNAVAILABLE', ...base });
       continue;

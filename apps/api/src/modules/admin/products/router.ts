@@ -8,6 +8,8 @@ import {
   AdminProductUpdateSchema,
   AdminVariantInputSchema,
   AdminVariantParamsSchema,
+  AdminVariantPricesInputSchema,
+  AdminVariantPricesResponseSchema,
   AdminVariantResponseSchema,
   AdminVariantUpdateSchema,
   IdParamsSchema,
@@ -70,6 +72,22 @@ export function createProductsRouter(): Router {
     setAudit(res, 'variant.update', params.id);
     respond(res, AdminVariantResponseSchema, {
       data: await service.updateVariant(params.id, body),
+    });
+  });
+
+  router.get('/variants/:id/prices', validate(byId), async (req, res) => {
+    const { params } = valid(req, byId);
+    respond(res, AdminVariantPricesResponseSchema, {
+      data: await service.getVariantPrices(params.id),
+    });
+  });
+
+  const setPrices = { params: IdParamsSchema, body: AdminVariantPricesInputSchema };
+  router.put('/variants/:id/prices', validate(setPrices), async (req, res) => {
+    const { params, body } = valid(req, setPrices);
+    setAudit(res, 'variant.prices', params.id);
+    respond(res, AdminVariantPricesResponseSchema, {
+      data: await service.setVariantPrices(params.id, body),
     });
   });
 

@@ -13,6 +13,7 @@ import { PETS } from '../../lib/pets';
 import { TEST_IDS } from '../../lib/test-ids';
 import { ActivePetNote } from '../pets/ActivePetNote';
 import { usePetDefaults } from '../pets/use-pet-defaults';
+import { useStore } from '../stores/StoreContext';
 
 import { AppliedFilters } from './AppliedFilters';
 import { FilterPanel } from './FilterPanel';
@@ -67,6 +68,7 @@ export function ProductListing({
     ...(brand && { brand: [brand] }),
     limit: PAGE_SIZE,
   };
+  const { currency: storeCurrency } = useStore();
   const { data, isPending, isError, isFetching, refetch } = useProducts(params, {
     keepPrevious: true,
     // Hold the first request until the active pet's filters are in the URL: one request, not two.
@@ -122,7 +124,7 @@ export function ProductListing({
   const last = first + data.data.length - 1;
 
   const hasSearch = q !== undefined;
-  const currency = data.data[0]?.price.currency ?? 'EUR';
+  const currency = data.data[0]?.price.currency ?? storeCurrency;
   const activeCount =
     (query.inStock ? 1 : 0) +
     (query.minPrice !== undefined || query.maxPrice !== undefined ? 1 : 0) +

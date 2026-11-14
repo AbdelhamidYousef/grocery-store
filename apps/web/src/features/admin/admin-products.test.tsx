@@ -287,6 +287,43 @@ describe('admin product edit', () => {
     expect(await screen.findByText('Stock set to 12 (+2)')).toBeInTheDocument();
   });
 
+  it('edits the GBP price of a variant in the price grid; empty means not sold', async () => {
+    let body: unknown;
+    server.use(
+      http.get(`${API}/admin/products/p1`, () => HttpResponse.json({ data: makeAdminProduct() })),
+      http.get(`${API}/admin/variants/v1/prices`, () =>
+        HttpResponse.json({
+          data: {
+            variantId: 'v1',
+            prices: [
+              { currency: 'EUR', priceCents: 1099 },
+              { currency: 'GBP', priceCents: 949 },
+            ],
+          },
+        }),
+      ),
+      http.put(`${API}/admin/variants/v1/prices`, async ({ request }) => {
+        body = await request.json();
+        return HttpResponse.json({ data: { variantId: 'v1', prices: [] } });
+      }),
+    );
+    renderApp('/admin/products/p1');
+    await userEvent.click(await screen.findByRole('button', { name: 'Prices for TUG-RED-S' }));
+    const form = within(await screen.findByTestId('admin-prices-form'));
+    const gbp = form.getByLabelText('GBP price');
+    await waitFor(() => expect(gbp).toHaveValue('9.49'));
+    await userEvent.clear(gbp);
+    await userEvent.type(gbp, '10,25');
+    await userEvent.click(form.getByRole('button', { name: 'Save prices' }));
+    await waitFor(() => expect(body).toEqual({ prices: [{ currency: 'GBP', priceCents: 1025 }] }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Prices for TUG-RED-S' }));
+    const again = within(await screen.findByTestId('admin-prices-form'));
+    await waitFor(() => expect(again.getByLabelText('GBP price')).toHaveValue('9.49'));
+    await userEvent.clear(again.getByLabelText('GBP price'));
+    await userEvent.click(again.getByRole('button', { name: 'Save prices' }));
+    await waitFor(() => expect(body).toEqual({ prices: [] }));
+  });
+
   it('shows the refusal when stock is set below what is reserved', async () => {
     server.use(
       http.get(`${API}/admin/products/p1`, () => HttpResponse.json({ data: makeAdminProduct() })),

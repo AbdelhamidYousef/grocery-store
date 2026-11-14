@@ -165,6 +165,32 @@ export const AdminVariantSchema = z.object({
 export type AdminVariant = z.infer<typeof AdminVariantSchema>;
 export const AdminVariantResponseSchema = DataSchema(AdminVariantSchema);
 
+// ---------- per-currency prices (phase 21) ----------
+
+// The price grid of one variant: one row per currency. EUR is the variant's own price (edited with
+// the variant, shown here read-only); every other currency is set by hand and never converted.
+export const AdminVariantPriceSchema = z.object({
+  currency: z.string().length(3),
+  priceCents: z.number().int().min(0).max(100_000_000),
+});
+export const AdminVariantPricesInputSchema = z.object({
+  prices: z
+    .array(
+      AdminVariantPriceSchema.refine((p) => p.currency !== 'EUR', {
+        message: 'EUR is the variant price; edit it with the variant',
+        path: ['currency'],
+      }),
+    )
+    .max(10)
+    .refine((list) => new Set(list.map((p) => p.currency)).size === list.length, {
+      message: 'One price per currency',
+    }),
+});
+export type AdminVariantPricesInput = z.input<typeof AdminVariantPricesInputSchema>;
+export const AdminVariantPricesResponseSchema = DataSchema(
+  z.object({ variantId: z.string(), prices: z.array(AdminVariantPriceSchema) }),
+);
+
 // ---------- products ----------
 
 // The jsonb `attributes` column, validated: the facet keys are typed, `optionKeys` is the ordered

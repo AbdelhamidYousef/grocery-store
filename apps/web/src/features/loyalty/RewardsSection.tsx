@@ -35,7 +35,7 @@ const codeValue = (c: PersonalCode, t: TFunction, fmt: ReturnType<typeof useForm
   c.kind === 'free_shipping'
     ? t('loyalty.rewards.code.freeDelivery')
     : c.kind === 'fixed'
-      ? t('loyalty.rewards.code.fixedOff', { amount: fmt.money(c.value, 'EUR') })
+      ? t('loyalty.rewards.code.fixedOff', { amount: fmt.money(c.value) })
       : t('loyalty.rewards.code.percentOff', { percent: c.value });
 
 // Give points to the (pretend) shelter: 1 point = 1 cent.
@@ -174,7 +174,7 @@ export function RewardsSection() {
               </span>
             </p>
             <p className="text-sm text-muted">
-              {t('loyalty.rewards.worth', { amount: fmt.money(Math.max(0, data.balance), 'EUR') })}
+              {t('loyalty.rewards.worth', { amount: fmt.money(Math.max(0, data.balance)) })}
             </p>
           </div>
           <div className="min-w-0">
@@ -238,7 +238,7 @@ export function RewardsSection() {
               <span className="min-w-0 break-words text-sm">
                 {codeValue(c, t, fmt)}
                 {c.minSpendCents > 0 &&
-                  t('loyalty.rewards.code.minSpend', { amount: fmt.money(c.minSpendCents, 'EUR') })}
+                  t('loyalty.rewards.code.minSpend', { amount: fmt.money(c.minSpendCents) })}
               </span>
               <span className="text-sm text-muted">
                 {c.used

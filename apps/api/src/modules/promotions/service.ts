@@ -14,6 +14,7 @@ import { db, type Tx } from '../../db/client.ts';
 import { validation } from '../../lib/errors.ts';
 import { listActiveShippingMethods } from '../checkout/repo.ts';
 import { estimateRule } from '../checkout/shipping.ts';
+import { currentStore } from '../i18n/context.ts';
 import { onOrderCancelled, type OrderCancelledEvent } from '../orders/events.ts';
 import { customerKey } from '../trials/service.ts';
 
@@ -107,6 +108,7 @@ export async function price(tx: Tx, req: PricingRequest): Promise<PricingResult>
         tx,
         { variantIds: [...new Set(req.lines.map((l) => l.variantId))] },
         now,
+        req.currency,
       )
     ).map((s) => [s.variantId, s]),
   );
@@ -115,9 +117,11 @@ export async function price(tx: Tx, req: PricingRequest): Promise<PricingResult>
     req.userId === null
       ? []
       : (
-          await repo.memberPrices(tx, {
-            variantIds: [...new Set(req.lines.map((l) => l.variantId))],
-          })
+          await repo.memberPrices(
+            tx,
+            { variantIds: [...new Set(req.lines.map((l) => l.variantId))] },
+            req.currency,
+          )
         ).map((m) => [m.variantId, m.memberPriceCents]),
   );
   const key = req.userId || req.email ? customerKey(req.userId, req.email ?? '') : null;
@@ -406,7 +410,8 @@ export async function memberPricesForProducts(productIds: string[]): Promise<Mem
 
 export async function getBanner(now: Date = new Date()): Promise<BannerResponse['data']> {
   await syncFlashSales(db, now);
-  const sale = await repo.bannerSale(db, now);
+  // The banner announces a EUR-only sale: other stores show none.
+  const sale = currentStore().currency === 'EUR' ? await repo.bannerSale(db, now) : undefined;
   return {
     sale: sale
       ? {

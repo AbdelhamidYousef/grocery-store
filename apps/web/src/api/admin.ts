@@ -5,6 +5,7 @@ import {
   AdminProductListResponseSchema,
   AdminProductResponseSchema,
   AdminStatsResponseSchema,
+  AdminVariantPricesResponseSchema,
   AdminVariantResponseSchema,
   type AdminInventoryResult,
   type AdminOrderDetail,
@@ -17,6 +18,7 @@ import {
   type AdminStats,
   type AdminVariant,
   type AdminVariantInput,
+  type AdminVariantPricesInput,
   type AdminVariantUpdate,
   type ProductStatus,
 } from '@store/shared';
@@ -117,6 +119,25 @@ export async function updateAdminVariant(
       method: 'PATCH',
       body: input,
       schema: AdminVariantResponseSchema,
+    })
+  ).data;
+}
+
+export async function fetchAdminVariantPrices(id: string, signal?: AbortSignal) {
+  return (
+    await apiFetch(`/admin/variants/${encodeURIComponent(id)}/prices`, {
+      schema: AdminVariantPricesResponseSchema,
+      signal,
+    })
+  ).data;
+}
+
+export async function setAdminVariantPrices(id: string, input: AdminVariantPricesInput) {
+  return (
+    await apiFetch(`/admin/variants/${encodeURIComponent(id)}/prices`, {
+      method: 'PUT',
+      body: input,
+      schema: AdminVariantPricesResponseSchema,
     })
   ).data;
 }

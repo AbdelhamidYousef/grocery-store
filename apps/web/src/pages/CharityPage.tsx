@@ -38,7 +38,7 @@ export default function CharityPage() {
           <div className="mt-6 rounded-card bg-pet-soft p-5">
             <p className="text-sm text-muted">{t('loyalty.charity.given')}</p>
             <p className="font-display text-4xl font-bold" data-testid={TEST_IDS.charityAmount}>
-              {fmt.money(data.totalCents, 'EUR')}
+              {fmt.money(data.totalCents)}
             </p>
             <p className="text-sm text-muted">{tn('loyalty.charity.donations', data.donations)}</p>
           </div>

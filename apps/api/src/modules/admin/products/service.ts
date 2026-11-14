@@ -5,6 +5,8 @@ import {
   type AdminProduct,
   type AdminProductRow,
   type AdminVariant,
+  type AdminVariantPricesInput,
+  STORES,
 } from '@store/shared';
 import type {
   AdminImageInputSchema,
@@ -531,4 +533,26 @@ export async function setInventory(
       delta,
     };
   });
+}
+
+// ---------- per-currency prices ----------
+
+const SELLING_CURRENCIES: readonly string[] = [...new Set(STORES.map((st) => st.currency))];
+
+export async function getVariantPrices(variantId: string) {
+  if (!(await repo.findVariant(db, variantId))) throw notFound('Variant not found');
+  return { variantId, prices: await repo.listVariantPrices(db, variantId) };
+}
+
+// Replace the non-EUR prices of one variant. A currency no store view sells in is refused (a row
+// nobody reads would only mislead); leaving a currency out removes it, which hides the variant in
+// that store: there is never a fallback or a conversion.
+export async function setVariantPrices(variantId: string, input: AdminVariantPricesInput) {
+  const unknown = input.prices.find((p) => !SELLING_CURRENCIES.includes(p.currency));
+  if (unknown) throw fieldError('prices', `No store view sells in ${unknown.currency}`);
+  await db.transaction(async (tx) => {
+    await lockedVariant(tx, variantId);
+    await repo.replaceVariantPrices(tx, variantId, input.prices);
+  });
+  return getVariantPrices(variantId);
 }

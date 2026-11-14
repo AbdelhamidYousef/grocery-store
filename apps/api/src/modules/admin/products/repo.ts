@@ -10,6 +10,7 @@ import {
   productImages,
   productTags,
   productVariants,
+  variantPrices,
   products,
   tags,
 } from '../../../db/schema/index.ts';
@@ -273,4 +274,28 @@ export async function listProductTags(run: Db, productId: string) {
     .innerJoin(tags, eq(tags.id, productTags.tagId))
     .where(eq(productTags.productId, productId))
     .orderBy(asc(tags.name));
+}
+
+// ---------- per-currency prices ----------
+
+export async function listVariantPrices(run: Db, variantId: string) {
+  return run
+    .select({ currency: variantPrices.currency, priceCents: variantPrices.priceCents })
+    .from(variantPrices)
+    .where(eq(variantPrices.variantId, variantId))
+    .orderBy(asc(variantPrices.currency));
+}
+
+// Replaces every non-EUR row (the EUR row belongs to the base column's trigger).
+export async function replaceVariantPrices(
+  run: Db,
+  variantId: string,
+  prices: { currency: string; priceCents: number }[],
+): Promise<void> {
+  await run
+    .delete(variantPrices)
+    .where(and(eq(variantPrices.variantId, variantId), ne(variantPrices.currency, 'EUR')));
+  if (prices.length > 0) {
+    await run.insert(variantPrices).values(prices.map((p) => ({ variantId, ...p })));
+  }
 }

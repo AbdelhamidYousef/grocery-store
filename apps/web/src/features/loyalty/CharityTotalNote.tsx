@@ -17,7 +17,7 @@ export function CharityTotalNote() {
       <Link to="/charity" className="font-semibold underline underline-offset-2">
         {data.charity.name}
       </Link>{' '}
-      {t('loyalty.charityNote.text', { amount: fmt.money(data.totalCents, 'EUR') })}
+      {t('loyalty.charityNote.text', { amount: fmt.money(data.totalCents) })}
     </p>
   );
 }

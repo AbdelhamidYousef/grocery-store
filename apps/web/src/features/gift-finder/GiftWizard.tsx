@@ -142,7 +142,7 @@ export function GiftWizard() {
                     />
                     <span>
                       {question.key === 'budget' && option.value !== '0'
-                        ? t('pets.gift.upTo', { amount: fmt.money(Number(option.value), 'EUR') })
+                        ? t('pets.gift.upTo', { amount: fmt.money(Number(option.value)) })
                         : optionLabel(option)}
                     </span>
                   </label>

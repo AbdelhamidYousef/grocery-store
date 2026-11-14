@@ -20,6 +20,8 @@ import {
   wishlists,
 } from '../../db/schema/index.ts';
 import { conflict, notFound } from '../../lib/errors.ts';
+import { currentStore } from '../i18n/context.ts';
+import { hasPriceIn, priceIn } from '../i18n/prices.ts';
 
 type Run = typeof db | Tx;
 const token = (): string => randomBytes(24).toString('base64url');
@@ -83,17 +85,21 @@ async function viewItems(run: Run, wishlistId: string): Promise<WishlistItem[]> 
       id: productVariants.id,
       productId: productVariants.productId,
       name: productVariants.name,
-      priceCents: productVariants.priceCents,
-      currency: productVariants.currency,
+      priceCents: priceIn(),
+      currency: sql<string>`${currentStore().currency}::char(3)`,
       isDefault: productVariants.isDefault,
       available: availableOf,
     })
     .from(productVariants)
     .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
     .where(
-      and(inArray(productVariants.productId, productIds), eq(productVariants.status, 'active')),
+      and(
+        inArray(productVariants.productId, productIds),
+        eq(productVariants.status, 'active'),
+        hasPriceIn(),
+      ),
     )
-    .orderBy(asc(productVariants.priceCents));
+    .orderBy(asc(priceIn()));
   const images = await run
     .select()
     .from(productImages)
@@ -121,7 +127,7 @@ async function viewItems(run: Run, wishlistId: string): Promise<WishlistItem[]> 
       variantId: chosen?.id ?? null,
       variantName: chosen?.name ?? null,
       priceCents: chosen?.priceCents ?? null,
-      currency: chosen?.currency ?? 'EUR',
+      currency: chosen?.currency ?? currentStore().currency,
       available: (chosen?.available ?? 0) > 0,
     };
   });

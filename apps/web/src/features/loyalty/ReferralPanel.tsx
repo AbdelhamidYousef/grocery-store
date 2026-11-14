@@ -18,7 +18,7 @@ export function ReferralPanel() {
   const [copied, setCopied] = useState(false);
   if (!data) return null;
   const link = `${window.location.origin}${storePath('/')}?ref=${data.code}`;
-  const money = (c: number) => fmt.money(c, 'EUR');
+  const money = (c: number) => fmt.money(c);
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(link);

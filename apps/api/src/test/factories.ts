@@ -14,6 +14,7 @@ import {
   inventory,
   productImages,
   productVariants,
+  variantPrices,
   products,
   shippingMethods,
   users,
@@ -65,6 +66,8 @@ export type VariantInput = {
   options?: Record<string, string>;
   priceCents?: number;
   compareAtPriceCents?: number;
+  /** A GBP price for the UK store view; without it the variant is not sold there. */
+  gbpCents?: number;
   weightGrams?: number;
   status?: 'draft' | 'active' | 'archived';
   /** Units in stock; defaults to 50. */
@@ -155,6 +158,14 @@ export async function createProduct(
       })),
     )
     .returning();
+
+  const gbp = variants.flatMap((variant, i) => {
+    const cents = variantInputs[i]?.gbpCents;
+    return cents === undefined
+      ? []
+      : [{ variantId: variant.id, currency: 'GBP', priceCents: cents }];
+  });
+  if (gbp.length > 0) await db.insert(variantPrices).values(gbp);
 
   await db.insert(inventory).values(
     variants.map((variant, i) => ({

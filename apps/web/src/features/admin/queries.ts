@@ -2,6 +2,7 @@ import type {
   AdminInventorySet,
   AdminTransition,
   AdminVariantInput,
+  AdminVariantPricesInput,
   AdminVariantUpdate,
 } from '@store/shared';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -14,8 +15,10 @@ import {
   fetchAdminOrders,
   fetchAdminProduct,
   fetchAdminProducts,
+  fetchAdminVariantPrices,
   fetchAdminStats,
   setAdminInventory,
+  setAdminVariantPrices,
   transitionAdminOrder,
   updateAdminProduct,
   updateAdminVariant,
@@ -104,6 +107,23 @@ export function useUpdateAdminVariant() {
 export function useDeleteAdminVariant() {
   const refresh = useRefreshAfterWrite();
   return useMutation({ mutationFn: deleteAdminVariant, onSuccess: refresh });
+}
+
+export function useAdminVariantPrices(id: string | undefined) {
+  return useQuery({
+    queryKey: ['admin', 'variant-prices', id],
+    queryFn: ({ signal }) => fetchAdminVariantPrices(id ?? '', signal),
+    enabled: id !== undefined,
+    staleTime: ADMIN_STALE_MS,
+  });
+}
+
+export function useSetAdminVariantPrices(id: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (input: AdminVariantPricesInput) => setAdminVariantPrices(id, input),
+    onSuccess: () => client.invalidateQueries({ queryKey: ['admin', 'variant-prices', id] }),
+  });
 }
 
 export function useSetAdminInventory() {

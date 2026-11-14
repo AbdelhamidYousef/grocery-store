@@ -14,6 +14,8 @@ import {
 import { AppError, notFound } from '../../lib/errors.ts';
 import { getOrCreateUserCart } from '../cart/identity.ts';
 import * as cart from '../cart/service.ts';
+import { currentStore } from '../i18n/context.ts';
+import { hasPriceIn, priceIn } from '../i18n/prices.ts';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -38,8 +40,8 @@ export async function buyAgain(userId: string): Promise<BuyAgainItem[]> {
       slug: products.slug,
       name: products.name,
       variantName: productVariants.name,
-      priceCents: productVariants.priceCents,
-      currency: productVariants.currency,
+      priceCents: priceIn(),
+      currency: sql<string>`${currentStore().currency}::char(3)`,
       available: availableOf,
       lastBoughtAt: sql<Date>`max(${orders.createdAt})`,
       timesBought: sql<number>`count(distinct ${orders.id})::int`,
@@ -56,6 +58,7 @@ export async function buyAgain(userId: string): Promise<BuyAgainItem[]> {
         isNotNull(orderItems.variantId),
         eq(productVariants.status, 'active'),
         eq(products.status, 'active'),
+        hasPriceIn(),
       ),
     )
     .groupBy(

@@ -10,6 +10,8 @@ import {
   productVariants,
   products,
 } from '../../db/schema/index.ts';
+import { currentStore } from '../i18n/context.ts';
+import { hasPriceIn, priceIn } from '../i18n/prices.ts';
 
 export type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 export type PhotoRow = typeof galleryPhotos.$inferSelect;
@@ -113,8 +115,8 @@ export async function shoppableProducts(productIds: string[]) {
       .select({
         id: productVariants.id,
         productId: productVariants.productId,
-        priceCents: productVariants.priceCents,
-        currency: productVariants.currency,
+        priceCents: priceIn(),
+        currency: sql<string>`${currentStore().currency}::char(3)`,
         isDefault: productVariants.isDefault,
         available: sql<boolean>`coalesce(${stockQuantity(productVariants.id)} - ${stockReserved(productVariants.id)} > 0, false)`,
       })
@@ -125,9 +127,10 @@ export async function shoppableProducts(productIds: string[]) {
           inArray(productVariants.productId, productIds),
           eq(productVariants.status, 'active'),
           eq(productVariants.isTrial, false),
+          hasPriceIn(),
         ),
       )
-      .orderBy(asc(productVariants.priceCents), asc(productVariants.id)),
+      .orderBy(asc(priceIn()), asc(productVariants.id)),
     db
       .select({
         productId: productImages.productId,
