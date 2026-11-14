@@ -13,6 +13,7 @@ export * from './help-articles.ts';
 export * from './home-content.ts';
 export * from './inventory-adjustments.ts';
 export * from './inventory.ts';
+export * from './job-runs.ts';
 export * from './menu-promos.ts';
 export * from './order-items.ts';
 export * from './order-status-history.ts';

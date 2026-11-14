@@ -36,6 +36,8 @@ export interface AppConfig {
   voteRateLimit?: RateLimitOptions;
   /** Where review photos are stored and whether live upload is on (see lib/uploads.ts). */
   uploads: UploadConfig;
+  /** Enables POST /internal/jobs/run (header `X-Jobs-Secret`); the route is absent without it. */
+  jobsSecret?: string;
   /**
    * Switches on POST /test/webhooks/simulate (only ever mounted when `nodeEnv` is `test`).
    * `secret` is what the caller must send; `realStripe` says the payment gateway is the real
@@ -97,6 +99,8 @@ export function createApp({ logger, pingDb, payments, outbox, config }: AppDeps)
       // Neither has an Origin, and the second route does not exist outside NODE_ENV=test.
       exemptPrefixes: [
         '/api/v1/webhooks/',
+        // Server-to-server (a scheduled workflow): no Origin, authenticated by its secret header.
+        '/api/v1/internal/',
         ...(config.nodeEnv === 'test' ? ['/api/v1/test/'] : []),
       ],
     }),
@@ -124,6 +128,7 @@ export function createApp({ logger, pingDb, payments, outbox, config }: AppDeps)
       ...(config.reviewRateLimit && { reviewRateLimit: config.reviewRateLimit }),
       ...(config.voteRateLimit && { voteRateLimit: config.voteRateLimit }),
       uploads: config.uploads,
+      ...(config.jobsSecret && { jobsSecret: config.jobsSecret }),
       payments,
       outbox,
       nodeEnv: config.nodeEnv,

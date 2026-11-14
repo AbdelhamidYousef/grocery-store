@@ -1,0 +1,28 @@
+name: Scheduled jobs
+
+# Free scheduling: GitHub calls the deployed API once an hour. Besides running the job registry
+# (apps/api/src/jobs/runner.ts) this wakes the free-tier Render service. Runs are claimed per
+# period in the database, so an extra or late trigger is harmless.
+on:
+  schedule:
+    - cron: '7 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  run-jobs:
+    name: Run due jobs
+    runs-on: ubuntu-latest
+    # Only meaningful once the API is deployed: set repository variables API_URL (https://.../) and the secret JOBS_SECRET.
+    if: ${{ vars.API_URL != '' }}
+    steps:
+      - name: POST /api/v1/internal/jobs/run
+        env:
+          API_URL: ${{ vars.API_URL }}
+          JOBS_SECRET: ${{ secrets.JOBS_SECRET }}
+        run: |
+          curl --fail-with-body --silent --show-error --retry 3 --retry-delay 20 --max-time 120 \
+            -X POST "${API_URL%/}/api/v1/internal/jobs/run" \
+            -H "X-Jobs-Secret: ${JOBS_SECRET}" \
+            -H 'Content-Type: application/json' -d '{}'

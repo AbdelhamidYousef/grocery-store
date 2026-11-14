@@ -18,6 +18,7 @@ import { galleryRouter } from './gallery/router.ts';
 import { guidesRouter } from './guides/router.ts';
 import { helpRouter } from './help/router.ts';
 import { homeRouter } from './home/router.ts';
+import { createJobsRouter } from './jobs/router.ts';
 import type { Outbox } from './mail/outbox.ts';
 import { merchandisingRouter } from './merchandising/router.ts';
 import { navigationRouter } from './navigation/router.ts';
@@ -46,6 +47,7 @@ export function createModulesRouter(opts: {
   payments: PaymentGateway;
   outbox: Outbox;
   nodeEnv: 'development' | 'test' | 'production';
+  jobsSecret?: string;
   testHooks?: { secret: string; realStripe: boolean };
 }): Router {
   const router = Router();
@@ -64,6 +66,10 @@ export function createModulesRouter(opts: {
   // Public and identical for everyone, so it sits before the session middleware like the catalog.
   router.use(createSearchRouter(opts));
   router.use(navigationRouter);
+  // Secret-header authenticated, no session: scheduled work trigger (see jobs/router.ts).
+  router.use(
+    createJobsRouter({ secret: opts.jobsSecret, payments: opts.payments, outbox: opts.outbox }),
+  );
   // Exists only under NODE_ENV=test with a TEST_HOOK_SECRET (see test-router.ts): no way to fake a
   // payment anywhere else.
   if (opts.nodeEnv === 'test' && opts.testHooks) {

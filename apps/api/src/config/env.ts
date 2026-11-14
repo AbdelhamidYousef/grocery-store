@@ -106,6 +106,19 @@ export const envSchema = z
       .enum(['true', 'false'])
       .default('true')
       .transform((v) => v === 'true'),
+    // Shared secret for POST /internal/jobs/run (header `X-Jobs-Secret`), called by the scheduled
+    // GitHub Actions workflow. Unset means the route is disabled.
+    JOBS_SECRET: z
+      .string()
+      .trim()
+      .optional()
+      .transform((v) => (v === '' ? undefined : v))
+      .pipe(z.string().min(16, 'use at least 16 characters').optional()),
+    // Tick the job registry every 10 minutes inside the API process (development convenience).
+    JOBS_IN_PROCESS: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((v) => v === 'true'),
   })
   .refine((e) => e.NODE_ENV !== 'production' || e.COOKIE_SECRET !== undefined, {
     message: 'COOKIE_SECRET (32+ characters) is required in production',

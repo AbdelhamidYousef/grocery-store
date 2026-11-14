@@ -7,6 +7,7 @@ import { createApp } from './app.ts';
 import { env } from './config/env.ts';
 import { closeDb, db } from './db/client.ts';
 import { startReservationSweeper } from './jobs/release-stale-reservations.ts';
+import { startJobTicker } from './jobs/runner.ts';
 import { selectPaymentGateway } from './lib/gateway.ts';
 import { createLogger } from './lib/logger.ts';
 import { createMailTransport } from './lib/mailer.ts';
@@ -56,6 +57,7 @@ const app = createApp({
     rateLimit: { windowMs: env.RATE_LIMIT_WINDOW_MS, limit: env.RATE_LIMIT_MAX },
     authRateLimit: { windowMs: env.RATE_LIMIT_AUTH_WINDOW_MS, limit: env.RATE_LIMIT_AUTH_MAX },
     uploads: { dir: resolve(API_ROOT, env.UPLOAD_DIR), enabled: env.UPLOADS_ENABLED },
+    ...(env.JOBS_SECRET && { jobsSecret: env.JOBS_SECRET }),
     ...(env.TEST_HOOK_SECRET && {
       testHooks: { secret: env.TEST_HOOK_SECRET, realStripe: gatewayKind === 'stripe' },
     }),
@@ -76,12 +78,19 @@ const sweeper =
 // Safety net for emails whose immediate send failed or whose kick was lost to a restart.
 const drainer = env.ENABLE_JOBS ? startOutboxDrainer({ outbox, log: logger }) : null;
 
+// Development convenience: the same runner the CLI and the HTTP trigger use, ticked every 10
+// minutes. Not the production plan (a sleeping free-tier host misses ticks): see JOBS_SECRET.
+const jobTicker = env.JOBS_IN_PROCESS
+  ? startJobTicker({ context: () => ({ log: logger, gateway: payments, outbox }) })
+  : null;
+
 const shutdown = createShutdown({
   server,
   logger,
   cleanup: async () => {
     sweeper?.stop();
     drainer?.stop();
+    jobTicker?.stop();
     await closeDb();
   },
 });
