@@ -22,6 +22,8 @@ import type {
   ProductCard,
   ProductDetail,
   ProductListResponse,
+  Review,
+  ReviewListResponse,
   ShippingQuote,
   User,
   Variant,
@@ -700,5 +702,43 @@ export function makeNavigation(): Navigation {
         promo: null,
       },
     ],
+  };
+}
+
+export function makeReview(overrides: Partial<Review> = {}): Review {
+  return {
+    id: 'r1',
+    rating: 5,
+    title: 'Tough rope',
+    body: 'My beagle has not managed to destroy it yet, and it has been a month.',
+    verifiedBuyer: true,
+    authorName: 'Ada L.',
+    petAgeMonths: 30,
+    petWeightG: 11_500,
+    sizePurchased: 'M',
+    wouldRecommend: true,
+    helpfulCount: 2,
+    votedHelpful: false,
+    photos: [],
+    createdAt: '2026-10-01T10:00:00.000Z',
+    ...overrides,
+  };
+}
+
+export function makeReviewList(
+  reviews: Review[] = [],
+  summary: Partial<ReviewListResponse['summary']> = {},
+): ReviewListResponse {
+  return {
+    data: reviews,
+    meta: { page: 1, limit: 10, total: reviews.length, totalPages: reviews.length ? 1 : 0 },
+    summary: {
+      rating: { count: reviews.length, averageTenths: reviews.length ? 46 : 0 },
+      breakdown: reviews.length ? [0, 0, 1, 2, 7] : [0, 0, 0, 0, 0],
+      recommendPercent: reviews.length ? 92 : null,
+      topics: [],
+      uploadsEnabled: true,
+      ...summary,
+    },
   };
 }

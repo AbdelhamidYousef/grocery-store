@@ -49,9 +49,15 @@ export async function apiFetch<S extends z.ZodType>(
       credentials: 'include',
       headers: {
         Accept: 'application/json',
-        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+        // A FormData body (photo upload) must NOT get a Content-Type from us: the browser adds
+        // `multipart/form-data` together with the boundary it generated.
+        ...(body === undefined || body instanceof FormData
+          ? {}
+          : { 'Content-Type': 'application/json' }),
       },
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      ...(body === undefined
+        ? {}
+        : { body: body instanceof FormData ? body : JSON.stringify(body) }),
       ...(signal ? { signal } : {}),
     });
   } catch (cause) {

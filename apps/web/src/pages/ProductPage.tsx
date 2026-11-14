@@ -29,6 +29,9 @@ import { SizeGuideButton } from '../features/catalog/pdp/SizeGuide';
 import { useProduct } from '../features/catalog/queries';
 import { variantFromSku } from '../features/catalog/resolve-variant';
 import { VariantPicker } from '../features/catalog/VariantPicker';
+import { formatRating } from '../features/reviews/format';
+import { RatingStars } from '../features/reviews/RatingStars';
+import { ReviewsSection } from '../features/reviews/ReviewsSection';
 import { SafetyNoticeBox } from '../features/safety/SafetyNoticeBox';
 import { accentForPetAttribute, petBySlug } from '../lib/pets';
 import { recordRecentlyViewed } from '../lib/recently-viewed';
@@ -122,7 +125,7 @@ function ProductView({ product }: { product: ProductDetail }) {
         title={product.name}
         description={product.description.slice(0, 155)}
         canonical={`/products/${product.slug}`}
-        {...(faqJsonLd(product.faqs) && { jsonLd: faqJsonLd(product.faqs) })}
+        {...(jsonLdFor(product) && { jsonLd: jsonLdFor(product) })}
       />
       <Container className="py-6">
         <Breadcrumbs items={crumbs} />
@@ -139,6 +142,16 @@ function ProductView({ product }: { product: ProductDetail }) {
               <h1 className="break-words font-display text-3xl font-bold sm:text-4xl">
                 {product.name}
               </h1>
+              {product.rating.count > 0 && (
+                <a
+                  href="#reviews"
+                  className="mt-2 flex w-fit items-center gap-2 text-sm font-semibold underline"
+                >
+                  <RatingStars tenths={product.rating.averageTenths} />
+                  {formatRating(product.rating.averageTenths)} ({product.rating.count} review
+                  {product.rating.count === 1 ? '' : 's'})
+                </a>
+              )}
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 {!product.inStock && (
                   <Badge tone="neutral" className="border-ink bg-surface text-ink">
@@ -274,6 +287,7 @@ function ProductView({ product }: { product: ProductDetail }) {
             </dl>
           }
         />
+        <ReviewsSection product={product} />
         <KitsBlock kits={product.kits} currency={product.price.currency} />
         <BoughtTogether productSlug={product.slug} productName={product.name} variant={variant} />
         <RelatedStrip productSlug={product.slug} />
@@ -281,6 +295,32 @@ function ProductView({ product }: { product: ProductDetail }) {
       </Container>
     </div>
   );
+}
+
+// Structured data for crawlers. aggregateRating only when there are reviews (an empty rating block
+// is invalid and would be a lie); the FAQ block stays as before.
+function jsonLdFor(
+  product: ProductDetail,
+): Record<string, unknown> | Record<string, unknown>[] | undefined {
+  const nodes: Record<string, unknown>[] = [];
+  const faq = faqJsonLd(product.faqs);
+  if (faq) nodes.push(faq);
+  if (product.rating.count > 0) {
+    nodes.push({
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.name,
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: formatRating(product.rating.averageTenths),
+        reviewCount: product.rating.count,
+        bestRating: 5,
+        worstRating: 1,
+      },
+    });
+  }
+  // One block stays a plain object (as before); two or more go out as a JSON-LD array.
+  return nodes.length > 1 ? nodes : nodes[0];
 }
 
 function ProductSkeleton() {

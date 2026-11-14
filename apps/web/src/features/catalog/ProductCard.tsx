@@ -11,6 +11,8 @@ import { UnitPrice } from '../../components/ui/UnitPrice';
 import { productSrcSet } from '../../lib/images';
 import { accentForPetAttribute } from '../../lib/pets';
 import { TEST_IDS } from '../../lib/test-ids';
+import { formatRating } from '../reviews/format';
+import { RatingStars } from '../reviews/RatingStars';
 
 interface ProductCardProps {
   product: ProductCardData;
@@ -93,6 +95,15 @@ export function ProductCard({
             >
               {product.name}
             </h3>
+            {product.rating.count > 0 && (
+              <p className="flex items-center gap-1.5 text-xs text-muted">
+                <RatingStars tenths={product.rating.averageTenths} size="sm" />
+                <span aria-hidden="true">
+                  {formatRating(product.rating.averageTenths)} ({product.rating.count})
+                </span>
+                <span className="sr-only">{product.rating.count} reviews</span>
+              </p>
+            )}
             <div className="mt-auto flex flex-col">
               {memberBeatsSale(product.member, product.sale) && product.member ? (
                 <MemberPrice

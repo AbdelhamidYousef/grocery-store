@@ -14,7 +14,7 @@ interface SeoProps {
   publishedAt?: string;
   image?: string;
   /** Structured data (schema.org) for this page, written as one JSON-LD script. */
-  jsonLd?: Record<string, unknown>;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
 // Sets <title>, meta description, canonical link and robots through the DOM in an effect: a

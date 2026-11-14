@@ -97,6 +97,8 @@ export const keys = {
     collections: ['admin', 'collections'] as const,
     tags: ['admin', 'tags'] as const,
     menuPromos: ['admin', 'menu-promos'] as const,
+    reviews: (status: string) => ['admin', 'reviews', status] as const,
+    gallery: ['admin', 'gallery'] as const,
     orders: ['admin', 'orders'] as const,
     orderList: (params: AdminOrderListParams) => ['admin', 'orders', 'list', params] as const,
     order: (number: string) => ['admin', 'orders', 'detail', number] as const,
@@ -134,6 +136,11 @@ export const keys = {
       ['guides', 'list', params] as const,
     detail: (slug: string) => ['guides', 'detail', slug] as const,
   },
+  reviews: {
+    all: ['reviews'] as const,
+    list: (slug: string, params: object) => ['reviews', 'list', slug, params] as const,
+  },
+  gallery: (productId: string | undefined) => ['gallery', productId ?? 'all'] as const,
   // The mega-menu data (pets, categories, brands, promos): one cached call.
   navigation: ['navigation'] as const,
   categories: {

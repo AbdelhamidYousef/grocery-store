@@ -23,6 +23,8 @@
   --color-primary-bright: #ff6b4a;
   --color-primary-soft: #ffe8df;
 
+  /* Filled review stars: a graphic, never text, so it needs no text contrast (the rating is always also written as a number). */
+  --color-star: #f59e0b;
   --color-success: #166534;
   --color-success-soft: #dcfce7;
   --color-danger: #b91c1c;
