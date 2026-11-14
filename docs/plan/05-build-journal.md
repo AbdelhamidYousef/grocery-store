@@ -965,3 +965,14 @@ Learn: derive what can drift (kit stock), store what is a decision (kit price), 
 - `pages/DevelopersPage.tsx`: what WebMCP is and its draft status, how to try it (Chrome 146+, the flag), the six tools (schema in a collapsible, example call and result), the error codes and the 30-a-minute limit, what is not exposed, and a demo/test-data note. Footer link under Company.
 - Tests: the page lists exactly the registry's tools in order; the demo note, not-exposed list and flag are present; footer link and no `noindex`; every documented input passes its schema.
 - Learn / explain: documentation generated from the code that runs cannot go stale, and where a part must be hand-written (examples) a test ties it to the code; saying plainly what is not exposed is as much part of an agent interface as the tool list.
+
+### 24.7 — e2e: agent tools flow
+- `e2e/agent.spec.ts`, two tests (fake `document.modelContext`; no `modelContext`).
+- Gates at the end of the phase: web 895, API 1254 (2 skipped) unit tests passed; full e2e 68 passed, 1 skipped (the real-card Stripe test).
+- Learn / explain: test the contract (tools registered, calls return the right shape, the human sees the effect) with a stand-in for the unfinished browser API, and leave real-agent testing manual; a "no support" test proves progressive enhancement by asserting silence.
+- Follow-ups: repeated e2e runs use up stock in the shared dev database (the Feather Wand's default pink variant hit 0 and made the loyalty newsletter test time out on its add-to-cart; restocking it fixed it); the `/developers` example outputs are hand-written; real-browser testing in Chrome with the flag is manual and was not done here.
+
+#### Phase 24 quiz (no answers)
+1. Why does the adapter probe `document.modelContext` and `navigator.modelContext` and register nothing otherwise, instead of shipping a polyfill?
+2. The client limits an agent to 30 calls a minute. Why is that not a security measure, and which server-side rules actually keep an agent from doing more than a shopper?
+3. Why is there no checkout tool, and how does a cart tool let the human see what the agent did?
