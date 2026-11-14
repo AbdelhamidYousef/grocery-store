@@ -111,6 +111,16 @@ function GuideForm({ guide }: { guide: AdminGuide | null }) {
       <h2 id="guide-heading" className="mt-2 font-display text-xl font-bold">
         {guide ? guide.title : 'New guide'}
       </h2>
+      {guide && (
+        <div>
+          <Link
+            to={`/admin/translations?entity=guide&id=${guide.id}`}
+            className="text-sm font-semibold text-primary-strong underline"
+          >
+            Translations
+          </Link>
+        </div>
+      )}
       {guide?.status === 'published' && (
         <Link
           to={`/guides/${guide.slug}`}

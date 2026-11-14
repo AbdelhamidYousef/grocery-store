@@ -16,6 +16,7 @@ const LINKS = [
   { to: '/admin/brands', label: 'Brands', end: false },
   { to: '/admin/collections', label: 'Collections', end: false },
   { to: '/admin/tags', label: 'Tags', end: false },
+  { to: '/admin/translations', label: 'Translations', end: false },
   { to: '/admin/navigation', label: 'Navigation', end: false },
   { to: '/admin/promotions', label: 'Promotions', end: false },
   { to: '/admin/size-guides', label: 'Size guides', end: false },

@@ -34,6 +34,7 @@ import { ReturnsAdmin } from '../features/admin/returns/ReturnsAdmin';
 import { GalleryAdmin } from '../features/admin/reviews/GalleryAdmin';
 import { ReviewsAdmin } from '../features/admin/reviews/ReviewsAdmin';
 import { TagsAdmin } from '../features/admin/TagsAdmin';
+import { TranslationsAdmin } from '../features/admin/translations/TranslationsAdmin';
 import { VetApprovalsAdmin } from '../features/admin/vet/VetApprovalsAdmin';
 
 // One lazy chunk for the whole back office, with its own small route table underneath
@@ -57,6 +58,7 @@ export default function AdminPage() {
         <Route path="brands" element={<BrandsAdmin />} />
         <Route path="collections" element={<CollectionsAdmin />} />
         <Route path="tags" element={<TagsAdmin />} />
+        <Route path="translations" element={<TranslationsAdmin />} />
         <Route path="navigation" element={<NavigationAdmin />} />
         <Route path="size-guides" element={<SizeGuidesAdmin />} />
         <Route path="bundles" element={<BundlesAdmin />} />

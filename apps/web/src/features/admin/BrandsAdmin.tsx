@@ -1,5 +1,6 @@
 import { AdminBrandInputSchema, type Brand } from '@store/shared';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import { Seo } from '../../components/Seo';
 import { Button } from '../../components/ui/Button';
@@ -156,6 +157,12 @@ export function BrandsAdmin() {
                     <Button variant="secondary" onClick={() => setEditing(b)}>
                       Edit <span className="sr-only">{b.name}</span>
                     </Button>
+                    <Link
+                      to={`/admin/translations?entity=brand&id=${b.id}`}
+                      className="font-semibold text-primary-strong underline"
+                    >
+                      Translations<span className="sr-only"> of {b.name}</span>
+                    </Link>
                     <Button
                       variant="secondary"
                       loading={remove.isPending && remove.variables === b.id}

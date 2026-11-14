@@ -1,0 +1,928 @@
+{
+  "products": {
+    "basking-lamp-dome": {
+      "name": "Dôme de lampe chauffante",
+      "description": "Un dôme réfléchissant qui concentre la chaleur sur la zone de bain de soleil, avec pince de fixation et câble résistant à la chaleur.",
+      "slug": "d-me-de-lampe-chauffante"
+    },
+    "walkies-starter-kit": {
+      "name": "Kit de balade pour débuter",
+      "description": "Un collier et une laisse réfléchissante assortis pour une première promenade, ou pour repartir du bon pied.",
+      "slug": "kit-de-balade-pour-d-buter"
+    },
+    "braided-tug-rope": {
+      "name": "Corde de traction tressée",
+      "description": "Une épaisse corde de coton tressée avec un nœud à chaque extrémité, conçue pour les jeux de traction et le mâchouillage tout en douceur. Les fibres aident à nettoyer les dents pendant que votre chien joue. Lavable en machine.",
+      "slug": "corde-de-traction-tress-e"
+    },
+    "squeaky-fox-plush": {
+      "name": "Peluche renard couineur",
+      "description": "Un renard tout mou avec un couineur caché et des coutures renforcées. Assez doux pour les câlins, assez solide pour une secouée énergique. À utiliser sous surveillance.",
+      "slug": "peluche-renard-couineur"
+    },
+    "bouncy-rubber-ball": {
+      "name": "Balle en caoutchouc rebondissante",
+      "description": "Une balle vive en caoutchouc naturel aux rebonds imprévisibles, pour des parties de rapport toujours palpitantes. Elle flotte sur l'eau : aussi à l'aise au bord du lac qu'au parc.",
+      "slug": "balle-en-caoutchouc-rebondissante"
+    },
+    "cloud-comfort-bed": {
+      "name": "Panier Nuage Confort",
+      "description": "Un panier rond et profond aux bords relevés pour s'appuyer, avec une base moelleuse où s'enfoncer. La housse se dézippe et passe en machine ; le rembourrage reprend sa forme après chaque sieste.",
+      "slug": "panier-nuage-confort"
+    },
+    "soft-training-bites": {
+      "name": "Bouchées tendres d'éducation",
+      "description": "De petites friandises tendres de la taille d'un petit pois, vite avalées pour que les séances d'éducation restent rythmées. Cuites avec de la vraie viande, de l'avoine et sans colorants artificiels.",
+      "slug": "bouch-es-tendres-d-ducation"
+    },
+    "peanut-crunch-biscuits": {
+      "name": "Biscuits croquants à la cacahuète",
+      "description": "De croquants biscuits en forme d'os, cuits lentement pour un craquant bien satisfaisant. Une bonne récompense du quotidien, et le croquant aide à éliminer la plaque dentaire.",
+      "slug": "biscuits-croquants-la-cacahu-te"
+    },
+    "steel-feeding-bowl": {
+      "name": "Gamelle en inox",
+      "description": "Une gamelle en acier inoxydable qui n'absorbe jamais les odeurs et passe au lave-vaisselle. L'anneau en silicone l'empêche de glisser sur le sol de la cuisine.",
+      "slug": "gamelle-en-inox"
+    },
+    "maze-slow-feeder": {
+      "name": "Gamelle anti-glouton labyrinthe",
+      "description": "Des reliefs surélevés forment un labyrinthe qui transforme un repas avalé d'un trait en casse-tête, pour manger plus lentement et rendre le repas plus amusant. Base antidérapante, compatible lave-vaisselle.",
+      "slug": "gamelle-anti-glouton-labyrinthe"
+    },
+    "everyday-webbing-collar": {
+      "name": "Collier en sangle du quotidien",
+      "description": "Un collier léger et réglable avec boucle à dégagement rapide et solide anneau métallique pour les médailles. Doux pour le cou, et la couleur résiste aux lavages.",
+      "slug": "collier-en-sangle-du-quotidien"
+    },
+    "reflective-walking-leash": {
+      "name": "Laisse de promenade réfléchissante",
+      "description": "Une laisse solide aux coutures réfléchissantes pour être bien visibles lors des promenades du soir, avec une poignée rembourrée qui reste confortable quand ça tire.",
+      "slug": "laisse-de-promenade-r-fl-chissante"
+    },
+    "pumpkin-squeak-ball": {
+      "name": "Balle citrouille couineuse",
+      "description": "Une citrouille orange au sourire malicieux avec un couineur à l'intérieur, douce en gueule et assez légère pour être transportée. Un jouet de rapport saisonnier amusant pour les chiens de petite et moyenne taille.",
+      "slug": "balle-citrouille-couineuse"
+    },
+    "chew-knot-bone": {
+      "name": "Os à mâcher noué",
+      "description": "Un os à mâcher noué dans une épaisse corde de chanvre, assez résistant pour les mâcheurs réguliers. Les fibres passent entre les dents comme du fil dentaire pendant que votre chien ronge.",
+      "slug": "os-m-cher-nou"
+    },
+    "memory-foam-mat": {
+      "name": "Tapis à mémoire de forme",
+      "description": "Un tapis enveloppant qui répartit le poids uniformément et soulage la pression sur les hanches et les coudes sensibles. La housse se dézippe pour le lavage et la base adhère au sol.",
+      "slug": "tapis-m-moire-de-forme"
+    },
+    "cooling-gel-mat": {
+      "name": "Tapis rafraîchissant en gel",
+      "description": "Un tapis rempli de gel qui reste agréablement frais sans électricité, idéal pour les pièces chaudes et les coffres de voiture. Il s'essuie en quelques secondes.",
+      "slug": "tapis-rafra-chissant-en-gel"
+    },
+    "travel-blanket-roll": {
+      "name": "Couverture de voyage enroulable",
+      "description": "Une épaisse couverture en polaire qui s'enroule avec sa propre sangle, pour le coffre, le canapé ou une nuit ailleurs. Fabriquée à partir de bouteilles recyclées et lavable en machine.",
+      "slug": "couverture-de-voyage-enroulable"
+    },
+    "puppy-snuggle-nest": {
+      "name": "Nid douillet pour chiot",
+      "description": "Un petit nid rond à la doublure chaude et duveteuse qui aide un nouveau chiot à s'installer. Les bords relevés sont rassurants et il supporte bien le lavage.",
+      "slug": "nid-douillet-pour-chiot"
+    },
+    "dental-chew-sticks": {
+      "name": "Bâtonnets à mâcher dentaires",
+      "description": "Des bâtonnets à mâcher striés, cuits avec de la farine de riz et de la menthe pour aider à éliminer la plaque dentaire. Adaptés aux chiens de petite et moyenne taille, et faciles à digérer.",
+      "slug": "b-tonnets-m-cher-dentaires"
+    },
+    "light-lean-bites": {
+      "name": "Bouchées légères et maigres",
+      "description": "Des friandises d'éducation peu caloriques, riches en fibres, pour que les récompenses ne se voient pas sur la balance. Assez tendres pour être coupées en deux.",
+      "slug": "bouch-es-l-g-res-et-maigres"
+    },
+    "sensitive-lamb-biscuits": {
+      "name": "Biscuits à l'agneau pour chiens sensibles",
+      "description": "Une courte liste d'ingrédients à base d'agneau et d'avoine pour les chiens qui réagissent aux aliments plus riches. Sans blé, sans colorants artificiels.",
+      "slug": "biscuits-l-agneau-pour-chiens-sensibles"
+    },
+    "collapsible-travel-bowl": {
+      "name": "Gamelle de voyage pliable",
+      "description": "Une gamelle qui se plie à plat jusqu'à l'épaisseur d'un dessous de verre et se clipse à un sac. Silicone alimentaire, compatible lave-vaisselle.",
+      "slug": "gamelle-de-voyage-pliable"
+    },
+    "raised-double-diner": {
+      "name": "Double gamelle surélevée",
+      "description": "Deux gamelles en inox sur un support en bambou, surélevées à une hauteur confortable pour manger et boire. Les gamelles s'enlèvent pour le lavage.",
+      "slug": "double-gamelle-sur-lev-e"
+    },
+    "ceramic-paw-bowl": {
+      "name": "Gamelle en céramique Patte",
+      "description": "Une lourde gamelle émaillée ornée d'une empreinte de patte à l'intérieur, trop pesante pour être poussée sur le sol. Compatible lave-vaisselle et micro-ondes.",
+      "slug": "gamelle-en-c-ramique-patte"
+    },
+    "comfort-harness": {
+      "name": "Harnais confort",
+      "description": "Un harnais rembourré avec un anneau sur la poitrine et un dans le dos, qui répartit la pression sur les épaules plutôt que sur le cou. Boucles à dégagement rapide.",
+      "slug": "harnais-confort"
+    },
+    "hands-free-leash": {
+      "name": "Laisse mains libres",
+      "description": "Une laisse avec ceinture de taille rembourrée et partie élastique, pour garder les mains libres en courant ou en randonnée. Coutures réfléchissantes.",
+      "slug": "laisse-mains-libres"
+    },
+    "compostable-waste-bags": {
+      "name": "Sacs à déjections compostables",
+      "description": "Des sacs solides en fécule végétale qui se décomposent dans un composteur industriel. Livrés avec un distributeur à clipser.",
+      "slug": "sacs-d-jections-compostables"
+    },
+    "feather-wand-teaser": {
+      "name": "Canne à plumes",
+      "description": "Une canne souple avec un bouquet de plumes au bout d'une longue ficelle, qui volette comme une vraie proie. Parfaite pour s'entraîner à bondir et pour dépenser les crises de folie du soir.",
+      "slug": "canne-plumes"
+    },
+    "crinkle-mouse-trio": {
+      "name": "Trio de souris froissables",
+      "description": "Trois petites souris en tissu à la doublure froissable qui crépite quand on les chahute. Assez légères pour glisser sur le sol, assez solides pour être transportées.",
+      "slug": "trio-de-souris-froissables"
+    },
+    "catnip-banana-kicker": {
+      "name": "Banane à ruer à l'herbe à chat",
+      "description": "Une banane à ruer remplie d'herbe à chat parfumée, idéale pour les câlins et les coups de pattes arrière. Ravivez le parfum en la pressant avant de jouer.",
+      "slug": "banane-ruer-l-herbe-chat"
+    },
+    "cosy-cave-bed": {
+      "name": "Panier grotte douillet",
+      "description": "Une grotte en feutre à capuche pour les chats qui aiment se cacher et dormir. Le coussin intérieur doux s'enlève pour le lavage et les parois rigides gardent leur forme.",
+      "slug": "panier-grotte-douillet"
+    },
+    "window-perch-cushion": {
+      "name": "Coussin perchoir pour fenêtre",
+      "description": "Un coussin plat et chaud qui se fixe à un rebord de fenêtre avec de solides ventouses, pour offrir à votre chat une place au premier rang sur le quartier. Matelassé pour plus de confort sur les articulations plus âgées.",
+      "slug": "coussin-perchoir-pour-fen-tre"
+    },
+    "salmon-crunch-treats": {
+      "name": "Friandises croquantes au saumon",
+      "description": "De croustillants coussinets au cœur crémeux et fondant que les chats refusent rarement. Assez petits pour une récompense rapide, assez savoureux pour faire accourir au bruit du sachet.",
+      "slug": "friandises-croquantes-au-saumon"
+    },
+    "creamy-lick-pouches": {
+      "name": "Sachets crémeux à lécher",
+      "description": "Une purée onctueuse à presser directement du sachet pour la friandise ultime, pratique pour créer du lien ou cacher un comprimé. Préparée avec du vrai poisson ou de la viande, sans sucre ajouté.",
+      "slug": "sachets-cr-meux-l-cher"
+    },
+    "ceramic-whisker-bowl": {
+      "name": "Gamelle en céramique pour moustaches",
+      "description": "Une gamelle en céramique peu profonde et large pour que les moustaches ne touchent jamais les bords. La base lourde reste en place, et l'émail va au lave-vaisselle.",
+      "slug": "gamelle-en-c-ramique-pour-moustaches"
+    },
+    "gravity-water-dispenser": {
+      "name": "Fontaine à eau à gravité",
+      "description": "Une tour à eau rechargeable qui remplit la gamelle au fur et à mesure que votre chat boit, pour avoir toujours de l'eau fraîche sans pompe ni prise. Facile à remplir et à rincer.",
+      "slug": "fontaine-eau-gravit"
+    },
+    "soft-travel-carrier": {
+      "name": "Sac de transport souple",
+      "description": "Un sac de transport rembourré avec fenêtres en maille sur trois côtés, ouverture zippée sur le dessus et base en polaire. Léger à porter, avec une boucle pour ceinture de sécurité en voiture.",
+      "slug": "sac-de-transport-souple"
+    },
+    "crinkle-play-tunnel": {
+      "name": "Tunnel de jeu froissable",
+      "description": "Un tunnel qui crépite quand un chat le traverse en trombe, avec un trou d'observation pour les embuscades. Se plie à plat pour le rangement.",
+      "slug": "tunnel-de-jeu-froissable"
+    },
+    "spooky-bat-teaser": {
+      "name": "Canne chauve-souris effrayante",
+      "description": "Une chauve-souris en feutre au bout d'un long cordon et d'une baguette en bois, qui volette quand on l'agite. Un incontournable saisonnier, économique et rigolo.",
+      "slug": "canne-chauve-souris-effrayante"
+    },
+    "cuddle-cup-bed": {
+      "name": "Panier coque câline",
+      "description": "Une coque profonde et douillette qui aide les chats anxieux à se sentir enveloppés pendant leur sommeil. La base est antidérapante et la housse se lave à 30 degrés.",
+      "slug": "panier-coque-c-line"
+    },
+    "cardboard-scratch-lounger": {
+      "name": "Chaise longue griffoir en carton",
+      "description": "Une chaise longue courbe en carton recyclé en couches, qui fait aussi office de griffoir. Quand elle est usée, elle va au recyclage du papier.",
+      "slug": "chaise-longue-griffoir-en-carton"
+    },
+    "sunny-shelf-hammock": {
+      "name": "Hamac étagère ensoleillée",
+      "description": "Un hamac qui s'accroche à un radiateur ou à un rebord de fenêtre pour un coin chaud d'où observer la rue. Supporte jusqu'à six kilos.",
+      "slug": "hamac-tag-re-ensoleill-e"
+    },
+    "dental-crunch-bites": {
+      "name": "Bouchées croquantes dentaires",
+      "description": "Des bouchées croquantes dont la texture est conçue pour nettoyer les dents pendant que les chats mâchent. Assez petites pour les chatons qui ont leurs dents d'adulte.",
+      "slug": "bouch-es-croquantes-dentaires"
+    },
+    "calm-chews": {
+      "name": "Friandises à mâcher apaisantes",
+      "description": "Des friandises tendres à la camomille et au L-tryptophane pour aider les chats à rester calmes pendant les visites chez le vétérinaire et les feux d'artifice. Ce n'est pas un médicament.",
+      "slug": "friandises-m-cher-apaisantes"
+    },
+    "omega-coat-paste": {
+      "name": "Pâte oméga pour le pelage",
+      "description": "Une pâte à lécher riche en huiles oméga-3 pour un pelage brillant et une peau apaisée. Déposez-en un peu sur une patte ou dans la gamelle.",
+      "slug": "p-te-om-ga-pour-le-pelage"
+    },
+    "slanted-raised-bowl": {
+      "name": "Gamelle surélevée inclinée",
+      "description": "Une gamelle surélevée inclinée à quinze degrés, pour que la nourriture glisse vers l'avant et que les moustaches restent dégagées. Compatible lave-vaisselle.",
+      "slug": "gamelle-sur-lev-e-inclin-e"
+    },
+    "whisper-drinking-fountain": {
+      "name": "Fontaine à boire silencieuse",
+      "description": "Une fontaine discrète qui garde l'eau en mouvement et fraîche, ce que beaucoup de chats préfèrent. Un filtre remplaçable préserve un goût propre.",
+      "slug": "fontaine-boire-silencieuse"
+    },
+    "snuffle-feeding-mat": {
+      "name": "Tapis de fouille pour repas",
+      "description": "Un tapis en polaire avec des poches et des rabats où se cachent les croquettes, pour transformer le dîner en jeu de recherche. Ralentit les gloutons.",
+      "slug": "tapis-de-fouille-pour-repas"
+    },
+    "bubble-window-backpack": {
+      "name": "Sac à dos bulle panoramique",
+      "description": "Un sac à dos avec dôme transparent pour que le chat observe le monde pendant que vous gardez les deux mains libres. Aéré, rembourré et accepté en avion.",
+      "slug": "sac-dos-bulle-panoramique"
+    },
+    "cat-harness-and-lead": {
+      "name": "Harnais et laisse pour chat",
+      "description": "Un harnais gilet anti-fuite avec une laisse légère, pour des moments au jardin sous surveillance et des balades tranquilles. Facile à enfiler.",
+      "slug": "harnais-et-laisse-pour-chat"
+    },
+    "shallow-water-dish": {
+      "name": "Coupelle d'eau peu profonde",
+      "description": "Une coupelle basse pour boire et se tremper, avec une base rugueuse pour qu'elle ne glisse pas dans le terrarium.",
+      "slug": "coupelle-d-eau-peu-profonde"
+    },
+    "portable-litter-tray": {
+      "name": "Bac à litière portable",
+      "description": "Un bac qui se plie à plat et se referme avec la litière à l'intérieur, pour les hôtels et les longs trajets. S'essuie facilement.",
+      "slug": "bac-liti-re-portable"
+    },
+    "carrier-calming-blanket": {
+      "name": "Couverture apaisante pour sac de transport",
+      "description": "Une couverture douce qui s'adapte au fond de n'importe quel sac de transport, légèrement parfumée à la lavande pour que le trajet sente la sécurité. Lavable en machine.",
+      "slug": "couverture-apaisante-pour-sac-de-transport"
+    },
+    "rope-perch-swing": {
+      "name": "Seilsitzschaukel",
+      "description": "Eine sanfte Schaukel mit glatter Holzstange und weicher Seilschlaufe, schonend für kleine Füße. Lässt sich an jedem Käfigstab einhängen.",
+      "slug": "seilsitzschaukel"
+    },
+    "bell-and-mirror-toy": {
+      "name": "Glöckchen-und-Spiegel-Spielzeug",
+      "description": "Ein klingelndes Glöckchen und ein kleiner Spiegel an einer Hängekette geben Ihrem Vogel etwas Glänzendes zum Plaudern. Sicheres Glöckchen mit geschlossenem Klöppel.",
+      "slug": "gloeckchen-und-spiegel-spielzeug"
+    },
+    "garden-seed-blend": {
+      "name": "Gartensaaten-Mischung",
+      "description": "Eine ausgewogene Mischung aus Samen, Getreide und getrocknetem Gemüse, gereinigt und staubfrei. Der wiederverschließbare Beutel hält sie zwischen den Mahlzeiten frisch.",
+      "slug": "gartensaaten-mischung"
+    },
+    "millet-spray-treats": {
+      "name": "Kolbenhirse-Leckerli",
+      "description": "Ganze Hirsekolben für Beschäftigung beim Futtersuchen und eine beliebte Belohnung. Einen am Käfig befestigen und das Knabbern beginnt.",
+      "slug": "kolbenhirse-leckerli"
+    },
+    "dome-travel-cage": {
+      "name": "Kuppel-Reisekäfig",
+      "description": "Ein Kuppelkäfig mit Tragegriff, zwei Sitzstangen und herausziehbarer Schublade, ideal für Tierarztbesuche und kurze Ausflüge. Der weite Stababstand eignet sich für kleine Vögel.",
+      "slug": "kuppel-reisekaefig"
+    },
+    "tabletop-play-stand": {
+      "name": "Spielständer für den Tisch",
+      "description": "Ein kleiner Spielplatz für die Zeit außerhalb des Käfigs mit zwei Sitzstangen, zwei Näpfen und einer Leiter. Steht sicher auf Tisch oder Regal.",
+      "slug": "spielstaender-fuer-den-tisch"
+    },
+    "hanging-seed-feeder": {
+      "name": "Hängender Futterspender für Samen",
+      "description": "Ein Röhrenspender, der Futter sauber und trocken hält und zeigt, wann nachgefüllt werden muss. Wird am Käfig befestigt oder an einen Haken gehängt.",
+      "slug": "haengender-futterspender-fuer-samen"
+    },
+    "shredding-palm-toy": {
+      "name": "Palmblatt-Knabberspielzeug",
+      "description": "Getrocknete Palmblätter, zu einem lockeren Ball geflochten, den Schnäbel auseinanderzupfen können. Natürlich, unbedenklich zum Kauen und vollkommen zerlegbar.",
+      "slug": "palmblatt-knabberspielzeug"
+    },
+    "ladder-and-bell-set": {
+      "name": "Leiter-und-Glöckchen-Set",
+      "description": "Eine Holzleiter mit je einem Glöckchen an den Enden zum Klettern, Läuten und Herumturnen. Die Schrauben passen an die meisten Käfige.",
+      "slug": "leiter-und-gloeckchen-set"
+    },
+    "foraging-wheel": {
+      "name": "Futtersuchrad",
+      "description": "Ein Rad mit versteckten Taschen, in denen sich Leckerlis verstauen lassen, sodass Vögel für ihren Snack arbeiten müssen. Austauschbare Papiereinlagen.",
+      "slug": "futtersuchrad"
+    },
+    "fruit-and-nut-mix": {
+      "name": "Frucht-und-Nuss-Mix",
+      "description": "Eine bunte Mischung aus Trockenfrüchten, Sonnenblumenkernen und ungesalzenen Nüssen für mittelgroße und große Papageien. Eine Leckerli-Mischung, kein Alleinfutter für jeden Tag.",
+      "slug": "frucht-und-nuss-mix"
+    },
+    "daily-pellets": {
+      "name": "Tägliche Futterpellets",
+      "description": "Ein Alleinfutter in Pelletform, das mit jedem Schnabelvoll dieselbe Ausgewogenheit liefert, sodass Vögel sich keine Lieblinge herauspicken können. Rezeptur nach tierärztlichem Vorbild.",
+      "slug": "taegliche-futterpellets"
+    },
+    "sprouting-seed-mix": {
+      "name": "Keimsaaten-Mischung",
+      "description": "Eine Mischung aus Samen und Hülsenfrüchten, die in drei Tagen zu frischen Sprossen keimen und dem Napf einen grünen Schub geben. Bio-Getreide.",
+      "slug": "keimsaaten-mischung"
+    },
+    "starter-flight-cage": {
+      "name": "Einsteiger-Flugkäfig",
+      "description": "Ein geräumiger Käfig mit weitem Stababstand für kleine Papageien, zwei Sitzstangen, Türen auf drei Seiten und herausziehbarer Schublade. Leicht aufzubauen.",
+      "slug": "einsteiger-flugkaefig"
+    },
+    "night-cage-cover": {
+      "name": "Nacht-Käfigabdeckung",
+      "description": "Eine atmungsaktive Abdeckung, die Licht und Zugluft abhält für eine ruhige, ungestörte Nacht. Passt auf die meisten Käfige.",
+      "slug": "nacht-kaefigabdeckung"
+    },
+    "travel-perch-stand": {
+      "name": "Reise-Sitzständer",
+      "description": "Ein leichter Ständer mit Sitzstange, zwei Näpfen und einer Schale für Besuche und Fotos. Lässt sich flach zusammenfalten und passt unter einen Sitz.",
+      "slug": "reise-sitzstaender"
+    },
+    "seed-catcher-tray": {
+      "name": "Futterschutz-Auffangschürze",
+      "description": "Eine Netzschürze, die um den Käfig geklippt wird und Schalen und Körner auffängt, bevor sie auf den Boden fallen. Waschbar.",
+      "slug": "futterschutz-auffangschuerze"
+    },
+    "drip-water-cup": {
+      "name": "Tropf-Wassernapf",
+      "description": "Ein Napf, der außen am Käfig hängt, damit das Wasser frei von Kot bleibt. Eine Flaschenöffnung sorgt für gleichmäßigen Durchfluss.",
+      "slug": "tropf-wassernapf"
+    },
+    "treat-skewer-holder": {
+      "name": "Leckerli-Spieß",
+      "description": "Ein Spieß zum Aufhängen von Obst und Gemüse im Käfig. Spülmaschinenfest und rostfrei.",
+      "slug": "leckerli-spiess"
+    },
+    "twin-ceramic-dish": {
+      "name": "Doppelter Keramiknapf",
+      "description": "Zwei schwere, verbundene Näpfe, einer für Körner und einer für Wasser. Sie bleiben stehen, wenn die Vögel herumhüpfen.",
+      "slug": "doppelter-keramiknapf"
+    },
+    "tunnel-chew-roll": {
+      "name": "Kau-Tunnelrolle",
+      "description": "Ein geflochtener Weidentunnel zum Durchlaufen, Verstecken und Knabbern. Natürlich, unbedenklich zum Kauen und mit Spaß zum Umräumen.",
+      "slug": "kau-tunnelrolle"
+    },
+    "starter-tank-20l": {
+      "name": "Starter-Aquarium 20 L",
+      "description": "Ein 20-Liter-Glasaquarium mit gut schließendem Deckel, sanftem Filter und eingebautem Licht, damit Sie eine winzige Unterwasserwelt einrichten können. Fische sind nicht enthalten.",
+      "slug": "starter-aquarium-20-l"
+    },
+    "rainbow-flake-food": {
+      "name": "Regenbogen-Flockenfutter",
+      "description": "Bunte, leicht verdauliche Flocken mit Vitaminen für leuchtende Farben und gute Gesundheit. Sie schwimmen oben, sodass Sie genau sehen, wie viel gefressen wird.",
+      "slug": "regenbogen-flockenfutter"
+    },
+    "sinking-pellet-food": {
+      "name": "Sinkendes Pelletfutter",
+      "description": "Kleine Pellets, die langsam sinken, damit Bodenfische und Fische im Mittelwasser alle ihren Anteil bekommen. Abfallarm für klareres Wasser.",
+      "slug": "sinkendes-pelletfutter"
+    },
+    "little-castle-ornament": {
+      "name": "Kleines Schloss als Dekoration",
+      "description": "Ein buntes Spielzeugschloss mit Bogenfenstern, durch die Fische schwimmen können. Glatte Kanten und aquariengeeignete Farbe.",
+      "slug": "kleines-schloss-als-dekoration"
+    },
+    "coral-cave-hideout": {
+      "name": "Korallenhöhle als Versteck",
+      "description": "Eine felsige Höhle, gekrönt von Korallenformen, in die sich scheue Fische zurückziehen und die sie erkunden können. Für Süß- und Salzwasseraquarien geeignet.",
+      "slug": "korallenhoehle-als-versteck"
+    },
+    "silk-plant-pack": {
+      "name": "Seidenpflanzen-Set",
+      "description": "Fünf weiche Seidenpflanzen in unterschiedlichen Höhen, damit Fische hindurchschwimmen können, ohne sich die Flossen zu zerkratzen. Beschwerte Füße halten sie aufrecht.",
+      "slug": "seidenpflanzen-set"
+    },
+    "soft-glow-led-bar": {
+      "name": "LED-Leiste mit sanftem Licht",
+      "description": "Eine schmale LED-Leiste, die das Aquarium in sanftem Weiß- und Blaulicht erstrahlen lässt und Farben zur Geltung bringt. Energiesparend und leicht unter dem Deckel zu montieren.",
+      "slug": "led-leiste-mit-sanftem-licht"
+    },
+    "freeze-dried-bloodworms": {
+      "name": "Gefriergetrocknete Mückenlarven",
+      "description": "Ein proteinreicher Leckerbissen, auf den Fische abfahren, dank Gefriertrocknung frei von Parasiten. Ein- bis zweimal pro Woche eine Prise füttern.",
+      "slug": "gefriergetrocknete-mueckenlarven"
+    },
+    "algae-wafers": {
+      "name": "Algen-Wafer",
+      "description": "Sinkende Wafer für Bodenfische und Welse, mit Spirulina für gesunde Verdauung und Farbe. Sie bleiben im Wasser formstabil.",
+      "slug": "algen-wafer"
+    },
+    "betta-micro-pellets": {
+      "name": "Kampffisch-Mikropellets",
+      "description": "Winzige schwimmende Pellets in der passenden Größe für die kleinen Mäuler von Kampffischen und anderen Labyrinthfischen. Bringt die natürliche Farbe hervor.",
+      "slug": "kampffisch-mikropellets"
+    },
+    "meadow-hay-bundle": {
+      "name": "Wiesenheu-Bündel",
+      "description": "Duftendes, langstieliges Heu, das den Großteil der Ernährung eines Kleintiers ausmachen sollte. Staubarm und gut für Zähne und Verdauung.",
+      "slug": "wiesenheu-buendel"
+    },
+    "carrot-crunch-chews": {
+      "name": "Karotten-Knabberhäppchen",
+      "description": "Knusprige kleine Kauhäppchen mit echter Karotte und Heu. Eine leckere Möglichkeit, ständig nachwachsende Zähne abzunutzen.",
+      "slug": "karotten-knabberhaeppchen"
+    },
+    "cosy-hideaway-house": {
+      "name": "Gemütliches Versteckhaus",
+      "description": "Ein kleines Holzhaus mit runder Tür und flachem Dach zum Draufklettern. Das unbehandelte Kiefernholz ist unbedenklich zum Benagen, und der offene Boden lässt sich leicht reinigen.",
+      "slug": "gemuetliches-versteckhaus"
+    },
+    "ceramic-nibble-bowl": {
+      "name": "Keramik-Knabbernapf",
+      "description": "Ein schwerer kleiner Napf, der schwer umzukippen und leicht sauber zu wischen ist. Der niedrige Rand ist bequem für kleine Mäuler.",
+      "slug": "keramik-knabbernapf"
+    },
+    "bottle-water-dispenser": {
+      "name": "Trinkflasche mit Wasserspender",
+      "description": "Eine auslaufsichere Flasche mit Kugelventil-Tülle, die seitlich am Käfig befestigt wird, damit das Wasser sauber und die Einstreu trocken bleibt.",
+      "slug": "trinkflasche-mit-wasserspender"
+    },
+    "willow-tunnel": {
+      "name": "Weidentunnel",
+      "description": "Ein geflochtener Weidentunnel, der Versteck und Kauspielzeug zugleich ist. Unbehandelt und daher unbedenklich beim Knabbern.",
+      "slug": "weidentunnel"
+    },
+    "seagrass-ball-trio": {
+      "name": "Seegrasbälle im Dreierpack",
+      "description": "Drei geflochtene Bälle zum Rollen, Werfen und Knabbern. Das Seegras ist essbar, und die Füllung besteht aus Heu.",
+      "slug": "seegrasbaelle-im-dreierpack"
+    },
+    "chew-stick-hanger": {
+      "name": "Kaustangen zum Aufhängen",
+      "description": "Ein Bündel Apfelholzstäbe an einem Hängeseil, damit die Zähne abgenutzt und die Köpfchen beschäftigt bleiben.",
+      "slug": "kaustangen-zum-aufhaengen"
+    },
+    "activity-cube": {
+      "name": "Aktivitätswürfel",
+      "description": "Ein Würfel mit Löchern, Absätzen und einem versteckten Snackfach, den Kaninchen und Meerschweinchen erkunden können. Leicht abzuwischen.",
+      "slug": "aktivitaetswuerfel"
+    },
+    "guinea-pig-pellets": {
+      "name": "Meerschweinchen-Pellets",
+      "description": "Pellets mit zugesetztem Vitamin C, denn Meerschweinchen können es nicht selbst bilden. Ausgewogene, gleichmäßige Stücke, die selektives Fressen verhindern.",
+      "slug": "meerschweinchen-pellets"
+    },
+    "rabbit-herb-treats": {
+      "name": "Kaninchen-Kräutersticks",
+      "description": "Knusprige Kräutersticks, die zum Nagen anregen und Abwechslung in eine Ernährung auf Heubasis bringen. Ohne Zuckerzusatz.",
+      "slug": "kaninchen-kraeutersticks"
+    },
+    "hamster-seed-mix": {
+      "name": "Hamster-Körnermischung",
+      "description": "Eine abwechslungsreiche Mischung für Hamster und Rennmäuse, mit Samen zum Suchen und Getreide zum Horten. Verstreut füttern, um sie zu beschäftigen.",
+      "slug": "hamster-koernermischung"
+    },
+    "starter-wooden-hutch": {
+      "name": "Einsteiger-Holzstall",
+      "description": "Ein zweistöckiger Stall mit Rampe, Schublade und aufklappbarem Dach zur einfachen Reinigung. Für ein Paar kleine Kaninchen oder Meerschweinchen.",
+      "slug": "einsteiger-holzstall"
+    },
+    "nesting-fleece-liners": {
+      "name": "Fleece-Einlagen für das Nest",
+      "description": "Waschbare Einlagen, die Feuchtigkeit von den Pfoten wegleiten und den Käfig trockener halten als Papiereinstreu. Zweierpack.",
+      "slug": "fleece-einlagen-fuer-das-nest"
+    },
+    "corner-hideaway": {
+      "name": "Eckversteck",
+      "description": "Ein dreieckiges Versteck, das in eine Käfigecke passt, mit zwei Türen, damit sich niemand eingesperrt fühlt. Kausichere Oberfläche.",
+      "slug": "eckversteck"
+    },
+    "travel-carry-box": {
+      "name": "Transportbox für unterwegs",
+      "description": "Eine Transportbox mit sicherer Tür und Griff für Fahrten zum Tierarzt. Luftlöcher und eine waschbare Matte im Inneren.",
+      "slug": "transportbox-fuer-unterwegs"
+    },
+    "hanging-hay-rack": {
+      "name": "Hängende Heuraufe",
+      "description": "Eine Raufe, die das Heu vom Boden fernhält und sauber bewahrt, mit einem einfachen Haken, der an die meisten Käfigstäbe passt.",
+      "slug": "haengende-heuraufe"
+    },
+    "weighted-ceramic-feeder": {
+      "name": "Beschwerter Keramiknapf",
+      "description": "Ein schwerer Napf, den kleine Pfoten nicht umkippen können, mit niedrigem Rand für leichten Zugang. Spülmaschinenfest.",
+      "slug": "beschwerter-keramiknapf"
+    },
+    "sipper-bottle-mini": {
+      "name": "Mini-Nippeltränke",
+      "description": "Eine auslaufsichere Flasche mit Stahlröhrchen und Tropfventil. Gut ablesbare Skala an der Seite.",
+      "slug": "mini-nippeltraenke"
+    },
+    "glass-terrarium-60": {
+      "name": "Glasterrarium 60",
+      "description": "Ein Glasterrarium mit Fronttüren, sicherem Gitterdeckel und Schloss für Eidechsen und Schlangen. Schiebetüren halten Ausbrecher drinnen.",
+      "slug": "glasterrarium-60"
+    },
+    "pop-up-mesh-cage": {
+      "name": "Pop-up-Netzkäfig",
+      "description": "Ein leichter Pop-up-Netzkäfig für Auslauf in der Sonne, der sich flach in einer Tasche verstauen lässt. Reißverschluss-Einstieg oben und seitlich.",
+      "slug": "pop-up-netzkaefig"
+    },
+    "nano-glass-box": {
+      "name": "Nano-Glasbox",
+      "description": "Eine kleine Glasbox für Geckos und Jungtiere oder als Quarantänebecken. Schiebedeckel mit Belüftung.",
+      "slug": "nano-glasbox"
+    },
+    "tortoise-table": {
+      "name": "Schildkrötentisch",
+      "description": "Ein oben offener Tisch, der einer Landschildkröte Platz zum Streifen bietet, mit versiegelter Auskleidung und abgerundeten Ecken.",
+      "slug": "schildkroetentisch"
+    },
+    "vertical-tree-terrarium": {
+      "name": "Hohes Baumterrarium",
+      "description": "Ein hohes Terrarium für baumbewohnende Eidechsen, die Höhe zum Klettern brauchen. Querbelüftung und Fronttüren.",
+      "slug": "hohes-baumterrarium"
+    },
+    "ceramic-heat-lamp": {
+      "name": "Keramik-Wärmestrahler",
+      "description": "Ein reiner Wärmestrahler, der Tag und Nacht gleichmäßig wärmt, ganz ohne Licht. Benötigt eine Keramikfassung und einen Thermostat.",
+      "slug": "keramik-waermestrahler"
+    },
+    "uvb-tube-light": {
+      "name": "UVB-Leuchtröhre",
+      "description": "Eine Röhre mit dem UVB-Licht, das viele Reptilien zur Verwertung von Kalzium brauchen. Alle zwölf Monate ersetzen.",
+      "slug": "uvb-leuchtroehre"
+    },
+    "under-tank-heat-mat": {
+      "name": "Terrarien-Heizmatte",
+      "description": "Eine Heizmatte, die unter das Terrarium geklebt wird und den Boden gleichmäßig erwärmt. Mit Thermostat verwenden.",
+      "slug": "terrarien-heizmatte"
+    },
+    "dried-mealworm-treat": {
+      "name": "Getrocknete Mehlwürmer",
+      "description": "Eiweißreiche getrocknete Mehlwürmer als Leckerli oder zum Untermischen ins Futter. Ohne Konservierungsstoffe.",
+      "slug": "getrocknete-mehlwuermer"
+    },
+    "digital-thermo-hygrometer": {
+      "name": "Digitales Thermo-Hygrometer",
+      "description": "Ein kleines Display, das Temperatur und Luftfeuchtigkeit auf einen Blick zeigt, mit Fühler am Kabel und Klebepad.",
+      "slug": "digitales-thermo-hygrometer"
+    },
+    "feeding-tongs": {
+      "name": "Fütterungszange",
+      "description": "Eine Zange mit Gummispitzen, um lebendes oder gefrorenes Futter aus sicherer Entfernung anzubieten. Leicht zu desinfizieren.",
+      "slug": "fuetterungszange"
+    },
+    "mealworm-dispenser": {
+      "name": "Mehlwurm-Spender",
+      "description": "Ein Becher mit glatten Wänden, der Würmer festhält, wo sie nicht entkommen können. Haftet am Glas.",
+      "slug": "mehlwurm-spender"
+    },
+    "gecko-gel-cup-set": {
+      "name": "Gecko-Gelfutter-Näpfchen-Set",
+      "description": "Kleine Näpfchen für Gecko-Gelfutter, die sich ordentlich auf einem Absatz platzieren lassen. Ausspülen und wiederverwenden.",
+      "slug": "gecko-gelfutter-naepfchen-set"
+    },
+    "misting-bottle": {
+      "name": "Sprühflasche",
+      "description": "Ein Feinnebelzerstäuber für Luftfeuchtigkeit und Trinktröpfchen. Eine verriegelbare Düse verhindert Auslaufen.",
+      "slug": "spruehflasche"
+    },
+    "half-log-hide": {
+      "name": "Halbrundes Korkversteck",
+      "description": "Ein gebogenes Stück Naturkorkrinde zum Daruntergehen. Die Formen variieren.",
+      "slug": "halbrundes-korkversteck"
+    },
+    "cork-bark-tube": {
+      "name": "Korkröhre",
+      "description": "Eine dicke Korkröhre zum Durchklettern und Verstecken. Jedes Stück ist ein Unikat.",
+      "slug": "korkroehre"
+    },
+    "vine-climbing-set": {
+      "name": "Kletterlianen-Set",
+      "description": "Biegsame Lianen, die sich zu Brücken und Pfaden formen lassen, mit Saugnäpfen für das Glas.",
+      "slug": "kletterlianen-set"
+    },
+    "faux-succulent-pack": {
+      "name": "Kunst-Sukkulenten-Set",
+      "description": "Fünf weiche Kunststoff-Sukkulenten auf Saugfüßen, die Deckung bieten, ohne Licht oder Wasser zu brauchen.",
+      "slug": "kunst-sukkulenten-set"
+    },
+    "slate-basking-rock": {
+      "name": "Schiefer-Sonnenstein",
+      "description": "Ein flacher, wärmespeichernder Stein, der sich unter der Lampe aufheizt und eine stabile Sonnenplattform bietet.",
+      "slug": "schiefer-sonnenstein"
+    },
+    "gecko-meal-pellets": {
+      "name": "Gecko-Mahlzeit-Pellets",
+      "description": "Ein Pulverfutter zum Anrühren mit Wasser für Kronen- und Leopardgeckos. Eine ausgewogene Grundlage mit Kalzium.",
+      "slug": "gecko-mahlzeit-pellets"
+    },
+    "tortoise-greens-mix": {
+      "name": "Schildkröten-Kräutermix",
+      "description": "Getrocknete Gräser, Klee und Blütenblätter für Landschildkröten, zum Darüberstreuen auf frisches Grün.",
+      "slug": "schildkroeten-kraeutermix"
+    },
+    "calcium-dust": {
+      "name": "Kalziumpulver",
+      "description": "Ein feines Kalziumpulver zum Bestäuben von Insekten oder Grünfutter. Unterstützt gesunde Knochen und Panzer.",
+      "slug": "kalziumpulver"
+    },
+    "dragon-salad-crumble": {
+      "name": "Bartagamen-Salat-Crunch",
+      "description": "Ein Crunch aus getrocknetem Gemüse und Kräutern, der für Bartagamen eingeweicht wird. Eine abwechslungsreiche Basis für die Salatschüssel.",
+      "slug": "bartagamen-salat-crunch"
+    },
+    "fetch-play-kit": {
+      "name": "Zieh- und Apportier-Spielset",
+      "description": "Alles für ein schönes Apportier- und Zerrspiel in einer Box: ein geflochtenes Seil, ein hüpfender Gummiball und ein quietschender Fuchs zum anschließenden Kuscheln.",
+      "slug": "zieh-und-apportier-spielset"
+    },
+    "dinner-time-kit": {
+      "name": "Essenszeit-Set",
+      "description": "Ein Stahlnapf für Mahlzeiten, ein Anti-Schling-Labyrinth für langsameres Fressen und zwei Beutel Leckerlis für Training und Belohnungen.",
+      "slug": "essenszeit-set"
+    }
+  },
+  "categories": {
+    "dogs": {
+      "name": "Hunde",
+      "description": "Spielzeug, Betten, Leckerlis und Gassi-Ausrüstung für Hunde jeder Größe.",
+      "slug": "hunde"
+    },
+    "cats": {
+      "name": "Katzen",
+      "description": "Spielzeug, gemütliche Ecken und Snacks für neugierige Katzen.",
+      "slug": "katzen"
+    },
+    "birds": {
+      "name": "Vögel",
+      "description": "Sitzstangen, Spielzeug und frisches Futter für gefiederte Freunde.",
+      "slug": "voegel"
+    },
+    "fish": {
+      "name": "Fische",
+      "description": "Aquarien, Futter und Dekoration für ein glückliches Aquarium.",
+      "slug": "fische"
+    },
+    "small-pets": {
+      "name": "Kleintiere",
+      "description": "Heu, Verstecke und Knabberzeug für Kaninchen, Meerschweinchen und Co.",
+      "slug": "kleintiere"
+    },
+    "reptiles": {
+      "name": "Reptilien",
+      "description": "Terrarien, Wärme, Licht und Futter für Eidechsen, Schlangen und Schildkröten.",
+      "slug": "reptilien"
+    },
+    "dog-toys": {
+      "name": "Spielzeug",
+      "description": "Zerr-, Apportier- und Kauspielzeug.",
+      "slug": "hunde-spielzeug"
+    },
+    "dog-beds": {
+      "name": "Betten & Liegeplätze",
+      "description": "Weiche Plätze zum Einkuscheln.",
+      "slug": "hunde-betten-liegeplaetze"
+    },
+    "dog-treats": {
+      "name": "Futter & Leckerlis",
+      "description": "Trainingshäppchen und knusprige Kekse.",
+      "slug": "hunde-futter-leckerlis"
+    },
+    "dog-bowls": {
+      "name": "Näpfe & Futterstationen",
+      "description": "Langlebige Näpfe und Anti-Schling-Näpfe.",
+      "slug": "hunde-naepfe-futterstationen"
+    },
+    "dog-walk": {
+      "name": "Gassi & Reise",
+      "description": "Halsbänder und Leinen für jeden Spaziergang.",
+      "slug": "hunde-gassi-reise"
+    },
+    "cat-toys": {
+      "name": "Spielzeug",
+      "description": "Federangeln, Kicker und raschelnde Mäuse.",
+      "slug": "katzen-spielzeug"
+    },
+    "cat-beds": {
+      "name": "Betten & Liegeplätze",
+      "description": "Höhlen, Aussichtsplätze und Kissen.",
+      "slug": "katzen-betten-liegeplaetze"
+    },
+    "cat-treats": {
+      "name": "Futter & Leckerlis",
+      "description": "Knusprige Leckerlis und schleckbare Beutel.",
+      "slug": "katzen-futter-leckerlis"
+    },
+    "cat-bowls": {
+      "name": "Näpfe & Futterstationen",
+      "description": "Schnurrhaarfreundliche Näpfe und Wasserspender.",
+      "slug": "katzen-naepfe-futterstationen"
+    },
+    "cat-travel": {
+      "name": "Gassi & Reise",
+      "description": "Transportboxen für Tierarztbesuche und Urlaub.",
+      "slug": "katzen-reise"
+    },
+    "bird-toys": {
+      "name": "Spielzeug",
+      "description": "Schaukeln, Glöckchen und Spiegel.",
+      "slug": "voegel-spielzeug"
+    },
+    "bird-food": {
+      "name": "Futter & Leckerlis",
+      "description": "Körnermischungen und Hirse-Leckerlis.",
+      "slug": "voegel-futter-leckerlis"
+    },
+    "bird-cages": {
+      "name": "Käfige & Ständer",
+      "description": "Reisekäfige und Spielständer.",
+      "slug": "voegel-kaefige-staender"
+    },
+    "bird-feeders": {
+      "name": "Näpfe & Futterstationen",
+      "description": "Hänge- und Tischfutterspender.",
+      "slug": "voegel-naepfe-futterstationen"
+    },
+    "fish-food": {
+      "name": "Futter & Leckerlis",
+      "description": "Flocken und Pellets.",
+      "slug": "fische-futter-leckerlis"
+    },
+    "fish-tanks": {
+      "name": "Aquarien & Dekoration",
+      "description": "Aquarien, Beleuchtung, Pflanzen und Verstecke.",
+      "slug": "fische-aquarien-dekoration"
+    },
+    "small-toys": {
+      "name": "Spielzeug",
+      "description": "Tunnel und Knabberzeug.",
+      "slug": "kleintiere-spielzeug"
+    },
+    "small-food": {
+      "name": "Futter & Leckerlis",
+      "description": "Heu und knusprige Knabberstangen.",
+      "slug": "kleintiere-futter-leckerlis"
+    },
+    "small-housing": {
+      "name": "Betten & Liegeplätze",
+      "description": "Versteckhäuschen.",
+      "slug": "kleintiere-betten-liegeplaetze"
+    },
+    "small-bowls": {
+      "name": "Näpfe & Futterstationen",
+      "description": "Näpfe und Trinkflaschen.",
+      "slug": "kleintiere-naepfe-futterstationen"
+    },
+    "reptile-terrariums": {
+      "name": "Terrarien",
+      "description": "Glas- und Gitterheime in jeder Größe.",
+      "slug": "reptilien-terrarien"
+    },
+    "reptile-heat": {
+      "name": "Wärme & Beleuchtung",
+      "description": "Lampen, Matten und Thermometer für ein gleichmäßiges Klima.",
+      "slug": "reptilien-waerme-beleuchtung"
+    },
+    "reptile-feeders": {
+      "name": "Fütterung & Näpfe",
+      "description": "Wassernäpfe, Fütterungszangen und Spender.",
+      "slug": "reptilien-fuetterung-naepfe"
+    },
+    "reptile-decor": {
+      "name": "Dekoration & Verstecke",
+      "description": "Höhlen, Äste und Pflanzen zum Erkunden.",
+      "slug": "reptilien-dekoration-verstecke"
+    },
+    "reptile-food": {
+      "name": "Futter",
+      "description": "Pellets, Ergänzungsfutter und Leckerlis.",
+      "slug": "reptilien-futter"
+    }
+  },
+  "brands": {
+    "pawsome": {
+      "name": "Pawsome",
+      "tagline": "Alltagsbegleiter für jede Art von Haustier.",
+      "story": "Unsere eigene Marke: die vernünftigen, bunten Basics, zu denen wir selbst greifen, von Zerrseilen bis zu Trinkflaschen, getestet von einem sehr wählerischen Testteam aus Haustieren.",
+      "slug": "pawsome"
+    },
+    "burrow-and-biscuit": {
+      "name": "Burrow & Biscuit",
+      "tagline": "Gemütliche Betten und ehrliches Gebäck für Hunde und Kleintiere.",
+      "story": "Angefangen hat alles mit einem Ofen und einem sehr geduldigen Beagle. Burrow & Biscuit stellt weiche Schlafplätze und einfache Leckerlis her, in kleinen Chargen gebacken, mit kurzen Zutatenlisten, die man laut vorlesen kann.",
+      "slug": "burrow-biscuit"
+    },
+    "moonbeam-mews": {
+      "name": "Moonbeam Mews",
+      "tagline": "Verspielte, sanfte Produkte für neugierige Katzen.",
+      "story": "Moonbeam Mews ist für Katzen, die in Sonnenstrahlen dösen und um Mitternacht jagen. Leise Spielzeuge, weiche Verstecke und sanftes Futter, entworfen nach dem tatsächlichen Verhalten von Katzen.",
+      "slug": "moonbeam-mews"
+    },
+    "scaleby": {
+      "name": "Scaleby",
+      "tagline": "Terrarienzubehör, das das Klima richtig hinbekommt.",
+      "story": "Scaleby baut Terrarien und Wärmetechnik für Halter, denen es wichtig ist, Temperatur und Luftfeuchtigkeit richtig einzustellen. Klare Anleitungen, robustes Glas und sichere, gleichmäßige Wärme.",
+      "slug": "scaleby"
+    },
+    "pebble-and-pine": {
+      "name": "Pebble & Pine",
+      "tagline": "Natürliche Materialien, schonender für den Planeten.",
+      "story": "Pebble & Pine verwendet recycelte Fasern, unbehandeltes Holz und Farben auf Pflanzenbasis. Weniger Kunststoff, mehr Produkte, die dafür gemacht sind, gewaschen, nachgefüllt und jahrelang behalten zu werden.",
+      "slug": "pebble-pine"
+    },
+    "tidepool": {
+      "name": "Tidepool",
+      "tagline": "Klares Wasser, ruhige Fische, einfache Pflege.",
+      "story": "Tidepool macht Aquarien einfach: ausgewogenes Futter, sanfte Beleuchtung und Dekoration, die Fischen einen Rückzugsort bietet. Alles ist so gemacht, dass es sowohl dem Wasser als auch dem Auge guttut.",
+      "slug": "tidepool"
+    }
+  },
+  "collections": {
+    "halloween": {
+      "name": "Halloween",
+      "description": "Gruselige Spielzeuge, Kürbis-Leckerlis und kostümfreier Spaß für die Oktober-Crowd.",
+      "slug": "halloween"
+    },
+    "christmas": {
+      "name": "Weihnachten",
+      "description": "Kleine Geschenke für den Stiefel und festliche Leckerlis für Haustiere, die auf der Liste der Braven stehen.",
+      "slug": "weihnachten"
+    },
+    "puppy-starter-kit": {
+      "name": "Welpen-Starterset",
+      "description": "Alles für die ersten Wochen: ein Bett, ein Napf, Trainingshäppchen und ein Kauartikel.",
+      "slug": "welpen-starterset"
+    },
+    "eco-picks": {
+      "name": "Öko-Favoriten",
+      "description": "Recycelt, nachfüllbar und pflanzengefärbt: unsere Favoriten mit kleinerem Fußabdruck.",
+      "slug": "oeko-favoriten"
+    },
+    "under-10": {
+      "name": "Unter 10 €",
+      "description": "Kleine Preise, große Schwanzwedler. Jedes Produkt hier hat eine Variante unter 10 €.",
+      "slug": "unter-10-euro"
+    }
+  },
+  "guides": {
+    "a-simple-home-health-check": {
+      "title": "Ein einfacher Gesundheitscheck für zu Hause",
+      "summary": "Ein wöchentlicher Zwei-Minuten-Blick auf Augen, Fell, Appetit und Energie.",
+      "bodyMd": "Wenn Sie wissen, was für Ihr Tier normal ist, fallen Veränderungen leichter auf.\n\n## Worauf es ankommt\n\nDies ist Platzhaltertext für den Demo-Shop. Er beschreibt die Idee in wenigen Worten, und der echte Artikel wird ihn ersetzen.\n\n- Beginnen Sie klein und beobachten Sie, wie Ihr Tier reagiert.\n- Halten Sie die Einheiten kurz und positiv.\n- Ändern Sie Dinge langsam, eins nach dem anderen.\n\n## Ein kurzer Tipp\n\nJedes Tier ist anders. Wenn Sie etwas beunruhigt, sprechen Sie mit Ihrer Tierärztin oder Ihrem Tierarzt.",
+      "slug": "ein-einfacher-gesundheitscheck-fuer-zu-hause"
+    },
+    "choosing-a-dog-toy": {
+      "title": "So wählen Sie Hundespielzeug aus",
+      "summary": "Zerren, Apportieren oder Kauen: Wählen Sie das Spielzeug passend dazu, wie Ihr Hund gern spielt.",
+      "bodyMd": "Hunde spielen auf unterschiedliche Weise, daher hängt das beste Spielzeug vom Hund ab.\n\n## Worauf es ankommt\n\nDies ist Platzhaltertext für den Demo-Shop. Er beschreibt die Idee in wenigen Worten, und der echte Artikel wird ihn ersetzen.\n\n- Beginnen Sie klein und beobachten Sie, wie Ihr Tier reagiert.\n- Halten Sie die Einheiten kurz und positiv.\n- Ändern Sie Dinge langsam, eins nach dem anderen.\n\n## Ein kurzer Tipp\n\nJedes Tier ist anders. Wenn Sie etwas beunruhigt, sprechen Sie mit Ihrer Tierärztin oder Ihrem Tierarzt.",
+      "slug": "so-waehlen-sie-hundespielzeug-aus"
+    },
+    "cosy-spots-for-cats": {
+      "title": "Gemütliche Plätze, die Katzen lieben",
+      "summary": "Katzen verstecken sich gern und beobachten gern: Bieten Sie von beidem etwas an.",
+      "bodyMd": "Eine Katze mit sicherem Versteck und guter Aussicht ist eine entspannte Katze.\n\n## Worauf es ankommt\n\nDies ist Platzhaltertext für den Demo-Shop. Er beschreibt die Idee in wenigen Worten, und der echte Artikel wird ihn ersetzen.\n\n- Beginnen Sie klein und beobachten Sie, wie Ihr Tier reagiert.\n- Halten Sie die Einheiten kurz und positiv.\n- Ändern Sie Dinge langsam, eins nach dem anderen.\n\n## Ein kurzer Tipp\n\nJedes Tier ist anders. Wenn Sie etwas beunruhigt, sprechen Sie mit Ihrer Tierärztin oder Ihrem Tierarzt.",
+      "slug": "gemuetliche-plaetze-die-katzen-lieben"
+    },
+    "first-week-with-a-puppy": {
+      "title": "Die erste Woche Ihres Welpen zu Hause",
+      "summary": "Eine ruhige Routine, ein gemütliches Bett und kleine Belohnungen erleichtern die ersten Tage.",
+      "bodyMd": "In der ersten Woche geht es mehr um Routine als um Regeln.\n\n## Worauf es ankommt\n\nDies ist Platzhaltertext für den Demo-Shop. Er beschreibt die Idee in wenigen Worten, und der echte Artikel wird ihn ersetzen.\n\n- Beginnen Sie klein und beobachten Sie, wie Ihr Tier reagiert.\n- Halten Sie die Einheiten kurz und positiv.\n- Ändern Sie Dinge langsam, eins nach dem anderen.\n\n## Ein kurzer Tipp\n\nJedes Tier ist anders. Wenn Sie etwas beunruhigt, sprechen Sie mit Ihrer Tierärztin oder Ihrem Tierarzt.",
+      "slug": "die-erste-woche-ihres-welpen-zu-hause"
+    },
+    "happy-rabbits-and-guinea-pigs": {
+      "title": "Glückliche Kaninchen und Meerschweinchen",
+      "summary": "Heu, Verstecke und etwas zum Kauen: die drei Bedürfnisse von Kleintieren.",
+      "bodyMd": "Kleintiere sind Beutetiere, deshalb steht das Gefühl von Sicherheit an erster Stelle.\n\n## Worauf es ankommt\n\nDies ist Platzhaltertext für den Demo-Shop. Er beschreibt die Idee in wenigen Worten, und der echte Artikel wird ihn ersetzen.\n\n- Beginnen Sie klein und beobachten Sie, wie Ihr Tier reagiert.\n- Halten Sie die Einheiten kurz und positiv.\n- Ändern Sie Dinge langsam, eins nach dem anderen.\n\n## Ein kurzer Tipp\n\nJedes Tier ist anders. Wenn Sie etwas beunruhigt, sprechen Sie mit Ihrer Tierärztin oder Ihrem Tierarzt.",
+      "slug": "glueckliche-kaninchen-und-meerschweinchen"
+    },
+    "keeping-an-indoor-cat-busy": {
+      "title": "So beschäftigen Sie eine Wohnungskatze",
+      "summary": "Kurze Spielrunden mit dem richtigen Spielzeug halten Wohnungskatzen fit und neugierig.",
+      "bodyMd": "Wohnungskatzen müssen genauso anschleichen, anspringen und jagen wie Freigänger.\n\n## Worauf es ankommt\n\nDies ist Platzhaltertext für den Demo-Shop. Er beschreibt die Idee in wenigen Worten, und der echte Artikel wird ihn ersetzen.\n\n- Beginnen Sie klein und beobachten Sie, wie Ihr Tier reagiert.\n- Halten Sie die Einheiten kurz und positiv.\n- Ändern Sie Dinge langsam, eins nach dem anderen.\n\n## Ein kurzer Tipp\n\nJedes Tier ist anders. Wenn Sie etwas beunruhigt, sprechen Sie mit Ihrer Tierärztin oder Ihrem Tierarzt.",
+      "slug": "so-beschaeftigen-sie-eine-wohnungskatze"
+    },
+    "seed-blends-and-treats-for-birds": {
+      "title": "Körnermischungen und Leckerlis für Vögel",
+      "summary": "Eine ausgewogene Körnermischung mit gelegentlichen Leckerlis hält Vögel gesund.",
+      "bodyMd": "Körner sind die Grundlage, Leckerlis dienen dem Training und der Bindung.\n\n## Worauf es ankommt\n\nDies ist Platzhaltertext für den Demo-Shop. Er beschreibt die Idee in wenigen Worten, und der echte Artikel wird ihn ersetzen.\n\n- Beginnen Sie klein und beobachten Sie, wie Ihr Tier reagiert.\n- Halten Sie die Einheiten kurz und positiv.\n- Ändern Sie Dinge langsam, eins nach dem anderen.\n\n## Ein kurzer Tipp\n\nJedes Tier ist anders. Wenn Sie etwas beunruhigt, sprechen Sie mit Ihrer Tierärztin oder Ihrem Tierarzt.",
+      "slug": "koernermischungen-und-leckerlis-fuer-voegel"
+    },
+    "setting-up-a-bird-cage": {
+      "title": "Einen Vogelkäfig einrichten",
+      "summary": "Sitzstangen in verschiedenen Höhen, ein Futterspender und Platz zum Flügelstrecken.",
+      "bodyMd": "Ein guter Käfig bedeutet Platz, Sicherheit und Abwechslung.\n\n## Worauf es ankommt\n\nDies ist Platzhaltertext für den Demo-Shop. Er beschreibt die Idee in wenigen Worten, und der echte Artikel wird ihn ersetzen.\n\n- Beginnen Sie klein und beobachten Sie, wie Ihr Tier reagiert.\n- Halten Sie die Einheiten kurz und positiv.\n- Ändern Sie Dinge langsam, eins nach dem anderen.\n\n## Ein kurzer Tipp\n\nJedes Tier ist anders. Wenn Sie etwas beunruhigt, sprechen Sie mit Ihrer Tierärztin oder Ihrem Tierarzt.",
+      "slug": "einen-vogelkaefig-einrichten"
+    },
+    "starting-a-small-fish-tank": {
+      "title": "Ein kleines Aquarium starten",
+      "summary": "Lassen Sie das Aquarium sich einfahren, bevor die Fische einziehen, und setzen Sie sie dann langsam ein.",
+      "bodyMd": "Geduld ist die Geheimzutat eines gesunden Aquariums.\n\n## Worauf es ankommt\n\nDies ist Platzhaltertext für den Demo-Shop. Er beschreibt die Idee in wenigen Worten, und der echte Artikel wird ihn ersetzen.\n\n- Beginnen Sie klein und beobachten Sie, wie Ihr Tier reagiert.\n- Halten Sie die Einheiten kurz und positiv.\n- Ändern Sie Dinge langsam, eins nach dem anderen.\n\n## Ein kurzer Tipp\n\nJedes Tier ist anders. Wenn Sie etwas beunruhigt, sprechen Sie mit Ihrer Tierärztin oder Ihrem Tierarzt.",
+      "slug": "ein-kleines-aquarium-starten"
+    },
+    "walking-gear-basics": {
+      "title": "Die Grundlagen der Gassi-Ausrüstung",
+      "summary": "Ein gut sitzendes Halsband und eine leuchtende Leine machen jeden Spaziergang sicherer und schöner.",
+      "bodyMd": "Gute Gassi-Ausrüstung sitzt eng und ist auch nach Einbruch der Dunkelheit gut zu sehen.\n\n## Worauf es ankommt\n\nDies ist Platzhaltertext für den Demo-Shop. Er beschreibt die Idee in wenigen Worten, und der echte Artikel wird ihn ersetzen.\n\n- Beginnen Sie klein und beobachten Sie, wie Ihr Tier reagiert.\n- Halten Sie die Einheiten kurz und positiv.\n- Ändern Sie Dinge langsam, eins nach dem anderen.\n\n## Ein kurzer Tipp\n\nJedes Tier ist anders. Wenn Sie etwas beunruhigt, sprechen Sie mit Ihrer Tierärztin oder Ihrem Tierarzt.",
+      "slug": "die-grundlagen-der-gassi-ausruestung"
+    }
+  }
+}

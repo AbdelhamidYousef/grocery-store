@@ -1063,3 +1063,11 @@ Learn: derive what can drift (kit stock), store what is a decision (kit price), 
 ## 21.5 German and French UI strings
 - Built: `de/` and `fr/` dictionaries for all 13 namespaces (about 1,270 keys each), a parity test (same keys, same plural shape, same placeholders) and a render test that `/de-de` and `/fr-fr` show their own words and number format (`1.234,50`).
 - Learn / explain: a translation is data behind the same typed keys, so adding a language is one folder and one registry row. Word order differs between languages, so a sentence is one string with `{placeholders}`, never glued fragments (the few link-split sentences are the known weak spot). The fallback chain is store dictionary, then English, and never a bare key.
+
+## 21.6 Catalogue translations: schema + API (slice 3)
+- Built: five translation tables (migration `0034`), the `X-Store-View` header (web client reads it from the URL prefix; API keeps it in AsyncLocalStorage), a translation overlay on every public catalogue read, per-locale slug resolution with a canonical-slug redirect in the web, and translated search. 6 API tests cover fallback per field, slug per locale, wrong-locale slug, search and `Vary`.
+- Learn / explain: English stays in the base columns because it is the fallback and the source of truth; a translation row holds only what differs, and every field is nullable so "not translated" is a normal state, not an error. A per-entity table (not JSONB) gives a real unique `(locale, slug)` and a foreign key per language. The overlay keyed by the English slug let the 40 existing queries stay untouched; the price is one extra query per translated response.
+
+## 21.7 Seed format and admin editing
+- Built: JSON seed files per language and the `export-untranslated` script, the three admin endpoints, and the Translations admin page (report, locale tabs, copy from English). Tests: seed twice gives one row, 409 on slug clashes, admin saves a German name and the DE storefront shows it, admin-only, completeness report.
+- Learn / explain: making the seed an idempotent upsert keyed by the English slug means a translator (or a model) can edit a JSON file and re-run `db:seed` as often as needed; the export script closes the loop by printing only the gaps. Replace semantics on PUT keep the editor honest: what you see in the form is exactly what is stored.

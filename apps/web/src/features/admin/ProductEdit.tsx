@@ -49,6 +49,14 @@ export function ProductEdit() {
         <h2 id="product-edit-heading" className="mt-2 break-words font-display text-xl font-bold">
           {product.name}
         </h2>
+        <div>
+          <Link
+            to={`/admin/translations?entity=product&id=${product.id}`}
+            className="text-sm font-semibold text-primary-strong underline"
+          >
+            Translations
+          </Link>
+        </div>
         {product.status === 'active' && (
           <Link
             to={`/products/${product.slug}`}

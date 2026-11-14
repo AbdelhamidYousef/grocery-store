@@ -1,5 +1,6 @@
 import type { AdminCollection } from '@store/shared';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import { Seo } from '../../components/Seo';
 import { Button } from '../../components/ui/Button';
@@ -311,6 +312,12 @@ export function CollectionsAdmin() {
                     <Button variant="secondary" onClick={() => setEditingId(c.id)}>
                       Edit <span className="sr-only">{c.name}</span>
                     </Button>
+                    <Link
+                      to={`/admin/translations?entity=collection&id=${c.id}`}
+                      className="font-semibold text-primary-strong underline"
+                    >
+                      Translations<span className="sr-only"> of {c.name}</span>
+                    </Link>
                     <Button
                       variant="secondary"
                       onClick={() => {

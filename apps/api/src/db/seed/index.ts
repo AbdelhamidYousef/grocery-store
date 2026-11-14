@@ -51,6 +51,7 @@ import { RETURNS_DEMO_EMAIL, seedSales } from './sales.ts';
 import { validateSeed } from './schema.ts';
 import { shippingMethods } from './shipping.ts';
 import { tags } from './tags.ts';
+import { seedTranslations } from './translations.ts';
 import { DEMO_PASSWORD, demoUsers, hashDemoPassword } from './users.ts';
 
 // `excluded` is the row that failed to insert; `ON CONFLICT DO UPDATE` copies its values over the
@@ -407,6 +408,7 @@ export async function runSeed(now = new Date()) {
 
     // ---- guides, help articles, testimonials (after products: guides link to them) ----
     await seedContent(tx, content, productId);
+    await seedTranslations(tx);
     await seedHomeContent(tx);
     await seedMenuPromos(tx);
     await seedRewards(tx);
