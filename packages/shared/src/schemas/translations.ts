@@ -19,7 +19,7 @@ export const TranslationEntitySchema = z.enum(TRANSLATION_ENTITIES);
 export type TranslationEntity = (typeof TRANSLATION_ENTITIES)[number];
 
 /** Languages with a translation table row (English is the base columns). */
-export const TRANSLATION_LOCALES = ['de', 'fr'] as const;
+export const TRANSLATION_LOCALES = ['de'] as const;
 export const TranslationLocaleSchema = z.enum(TRANSLATION_LOCALES);
 export type TranslationLocale = (typeof TRANSLATION_LOCALES)[number];
 
@@ -71,7 +71,7 @@ export const EntityTranslationsSchema = z.object({
   /** The English source (base columns), by field. */
   english: FieldMap,
   /** One entry per language; null when no row exists yet. */
-  locales: z.object({ de: FieldMap.nullable(), fr: FieldMap.nullable() }),
+  locales: z.object({ de: FieldMap.nullable() }),
 });
 export type EntityTranslations = z.infer<typeof EntityTranslationsSchema>;
 export const EntityTranslationsResponseSchema = DataSchema(EntityTranslationsSchema);

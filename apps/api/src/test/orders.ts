@@ -16,7 +16,7 @@ export const TEST_ADDRESS = {
   line1: '1 Bone Street',
   city: 'Riga',
   postalCode: 'LV-1010',
-  country: 'LV',
+  country: 'DE',
 };
 
 // Places a real order through POST /checkout (so reservations, snapshots and the payment row are

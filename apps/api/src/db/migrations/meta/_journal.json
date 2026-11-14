@@ -302,6 +302,13 @@
       "when": 1794689288672,
       "tag": "0042_drop_size_guides",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1794690109243,
+      "tag": "0043_store_views_de",
+      "breakpoints": true
     }
   ]
 }

@@ -40,7 +40,7 @@ async function pendingOrder(quantity = 2, stock = 10) {
       line1: '1 Bone Street',
       city: 'Riga',
       postalCode: 'LV-1010',
-      country: 'LV',
+      country: 'DE',
     },
     shippingMethodCode: 'standard',
   });

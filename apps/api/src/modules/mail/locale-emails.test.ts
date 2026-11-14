@@ -18,19 +18,6 @@ beforeEach(() => {
 });
 
 describe('emails without an order follow the store view the person used', () => {
-  it('writes the newsletter confirmation in French for a subscriber on /fr-fr', async () => {
-    const res = await makeShopper(app, undefined, 'fr-fr').call('post', '/newsletter/subscribe', {
-      email: 'claire@pawsome.test',
-      consent: true,
-      pets: [],
-    });
-    expect(res.status).toBe(202);
-    await outbox.drain();
-    expect(transport.sent).toHaveLength(1);
-    expect(transport.sent[0]?.subject).toBe('Confirmez votre abonnement Pawsome');
-    expect(transport.sent[0]?.html).toContain('<html lang="fr">');
-  });
-
   it('writes the contact acknowledgement in German but the shop notification in English', async () => {
     const res = await makeShopper(app, undefined, 'de-de').call('post', '/contact', {
       name: 'Hanna',

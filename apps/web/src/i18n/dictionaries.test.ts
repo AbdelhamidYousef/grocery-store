@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 
 import { de } from './de';
 import { en } from './en';
-import { fr } from './fr';
 import type { Entry } from './types';
 
 const keys = (d: Record<string, Entry>) => Object.keys(d).sort();
@@ -13,10 +12,7 @@ const placeholders = (e: Entry) =>
     .sort()
     .join(',');
 
-describe.each([
-  ['de', de],
-  ['fr', fr],
-])('%s dictionary', (_name, dict) => {
+describe.each([['de', de]])('%s dictionary', (_name, dict) => {
   it('has exactly the keys of en', () => {
     const missing = keys(en).filter((k) => !(k in dict));
     const extra = keys(dict).filter((k) => !(k in en));

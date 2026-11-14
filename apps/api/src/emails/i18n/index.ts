@@ -11,12 +11,11 @@ import {
 
 import { de } from './de.ts';
 import { en, type EmailKey } from './en.ts';
-import { fr } from './fr.ts';
 
 export type { EmailKey } from './en.ts';
-export type EmailLang = 'en' | 'de' | 'fr';
+export type EmailLang = 'en' | 'de';
 
-const DICTIONARIES: Record<EmailLang, Record<EmailKey, TextEntry>> = { en, de, fr };
+const DICTIONARIES: Record<EmailLang, Record<EmailKey, TextEntry>> = { en, de };
 
 type PluralKey = { [K in EmailKey]: (typeof en)[K] extends string ? never : K }[EmailKey];
 type PlainKey = Exclude<EmailKey, PluralKey>;
@@ -27,7 +26,7 @@ export interface EmailText {
   lang: EmailLang;
   locale: string;
   storeCode: string;
-  /** Between a label and its value: `: ` (French puts a non-breaking space before the colon). */
+  /** Between a label and its value: `: `. */
   colon: string;
   /** Plain string; a key missing in the language falls back to English (and so never shows a key). */
   t: (key: PlainKey, params?: TextParams) => string;
@@ -52,7 +51,7 @@ export function emailText(storeView?: string | null): EmailText {
     lang,
     locale: store.locale,
     storeCode: store.code,
-    colon: lang === 'fr' ? '\u00a0: ' : ': ',
+    colon: ': ',
     t: (key, params) => {
       const entry = find(key);
       return interpolate(typeof entry === 'string' ? entry : entry.other, params);

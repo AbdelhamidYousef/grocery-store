@@ -75,7 +75,7 @@ describe('GET /checkout/shipping-methods', () => {
       .set('Origin', TEST_ORIGIN)
       .send({ variantId: variants[0]!.id, quantity: 2 });
     const res = await request(app)
-      .get('/api/v1/checkout/shipping-methods?country=FR')
+      .get('/api/v1/checkout/shipping-methods?country=DE')
       .set('Cookie', `cart_id=${cookieValue(add, 'cart_id')}`);
     expect(bodyOf<Quotes>(res).data[0]).toMatchObject({
       code: 'standard',
@@ -86,7 +86,7 @@ describe('GET /checkout/shipping-methods', () => {
 
   it('quotes base prices for an empty cart', async () => {
     await seedMethods();
-    const res = await request(app).get('/api/v1/checkout/shipping-methods?country=NL');
+    const res = await request(app).get('/api/v1/checkout/shipping-methods?country=DE');
     expect(bodyOf<Quotes>(res).data.map((q) => q.priceCents)).toEqual([490, 990]);
   });
 

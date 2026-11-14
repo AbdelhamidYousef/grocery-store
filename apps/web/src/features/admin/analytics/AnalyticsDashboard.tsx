@@ -122,21 +122,23 @@ export function AnalyticsDashboard() {
           {from} to {to}
         </span>
       </div>
-      <div role="group" aria-label="Currency" className="flex flex-wrap items-center gap-2">
-        {REPORT_CURRENCIES.map((c) => (
-          <Button
-            key={c}
-            variant={currency === c ? 'primary' : 'secondary'}
-            aria-pressed={currency === c}
-            onClick={() => patch({ currency: c })}
-          >
-            {c}
-          </Button>
-        ))}
-        <span className="text-sm text-muted">
-          Orders in one currency at a time, never added up.
-        </span>
-      </div>
+      {REPORT_CURRENCIES.length > 1 && (
+        <div role="group" aria-label="Currency" className="flex flex-wrap items-center gap-2">
+          {REPORT_CURRENCIES.map((c) => (
+            <Button
+              key={c}
+              variant={currency === c ? 'primary' : 'secondary'}
+              aria-pressed={currency === c}
+              onClick={() => patch({ currency: c })}
+            >
+              {c}
+            </Button>
+          ))}
+          <span className="text-sm text-muted">
+            Orders in one currency at a time, never added up.
+          </span>
+        </div>
+      )}
 
       {isError ? (
         <div role="alert">

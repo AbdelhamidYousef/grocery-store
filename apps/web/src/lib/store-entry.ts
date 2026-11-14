@@ -1,4 +1,10 @@
-import { DEFAULT_STORE, isStoreCode, storeFromCode, storeFromLanguages } from '@store/shared';
+import {
+  DEFAULT_STORE,
+  LEGACY_STORE_CODES,
+  isStoreCode,
+  storeFromCode,
+  storeFromLanguages,
+} from '@store/shared';
 import type { StoreView } from '@store/shared';
 
 // How a URL becomes a store view. The storefront routes are written once, without a prefix, and
@@ -15,7 +21,7 @@ export interface EntryUrl {
 }
 
 export interface StoreEntry {
-  /** '' for admin and unknown prefixes, otherwise `/eu-en`. Passed to the router. */
+  /** '' for admin and unknown prefixes, otherwise `/de-en`. Passed to the router. */
   basename: string;
   /** Set when the address bar must first change (legacy URL or a prefixed admin URL). */
   replaceWith: string | null;
@@ -42,11 +48,17 @@ export function resolveEntry(
   if (isStoreCode(segment)) {
     const rest = pathname.slice(segment.length + 1) || '/';
     // The admin lives at /admin, un-prefixed: a link from the storefront that landed on
-    // /eu-en/admin is tidied on the next full load.
+    // /de-en/admin is tidied on the next full load.
     if (isAdminPath(rest)) return { basename: '', replaceWith: `${rest}${search}${hash}` };
     return { basename: `/${segment}`, replaceWith: null };
   }
   if (isAdminPath(pathname)) return { basename: '', replaceWith: null };
+  // Prefixes of the old multi-country shop (`/eu-en/...`) keep working: same path, English view.
+  if ((LEGACY_STORE_CODES as readonly string[]).includes(segment)) {
+    const rest = pathname.slice(segment.length + 1);
+    const target = `/${DEFAULT_STORE.code}${rest === '/' ? '' : rest}${search}${hash}`;
+    return { basename: `/${DEFAULT_STORE.code}`, replaceWith: target };
+  }
   // `xx-yy` that is not a store: no basename, so it falls through to the not-found route
   // instead of being treated as a legacy path and redirected.
   if (LOOKS_LIKE_STORE.test(segment)) return { basename: '', replaceWith: null };

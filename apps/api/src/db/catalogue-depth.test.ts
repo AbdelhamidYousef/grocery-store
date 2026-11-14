@@ -28,7 +28,7 @@ async function createOrder() {
       totalCents: 1000,
       shippingMethodCode: 'standard',
       shippingMethodName: 'Standard',
-      shippingAddress: { fullName: 'A', line1: '1', city: 'Riga', postalCode: '1', country: 'LV' },
+      shippingAddress: { fullName: 'A', line1: '1', city: 'Riga', postalCode: '1', country: 'DE' },
     })
     .returning();
   if (!order) throw new Error('order insert returned no row');

@@ -55,7 +55,7 @@ const address = {
   line1: '1 Bone Street',
   city: 'Riga',
   postalCode: 'LV-1010',
-  country: 'LV',
+  country: 'DE',
 };
 
 // A pending order for 2 x 10.00 + 5.90 shipping = 2590, paid through the fake intent `pi_fake_1`.

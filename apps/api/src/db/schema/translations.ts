@@ -17,7 +17,7 @@ import { products } from './products.ts';
 // Catalogue translations: one table per entity (a JSONB column could not carry a per-locale
 // unique slug or a foreign key). English stays in the base columns and is the fallback, so every
 // translated column here is NULLABLE: null means "not translated yet, show the English field",
-// decided field by field. `locale` is the language (`de`, `fr`); both English store views share
+// decided field by field. `locale` is the language (`de`); both English store views share
 // the base columns. `slug` is unique per locale, and a null slug keeps the English URL.
 const common = {
   locale: text('locale').notNull(),

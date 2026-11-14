@@ -31,7 +31,7 @@ const ADDRESS = {
   line1: '1 Bone Street',
   city: 'Riga',
   postalCode: 'LV-1010',
-  country: 'LV',
+  country: 'DE',
 };
 
 // Small deterministic generator (mulberry32): same numbers on every run.

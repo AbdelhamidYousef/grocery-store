@@ -28,7 +28,7 @@ export const newsletterSubscribers = pgTable(
     userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
     consentText: text('consent_text').notNull(),
     // The store view (and so the language) the person was in; their mail follows it.
-    storeView: text('store_view').notNull().default('eu-en'),
+    storeView: text('store_view').notNull().default('de-en'),
     confirmedAt: timestamp('confirmed_at', { withTimezone: true }),
     unsubscribedAt: timestamp('unsubscribed_at', { withTimezone: true }),
     // The welcome code is minted once per address, ever: re-subscribing finds this and mints none.

@@ -21,7 +21,7 @@ const checkoutBody = {
     line1: '1 Bone Street',
     city: 'Riga',
     postalCode: 'LV-1010',
-    country: 'LV',
+    country: 'DE',
   },
   shippingMethodCode: 'standard',
   notes: 'Ring twice',

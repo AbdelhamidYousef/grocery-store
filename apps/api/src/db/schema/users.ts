@@ -14,7 +14,7 @@ export const users = pgTable('users', {
   // Nullable from day one so email verification (a stretch feature) needs no migration later.
   // The store view the account was opened in (mail that has no order, like a review approval,
   // follows it).
-  storeView: text('store_view').notNull().default('eu-en'),
+  storeView: text('store_view').notNull().default('de-en'),
   emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
   createdAt: createdAt(),
   updatedAt: updatedAt(),

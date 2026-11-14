@@ -5,13 +5,13 @@ import { Outlet, useHref } from 'react-router-dom';
 
 interface StoreContextValue {
   store: StoreView;
-  /** '/eu-en' under a store prefix, '' on the admin and unknown paths. */
+  /** '/de-en' under a store prefix, '' on the admin and unknown paths. */
   basePath: string;
 }
 
 const StoreContext = createContext<StoreContextValue>({ store: DEFAULT_STORE, basePath: '' });
 
-/** '/eu-en' under a store prefix, '' without one. */
+/** '/de-en' under a store prefix, '' without one. */
 export function useStoreBase(): string {
   return useContext(StoreContext).basePath;
 }
@@ -21,7 +21,7 @@ export function useStore(): StoreView {
 }
 
 /**
- * Turns an app path into the full browser path (`/products/x` -> `/eu-en/products/x`). Only for
+ * Turns an app path into the full browser path (`/products/x` -> `/de-en/products/x`). Only for
  * URLs built by hand (share links, canonical URLs, `window.location`); <Link> and `navigate()`
  * already add the prefix through the router's basename.
  */
@@ -31,7 +31,7 @@ export function useStorePath(): (path: string) => string {
 }
 
 // The router's basename is the single source of truth for the prefix; `useHref('/')` hands it back
-// ('/eu-en', or '/' with no basename), so the layout needs no separate parsing of the URL.
+// ('/de-en', or '/' with no basename), so the layout needs no separate parsing of the URL.
 export function StoreLayout() {
   const root = useHref('/');
   const code = root.split('/')[1] ?? '';

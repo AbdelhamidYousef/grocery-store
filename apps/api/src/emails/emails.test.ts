@@ -27,7 +27,7 @@ const order: Order = {
     line2: null,
     city: 'Riga',
     postalCode: 'LV-1010',
-    country: 'LV',
+    country: 'DE',
   },
   billingAddress: null,
   notes: null,

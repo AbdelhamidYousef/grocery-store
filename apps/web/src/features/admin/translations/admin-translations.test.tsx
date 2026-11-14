@@ -30,7 +30,7 @@ describe('admin translations', () => {
             entity: 'brand',
             id: 'b-1',
             english: { name: 'Waggle', tagline: 'Wag more', story: 'Our story', slug: 'waggle' },
-            locales: { de: null, fr: null },
+            locales: { de: null },
           },
         }),
       ),

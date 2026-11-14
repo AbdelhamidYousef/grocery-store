@@ -31,7 +31,7 @@ export const carts = pgTable(
     // The store view the cart was last priced in, and its currency (phase 21). The cart is
     // re-priced from the store of each request, so these follow the shopper when they switch
     // store; they are what the cart was last shown in, never an input to a price.
-    storeView: text('store_view').notNull().default('eu-en'),
+    storeView: text('store_view').notNull().default('de-en'),
     currency: char('currency', { length: 3 }).notNull().default('EUR'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),

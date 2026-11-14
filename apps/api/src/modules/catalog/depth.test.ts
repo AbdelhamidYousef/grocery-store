@@ -41,7 +41,7 @@ async function sell(variantId: string, quantity: number, status: 'paid' | 'cance
       totalCents: 1000 * quantity,
       shippingMethodCode: 'standard',
       shippingMethodName: 'Standard',
-      shippingAddress: { fullName: 'A', line1: '1', city: 'Riga', postalCode: '1', country: 'LV' },
+      shippingAddress: { fullName: 'A', line1: '1', city: 'Riga', postalCode: '1', country: 'DE' },
       placedAt: new Date(),
     })
     .returning();

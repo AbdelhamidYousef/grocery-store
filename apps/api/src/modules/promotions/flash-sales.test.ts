@@ -341,7 +341,7 @@ describe('sale prices in the cart and at checkout', () => {
     line1: '1 Bone Street',
     city: 'Riga',
     postalCode: 'LV-1010',
-    country: 'LV',
+    country: 'DE',
   };
   const checkoutBody = {
     email: 'ada@pawsome.test',

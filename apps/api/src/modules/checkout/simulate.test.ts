@@ -27,7 +27,7 @@ async function pendingOrder() {
       line1: '1 Bone Street',
       city: 'Riga',
       postalCode: 'LV-1010',
-      country: 'LV',
+      country: 'DE',
     },
     shippingMethodCode: 'standard',
   });
@@ -189,7 +189,7 @@ describe('with a real Stripe key (the gateway answers what Stripe holds)', () =>
         line1: '1 Bone Street',
         city: 'Riga',
         postalCode: 'LV-1010',
-        country: 'LV',
+        country: 'DE',
       },
       shippingMethodCode: 'standard',
     });

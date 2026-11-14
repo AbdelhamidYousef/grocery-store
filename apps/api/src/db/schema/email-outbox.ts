@@ -37,7 +37,7 @@ export const emailOutbox = pgTable(
     // The store view the email is written for: language, number and date format, link prefix.
     // Taken from the order's snapshot (or the subscriber's) when the email is queued, never from
     // whoever triggers it.
-    storeView: text('store_view').notNull().default('eu-en'),
+    storeView: text('store_view').notNull().default('de-en'),
     attempts: integer('attempts').notNull().default(0),
     lastError: text('last_error'),
     // Backoff: a failed send is retried later, not in a tight loop against a dead SMTP server.

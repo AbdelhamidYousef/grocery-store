@@ -31,7 +31,7 @@ describe('StoreLayout', () => {
 
   it('falls back to the default store with no prefix', () => {
     renderApp('/anything', table);
-    expect(screen.getByTestId('store')).toHaveTextContent('eu-en EUR');
+    expect(screen.getByTestId('store')).toHaveTextContent('de-en EUR');
     expect(screen.getByTestId('full')).toHaveTextContent('/products/x');
     expect(screen.getByRole('link', { name: 'cart' })).toHaveAttribute('href', '/cart');
   });
@@ -39,10 +39,10 @@ describe('StoreLayout', () => {
 
 describe('the app under a store prefix', () => {
   it('renders a page and keeps every header link inside the store', async () => {
-    renderApp('/uk-en/cart');
+    renderApp('/de-en/cart');
     expect(await screen.findByRole('heading', { level: 1, name: 'Your cart' })).toBeInTheDocument();
-    expect(screen.getByTestId('logo')).toHaveAttribute('href', '/uk-en');
-    expect(document.documentElement.lang).toBe('en-GB');
+    expect(screen.getByTestId('logo')).toHaveAttribute('href', '/de-en');
+    expect(document.documentElement.lang).toBe('en-DE');
   });
 
   it('shows the not-found page for an unknown store code', async () => {

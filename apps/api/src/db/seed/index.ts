@@ -35,7 +35,6 @@ import { seedHomeContent } from './home.ts';
 import { imageRowsFor } from './images.ts';
 import { seedMenuPromos } from './menu-promos.ts';
 import { pdpFor } from './pdp.ts';
-import { seedGbpPrices } from './prices.ts';
 import { products } from './products.ts';
 import {
   bulkTierSeeds,
@@ -448,14 +447,12 @@ export async function runSeed(now = new Date()) {
         .update(giftRules)
         .set({
           thresholdCents: giftRuleSeed.thresholdCents,
-          thresholdByCurrency: giftRuleSeed.thresholdByCurrency,
           active: true,
         })
         .where(eq(giftRules.id, gift.id));
     } else {
       await tx.insert(giftRules).values({
         thresholdCents: giftRuleSeed.thresholdCents,
-        thresholdByCurrency: giftRuleSeed.thresholdByCurrency,
         variantId: giftVariantId,
       });
     }
@@ -479,9 +476,6 @@ export async function runSeed(now = new Date()) {
 
     // ---- ~90 days of sales history and sample returns (phase 22): after products and users ----
     await seedSales(tx, { passwordHash, now });
-
-    // ---- GBP prices for the UK store view (phase 21): last, so kits and gifts have rows too ----
-    await seedGbpPrices(tx);
   });
 }
 

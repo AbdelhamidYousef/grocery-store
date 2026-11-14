@@ -40,7 +40,6 @@ describe('admin translations', () => {
       slug: 'quietschknochen',
       description: null,
     });
-    expect(saved.locales.fr).toBeNull();
     expect(saved.english).toMatchObject({ name: 'Squeaky bone', slug: 'squeaky-bone' });
 
     const shop = await request(app)
@@ -55,10 +54,10 @@ describe('admin translations', () => {
   it('replaces the row: omitted fields go back to English', async () => {
     const admin = await signedIn(app, 'admin');
     const { product } = await createProduct();
-    const path = `/admin/translations/product/${product.id}/fr`;
+    const path = `/admin/translations/product/${product.id}/de`;
     await admin.shopper.call('put', path, { name: 'Os', description: 'Un os.' });
     const again = await admin.shopper.call('put', path, { name: 'Os' });
-    expect(data<EntityTranslations>(again).locales.fr).toMatchObject({
+    expect(data<EntityTranslations>(again).locales.de).toMatchObject({
       name: 'Os',
       description: null,
     });
@@ -78,13 +77,6 @@ describe('admin translations', () => {
     );
     expect(sameLang.status).toBe(409);
     expect(errorOf(sameLang).code).toBe('CONFLICT');
-    // Another language may reuse it.
-    const otherLang = await admin.shopper.call(
-      'put',
-      `/admin/translations/product/${b.product.id}/fr`,
-      { slug: 'gleich' },
-    );
-    expect(otherLang.status).toBe(200);
     // An English slug of a different product is refused too.
     const english = await admin.shopper.call(
       'put',

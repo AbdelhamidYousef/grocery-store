@@ -9,13 +9,13 @@ test('an old unprefixed product URL lands on the default store and keeps its que
   page,
 }) => {
   await page.goto('/products/braided-tug-rope?x=1#reviews');
-  await expect(page).toHaveURL(/\/eu-en\/products\/braided-tug-rope\?x=1#reviews$/);
+  await expect(page).toHaveURL(/\/de-en\/products\/braided-tug-rope\?x=1#reviews$/);
   await expect(page.getByTestId('header')).toBeVisible();
 });
 
 test('the bare root lands on the default store', async ({ page }) => {
   await page.goto('/');
-  await expect(page).toHaveURL(/\/eu-en$/);
+  await expect(page).toHaveURL(/\/de-en$/);
 });
 
 test('links inside a store view stay inside it and set the page language', async ({ page }) => {
@@ -33,47 +33,56 @@ test('an unknown store code is a not-found page, not a redirect', async ({ page 
 });
 
 test('the admin stays un-prefixed', async ({ page }) => {
-  await page.goto('/eu-en/admin');
+  await page.goto('/de-en/admin');
   await expect(page).toHaveURL(/\/login\?next=%2Fadmin$|\/admin$/);
 });
 
 test('the switcher keeps the page and query, and the pick is remembered for old URLs', async ({
   page,
 }) => {
-  await page.goto('/eu-en/c/dogs?sort=price_asc');
+  await page.goto('/de-en/c/dogs?sort=price_asc');
   await expect(page.getByTestId('header')).toBeVisible();
-  await page.getByTestId('store-switcher').selectOption('uk-en');
-  await expect(page).toHaveURL(/\/uk-en\/c\/dogs\?sort=price_asc$/);
-  await expect(page.locator('html')).toHaveAttribute('lang', 'en-GB');
-  await expect(page.getByTestId('store-switcher')).toHaveValue('uk-en');
+  await page.getByTestId('store-switcher').selectOption('de-de');
+  await expect(page).toHaveURL(/\/de-de\/c\/dogs\?sort=price_asc$/);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'de-DE');
+  await expect(page.getByTestId('store-switcher')).toHaveValue('de-de');
 
   // Footer switcher too, and the cookie sends a bare old URL to the last pick.
-  await page.getByTestId('store-switcher-footer').selectOption('fr-fr');
-  await expect(page).toHaveURL(/\/fr-fr\/c\/dogs\?sort=price_asc$/);
+  await page.getByTestId('store-switcher-footer').selectOption('de-en');
+  await expect(page).toHaveURL(/\/de-en\/c\/dogs\?sort=price_asc$/);
   await page.goto('/brands');
-  await expect(page).toHaveURL(/\/fr-fr\/brands$/);
+  await expect(page).toHaveURL(/\/de-en\/brands$/);
+});
+
+test('the old multi-country prefixes land on the English view and keep the path', async ({
+  page,
+}) => {
+  await page.goto('/uk-en/c/dogs?sort=price_asc');
+  await expect(page).toHaveURL(/\/de-en\/c\/dogs\?sort=price_asc$/);
+  await page.goto('/fr-fr/brands');
+  await expect(page).toHaveURL(/\/de-en\/brands$/);
 });
 
 test('every store view is announced to search engines with hreflang', async ({ page }) => {
-  // On the English store: the German and French stores have their own category slugs (`hunde`),
-  // and the alternates for them still carry the canonical's slug (follow-up in the handover).
-  await page.goto('/eu-en/c/dogs');
+  // On the English store: the German store has its own category slugs (`hunde`), and the
+  // alternates for it still carry the canonical's slug (follow-up in the handover).
+  await page.goto('/de-en/c/dogs');
   await expect(page.getByTestId('header')).toBeVisible();
   const links = page.locator('link[rel="alternate"][hreflang]');
-  await expect(links).toHaveCount(5);
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', '/eu-en/c/dogs');
+  await expect(links).toHaveCount(3);
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', '/de-en/c/dogs');
   await expect(page.locator('link[hreflang="x-default"]')).toHaveAttribute(
     'href',
-    /\/eu-en\/c\/dogs$/,
+    /\/de-en\/c\/dogs$/,
   );
 });
 
 // ---------------------------------------------------------------------------------------------
 // Store views, slice 4: language, currency, checkout and mail follow the store view.
 //
-// The test drives the real UI in /de-de (German words, euros) and /uk-en (pounds), then pays through
+// The test drives the real UI in /de-de (German words, euros) and /de-en (English words, euros), then pays through
 // the fake gateway (POST /test/webhooks/simulate, same as checkout.spec) and reads the confirmation
-// mails in Mailpit: the UK order mail is English, the German one is German.
+// mails in Mailpit: the English order mail is English, the German one is German.
 // ---------------------------------------------------------------------------------------------
 
 const MAILPIT = process.env.MAILPIT_URL ?? 'http://localhost:8026';
@@ -130,7 +139,7 @@ async function mailSubject(to: string): Promise<string> {
 
 async function buyIn(
   page: Page,
-  store: 'de-de' | 'uk-en',
+  store: 'de-de' | 'de-en',
   email: string,
   country: string,
 ): Promise<string> {
@@ -142,8 +151,8 @@ async function buyIn(
     shippingAddress: {
       fullName: 'Sam Rivers',
       line1: '1 Bone Street',
-      postalCode: country === 'GB' ? 'SW1A 1AA' : '10115',
-      city: country === 'GB' ? 'London' : 'Berlin',
+      postalCode: '10115',
+      city: 'Berlin',
       country,
     },
     shippingMethodCode: 'standard',
@@ -155,7 +164,7 @@ async function buyIn(
   return number;
 }
 
-test('German store: German words and euros; UK store: pounds, checkout, English mail', async ({
+test('German store: German words and euros; English store: euros, checkout, English mail', async ({
   page,
 }) => {
   test.skip(
@@ -181,60 +190,42 @@ test('German store: German words and euros; UK store: pounds, checkout, English 
   await expect(page.getByTestId('order-summary').getByTestId('order-total')).toContainText('€');
   expect(await mailSubject(deMail)).toBe(`Ihre Pawsome-Bestellung ${deNumber} ist bestätigt`);
 
-  // --- switch to /uk-en: pounds on the same product ---
-  await page.getByTestId('store-switcher').selectOption('uk-en');
-  await expect(page).toHaveURL(/\/uk-en\//);
-  await page.goto(`/uk-en/products/${PRODUCT}`);
+  // --- switch to /de-en: English words, still euros ---
+  await page.getByTestId('store-switcher').selectOption('de-en');
+  await expect(page).toHaveURL(/\/de-en\//);
+  await page.goto(`/de-en/products/${PRODUCT}`);
   await expect(page.getByTestId('add-to-cart')).toHaveText('Add to cart');
-  await expect(page.getByTestId('price-current').first()).toContainText('£');
-  await expect(page.getByTestId('price-current').first()).not.toContainText('€');
+  await expect(page.getByTestId('price-current').first()).toContainText('€');
 
-  // --- add to cart and look at it in pounds ---
+  // --- add to cart and look at it ---
   await page.getByTestId('add-to-cart').click();
   await expect(page.getByTestId('toast')).toBeVisible();
-  await page.goto('/uk-en/cart');
-  await expect(page.getByTestId('cart-line').first()).toContainText('£');
+  await page.goto('/de-en/cart');
+  await expect(page.getByTestId('cart-line').first()).toContainText('€');
 
-  // --- checkout through the fake gateway: the confirmation shows pounds, the mail is English ---
-  const ukMail = `uk-${Date.now()}@pawsome.test`;
-  const ukRes = await api<{ data: { orderNumber: string } }>(page, 'uk-en', 'POST', '/checkout', {
-    email: ukMail,
-    shippingAddress: {
-      fullName: 'Sam Rivers',
-      line1: '1 Bone Street',
-      postalCode: 'SW1A 1AA',
-      city: 'London',
-      country: 'GB',
-    },
-    shippingMethodCode: 'standard',
-  });
-  expect(ukRes.status, JSON.stringify(ukRes.body)).toBe(200);
-  const ukNumber = ukRes.body.data.orderNumber;
-  const paid = await api(page, 'uk-en', 'POST', '/test/webhooks/simulate', {
-    orderNumber: ukNumber,
-  });
-  expect(paid.status).toBe(200);
-  await page.goto(`/uk-en/checkout/confirmation/${ukNumber}`);
+  // --- checkout through the fake gateway: the confirmation shows euros, the mail is English ---
+  const enMail = `en-${Date.now()}@pawsome.test`;
+  const enNumber = await buyIn(page, 'de-en', enMail, 'DE');
+  await page.goto(`/de-en/checkout/confirmation/${enNumber}`);
   await expect(page.getByTestId('confirmation-status')).toHaveAttribute('data-state', 'paid', {
     timeout: 15_000,
   });
   const total = page.getByTestId('order-summary').getByTestId('order-total');
-  await expect(total).toContainText('£');
-  await expect(total).not.toContainText('€');
-  expect(await mailSubject(ukMail)).toBe(`Your Pawsome order ${ukNumber} is confirmed`);
+  await expect(total).toContainText('€');
+  expect(await mailSubject(enMail)).toBe(`Your Pawsome order ${enNumber} is confirmed`);
 
-  // A EUR address is refused in the UK store: the store ships to its own countries only.
-  await page.goto(`/uk-en/products/${PRODUCT}`);
+  // A French address is refused: the shop ships to Germany only.
+  await page.goto(`/de-en/products/${PRODUCT}`);
   await page.getByTestId('add-to-cart').click();
   await expect(page.getByTestId('toast')).toBeVisible();
-  const wrong = await api(page, 'uk-en', 'POST', '/checkout', {
-    email: ukMail,
+  const wrong = await api(page, 'de-en', 'POST', '/checkout', {
+    email: enMail,
     shippingAddress: {
       fullName: 'Sam Rivers',
-      line1: '1 Bone Street',
-      postalCode: '10115',
-      city: 'Berlin',
-      country: 'DE',
+      line1: '1 Rue Bone',
+      postalCode: '75001',
+      city: 'Paris',
+      country: 'FR',
     },
     shippingMethodCode: 'standard',
   });

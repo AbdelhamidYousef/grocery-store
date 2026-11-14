@@ -17,7 +17,7 @@ import { adminErrorMessage } from '../errors';
 
 import { useEntityTranslations, useSaveTranslation } from './queries';
 
-const LOCALE_NAMES: Record<TranslationLocale, string> = { de: 'German', fr: 'French' };
+const LOCALE_NAMES: Record<TranslationLocale, string> = { de: 'German' };
 const LONG_FIELDS = new Set(['description', 'story', 'summary', 'bodyMd']);
 const FIELD_LABELS: Record<string, string> = {
   name: 'Name',

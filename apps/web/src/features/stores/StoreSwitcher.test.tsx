@@ -31,19 +31,17 @@ describe('StoreSwitcher', () => {
     const select = screen.getByTestId('store-switcher');
     expect(select).toHaveValue('de-de');
     expect(screen.getAllByRole('option').map((o) => o.getAttribute('value'))).toEqual([
-      'eu-en',
+      'de-en',
       'de-de',
-      'fr-fr',
-      'uk-en',
     ]);
   });
 
   it('swaps the prefix keeping path and query, remembers the pick and tracks it', async () => {
     const track = vi.spyOn(trackModule, 'track');
     const go = setup('/de-de/products/rope-tug?v=2#faq');
-    await userEvent.selectOptions(screen.getByTestId('store-switcher'), 'uk-en');
-    expect(go).toHaveBeenCalledWith('/uk-en/products/rope-tug?v=2#faq');
-    expect(document.cookie).toContain(`${STORE_COOKIE}=uk-en`);
-    expect(track).toHaveBeenCalledWith({ name: 'store_switched', from: 'de-de', to: 'uk-en' });
+    await userEvent.selectOptions(screen.getByTestId('store-switcher'), 'de-en');
+    expect(go).toHaveBeenCalledWith('/de-en/products/rope-tug?v=2#faq');
+    expect(document.cookie).toContain(`${STORE_COOKIE}=de-en`);
+    expect(track).toHaveBeenCalledWith({ name: 'store_switched', from: 'de-de', to: 'de-en' });
   });
 });

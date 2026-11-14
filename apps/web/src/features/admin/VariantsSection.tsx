@@ -10,7 +10,6 @@ import { TEST_IDS } from '../../lib/test-ids';
 import { FormAlert } from '../auth/AuthCard';
 
 import { adminErrorMessage } from './errors';
-import { PricesDialog } from './PricesDialog';
 import { formatOptions } from './product-form';
 import { useDeleteAdminVariant } from './queries';
 import { StockDialog } from './StockDialog';
@@ -80,7 +79,6 @@ export function VariantsSection({ product }: { product: AdminProduct }) {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<AdminVariant | null>(null);
   const [stocking, setStocking] = useState<AdminVariant | null>(null);
-  const [pricing, setPricing] = useState<AdminVariant | null>(null);
   const [deleting, setDeleting] = useState<AdminVariant | null>(null);
 
   const shown = useMemo(() => {
@@ -208,14 +206,6 @@ export function VariantsSection({ product }: { product: AdminProduct }) {
                       <Button
                         size="sm"
                         variant="ghost"
-                        aria-label={`Prices for ${v.sku}`}
-                        onClick={() => setPricing(v)}
-                      >
-                        Prices
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
                         aria-label={`Adjust stock for ${v.sku}`}
                         onClick={() => setStocking(v)}
                       >
@@ -246,7 +236,6 @@ export function VariantsSection({ product }: { product: AdminProduct }) {
         onClose={() => setEditing(null)}
       />
       <StockDialog variant={stocking} onClose={() => setStocking(null)} />
-      <PricesDialog variant={pricing} onClose={() => setPricing(null)} />
       <DeleteVariantDialog variant={deleting} onClose={() => setDeleting(null)} />
     </section>
   );

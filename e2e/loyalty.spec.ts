@@ -254,7 +254,7 @@ test('wishlist: the share link opens logged out and dies when sharing stops', as
   await page.getByRole('button', { name: 'Create a share link' }).click();
   const shared = (await page.getByTestId('wishlist-share-link').textContent()) ?? '';
   const path = new URL(shared.trim()).pathname;
-  expect(path).toMatch(/^\/eu-en\/w\//);
+  expect(path).toMatch(/^\/de-en\/w\//);
 
   const guest = await loggedOut(browser);
   await guest.page.goto(path);

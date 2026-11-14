@@ -4,8 +4,6 @@ import { useStore } from '../features/stores/StoreContext';
 
 import { de } from './de';
 import { en } from './en';
-import { enGB } from './en-gb';
-import { fr } from './fr';
 import { makeLookup } from './translate';
 import type { Dictionary, Params, PluralForms } from './types';
 
@@ -25,10 +23,8 @@ const english = en as Dictionary;
 // The chain for each store: its own words first, then English. en-GB only lists the words that
 // differ from the default English (colour, favourite).
 const CHAINS: Record<string, readonly Partial<Dictionary>[]> = {
-  'en-IE': [english],
-  'en-GB': [enGB, english],
+  'en-DE': [english],
   'de-DE': [de, english],
-  'fr-FR': [fr, english],
 };
 
 // Messages that come from outside the dictionary (Zod rules in `@store/shared`, API errors) are

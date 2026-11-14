@@ -22,7 +22,7 @@ export const stockAlerts = pgTable(
     status: stockAlertStatus('status').notNull().default('waiting'),
     token: text('token').notNull().unique(),
     // The store view (and so the language) the person was in; their mail follows it.
-    storeView: text('store_view').notNull().default('eu-en'),
+    storeView: text('store_view').notNull().default('de-en'),
     dueAt: timestamp('due_at', { withTimezone: true }),
     sentAt: timestamp('sent_at', { withTimezone: true }),
     createdAt: createdAt(),

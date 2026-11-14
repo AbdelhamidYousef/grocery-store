@@ -19,7 +19,7 @@ const base = {
     line1: '1 Test Street',
     city: 'Riga',
     postalCode: 'LV-1000',
-    country: 'LV',
+    country: 'DE',
   },
 };
 

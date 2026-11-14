@@ -64,7 +64,7 @@ export const orders = pgTable(
     currency: char('currency', { length: 3 }).notNull().default('EUR'),
     // The store view the order was placed in and its Intl locale (phase 21): snapshots, so emails
     // and documents stay in the language of the purchase even if the store config changes later.
-    storeView: text('store_view').notNull().default('eu-en'),
+    storeView: text('store_view').notNull().default('de-en'),
     locale: text('locale').notNull().default('en-IE'),
     subtotalCents: integer('subtotal_cents').notNull(),
     shippingCents: integer('shipping_cents').notNull(),

@@ -42,7 +42,7 @@ describe('users, sessions and addresses', () => {
       line1: '1 Test Street',
       city: 'Riga',
       postalCode: 'LV-1000',
-      country: 'LV',
+      country: 'DE',
     });
 
     await db.delete(users).where(eq(users.id, user.id));
@@ -59,7 +59,7 @@ describe('users, sessions and addresses', () => {
       line1: '1 Test Street',
       city: 'Riga',
       postalCode: 'LV-1000',
-      country: 'LV',
+      country: 'DE',
     };
     await db.insert(addresses).values({ ...base, isDefaultShipping: true });
     // Non-default addresses are unlimited...

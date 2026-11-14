@@ -16,7 +16,7 @@ import { db, type Tx } from '../client.ts';
 // filled in by hand or by a model and re-seeded. `export-untranslated` prints the English source of
 // only what is still missing, in the same shape, ready to be filled in.
 
-export const SEED_LANGS = ['de', 'fr'] as const;
+export const SEED_LANGS = ['de'] as const;
 const DIR = join(fileURLToPath(new URL('.', import.meta.url)), 'translations');
 
 export const KEY_BY_ENTITY: Record<TranslationEntity, string> = {

@@ -36,7 +36,7 @@ const body = (email = 'ada@pawsome.test') => ({
     line1: '1 Bone Street',
     city: 'Riga',
     postalCode: 'LV-1010',
-    country: 'LV',
+    country: 'DE',
   },
   shippingMethodCode: 'standard',
 });

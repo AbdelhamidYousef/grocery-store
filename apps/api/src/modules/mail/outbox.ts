@@ -51,7 +51,7 @@ export async function enqueueEmail(
     orderId?: string;
     payload?: EmailPayload;
     dedupeKey?: string;
-    /** Store view to write it for. Defaults to the order's snapshot, then English (eu-en). */
+    /** Store view to write it for. Defaults to the order's snapshot, then English (de-en). */
     storeView?: string | undefined;
   },
 ): Promise<void> {

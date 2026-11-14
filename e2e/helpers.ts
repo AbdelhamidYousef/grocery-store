@@ -20,7 +20,7 @@ export async function register(page: Page, email: string): Promise<void> {
 export async function signOut(page: Page): Promise<void> {
   await page.getByTestId('account-menu-button').click();
   await page.getByTestId('sign-out').click();
-  await expect(page).toHaveURL(/\/eu-en$/);
+  await expect(page).toHaveURL(/\/de-en$/);
 }
 
 // API calls made from inside the page (`fetch`): same origin as the app, so the browser's own

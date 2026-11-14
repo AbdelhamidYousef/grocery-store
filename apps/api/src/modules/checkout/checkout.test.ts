@@ -34,7 +34,7 @@ const address = {
   line1: '1 Bone Street',
   city: 'Riga',
   postalCode: 'LV-1010',
-  country: 'LV',
+  country: 'DE',
 };
 const checkoutBody = (extra: object = {}) => ({
   email: 'ada@pawsome.test',
@@ -92,7 +92,7 @@ describe('POST /checkout', () => {
       totalCents: 3190,
       shippingMethodCode: 'standard',
       shippingMethodName: 'Standard',
-      shippingAddress: expect.objectContaining({ postalCode: 'LV-1010', country: 'LV' }) as object,
+      shippingAddress: expect.objectContaining({ postalCode: 'LV-1010', country: 'DE' }) as object,
     });
     expect(order?.placedAt).toBeNull();
 

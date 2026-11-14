@@ -7,7 +7,6 @@ import { orderShipped } from '../order-shipped.ts';
 
 import { de } from './de.ts';
 import { en } from './en.ts';
-import { fr } from './fr.ts';
 import { emailText } from './index.ts';
 
 const holes = (entry: unknown): string[] =>
@@ -19,7 +18,7 @@ const order = {
   paymentStatus: 'succeeded' as const,
   email: 'ada@pawsome.test',
   totals: {
-    currency: 'GBP',
+    currency: 'EUR',
     subtotalCents: 2598,
     shippingCents: 490,
     discountCents: 0,
@@ -34,7 +33,7 @@ const order = {
     line2: null,
     city: 'London',
     postalCode: 'SW1A 1AA',
-    country: 'GB',
+    country: 'DE',
   },
   billingAddress: null,
   notes: null,
@@ -55,28 +54,27 @@ const order = {
 };
 
 describe('email dictionaries', () => {
-  it.each([
-    ['de', de],
-    ['fr', fr],
-  ])('%s has exactly the keys, placeholders and plural shape of English', (_lang, dict) => {
-    expect(Object.keys(dict).sort()).toEqual(Object.keys(en).sort());
-    for (const key of Object.keys(en) as (keyof typeof en)[]) {
-      expect(typeof dict[key] === 'string', key).toBe(typeof en[key] === 'string');
-      expect(holes(dict[key]), key).toEqual(holes(en[key]));
-    }
-  });
+  it.each([['de', de]])(
+    '%s has exactly the keys, placeholders and plural shape of English',
+    (_lang, dict) => {
+      expect(Object.keys(dict).sort()).toEqual(Object.keys(en).sort());
+      for (const key of Object.keys(en) as (keyof typeof en)[]) {
+        expect(typeof dict[key] === 'string', key).toBe(typeof en[key] === 'string');
+        expect(holes(dict[key]), key).toEqual(holes(en[key]));
+      }
+    },
+  );
 
   it('picks plurals by language and falls back to English for an unknown store', () => {
     expect(emailText('de-de').tn('news.confirm.hours', 1)).toContain('1 Stunde gültig');
     expect(emailText('de-de').tn('news.confirm.hours', 48)).toContain('48 Stunden');
-    expect(emailText('fr-fr').tn('news.welcome.terms', 0, { percent: 10 })).toContain('0 jour.');
     expect(emailText('nope').lang).toBe('en');
     expect(emailText(undefined).tn('news.confirm.hours', 1)).toContain('1 hour.');
   });
 });
 
 describe('order emails in the order language', () => {
-  it('confirmation in German: German words, pounds in the German format, store-prefixed link', () => {
+  it('confirmation in German: German words, euros in the German format, store-prefixed link', () => {
     const mail = orderConfirmation(order, emailText('de-de'));
     expect(mail.subject).toBe('Ihre Pawsome-Bestellung PW-2026-000007 ist bestätigt');
     expect(mail.text).toContain('Vielen Dank für Ihre Bestellung, Ada Lovelace!');
@@ -87,18 +85,10 @@ describe('order emails in the order language', () => {
     expect(mail.html).toContain('Menge 2');
   });
 
-  it('confirmation in French: non-breaking space before the colon, euro/pound after the number', () => {
-    const mail = orderConfirmation(order, emailText('fr-fr'));
-    expect(mail.subject).toBe('Votre commande Pawsome PW-2026-000007 est confirmée');
-    expect(mail.text).toContain('Sous-total : 25,98');
-    expect(mail.html).toContain('<html lang="fr">');
-    expect(mail.text).toContain('/fr-fr/track-order');
-  });
-
-  it('English UK keeps pounds first and the shipped mail follows the same language', () => {
-    const mail = orderShipped(order, emailText('uk-en'));
+  it('English keeps the number format of en-DE and the shipped mail follows the same language', () => {
+    const mail = orderShipped(order, emailText('de-en'));
     expect(mail.subject).toBe('Your Pawsome order PW-2026-000007 is on its way');
-    expect(mail.text).toContain('£25.98');
+    expect(mail.text).toContain('€25.98');
     expect(orderShipped(order, emailText('de-de')).subject).toContain('ist unterwegs');
   });
 

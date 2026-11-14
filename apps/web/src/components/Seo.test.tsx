@@ -65,23 +65,15 @@ describe('Seo alternates', () => {
     );
     const alternates = [...document.head.querySelectorAll('link[rel="alternate"][hreflang]')];
     expect(alternates.map((l) => l.getAttribute('hreflang'))).toEqual([
-      'en-IE',
+      'en-DE',
       'de-DE',
-      'fr-FR',
-      'en-GB',
       'x-default',
     ]);
     expect(
       alternates.map(
         (l) => new URL(l.getAttribute('href')!).pathname + new URL(l.getAttribute('href')!).search,
       ),
-    ).toEqual([
-      '/eu-en/c/dogs?page=2',
-      '/de-de/c/dogs?page=2',
-      '/fr-fr/c/dogs?page=2',
-      '/uk-en/c/dogs?page=2',
-      '/eu-en/c/dogs?page=2',
-    ]);
+    ).toEqual(['/de-en/c/dogs?page=2', '/de-de/c/dogs?page=2', '/de-en/c/dogs?page=2']);
     unmount();
     expect(document.head.querySelector('link[rel="alternate"][hreflang]')).toBeNull();
   });
@@ -109,6 +101,6 @@ describe('Seo alternates', () => {
     const hrefs = [...document.head.querySelectorAll('link[rel="alternate"]')].map(
       (l) => new URL(l.getAttribute('href')!).pathname,
     );
-    expect(hrefs).toEqual(['/eu-en', '/de-de', '/fr-fr', '/uk-en', '/eu-en']);
+    expect(hrefs).toEqual(['/de-en', '/de-de', '/de-en']);
   });
 });

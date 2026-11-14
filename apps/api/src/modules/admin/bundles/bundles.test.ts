@@ -183,7 +183,7 @@ describe('kits in the cart and checkout', () => {
         line1: '1 Bone Street',
         city: 'Riga',
         postalCode: 'LV-1010',
-        country: 'LV',
+        country: 'DE',
       },
       shippingMethodCode: 'standard',
     });
@@ -268,7 +268,7 @@ describe('editing a kit after an order was placed', () => {
         line1: '1 Bone Street',
         city: 'Riga',
         postalCode: 'LV-1010',
-        country: 'LV',
+        country: 'DE',
       },
       shippingMethodCode: 'standard',
     });
@@ -335,7 +335,7 @@ describe('kits and shared components', () => {
         line1: '1 Bone Street',
         city: 'Riga',
         postalCode: 'LV-1010',
-        country: 'LV',
+        country: 'DE',
       },
       shippingMethodCode: 'standard',
     });

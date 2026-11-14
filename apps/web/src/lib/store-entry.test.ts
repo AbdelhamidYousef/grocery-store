@@ -12,7 +12,7 @@ describe('resolveEntry', () => {
       basename: '/de-de',
       replaceWith: null,
     });
-    expect(resolveEntry(url('/uk-en'))).toEqual({ basename: '/uk-en', replaceWith: null });
+    expect(resolveEntry(url('/de-en'))).toEqual({ basename: '/de-en', replaceWith: null });
   });
 
   it('sends a legacy path to the picked store, keeping query and hash', () => {
@@ -22,17 +22,26 @@ describe('resolveEntry', () => {
     });
   });
 
-  it('sends the bare root to the picked store, and to eu-en by default', () => {
+  it('sends the bare root to the picked store, and to de-en by default', () => {
     expect(resolveEntry(url('/'), de).replaceWith).toBe('/de-de');
-    expect(resolveEntry(url('/', '?ref=ABC')).replaceWith).toBe('/eu-en?ref=ABC');
+    expect(resolveEntry(url('/', '?ref=ABC')).replaceWith).toBe('/de-en?ref=ABC');
   });
 
   it('keeps the admin un-prefixed, and tidies a prefixed admin URL', () => {
     expect(resolveEntry(url('/admin/products'))).toEqual({ basename: '', replaceWith: null });
-    expect(resolveEntry(url('/eu-en/admin/orders', '?page=2'))).toEqual({
+    expect(resolveEntry(url('/de-en/admin/orders', '?page=2'))).toEqual({
       basename: '',
       replaceWith: '/admin/orders?page=2',
     });
+  });
+
+  it('sends the prefixes of the old multi-country shop to the English view, keeping the rest', () => {
+    expect(resolveEntry(url('/eu-en/c/dogs', '?page=2', '#top'))).toEqual({
+      basename: '/de-en',
+      replaceWith: '/de-en/c/dogs?page=2#top',
+    });
+    expect(resolveEntry(url('/uk-en')).replaceWith).toBe('/de-en');
+    expect(resolveEntry(url('/fr-fr/'), de).replaceWith).toBe('/de-en');
   });
 
   it('does not treat an unknown store-like prefix as a legacy path (it is a 404)', () => {
@@ -42,20 +51,21 @@ describe('resolveEntry', () => {
 
 describe('pickStore', () => {
   it('prefers the remembered store, then the browser language, then the default', () => {
-    expect(pickStore('fr-fr', ['de-DE']).code).toBe('fr-fr');
+    expect(pickStore('de-en', ['de-DE']).code).toBe('de-en');
+    expect(pickStore('fr-fr', ['de-DE']).code).toBe('de-de');
     expect(pickStore('nope', ['de-DE']).code).toBe('de-de');
-    expect(pickStore(null, []).code).toBe('eu-en');
+    expect(pickStore(null, []).code).toBe('de-en');
   });
 });
 
 describe('swapStorePrefix', () => {
   it('swaps the prefix and keeps path, query and hash', () => {
-    const uk = storeFromCode('uk-en')!;
-    expect(swapStorePrefix(url('/de-de/products/rope-tug', '?v=2', '#faq'), '/de-de', uk)).toBe(
-      '/uk-en/products/rope-tug?v=2#faq',
+    const en = storeFromCode('de-en')!;
+    expect(swapStorePrefix(url('/de-de/products/rope-tug', '?v=2', '#faq'), '/de-de', en)).toBe(
+      '/de-en/products/rope-tug?v=2#faq',
     );
-    expect(swapStorePrefix(url('/de-de'), '/de-de', uk)).toBe('/uk-en');
-    expect(swapStorePrefix(url('/de-de/'), '/de-de', uk)).toBe('/uk-en');
+    expect(swapStorePrefix(url('/de-de'), '/de-de', en)).toBe('/de-en');
+    expect(swapStorePrefix(url('/de-de/'), '/de-de', en)).toBe('/de-en');
   });
 
   it('prefixes a path that had no store (admin, 404)', () => {

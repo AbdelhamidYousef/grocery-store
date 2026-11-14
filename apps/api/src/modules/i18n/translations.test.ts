@@ -27,8 +27,6 @@ async function seed() {
     description: 'A bone that squeaks.',
     categoryId: category.id,
     brandId: brand.id,
-    // Priced in GBP too, or the UK store would not sell it at all.
-    variants: [{ gbpCents: 899 }],
   });
   return { category, brand, product };
 }
@@ -42,7 +40,7 @@ describe('catalogue translations', () => {
       name: 'Quietschknochen',
       slug: 'quietschknochen',
     });
-    for (const store of [undefined, 'eu-en', 'uk-en', 'nope']) {
+    for (const store of [undefined, 'de-en', 'nope']) {
       const res = await get('/api/v1/products/squeaky-bone', store);
       expect(bodyOf<{ data: ProductDetail }>(res).data.name).toBe('Squeaky bone');
     }
@@ -66,26 +64,27 @@ describe('catalogue translations', () => {
     expect(data.slug).toBe('squeaky-bone');
     expect(data.category.name).toBe('Hundespielzeug');
     expect(data.brand?.name).toBe('Waggle');
-    // French has no row at all.
-    const fr = bodyOf<{ data: ProductDetail }>(await get('/api/v1/products/squeaky-bone', 'fr-fr'));
-    expect(fr.data.name).toBe('Squeaky bone');
+    // The English view never reads the translation tables.
+    const en = bodyOf<{ data: ProductDetail }>(await get('/api/v1/products/squeaky-bone', 'de-en'));
+    expect(en.data.name).toBe('Squeaky bone');
   });
 
   it('resolves slugs per locale and reports the right slug for a redirect', async () => {
     const { product } = await seed();
-    await db.insert(productTranslations).values([
-      { productId: product.id, locale: 'de', name: 'Quietschknochen', slug: 'quietschknochen' },
-      { productId: product.id, locale: 'fr', name: 'Os qui couine', slug: 'os-qui-couine' },
-    ]);
+    await db
+      .insert(productTranslations)
+      .values([
+        { productId: product.id, locale: 'de', name: 'Quietschknochen', slug: 'quietschknochen' },
+      ]);
     const de = await get('/api/v1/products/quietschknochen', 'de-de');
     expect(de.status).toBe(200);
     expect(bodyOf<{ data: ProductDetail }>(de).data.slug).toBe('quietschknochen');
     // The English slug still works in German (and reports the German one).
     const en = await get('/api/v1/products/squeaky-bone', 'de-de');
     expect(bodyOf<{ data: ProductDetail }>(en).data.slug).toBe('quietschknochen');
-    // A German slug opened in the French store answers with the French slug.
-    const wrong = await get('/api/v1/products/quietschknochen', 'fr-fr');
-    expect(bodyOf<{ data: ProductDetail }>(wrong).data.slug).toBe('os-qui-couine');
+    // A German slug opened in the English store answers with the English slug.
+    const wrong = await get('/api/v1/products/quietschknochen', 'de-en');
+    expect(bodyOf<{ data: ProductDetail }>(wrong).data.slug).toBe('squeaky-bone');
     expect((await get('/api/v1/products/unknown', 'de-de')).status).toBe(404);
   });
 

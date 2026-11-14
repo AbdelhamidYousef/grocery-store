@@ -28,7 +28,7 @@ const served = (list = makeReviewList(reviews, { topics: [{ topic: 'rope', count
 describe('rating stars', () => {
   it('has one accessible name and fills to the tenth', () => {
     renderWithProviders(<RatingStars tenths={46} />);
-    const stars = screen.getByRole('img', { name: '4.6 out of 5' });
+    const stars = screen.getByRole('img', { name: '4,6 out of 5' });
     expect(stars.querySelector('span[style]')).toHaveStyle({ width: '92%' });
   });
 
@@ -40,7 +40,7 @@ describe('rating stars', () => {
         </ul>
       </MemoryRouter>,
     );
-    expect(screen.getByRole('img', { name: '4.7 out of 5' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '4,7 out of 5' })).toBeInTheDocument();
     expect(screen.getByText('4.7 (12)')).toBeInTheDocument();
     unmount();
     renderWithProviders(
@@ -59,14 +59,14 @@ describe('reviews section on the product page', () => {
     served();
     renderApp('/products/rope-tug');
     const section = await screen.findByTestId('reviews-section');
-    expect(await within(section).findByText('4.6')).toBeInTheDocument();
+    expect(await within(section).findByText('4,6')).toBeInTheDocument();
     expect(within(section).getByText('92% would recommend this')).toBeInTheDocument();
     expect(within(section).getByTestId('review-breakdown')).toBeInTheDocument();
     const cards = await within(section).findAllByTestId('review-card');
     expect(cards).toHaveLength(2);
     expect(within(cards[0]!).getByText('Verified buyer')).toBeInTheDocument();
     expect(
-      within(cards[0]!).getByText('Pet age 2 years 6 months, weighs 11.5 kg, bought size M'),
+      within(cards[0]!).getByText('Pet age 2 years 6 months, weighs 11,5 kg, bought size M'),
     ).toBeInTheDocument();
     expect(within(cards[1]!).queryByText('Verified buyer')).not.toBeInTheDocument();
   });
@@ -274,7 +274,7 @@ describe('product page extras', () => {
       ),
     );
     renderApp('/products/rope-tug');
-    await screen.findByRole('link', { name: /4\.6 \(12 reviews\)/ });
+    await screen.findByRole('link', { name: /4,6 \(12 reviews\)/ });
     const script = document.head.querySelector('script[data-seo="json-ld"]');
     const node = JSON.parse(script?.textContent ?? '{}') as {
       aggregateRating?: { ratingValue: string; reviewCount: number };

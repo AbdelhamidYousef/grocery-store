@@ -141,7 +141,7 @@ describe('cart and checkout charge the member price', () => {
     line1: '1 Bone Street',
     city: 'Riga',
     postalCode: 'LV-1010',
-    country: 'LV',
+    country: 'DE',
   };
   const checkoutBody = {
     email: 'ada@pawsome.test',

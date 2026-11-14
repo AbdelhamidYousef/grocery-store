@@ -32,7 +32,7 @@ describe('home page', () => {
     const cards = await screen.findAllByTestId('product-card');
     expect(cards[0]).toHaveAttribute('href', '/products/rope-tug');
     expect(await screen.findByTestId('guides-teaser')).toBeInTheDocument();
-    expect(await screen.findByTestId('rating-summary')).toHaveTextContent('4.8 out of 5');
+    expect(await screen.findByTestId('rating-summary')).toHaveTextContent('4,8 out of 5');
     expect(spy).toHaveBeenCalledWith({ name: 'view_home' });
   });
 

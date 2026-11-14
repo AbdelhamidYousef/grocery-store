@@ -6,37 +6,7 @@ import { z } from 'zod';
 // lookup from the code. Later slices read the same table: UI strings by `lang`, catalogue
 // translations by `locale`, prices by `currency`.
 
-const EU_SHIP = [
-  'AT',
-  'BE',
-  'BG',
-  'HR',
-  'CY',
-  'CZ',
-  'DK',
-  'EE',
-  'FI',
-  'FR',
-  'DE',
-  'GR',
-  'HU',
-  'IE',
-  'IT',
-  'LV',
-  'LT',
-  'LU',
-  'MT',
-  'NL',
-  'PL',
-  'PT',
-  'RO',
-  'SK',
-  'SI',
-  'ES',
-  'SE',
-] as const;
-
-export const STORE_CODES = ['eu-en', 'de-de', 'fr-fr', 'uk-en'] as const;
+export const STORE_CODES = ['de-en', 'de-de'] as const;
 export type StoreCode = (typeof STORE_CODES)[number];
 
 export interface StoreView {
@@ -44,10 +14,10 @@ export interface StoreView {
   /** BCP 47 tag for Intl (numbers, dates, plurals). */
   locale: string;
   /** Language only: the key into the UI dictionaries and the `<html lang>` fallback chain. */
-  lang: 'en' | 'de' | 'fr';
+  lang: 'en' | 'de';
   /** Name shown in the switcher, in its own language so a shopper can find theirs. */
   label: string;
-  currency: 'EUR' | 'GBP';
+  currency: 'EUR';
   /** ISO 3166-1 alpha-2 codes this store view ships to. */
   shipCountries: readonly string[];
   /** Every view shows prices including VAT (the demo charges no tax; see the decisions log). */
@@ -56,42 +26,27 @@ export interface StoreView {
 
 export const STORES: readonly StoreView[] = [
   {
-    code: 'eu-en',
-    locale: 'en-IE',
+    code: 'de-en',
+    locale: 'en-DE',
     lang: 'en',
-    label: 'Europe (English)',
+    label: 'English',
     currency: 'EUR',
-    shipCountries: EU_SHIP,
+    shipCountries: ['DE'],
     taxDisplay: 'incl',
   },
   {
     code: 'de-de',
     locale: 'de-DE',
     lang: 'de',
-    label: 'Deutschland (Deutsch)',
+    label: 'Deutsch',
     currency: 'EUR',
-    shipCountries: ['DE', 'AT'],
-    taxDisplay: 'incl',
-  },
-  {
-    code: 'fr-fr',
-    locale: 'fr-FR',
-    lang: 'fr',
-    label: 'France (Français)',
-    currency: 'EUR',
-    shipCountries: ['FR', 'BE', 'LU'],
-    taxDisplay: 'incl',
-  },
-  {
-    code: 'uk-en',
-    locale: 'en-GB',
-    lang: 'en',
-    label: 'United Kingdom (English)',
-    currency: 'GBP',
-    shipCountries: ['GB'],
+    shipCountries: ['DE'],
     taxDisplay: 'incl',
   },
 ];
+
+/** Prefixes of the old multi-country shop (Pawsome): they land on the English view. */
+export const LEGACY_STORE_CODES = ['eu-en', 'uk-en', 'fr-fr'] as const;
 
 export const DEFAULT_STORE: StoreView = STORES[0] as StoreView;
 
@@ -115,8 +70,7 @@ export function storeFromLanguages(languages: readonly string[]): StoreView {
     const exact = STORES.find((store) => store.locale.toLowerCase() === lower);
     if (exact) return exact;
     const lang = lower.split('-')[0];
-    // `en` alone stays on the default store: English speakers are not all in the UK.
-    const byLang = STORES.find((store) => store.lang === lang && store.code !== 'uk-en');
+    const byLang = STORES.find((store) => store.lang === lang);
     if (byLang) return byLang;
   }
   return DEFAULT_STORE;
