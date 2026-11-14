@@ -950,3 +950,8 @@ Learn: derive what can drift (kit stock), store what is a decision (kit price), 
 ### 24.3 — policies and FAQ tool
 - The sixth tool, over phase 20's `searchHelp`; query required (an empty one would dump the whole help centre into an agent's context), topic limited to the shared `HelpTopicSchema` enum.
 - Learn / explain: reuse the existing client function so the agent sees exactly what the help page shows; cap and truncate what goes into an agent's context window, it is a cost the shopper's browser does not have.
+
+### 24.4 — WebMCP adapter
+- `features/agent/webmcp.ts` (the single file that knows the browser API), local ambient types in `env.d.ts`, `agent_tool_call` added to the typed `track()` events, one call in `main.tsx`.
+- Tests: tools registered with names, JSON Schema and read-only annotation; older `navigator` fallback; no-op without the API; name-only tracking; thrown errors become coded errors; `pagehide` aborts the signal; one failing registration does not stop the rest.
+- Learn / explain: feature-detect instead of polyfill so unsupported browsers run exactly the old code; abort-signal unregistration is how the draft avoids an `unregisterTool` method; isolating a draft API in one adapter confines spec churn; arguments are never tracked because an agent's input can contain anything.
