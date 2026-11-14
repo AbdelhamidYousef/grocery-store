@@ -56,14 +56,15 @@ Merged into `main` (all gates green on 2026-11-07: shared 180, web 607, API 951 
 | 18 Promotions | done, merged (engine, codes, tiers, gift, flash sales + Omnibus, member prices, admin, cart UI, sale banner, e2e) |
 | 23 grooming services | cut (decisions log, 2026-11-07) |
 | 15 Discovery | done, merged 2026-11-08 (pet profiles, price slider + chips, search autocomplete, mega-menu, gift finder; e2e 56 + 1 skipped). Menu promo tiles use catalogue photos until there is art |
-| 19 Loyalty | building 2026-11-14 on `feat/phase-19` (`../ecommerce-p15`, DB `ecommerce_p15`, API 3115, e2e 3215/5215); rebases onto main at merge (migrations renumber) |
+| 19 Loyalty | done, merged 2026-11-14 (job runner + cron entry, points earn/redeem/reversal, rewards, charity round-up, referrals, newsletter double opt-in, back-in-stock alerts, pet birthday + life-stage mails, wishlist + share link, buy again; review fixes; API 1,254 + 2 skipped, e2e 66 + 1 skipped). `.github/workflows/jobs.yml` needs repo variable `API_URL` + secret `JOBS_SECRET` (owner) |
 | 16 PDP depth | done, merged 2026-11-14 (structured content, tabs, feeding calculator, size guide, recommendations, delivery estimate, kits with component snapshot on orders; review fixes for kit stock; API 1,063+ pass, e2e 60 + 1 skipped). Kits reuse a component photo until there is art |
 | 17 Reviews | done, merged 2026-11-14 (reviews with verified buyer, photo upload to local disk via multer + sharp, helpful votes, ratings on cards/PDP, moderation, shoppable gallery; security-review fixes; API 1,140+ pass, e2e 62 + 1 skipped). Set `UPLOADS_ENABLED=false` on the free-tier demo (ephemeral disk). `sweepOrphanUploads` waits for the phase 19 job runner |
 | 22 Post-purchase | building 2026-11-14 on `feat/phase-22` (`../ecommerce-p17` folder, DB `ecommerce_p17`, API 3117, e2e 3217/5217) |
-| 24, 21 | queued: 24 after 19 in lane B, then 21 alone |
+| 24 Agent-ready | building 2026-11-14 on `feat/phase-24` (`../ecommerce-p24`, DB `ecommerce_p24`, API 3124, e2e 3224/5224) |
+| 21 Stores & languages | queued: last, alone |
 | 17 Reviews | building 2026-11-14 on `feat/phase-17` (`../ecommerce-p17`, DB `ecommerce_p17`, API 3117, e2e 3217/5217) |
 | 21, 22, 24 | queued 2026-11-14: 22 ‖ 24 after 17/19, then 21 alone (touches every screen) |
-| 19 Loyalty | in progress: lane `feat/phase-19` (`../ecommerce-p15`, DB `ecommerce_p15`, API 3115, e2e 3215/5215). 19.1 to 19.12 built and committed (job runner, points, redeem, rewards, charity, referrals, newsletter, stock alerts, pet mails, wishlist, buy again, e2e); ready for review and merge, see the notes below the table |
+| 19 Loyalty | done, merged 2026-11-14 (job runner + cron entry, points earn/redeem/reversal, rewards, charity round-up, referrals, newsletter double opt-in, back-in-stock alerts, pet birthday + life-stage mails, wishlist + share link, buy again; review fixes; API 1,254 + 2 skipped, e2e 66 + 1 skipped). `.github/workflows/jobs.yml` needs repo variable `API_URL` + secret `JOBS_SECRET` (owner) |
 | 16 PDP depth | in progress: lane `feat/phase-16` (`../ecommerce-p16`, DB `ecommerce_p16`, API 3116, e2e 3216/5216) |
 | 17 Reviews | queued: after 16 in lane B |
 | 21, 22, 24 | not started |
