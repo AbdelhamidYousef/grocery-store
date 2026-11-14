@@ -30,10 +30,10 @@ import { useProduct } from '../features/catalog/queries';
 import { variantFromSku } from '../features/catalog/resolve-variant';
 import { VariantPicker } from '../features/catalog/VariantPicker';
 import { ShoppableGallery } from '../features/gallery/ShoppableGallery';
+import { EarnPoints } from '../features/loyalty/EarnPoints';
 import { formatRating } from '../features/reviews/format';
 import { RatingStars } from '../features/reviews/RatingStars';
 import { ReviewsSection } from '../features/reviews/ReviewsSection';
-import { EarnPoints } from '../features/loyalty/EarnPoints';
 import { SafetyNoticeBox } from '../features/safety/SafetyNoticeBox';
 import { WishlistHeart } from '../features/wishlist/WishlistHeart';
 import { accentForPetAttribute, petBySlug } from '../lib/pets';
@@ -142,9 +142,12 @@ function ProductView({ product }: { product: ProductDetail }) {
 
           <div className="flex min-w-0 flex-col gap-5">
             <div>
-              <h1 className="break-words font-display text-3xl font-bold sm:text-4xl">
-                {product.name}
-              </h1>
+              <div className="flex items-start justify-between gap-3">
+                <h1 className="break-words font-display text-3xl font-bold sm:text-4xl">
+                  {product.name}
+                </h1>
+                <WishlistHeart productId={product.id} productName={product.name} />
+              </div>
               {product.rating.count > 0 && (
                 <a
                   href="#reviews"
@@ -155,12 +158,6 @@ function ProductView({ product }: { product: ProductDetail }) {
                   {product.rating.count === 1 ? '' : 's'})
                 </a>
               )}
-              <div className="flex items-start justify-between gap-3">
-                <h1 className="break-words font-display text-3xl font-bold sm:text-4xl">
-                  {product.name}
-                </h1>
-                <WishlistHeart productId={product.id} productName={product.name} />
-              </div>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 {!product.inStock && (
                   <Badge tone="neutral" className="border-ink bg-surface text-ink">

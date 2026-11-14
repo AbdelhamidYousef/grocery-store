@@ -939,3 +939,5 @@ Learn: derive what can drift (kit stock), store what is a decision (kit price), 
 1. Why is the "stock came back" rule a database trigger and not a call in the inventory service, and what does the hourly job re-check before it sends the mail?
 2. What makes the newsletter's double opt-in prove consent, and why does the confirm page send a POST on arrival instead of acting on the GET?
 3. A pet's birthday mail must go out once a year even if the job runs twice or crashes halfway: which row and which transaction guarantee that, and how are 29 February birthdays handled?
+
+- 2026-11-14 · merge of 17 and 19: the job runner now schedules `sweepOrphanUploads` daily as `sweep-orphan-uploads`, closing the phase 17 follow-up. The product page heading combines the wishlist heart (19) and the rating link (17).

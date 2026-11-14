@@ -1,9 +1,14 @@
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { and, eq, isNull, lt, sql } from 'drizzle-orm';
 import type { Logger } from 'pino';
 
+import { env } from '../config/env.ts';
 import { db } from '../db/client.ts';
 import { jobRuns } from '../db/schema/index.ts';
 import type { PaymentGateway } from '../lib/stripe.ts';
+import { sweepOrphanUploads } from '../lib/upload-refs.ts';
 import type { Outbox } from '../modules/mail/outbox.ts';
 import { sendPetMessages } from '../modules/pets/messages-service.ts';
 import { syncFlashSales } from '../modules/promotions/service.ts';
@@ -171,6 +176,16 @@ registerJob({
   name: 'pet-messages',
   every: 'daily',
   run: (ctx) => sendPetMessages({ now: ctx.now, outbox: ctx.outbox, log: ctx.log }),
+});
+
+// Review and gallery photos nobody references any more (phase 17): removed after 24 h. Relative
+// UPLOAD_DIR resolves from apps/api, as in index.ts.
+const API_ROOT = fileURLToPath(new URL('../..', import.meta.url));
+registerJob({
+  name: 'sweep-orphan-uploads',
+  every: 'daily',
+  run: () =>
+    sweepOrphanUploads({ dir: resolve(API_ROOT, env.UPLOAD_DIR), enabled: env.UPLOADS_ENABLED }),
 });
 
 /** Ticks `runDueJobs` on an interval (development only: `JOBS_IN_PROCESS=true`). */

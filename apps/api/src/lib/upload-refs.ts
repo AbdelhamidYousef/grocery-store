@@ -34,7 +34,7 @@ export const ORPHAN_AFTER_MS = 24 * 60 * 60_000;
  * Cleanup for uploads that never got attached (an admin uploaded a gallery photo and closed the
  * tab, a review post failed after the files were saved): files under `<dir>/reviews` and
  * `<dir>/gallery` older than 24 h that no row references. Returns how many were removed.
- * Phase 19's job runner should schedule this (follow-up); it is safe to call any time.
+ * Scheduled daily by the job runner (`sweep-orphan-uploads`); it is safe to call any time.
  */
 export async function sweepOrphanUploads(cfg: UploadConfig, now = Date.now()): Promise<number> {
   const used = await referencedPaths();
