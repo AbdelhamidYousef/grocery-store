@@ -56,10 +56,10 @@ Merged into `main` (all gates green on 2026-11-07: shared 180, web 607, API 951 
 | 18 Promotions | done, merged (engine, codes, tiers, gift, flash sales + Omnibus, member prices, admin, cart UI, sale banner, e2e) |
 | 23 grooming services | cut (decisions log, 2026-11-07) |
 | 15 Discovery | done, merged 2026-11-08 (pet profiles, price slider + chips, search autocomplete, mega-menu, gift finder; e2e 56 + 1 skipped). Menu promo tiles use catalogue photos until there is art |
-| 19 Loyalty | paused 2026-11-08: just started on `feat/phase-19` (`../ecommerce-p15`, DB `ecommerce_p15`, API 3115, e2e 3215/5215); 19.1 job runner half-built (`job_runs` table + migration `0018`), uncommitted; 19.2–19.12 to do |
-| 16 PDP depth | paused 2026-11-08: 16.1–16.6 committed on `feat/phase-16` (`../ecommerce-p16`, DB `ecommerce_p16`, API 3116, e2e 3216/5216); 16.7 delivery estimate half-built, uncommitted; 16.8 bundles and 16.9 e2e to do |
-| 17 Reviews | queued: after 16 in lane B |
-| 21, 22, 24 | not started |
+| 19 Loyalty | building 2026-11-14 on `feat/phase-19` (`../ecommerce-p15`, DB `ecommerce_p15`, API 3115, e2e 3215/5215); rebases onto main at merge (migrations renumber) |
+| 16 PDP depth | done, merged 2026-11-14 (structured content, tabs, feeding calculator, size guide, recommendations, delivery estimate, kits with component snapshot on orders; review fixes for kit stock; API 1,063+ pass, e2e 60 + 1 skipped). Kits reuse a component photo until there is art |
+| 17 Reviews | building 2026-11-14 on `feat/phase-17` (`../ecommerce-p17`, DB `ecommerce_p17`, API 3117, e2e 3217/5217) |
+| 21, 22, 24 | queued 2026-11-14: 22 ‖ 24 after 17/19, then 21 alone (touches every screen) |
 
 Lanes for wave 2 are listed in the table; everything else is on `main`. Tax stays out of scope ("Demo store: no tax is charged"), logged as a decision.
 
