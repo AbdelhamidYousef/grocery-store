@@ -22,7 +22,7 @@ const isLocale = (v: string | null): v is TranslationLocale =>
 
 // The completeness report per language (what is still English) and the editor for the entity in
 // the URL (`?entity=brand&id=...`), which the product, guide, brand and collection screens link to.
-// Not translated in v1 and shown in English: help articles, legal pages, specs, FAQs, size guides,
+// Not translated in v1 and shown in English: help articles, legal pages, specs, FAQs,
 // reviews, testimonials, safety notices.
 export function TranslationsAdmin() {
   const [params, setParams] = useSearchParams();
@@ -50,8 +50,7 @@ export function TranslationsAdmin() {
       </h1>
       <p className="mt-1 text-sm text-muted">
         English lives in each record; a language only needs the fields that differ. Help articles,
-        legal pages, specs, FAQs, size guides, reviews, testimonials and safety notices stay in
-        English.
+        legal pages, specs, FAQs, reviews, testimonials and safety notices stay in English.
       </p>
       <div className="mt-4 flex gap-2" role="group" aria-label="Language">
         {TRANSLATION_LOCALES.map((l) => (

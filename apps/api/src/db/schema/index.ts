@@ -33,7 +33,6 @@ export * from './rewards.ts';
 export * from './safety-notices.ts';
 export * from './sessions.ts';
 export * from './shipping-methods.ts';
-export * from './size-guides.ts';
 export * from './stock-alerts.ts';
 export * from './tags.ts';
 export * from './testimonials.ts';

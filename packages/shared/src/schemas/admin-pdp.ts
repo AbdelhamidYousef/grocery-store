@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { DataSchema, optionalText } from './common.ts';
-import { ConstituentSchema, SizeGuideTableSchema, SpecSchema } from './pdp.ts';
+import { ConstituentSchema, SpecSchema } from './pdp.ts';
 
 // Back-office contract for the product-page content (phase 16). The database has CHECK constraints
 // for the same rules; these schemas give a person the sentence first.
@@ -64,7 +64,6 @@ export const AdminProductContentInputSchema = z.object({
   faqs: z.array(AdminFaqInputSchema).max(20).optional(),
   constituents: z.array(AdminConstituentsInputSchema).max(60).optional(),
   deliveryNote: optionalText(300),
-  sizeGuideId: z.uuid().nullable().optional(),
   // Order within a kind is the order of the list.
   relations: z
     .array(AdminRelationInputSchema)
@@ -98,65 +97,9 @@ export const AdminProductContentSchema = z.object({
   faqs: z.array(AdminFaqInputSchema.extend({ id: z.string() })),
   constituents: z.array(z.object({ variantId: z.string(), values: z.array(ConstituentSchema) })),
   deliveryNote: z.string().nullable(),
-  sizeGuideId: z.string().nullable(),
   relations: z.array(
     z.object({ relatedId: z.string(), relatedName: z.string(), kind: RelationKindSchema }),
   ),
 });
 export type AdminProductContent = z.infer<typeof AdminProductContentSchema>;
 export const AdminProductContentResponseSchema = DataSchema(AdminProductContentSchema);
-
-// ---------- size guides ----------
-
-export const AdminSizeGuideInputSchema = z
-  .object({
-    slug: z
-      .string()
-      .trim()
-      .min(2, 'At least 2 characters')
-      .max(60)
-      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Lower-case letters, numbers and dashes only'),
-    title: z.string().trim().min(1, 'Required').max(80),
-    table: SizeGuideTableSchema,
-    howtoMd: z.string().max(3000, 'At most 3000 characters').default(''),
-    tip: optionalText(120).transform((v) => v ?? null),
-  })
-  .superRefine((guide, ctx) => {
-    guide.table.rows.forEach((row, i) => {
-      if (row.values.length !== guide.table.columns.length) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['table', 'rows', i, 'values'],
-          message: 'Every row needs one value per column',
-        });
-      }
-    });
-    const sizes = new Set<string>();
-    guide.table.rows.forEach((row, i) => {
-      if (sizes.has(row.size)) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['table', 'rows', i, 'size'],
-          message: 'This size is used twice',
-        });
-      }
-      sizes.add(row.size);
-    });
-  });
-export type AdminSizeGuideInput = z.input<typeof AdminSizeGuideInputSchema>;
-
-export const AdminSizeGuideSchema = z.object({
-  id: z.string(),
-  slug: z.string(),
-  title: z.string(),
-  table: SizeGuideTableSchema,
-  howtoMd: z.string(),
-  tip: z.string().nullable(),
-  productCount: z.number().int().min(0),
-});
-export type AdminSizeGuide = z.infer<typeof AdminSizeGuideSchema>;
-export const AdminSizeGuideResponseSchema = DataSchema(AdminSizeGuideSchema);
-export const AdminSizeGuideListResponseSchema = DataSchema(z.array(AdminSizeGuideSchema));
-export const AdminSizeGuideDeleteResponseSchema = DataSchema(
-  z.object({ detachedProducts: z.number().int().min(0) }),
-);

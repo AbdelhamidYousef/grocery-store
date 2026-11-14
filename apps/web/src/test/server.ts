@@ -129,12 +129,10 @@ export const server = setupServer(
         faqs: [],
         constituents: [],
         deliveryNote: null,
-        sizeGuideId: null,
         relations: [],
       },
     }),
   ),
-  http.get(`${API}/admin/size-guides`, () => HttpResponse.json({ data: [] })),
   http.get(`${API}/categories`, () =>
     HttpResponse.json({
       data: [

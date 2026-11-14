@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, sql } from 'drizzle-orm';
+import { asc, eq, inArray } from 'drizzle-orm';
 
 import { db, type Tx } from '../../../db/client.ts';
 import {
@@ -7,7 +7,6 @@ import {
   productSpecs,
   productVariants,
   products,
-  sizeGuides,
   variantConstituents,
 } from '../../../db/schema/index.ts';
 
@@ -18,7 +17,6 @@ export async function findProduct(run: Run, productId: string) {
     .select({
       id: products.id,
       deliveryNote: products.deliveryNote,
-      sizeGuideId: products.sizeGuideId,
     })
     .from(products)
     .where(eq(products.id, productId));
@@ -106,50 +104,10 @@ export async function replaceConstituents(
 export async function setProductFields(
   tx: Tx,
   productId: string,
-  fields: { deliveryNote?: string | null; sizeGuideId?: string | null },
+  fields: { deliveryNote?: string | null },
 ) {
   if (Object.keys(fields).length === 0) return;
   await tx.update(products).set(fields).where(eq(products.id, productId));
-}
-
-// ---------- size guides ----------
-
-export type SizeGuideRow = typeof sizeGuides.$inferSelect & { productCount: number };
-
-const withCount = () =>
-  db
-    .select({
-      guide: sizeGuides,
-      productCount: sql<number>`(select count(*)::int from ${products} p where p.size_guide_id = size_guides.id)`,
-    })
-    .from(sizeGuides);
-
-export async function listSizeGuides(): Promise<SizeGuideRow[]> {
-  const rows = await withCount().orderBy(asc(sizeGuides.title), asc(sizeGuides.id));
-  return rows.map((r) => ({ ...r.guide, productCount: r.productCount }));
-}
-
-export async function findSizeGuide(run: Run, id: string) {
-  const [row] = await run.select().from(sizeGuides).where(eq(sizeGuides.id, id));
-  return row;
-}
-
-export async function getSizeGuide(id: string): Promise<SizeGuideRow | undefined> {
-  const [row] = await withCount().where(eq(sizeGuides.id, id));
-  return row && { ...row.guide, productCount: row.productCount };
-}
-
-export async function insertSizeGuide(values: typeof sizeGuides.$inferInsert) {
-  const [row] = await db.insert(sizeGuides).values(values).returning({ id: sizeGuides.id });
-  return row?.id ?? '';
-}
-
-export async function updateSizeGuide(id: string, values: Partial<typeof sizeGuides.$inferInsert>) {
-  await db.update(sizeGuides).set(values).where(eq(sizeGuides.id, id));
-}
-
-export async function deleteSizeGuide(id: string) {
-  await db.delete(sizeGuides).where(and(eq(sizeGuides.id, id)));
 }
 
 // ---------- relations ----------

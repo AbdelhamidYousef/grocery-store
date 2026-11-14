@@ -1,7 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-// Needs the seeded dev database: Soft Training Bites (specs, sizes), the Everyday Webbing
-// Collar (size guide) and the three seeded kits (the Fetch & Tug Play Kit has plenty of stock).
+// Needs the seeded dev database: Soft Training Bites (specs) and the three seeded kits (the Fetch & Tug Play Kit has plenty of stock).
 
 test('food page: tabs by keyboard and the tab in the URL', async ({ page }) => {
   await page.goto('/products/soft-training-bites');
@@ -19,21 +18,6 @@ test('food page: tabs by keyboard and the tab in the URL', async ({ page }) => {
   );
   await page.keyboard.press('Home');
   await expect(description).toHaveAttribute('aria-selected', 'true');
-});
-
-test('size guide opens on a harness-type product, highlights the size and returns focus', async ({
-  page,
-}) => {
-  await page.goto('/products/everyday-webbing-collar');
-  const button = page.getByTestId('size-guide-button');
-  await button.click();
-  const dialog = page.getByRole('dialog');
-  await expect(dialog).toBeVisible();
-  await expect(dialog.getByTestId('size-guide')).toBeVisible();
-  await expect(dialog.getByTestId('size-guide-tip')).toContainText('Size up');
-  await page.keyboard.press('Escape');
-  await expect(dialog).toBeHidden();
-  await expect(button).toBeFocused();
 });
 
 test('a kit: what is inside, the saving, add to cart; and the kit offer on a part', async ({

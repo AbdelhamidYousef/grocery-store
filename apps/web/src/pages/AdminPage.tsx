@@ -20,7 +20,6 @@ import { LoyaltyAdmin } from '../features/admin/loyalty/LoyaltyAdmin';
 import { NavigationAdmin } from '../features/admin/NavigationAdmin';
 import { OrderDetail } from '../features/admin/OrderDetail';
 import { OrdersList } from '../features/admin/OrdersList';
-import { SizeGuidesAdmin } from '../features/admin/pdp/SizeGuidesAdmin';
 import { ProductEdit } from '../features/admin/ProductEdit';
 import { ProductNew } from '../features/admin/ProductNew';
 import { ProductsList } from '../features/admin/ProductsList';
@@ -56,7 +55,6 @@ export default function AdminPage() {
         <Route path="tags" element={<TagsAdmin />} />
         <Route path="translations" element={<TranslationsAdmin />} />
         <Route path="navigation" element={<NavigationAdmin />} />
-        <Route path="size-guides" element={<SizeGuidesAdmin />} />
         <Route path="bundles" element={<BundlesAdmin />} />
         <Route path="loyalty" element={<LoyaltyAdmin />} />
         <Route path="guides" element={<GuidesList />} />

@@ -5,7 +5,7 @@ import { NetUnitSchema } from '../unit-price.ts';
 
 import { BundleDetailSchema, KitTeaserSchema } from './bundles.ts';
 import { PaginatedSchema, PaginationQuerySchema, DataSchema } from './common.ts';
-import { ConstituentSchema, FaqSchema, SizeGuideSchema, SpecSchema } from './pdp.ts';
+import { ConstituentSchema, FaqSchema, SpecSchema } from './pdp.ts';
 import { MemberOfferSchema, SaleOfferSchema } from './promotions.ts';
 import { RatingSummarySchema } from './reviews.ts';
 import { SafetyNoticeSchema } from './safety.ts';
@@ -204,7 +204,6 @@ export const ProductDetailSchema = z.object({
   safetyNotices: z.array(SafetyNoticeSchema),
   specs: z.array(SpecSchema),
   faqs: z.array(FaqSchema),
-  sizeGuide: SizeGuideSchema.nullable(),
   deliveryNote: z.string().nullable(),
   // Set on a kit's own page (what is inside, what it saves); null for an ordinary product.
   bundle: BundleDetailSchema.nullable(),

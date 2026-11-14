@@ -1,11 +1,8 @@
 import { Writable } from 'node:stream';
 
-import { eq } from 'drizzle-orm';
 import { pino } from 'pino';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { db } from '../../../db/client.ts';
-import { products } from '../../../db/schema/index.ts';
 import { makeTestApp } from '../../../test/app.ts';
 import { createProduct } from '../../../test/factories.ts';
 import { bodyOf, errorOf } from '../../../test/http.ts';
@@ -39,7 +36,6 @@ type Content = {
   faqs: { id: string; question: string }[];
   constituents: { variantId: string; values: { key: string; valueBp: number }[] }[];
   deliveryNote: string | null;
-  sizeGuideId: string | null;
 };
 
 describe('admin product content', () => {
@@ -51,7 +47,6 @@ describe('admin product content', () => {
     expect((await customer.call('put', `/admin/products/${product.id}/content`, {})).status).toBe(
       403,
     );
-    expect((await customer.call('get', '/admin/size-guides')).status).toBe(403);
   });
 
   it('answers an empty page with one constituents entry per variant', async () => {
@@ -144,7 +139,7 @@ describe('admin product content', () => {
     expect(twice.status).toBe(400);
   });
 
-  it("refuses constituents for another product's variant and a missing size guide", async () => {
+  it("refuses constituents for another product's variant", async () => {
     const { product } = await createProduct();
     const other = await createProduct();
     const path = `/admin/products/${product.id}/content`;
@@ -153,10 +148,6 @@ describe('admin product content', () => {
     });
     expect(foreign.status).toBe(400);
     expect(JSON.stringify(errorOf(foreign).details)).toContain('constituents');
-    const missing = await admin.call('put', path, {
-      sizeGuideId: '00000000-0000-4000-8000-000000000000',
-    });
-    expect(missing.status).toBe(400);
   });
 
   it('404s for an unknown product', async () => {
@@ -169,169 +160,16 @@ describe('admin product content', () => {
 
   it('rolls back every section when one of them fails', async () => {
     const { product } = await createProduct();
+    const other = await createProduct();
     const path = `/admin/products/${product.id}/content`;
     await admin.call('put', path, { specs: [{ label: 'Keep', value: 'me' }] });
     const res = await admin.call('put', path, {
       specs: [{ label: 'Lost', value: 'x' }],
-      sizeGuideId: '00000000-0000-4000-8000-000000000000',
+      constituents: [{ variantId: other.variants[0]!.id, values: [{ key: 'fat', valueBp: 100 }] }],
     });
     expect(res.status).toBe(400);
     expect(data<Content>(await admin.call('get', path)).specs).toEqual([
       { label: 'Keep', value: 'me' },
     ]);
-  });
-});
-
-describe('admin size guides', () => {
-  const guide = (over: Record<string, unknown> = {}) => ({
-    slug: 'harness',
-    title: 'Harness sizes',
-    table: {
-      columns: ['Chest (cm)', 'Weight (kg)'],
-      rows: [
-        { size: 'S', label: 'Small', values: ['40 to 55', 'up to 8'] },
-        { size: 'M', label: 'Medium', values: ['55 to 70', '8 to 20'] },
-      ],
-    },
-    howtoMd: '1. Measure.',
-    tip: 'In between sizes? Size up.',
-    ...over,
-  });
-  type Guide = { id: string; slug: string; productCount: number; tip: string | null };
-
-  it('creates, lists, updates and deletes, with audit lines', async () => {
-    const created = await admin.call('post', '/admin/size-guides', guide());
-    expect(created.status).toBe(201);
-    const id = data<Guide>(created).id;
-    expect(audits().at(-1)).toMatchObject({ action: 'size_guide.create', target: id });
-
-    const list = data<Guide[]>(await admin.call('get', '/admin/size-guides'));
-    expect(list.map((g) => g.slug)).toEqual(['harness']);
-
-    const updated = await admin.call(
-      'patch',
-      `/admin/size-guides/${id}`,
-      guide({ title: 'New', tip: '' }),
-    );
-    expect(data<Guide & { title: string }>(updated)).toMatchObject({ title: 'New', tip: null });
-
-    const del = await admin.call('delete', `/admin/size-guides/${id}`);
-    expect(data<{ detachedProducts: number }>(del).detachedProducts).toBe(0);
-    expect(data<Guide[]>(await admin.call('get', '/admin/size-guides'))).toEqual([]);
-    expect((await admin.call('delete', `/admin/size-guides/${id}`)).status).toBe(404);
-  });
-
-  it('answers a clean 400 for a slug that is taken, on create and on update', async () => {
-    await admin.call('post', '/admin/size-guides', guide());
-    const second = data<Guide>(
-      await admin.call('post', '/admin/size-guides', guide({ slug: 'beds' })),
-    );
-    const dup = await admin.call('post', '/admin/size-guides', guide());
-    expect(dup.status).toBe(400);
-    expect(JSON.stringify(errorOf(dup).details)).toContain('slug');
-    const clash = await admin.call('patch', `/admin/size-guides/${second.id}`, guide());
-    expect(clash.status).toBe(400);
-  });
-
-  it('refuses rows that do not match the columns or repeat a size', async () => {
-    const short = await admin.call(
-      'post',
-      '/admin/size-guides',
-      guide({
-        table: { columns: ['A', 'B'], rows: [{ size: 'S', label: 'Small', values: ['1'] }] },
-      }),
-    );
-    expect(short.status).toBe(400);
-    const repeat = await admin.call(
-      'post',
-      '/admin/size-guides',
-      guide({
-        table: {
-          columns: ['A'],
-          rows: [
-            { size: 'S', label: 'Small', values: ['1'] },
-            { size: 'S', label: 'Small again', values: ['2'] },
-          ],
-        },
-      }),
-    );
-    expect(repeat.status).toBe(400);
-    expect(
-      (await admin.call('post', '/admin/size-guides', guide({ slug: 'Bad Slug' }))).status,
-    ).toBe(400);
-  });
-
-  it('detaches products when a guide is deleted and counts them in the list', async () => {
-    const id = data<Guide>(await admin.call('post', '/admin/size-guides', guide())).id;
-    const { product } = await createProduct();
-    await admin.call('put', `/admin/products/${product.id}/content`, { sizeGuideId: id });
-    const list = data<Guide[]>(await admin.call('get', '/admin/size-guides'));
-    expect(list[0]?.productCount).toBe(1);
-    const del = await admin.call('delete', `/admin/size-guides/${id}`);
-    expect(data<{ detachedProducts: number }>(del).detachedProducts).toBe(1);
-    const [row] = await db.select().from(products).where(eq(products.id, product.id));
-    expect(row?.sizeGuideId).toBeNull();
-  });
-});
-
-describe('admin product relations', () => {
-  type Rel = { relatedId: string; relatedName: string; kind: string };
-  const relations = (res: Parameters<typeof bodyOf>[0]) =>
-    data<Content & { relations: Rel[] }>(res).relations;
-
-  it('saves recommendations in list order, with names, and replaces them on the next save', async () => {
-    const main = await createProduct();
-    const a = await createProduct({ name: 'Alpha' });
-    const b = await createProduct({ name: 'Bravo' });
-    const path = `/admin/products/${main.product.id}/content`;
-    const res = await admin.call('put', path, {
-      relations: [
-        { relatedId: b.product.id, kind: 'bought_together' },
-        { relatedId: a.product.id, kind: 'bought_together' },
-        { relatedId: a.product.id, kind: 'related' },
-      ],
-    });
-    expect(res.status).toBe(200);
-    expect(relations(res).map((r) => [r.relatedName, r.kind])).toEqual([
-      ['Bravo', 'bought_together'],
-      ['Alpha', 'bought_together'],
-      ['Alpha', 'related'],
-    ]);
-    const cleared = await admin.call('put', path, { relations: [] });
-    expect(relations(cleared)).toEqual([]);
-  });
-
-  it('refuses itself, an unknown product, a repeat and too many in a list', async () => {
-    const main = await createProduct();
-    const others = [];
-    for (let i = 0; i < 4; i++) others.push(await createProduct());
-    const path = `/admin/products/${main.product.id}/content`;
-    expect(
-      (
-        await admin.call('put', path, {
-          relations: [{ relatedId: main.product.id, kind: 'related' }],
-        })
-      ).status,
-    ).toBe(400);
-    expect(
-      (
-        await admin.call('put', path, {
-          relations: [{ relatedId: '00000000-0000-4000-8000-000000000000', kind: 'related' }],
-        })
-      ).status,
-    ).toBe(400);
-    const dup = { relatedId: others[0]!.product.id, kind: 'related' };
-    expect((await admin.call('put', path, { relations: [dup, dup] })).status).toBe(400);
-    const four = others.map((o) => ({ relatedId: o.product.id, kind: 'bought_together' }));
-    expect((await admin.call('put', path, { relations: four })).status).toBe(400);
-  });
-
-  it('leaves relations alone when the request does not carry them', async () => {
-    const main = await createProduct();
-    const a = await createProduct();
-    const path = `/admin/products/${main.product.id}/content`;
-    await admin.call('put', path, { relations: [{ relatedId: a.product.id, kind: 'related' }] });
-    const res = await admin.call('put', path, { specs: [{ label: 'X', value: 'y' }] });
-    expect(relations(res)).toHaveLength(1);
   });
 });

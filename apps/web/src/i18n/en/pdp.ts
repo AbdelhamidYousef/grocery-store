@@ -69,15 +69,6 @@ export const pdp = {
   'pdp.estimate.countdownM': '{m}m',
   'pdp.estimate.countdownUnderMinute': 'under a minute',
 
-  // ---- size guide ----
-  'pdp.size.button': 'Size guide',
-  'pdp.size.sizeColumn': 'Size',
-  'pdp.size.yourSize': '(your size)',
-  'pdp.size.howToMeasure': 'How to measure',
-  'pdp.size.measure.neck': 'Neck',
-  'pdp.size.measure.chest': 'Chest',
-  'pdp.size.measure.length': 'Length',
-
   // ---- bought together ----
   'pdp.bought.heading': 'Frequently bought together',
   'pdp.bought.thisItem': 'This item:',

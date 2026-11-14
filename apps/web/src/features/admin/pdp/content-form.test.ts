@@ -55,7 +55,6 @@ const empty = (over: Partial<ContentForm> = {}): ContentForm => ({
   faqs: [],
   constituents: [],
   deliveryNote: '',
-  sizeGuideId: '',
   relations: [],
   ...over,
 });
@@ -90,7 +89,6 @@ describe('toInput', () => {
       },
     ]);
     expect(input.deliveryNote).toBeNull();
-    expect(input.sizeGuideId).toBeNull();
   });
 
   it('reports every bad field at once, keyed by input', () => {
@@ -138,7 +136,6 @@ describe('toInput', () => {
         { variantId: 'v2', values: [] },
       ],
       deliveryNote: 'Note',
-      sizeGuideId: 'g1',
       relations: [{ relatedId: 'p2', relatedName: 'Ball', kind: 'bought_together' }],
     });
     expect(form.constituents[0]).toMatchObject({ protein: '26.5', fat: '', kcal: '365' });

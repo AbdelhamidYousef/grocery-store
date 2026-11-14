@@ -1,4 +1,4 @@
-import type { ConstituentKey, SizeGuideTable } from '@store/shared';
+import type { ConstituentKey } from '@store/shared';
 import {
   and,
   asc,
@@ -31,7 +31,6 @@ import {
   productTags,
   productVariants,
   products,
-  sizeGuides,
   tags,
   variantConstituents,
 } from '../../db/schema/index.ts';
@@ -567,17 +566,8 @@ export interface ProductDetailRows {
   deliveryNote: string | null;
   specs: { label: string; value: string }[];
   faqs: { id: string; question: string; answer: string }[];
-  sizeGuide: SizeGuideRow | null;
   /** variant id -> constituents, so the Specs tab can follow the selected variant. */
   constituents: Map<string, { key: ConstituentKey; valueBp: number }[]>;
-}
-
-export interface SizeGuideRow {
-  slug: string;
-  title: string;
-  table: SizeGuideTable;
-  howtoMd: string;
-  tip: string | null;
 }
 
 // Only `active` products exist for the public: a draft or archived slug is indistinguishable from
@@ -600,7 +590,6 @@ export async function getProductBySlug(slug: string): Promise<ProductDetailRows 
       },
       kind: products.kind,
       deliveryNote: products.deliveryNote,
-      sizeGuideId: products.sizeGuideId,
       brand: { slug: brands.slug, name: brands.name },
       category: { id: categories.id, slug: categories.slug, name: categories.name },
       parentId: categories.parentId,
@@ -668,7 +657,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetailRows 
       .innerJoin(tags, eq(tags.id, productTags.tagId))
       .where(eq(productTags.productId, head.product.id))
       .orderBy(asc(tags.name)),
-    getContent(head.product.id, head.sizeGuideId),
+    getContent(head.product.id),
   ]);
 
   return {
@@ -686,10 +675,10 @@ export async function getProductBySlug(slug: string): Promise<ProductDetailRows 
   };
 }
 
-// The structured content of a product page (phase 16): specs, FAQs, size guide and
-// the per-variant constituents. Four small indexed reads, run together.
-async function getContent(productId: string, sizeGuideId: string | null) {
-  const [specs, faqs, guide, constituentRows] = await Promise.all([
+// The structured content of a product page (phase 16): specs, FAQs and the
+// per-variant constituents. Three small indexed reads, run together.
+async function getContent(productId: string) {
+  const [specs, faqs, constituentRows] = await Promise.all([
     db
       .select({ label: productSpecs.label, value: productSpecs.value })
       .from(productSpecs)
@@ -700,18 +689,6 @@ async function getContent(productId: string, sizeGuideId: string | null) {
       .from(productFaqs)
       .where(eq(productFaqs.productId, productId))
       .orderBy(asc(productFaqs.sortOrder), asc(productFaqs.id)),
-    sizeGuideId
-      ? db
-          .select({
-            slug: sizeGuides.slug,
-            title: sizeGuides.title,
-            table: sizeGuides.rows,
-            howtoMd: sizeGuides.howtoMd,
-            tip: sizeGuides.tip,
-          })
-          .from(sizeGuides)
-          .where(eq(sizeGuides.id, sizeGuideId))
-      : Promise.resolve([]),
     db
       .select({
         variantId: variantConstituents.variantId,
@@ -728,7 +705,7 @@ async function getContent(productId: string, sizeGuideId: string | null) {
     list.push({ key: r.key as ConstituentKey, valueBp: r.valueBp });
     constituents.set(r.variantId, list);
   }
-  return { specs, faqs, sizeGuide: guide[0] ?? null, constituents };
+  return { specs, faqs, constituents };
 }
 
 // ---------- swatches ----------

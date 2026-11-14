@@ -71,15 +71,6 @@ export const pdp: Record<keyof typeof enNs, Entry> = {
   'pdp.estimate.countdownM': '{m} Min.',
   'pdp.estimate.countdownUnderMinute': 'weniger als einer Minute',
 
-  // ---- size guide ----
-  'pdp.size.button': 'Größentabelle',
-  'pdp.size.sizeColumn': 'Größe',
-  'pdp.size.yourSize': '(Ihre Größe)',
-  'pdp.size.howToMeasure': 'So messen Sie',
-  'pdp.size.measure.neck': 'Hals',
-  'pdp.size.measure.chest': 'Brust',
-  'pdp.size.measure.length': 'Länge',
-
   // ---- bought together ----
   'pdp.bought.heading': 'Wird oft zusammen gekauft',
   'pdp.bought.thisItem': 'Dieser Artikel:',

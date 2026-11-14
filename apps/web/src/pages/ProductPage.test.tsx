@@ -387,38 +387,6 @@ describe('product tabs', () => {
     expect(screen.queryByTestId('delivery-note')).toBeNull();
   });
 
-  it('shows a Size guide button next to the picker only for a product that has one, and highlights the size', async () => {
-    server.use(
-      http.get(`${API}/products/rope-tug`, () =>
-        HttpResponse.json({
-          data: makeProduct({
-            sizeGuide: {
-              slug: 'harness',
-              title: 'Harness sizes',
-              columns: ['Chest (cm)'],
-              rows: [
-                { size: 'S', label: 'Small', values: ['40 to 55'] },
-                { size: 'L', label: 'Large', values: ['70 to 95'] },
-              ],
-              howtoMd: '',
-              tip: 'In between sizes? Size up.',
-            },
-          }),
-        }),
-      ),
-    );
-    renderApp('/products/rope-tug?variant=TUG-RED-L');
-    await userEvent.click(await screen.findByTestId('size-guide-button'));
-    const dialog = screen.getByRole('dialog', { name: 'Harness sizes' });
-    expect(within(dialog).getByText('(your size)').closest('tr')).toHaveTextContent('Large');
-  });
-
-  it('has no Size guide button for a product without one', async () => {
-    renderApp('/products/rope-tug');
-    await screen.findByRole('tab', { name: 'Description' });
-    expect(screen.queryByTestId('size-guide-button')).toBeNull();
-  });
-
   it('shows the delivery estimate under Add to cart for a variant in stock, and not for a sold-out one', async () => {
     server.use(
       http.get(`${API}/delivery-methods`, () =>

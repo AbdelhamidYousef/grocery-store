@@ -19,7 +19,6 @@ import {
   productVariants,
   products as productsTable,
   shippingMethods as shippingTable,
-  sizeGuides as sizeGuidesTable,
   tags as tagsTable,
   users,
   variantConstituents,
@@ -35,7 +34,7 @@ import { FORCED_STOCK, expandVariants, stockLevels } from './expand.ts';
 import { seedHomeContent } from './home.ts';
 import { imageRowsFor } from './images.ts';
 import { seedMenuPromos } from './menu-promos.ts';
-import { pdpFor, sizeGuides } from './pdp.ts';
+import { pdpFor } from './pdp.ts';
 import { seedGbpPrices } from './prices.ts';
 import { products } from './products.ts';
 import {
@@ -333,30 +332,8 @@ export async function runSeed(now = new Date()) {
       }),
     );
 
-    // ---- product page content (phase 16): specs, FAQs, constituents, size
-    // guides. Replaced wholesale for the seeded products, so a re-seed gives the same rows. ----
-    const guideRows = await tx
-      .insert(sizeGuidesTable)
-      .values(
-        sizeGuides.map((g) => ({
-          slug: g.slug,
-          title: g.title,
-          rows: g.table,
-          howtoMd: g.howtoMd,
-          tip: g.tip,
-        })),
-      )
-      .onConflictDoUpdate({
-        target: sizeGuidesTable.slug,
-        set: {
-          title: excluded('title'),
-          rows: excluded('rows'),
-          howtoMd: excluded('howto_md'),
-          tip: excluded('tip'),
-        },
-      })
-      .returning({ id: sizeGuidesTable.id, slug: sizeGuidesTable.slug });
-    const guideId = new Map(guideRows.map((r) => [r.slug, r.id]));
+    // ---- product page content (phase 16): specs, FAQs, constituents.
+    // Replaced wholesale for the seeded products, so a re-seed gives the same rows. ----
     const seededIds = [...productId.values()];
     await tx.delete(productSpecs).where(inArray(productSpecs.productId, seededIds));
     await tx.delete(productFaqs).where(inArray(productFaqs.productId, seededIds));
@@ -390,7 +367,6 @@ export async function runSeed(now = new Date()) {
       await tx
         .update(productsTable)
         .set({
-          sizeGuideId: pdp.sizeGuideSlug ? (guideId.get(pdp.sizeGuideSlug) ?? null) : null,
           deliveryNote: pdp.deliveryNote,
         })
         .where(eq(productsTable.id, id));

@@ -1,20 +1,16 @@
 import {
   type AdminProductContent,
   type AdminProductContentInputSchema,
-  type AdminSizeGuide,
-  type AdminSizeGuideInputSchema,
   type ConstituentKey,
 } from '@store/shared';
 import type { z } from 'zod';
 
 import { db } from '../../../db/client.ts';
-import { uniqueViolation } from '../../../lib/db-errors.ts';
 import { notFound, validation } from '../../../lib/errors.ts';
 
 import * as repo from './repo.ts';
 
 type ContentInput = z.output<typeof AdminProductContentInputSchema>;
-type GuideInput = z.output<typeof AdminSizeGuideInputSchema>;
 
 const fieldErrors = (errors: Record<string, string>) =>
   validation({
@@ -46,7 +42,6 @@ export async function getContent(productId: string): Promise<AdminProductContent
         .map((r) => ({ key: r.key as ConstituentKey, valueBp: r.valueBp })),
     })),
     deliveryNote: product.deliveryNote,
-    sizeGuideId: product.sizeGuideId,
     relations,
   };
 }
@@ -73,9 +68,6 @@ export async function putContent(
       });
       if (Object.keys(errors).length > 0) throw fieldErrors(errors);
     }
-    if (input.sizeGuideId && !(await repo.findSizeGuide(tx, input.sizeGuideId))) {
-      throw fieldErrors({ sizeGuideId: 'This size guide does not exist' });
-    }
 
     if (input.relations) {
       const ids = input.relations.map((r) => r.relatedId);
@@ -98,69 +90,7 @@ export async function putContent(
     }
     await repo.setProductFields(tx, productId, {
       ...(input.deliveryNote !== undefined && { deliveryNote: input.deliveryNote }),
-      ...(input.sizeGuideId !== undefined && { sizeGuideId: input.sizeGuideId }),
     });
   });
   return getContent(productId);
-}
-
-// ---------- size guides ----------
-
-const toDto = (row: repo.SizeGuideRow): AdminSizeGuide => ({
-  id: row.id,
-  slug: row.slug,
-  title: row.title,
-  table: row.rows,
-  howtoMd: row.howtoMd,
-  tip: row.tip,
-  productCount: row.productCount,
-});
-
-export async function listSizeGuides(): Promise<AdminSizeGuide[]> {
-  return (await repo.listSizeGuides()).map(toDto);
-}
-
-const slugTaken = () => fieldErrors({ slug: 'Another size guide already uses this slug' });
-
-export async function createSizeGuide(input: GuideInput): Promise<AdminSizeGuide> {
-  try {
-    const id = await repo.insertSizeGuide({
-      slug: input.slug,
-      title: input.title,
-      rows: input.table,
-      howtoMd: input.howtoMd,
-      tip: input.tip,
-    });
-    return toDto((await repo.getSizeGuide(id))!);
-  } catch (err) {
-    // The unique violation, not a pre-check: two admins can race on the same slug.
-    if (uniqueViolation(err) !== undefined) throw slugTaken();
-    throw err;
-  }
-}
-
-export async function updateSizeGuide(id: string, input: GuideInput): Promise<AdminSizeGuide> {
-  if (!(await repo.findSizeGuide(db, id))) throw notFound('Size guide not found');
-  try {
-    await repo.updateSizeGuide(id, {
-      slug: input.slug,
-      title: input.title,
-      rows: input.table,
-      howtoMd: input.howtoMd,
-      tip: input.tip,
-    });
-  } catch (err) {
-    if (uniqueViolation(err) !== undefined) throw slugTaken();
-    throw err;
-  }
-  return toDto((await repo.getSizeGuide(id))!);
-}
-
-// Products that used the guide simply lose it (ON DELETE SET NULL); refusing would make an admin
-// unlink every product by hand first. The response says how many were detached.
-export async function deleteSizeGuide(id: string): Promise<{ detachedProducts: number }> {
-  const guide = await repo.getSizeGuide(id);
-  if (!guide) throw notFound('Size guide not found');
-  await repo.deleteSizeGuide(id);
-  return { detachedProducts: guide.productCount };
 }

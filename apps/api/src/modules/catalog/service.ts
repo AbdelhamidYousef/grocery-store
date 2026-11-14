@@ -510,14 +510,6 @@ export async function getProduct(
     safetyNotices: await noticesForVariants(rows.variants.map((v) => v.id)),
     specs: rows.specs,
     faqs: rows.faqs,
-    sizeGuide: rows.sizeGuide && {
-      slug: rows.sizeGuide.slug,
-      title: rows.sizeGuide.title,
-      columns: rows.sizeGuide.table.columns,
-      rows: rows.sizeGuide.table.rows,
-      howtoMd: rows.sizeGuide.howtoMd,
-      tip: rows.sizeGuide.tip,
-    },
     deliveryNote: rows.deliveryNote,
     rating: {
       count: rows.product.ratingCount,

@@ -1,5 +1,3 @@
-import type { SizeGuideTable } from '@store/shared';
-
 import type { ProductSeed } from './expand.ts';
 
 // Structured product-page content for the demo catalogue (phase 16). Everything is made up and
@@ -11,7 +9,6 @@ export interface PdpSeed {
   faqs: { question: string; answer: string }[];
   /** Basis points per key (kcal is plain kcal per 100 g); same for every variant of the product. */
   constituents: Record<'protein' | 'fat' | 'fibre' | 'ash' | 'moisture' | 'kcal', number> | null;
-  sizeGuideSlug: string | null;
   deliveryNote: string | null;
 }
 
@@ -46,14 +43,6 @@ function constituentsFor(p: ProductSeed): PdpSeed['constituents'] {
     moisture: between(h >>> 17, 800, 1200),
     kcal: between(h >>> 5, 280, 420),
   };
-}
-
-function sizeGuideFor(p: ProductSeed): string | null {
-  if (!p.axes.some((a) => a.key === 'size')) return null;
-  if (p.categorySlug === 'dog-walk' && /harness|collar/.test(p.slug)) return 'dog-harness-collar';
-  if (p.categorySlug === 'cat-travel' && /harness/.test(p.slug)) return 'cat-harness';
-  if (p.categorySlug === 'dog-beds' || p.categorySlug === 'cat-beds') return 'bed-sizes';
-  return null;
 }
 
 const CARE: Record<string, string> = {
@@ -107,10 +96,6 @@ function faqsFor(p: ProductSeed): PdpSeed['faqs'] {
         question: 'Can I wash it?',
         answer: 'Yes. Remove the cover and machine wash at 30 degrees, then air dry.',
       },
-      {
-        question: 'Which size should I pick?',
-        answer: 'Open the size guide next to the size picker. When between sizes, size up.',
-      },
     ];
   }
   return [
@@ -140,71 +125,6 @@ export function pdpFor(p: ProductSeed): PdpSeed {
     specs: specsFor(p),
     faqs: faqsFor(p),
     constituents: constituentsFor(p),
-    sizeGuideSlug: sizeGuideFor(p),
     deliveryNote: deliveryNoteFor(p),
   };
 }
-
-// ---- size guides ----
-
-export interface SizeGuideSeed {
-  slug: string;
-  title: string;
-  table: SizeGuideTable;
-  howtoMd: string;
-  tip: string | null;
-}
-
-const SIZES = [
-  { size: 'S', label: 'Small' },
-  { size: 'M', label: 'Medium' },
-  { size: 'L', label: 'Large' },
-];
-
-export const sizeGuides: SizeGuideSeed[] = [
-  {
-    slug: 'dog-harness-collar',
-    title: 'Dog harness and collar sizes',
-    table: {
-      columns: ['Neck (cm)', 'Chest (cm)', 'Dog weight (kg)'],
-      rows: [
-        { ...SIZES[0]!, values: ['25 to 35', '40 to 55', 'up to 8'] },
-        { ...SIZES[1]!, values: ['35 to 45', '55 to 70', '8 to 20'] },
-        { ...SIZES[2]!, values: ['45 to 60', '70 to 95', '20 to 40'] },
-      ],
-    },
-    howtoMd:
-      '1. Use a soft tape measure and let your dog stand.\n2. Measure around the neck where a collar sits, then add two fingers of room.\n3. Measure the chest around the widest part, behind the front legs.\n4. Compare both with the table. If they fall in different sizes, pick the larger one.',
-    tip: 'In between sizes? Size up.',
-  },
-  {
-    slug: 'cat-harness',
-    title: 'Cat harness sizes',
-    table: {
-      columns: ['Neck (cm)', 'Chest (cm)', 'Cat weight (kg)'],
-      rows: [
-        { ...SIZES[0]!, values: ['18 to 24', '28 to 36', 'up to 3'] },
-        { ...SIZES[1]!, values: ['22 to 28', '34 to 44', '3 to 5'] },
-        { ...SIZES[2]!, values: ['26 to 34', '42 to 54', '5 to 8'] },
-      ],
-    },
-    howtoMd:
-      '1. Let your cat settle, then measure the chest behind the front legs.\n2. Measure the neck loosely: you should fit two fingers under the strap.\n3. Choose the size that matches the chest measurement.',
-    tip: 'In between sizes? Size up.',
-  },
-  {
-    slug: 'bed-sizes',
-    title: 'Bed sizes',
-    table: {
-      columns: ['Bed size (cm)', 'Suits pets up to (kg)'],
-      rows: [
-        { ...SIZES[0]!, values: ['50 x 40', '6'] },
-        { ...SIZES[1]!, values: ['70 x 55', '15'] },
-        { ...SIZES[2]!, values: ['95 x 70', '35'] },
-      ],
-    },
-    howtoMd:
-      '1. Measure your pet from nose to the base of the tail while they stretch out.\n2. Add about 15 cm for comfort.\n3. Pick the bed whose longer side is at least that long.',
-    tip: 'In between sizes? Size up.',
-  },
-];

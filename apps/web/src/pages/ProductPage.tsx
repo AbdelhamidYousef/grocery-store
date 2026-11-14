@@ -25,7 +25,6 @@ import { faqJsonLd } from '../features/catalog/pdp/FaqAccordion';
 import { ProductTabs } from '../features/catalog/pdp/ProductTabs';
 import { RecentlyViewed } from '../features/catalog/pdp/RecentlyViewed';
 import { RelatedStrip } from '../features/catalog/pdp/RelatedStrip';
-import { SizeGuideButton } from '../features/catalog/pdp/SizeGuide';
 import { useProduct } from '../features/catalog/queries';
 import { variantFromSku } from '../features/catalog/resolve-variant';
 import { VariantPicker } from '../features/catalog/VariantPicker';
@@ -242,8 +241,6 @@ function ProductView({ product }: { product: ProductDetail }) {
                 onSelect={selectVariant}
               />
             )}
-
-            {product.sizeGuide && <SizeGuideButton guide={product.sizeGuide} variant={variant} />}
 
             {product.bundle && (
               <BundlePanel bundle={product.bundle} currency={product.price.currency} />

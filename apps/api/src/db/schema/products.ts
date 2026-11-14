@@ -17,7 +17,6 @@ import {
 import { brands } from './brands.ts';
 import { categories } from './categories.ts';
 import { createdAt, id, updatedAt } from './columns.ts';
-import { sizeGuides } from './size-guides.ts';
 
 export const productStatus = pgEnum('product_status', ['draft', 'active', 'archived']);
 
@@ -63,7 +62,6 @@ export const products = pgTable(
     // Shown in the Delivery & returns tab next to the shared policy copy ("ships in its own box").
     deliveryNote: text('delivery_note'),
     // Which size chart the product page opens; SET NULL so deleting a guide never deletes products.
-    sizeGuideId: uuid('size_guide_id').references(() => sizeGuides.id, { onDelete: 'set null' }),
     // Denormalised review aggregate, kept in step with moderation in the same transaction (so a
     // card never runs AVG() over reviews). Average = rating_sum / rating_count.
     ratingCount: integer('rating_count').notNull().default(0),

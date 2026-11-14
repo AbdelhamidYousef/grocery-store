@@ -17,7 +17,6 @@ const LINKS = [
   { to: '/admin/translations', label: 'Translations', end: false },
   { to: '/admin/navigation', label: 'Navigation', end: false },
   { to: '/admin/promotions', label: 'Promotions', end: false },
-  { to: '/admin/size-guides', label: 'Size guides', end: false },
   { to: '/admin/bundles', label: 'Kits', end: false },
   { to: '/admin/loyalty', label: 'Loyalty', end: false },
   { to: '/admin/guides', label: 'Guides', end: false },

@@ -24,7 +24,6 @@ const content = (over: Record<string, unknown> = {}) => ({
     { variantId: 'v2', values: [] },
   ],
   deliveryNote: null,
-  sizeGuideId: null,
   relations: [],
   ...over,
 });
@@ -54,7 +53,7 @@ describe('product content editor', () => {
       'Constituents',
       'FAQ',
       'Recommendations',
-      'Size guide and delivery',
+      'Delivery',
     ]);
     tabs[0]?.focus();
     await user.keyboard('{ArrowRight}');
@@ -98,7 +97,7 @@ describe('product content editor', () => {
               message: 'Request validation failed',
               details: {
                 formErrors: [],
-                fieldErrors: { sizeGuideId: ['This size guide does not exist'] },
+                fieldErrors: { deliveryNote: ['Keep the note short'] },
               },
             },
           },
@@ -107,66 +106,7 @@ describe('product content editor', () => {
       ),
     );
     await user.click(within(section).getByRole('button', { name: 'Save page content' }));
-    expect(await screen.findByText(/This size guide does not exist/)).toBeInTheDocument();
-  });
-});
-
-describe('size guides screen', () => {
-  const guide = {
-    id: 'g1',
-    slug: 'harness',
-    title: 'Harness sizes',
-    table: {
-      columns: ['Chest (cm)'],
-      rows: [{ size: 'M', label: 'Medium', values: ['55 to 70'] }],
-    },
-    howtoMd: '1. Measure.',
-    tip: 'In between sizes? Size up.',
-    productCount: 2,
-  };
-
-  it('is one more item in the admin nav and lists guides with their product count', async () => {
-    server.use(http.get(`${API}/admin/size-guides`, () => HttpResponse.json({ data: [guide] })));
-    renderApp('/admin/size-guides');
-    const row = await screen.findByTestId('admin-size-guide-row');
-    expect(row).toHaveTextContent('Harness sizes');
-    expect(row).toHaveTextContent('harness · 2 products');
-    expect(
-      within(screen.getByTestId('admin-nav')).getByRole('link', { name: 'Size guides' }),
-    ).toBeInTheDocument();
-  });
-
-  it('creates a guide from the form and shows the field sentence for a bad slug', async () => {
-    const user = userEvent.setup();
-    let posted: unknown;
-    server.use(
-      http.post(`${API}/admin/size-guides`, async ({ request }) => {
-        posted = await request.json();
-        return HttpResponse.json({ data: guide }, { status: 201 });
-      }),
-    );
-    renderApp('/admin/size-guides');
-    await user.click(await screen.findByRole('button', { name: 'New size guide' }));
-    const form = await screen.findByTestId('size-guide-form');
-    await user.type(within(form).getByLabelText('Title'), 'Harness sizes');
-    await user.type(within(form).getByLabelText('Slug'), 'Bad Slug');
-    await user.type(within(form).getByLabelText('Row 1, Chest (cm)'), '55 to 70');
-    await user.click(within(form).getByRole('button', { name: 'Save size guide' }));
-    expect(
-      await within(form).findByText('Lower-case letters, numbers and dashes only'),
-    ).toBeInTheDocument();
-    expect(posted).toBeUndefined();
-    await user.clear(within(form).getByLabelText('Slug'));
-    await user.type(within(form).getByLabelText('Slug'), 'harness');
-    await user.click(within(form).getByRole('button', { name: 'Save size guide' }));
-    await waitFor(() => expect(posted).toBeTruthy());
-    expect(posted).toMatchObject({
-      slug: 'harness',
-      table: {
-        columns: ['Chest (cm)'],
-        rows: [{ size: 'S', label: 'Small', values: ['55 to 70'] }],
-      },
-    });
+    expect(await screen.findByText(/Keep the note short/)).toBeInTheDocument();
   });
 });
 

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { ApiError } from '../../../api/client';
 import { Button } from '../../../components/ui/Button';
 import { Input } from '../../../components/ui/Input';
-import { Select } from '../../../components/ui/Select';
 import { Skeleton } from '../../../components/ui/Skeleton';
 import { Tabs } from '../../../components/ui/Tabs';
 import { useToast } from '../../../components/ui/Toast';
@@ -19,7 +18,7 @@ import {
   type FormErrors,
 } from './content-form';
 import { ConstituentsEditor } from './NumberEditors';
-import { useAdminContent, useAdminSizeGuides, useSaveContent } from './queries';
+import { useAdminContent, useSaveContent } from './queries';
 import { RelationsEditor } from './RelationsEditor';
 import { FaqEditor, SpecsEditor } from './TextEditors';
 
@@ -49,7 +48,6 @@ export function ProductContent({ product }: { product: AdminProduct }) {
 function ContentEditor({ product, initial }: { product: AdminProduct; initial: ContentForm }) {
   const toast = useToast();
   const save = useSaveContent(product.id);
-  const { data: guides } = useAdminSizeGuides();
   const [form, setForm] = useState(initial);
   const [errors, setErrors] = useState<FormErrors>({});
   const [alert, setAlert] = useState<string | null>(null);
@@ -126,22 +124,9 @@ function ContentEditor({ product, initial }: { product: AdminProduct; initial: C
           },
           {
             id: 'size',
-            label: 'Size guide and delivery',
+            label: 'Delivery',
             panel: (
               <div className="flex flex-col gap-4">
-                <Select
-                  label="Size guide"
-                  hint="Opened from the size picker. Manage the guides under Size guides."
-                  value={form.sizeGuideId}
-                  onChange={(e) => setForm({ ...form, sizeGuideId: e.target.value })}
-                >
-                  <option value="">No size guide</option>
-                  {guides?.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.title}
-                    </option>
-                  ))}
-                </Select>
                 <Input
                   label="Delivery note (optional)"
                   hint="Shown in the Delivery & returns tab, next to the shared policy."

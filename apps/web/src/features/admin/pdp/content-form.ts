@@ -31,7 +31,6 @@ export interface ContentForm {
   faqs: { question: string; answer: string }[];
   constituents: ConstituentFormRow[];
   deliveryNote: string;
-  sizeGuideId: string;
   /** Recommendations: list order is display order within each kind. */
   relations: { relatedId: string; relatedName: string; kind: RelationKind }[];
 }
@@ -62,7 +61,6 @@ export function toForm(content: AdminProductContent): ContentForm {
       };
     }),
     deliveryNote: content.deliveryNote ?? '',
-    sizeGuideId: content.sizeGuideId ?? '',
     relations: content.relations.map((r) => ({ ...r })),
   };
 }
@@ -117,7 +115,6 @@ export function toInput(form: ContentForm): {
       faqs,
       constituents,
       deliveryNote: form.deliveryNote.trim() === '' ? null : form.deliveryNote.trim(),
-      sizeGuideId: form.sizeGuideId === '' ? null : form.sizeGuideId,
       relations: form.relations.map((r) => ({ relatedId: r.relatedId, kind: r.kind })),
     },
     errors,

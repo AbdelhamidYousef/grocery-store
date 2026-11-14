@@ -55,7 +55,6 @@ export const TEST_IDS = {
   bundlePanel: 'bundle-panel',
   bundleSaving: 'bundle-saving',
   kitsBlock: 'kits-block',
-  sizeGuideButton: 'size-guide-button',
   productGrid: 'product-grid',
   reviewsSection: 'reviews-section',
   reviewCard: 'review-card',
