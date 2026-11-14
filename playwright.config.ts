@@ -11,7 +11,7 @@ try {
 // The e2e suite drives the real app on ports of its own, so it never collides with (or silently
 // reuses) a `pnpm dev` session. That matters: the payment tests need an API started with
 // NODE_ENV=test (it exposes POST /test/webhooks/simulate and, without a Stripe key, boots a fake
-// payment gateway), and a dev-mode server on :3000 would quietly lack both.
+// payment gateway), and a dev-mode server on :3001 would quietly lack both.
 // To run against a database of your own (two suites at once), start with
 // DATABASE_URL=postgres://.../other_db: it is what the e2e API uses (see below).
 // The API needs the dev database up and seeded (`docker compose up -d && pnpm db:migrate &&
@@ -22,8 +22,8 @@ try {
 // replaces the empty value a copied .env.example carries.
 process.env.TEST_HOOK_SECRET ||= 'e2e-test-hook-secret-not-a-real-secret';
 
-const API_PORT = process.env.E2E_API_PORT ?? '3100';
-const WEB_PORT = process.env.E2E_WEB_PORT ?? '5273';
+const API_PORT = process.env.E2E_API_PORT ?? '3101';
+const WEB_PORT = process.env.E2E_WEB_PORT ?? '5274';
 // `preview` serves apps/web/dist (run `pnpm --filter @store/web build` first, as CI does).
 const WEB_MODE = process.env.E2E_WEB_MODE === 'preview' ? 'preview' : 'dev';
 const WEB_ORIGIN = `http://localhost:${WEB_PORT}`;
@@ -52,7 +52,7 @@ export default defineConfig({
         // NODE_ENV=test sends no mail without a transport; point it at Mailpit (docker compose)
         // so the admin spec can check the shipped email. Nothing listening is harmless: the
         // outbox retries later and that assertion skips itself.
-        SMTP_URL: process.env.SMTP_URL || 'smtp://127.0.0.1:1025',
+        SMTP_URL: process.env.SMTP_URL || 'smtp://127.0.0.1:1026',
         PORT: API_PORT,
         TEST_HOOK_SECRET: process.env.TEST_HOOK_SECRET,
         // The CSRF check compares the browser's Origin with this.

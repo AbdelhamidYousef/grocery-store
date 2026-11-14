@@ -30,13 +30,13 @@ export interface MailConfig {
 // (the outbox sends while it holds the rows) for longer than these.
 const TIMEOUTS = { connectionTimeout: 10_000, greetingTimeout: 10_000, socketTimeout: 15_000 };
 
-export const MAILPIT_URL = 'smtp://127.0.0.1:1025';
+export const MAILPIT_URL = 'smtp://127.0.0.1:1026';
 
 // Picks the transport from the environment:
 //   RESEND_API_KEY -> Resend's SMTP endpoint (user "resend", password = the key): the production
 //                     path on the free tier, and still plain SMTP so there is ONE code path;
 //   SMTP_URL       -> whatever server that names;
-//   development    -> Mailpit on localhost, so `pnpm dev` shows emails at localhost:8025;
+//   development    -> Mailpit on localhost, so `pnpm dev` shows emails at localhost:8026;
 //   otherwise      -> disabled (production without any mail config): the API boots, and the outbox
 //                     logs and skips instead of crashing a checkout over an unconfigured inbox.
 export function createMailTransport(config: MailConfig, log: Logger): MailTransport {

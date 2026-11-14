@@ -33,7 +33,7 @@ pnpm typecheck && pnpm lint && pnpm format:check && pnpm test
 pnpm e2e   # at phase end
 ```
 
-## Local (ports differ from Pawsome so both can run at once; set in G0)
+## Local (ports are Pawsome's + 1 so both run at once; e2e uses 3101/5274)
 ```
 docker compose up -d          # postgres 5433 + mailpit 8026
 pnpm db:migrate && pnpm db:seed
@@ -41,7 +41,8 @@ pnpm dev                      # web :5174 (proxies /api → :3001), api :3001
 ```
 
 ## Traps
-- Until G0 is done, ports still clash with Pawsome (5432/8025/5173/3000).
+- Local Postgres runs with `fsync=off` (tests truncate ~80 tables per test); after a crash, `docker compose down -v` and re-seed.
+- `tsc -b` can pass on stale `*.tsbuildinfo`: delete them (outside node_modules) before trusting typecheck.
 - Stripe webhook route must be mounted before `express.json()`.
 - Migrations are the source of truth; never `drizzle-kit push` outside experiments.
 - Money is integer cents everywhere, including weighed items (price per kg × grams, rounded once, documented).

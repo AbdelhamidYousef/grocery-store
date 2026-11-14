@@ -76,7 +76,7 @@ test('every store view is announced to search engines with hreflang', async ({ p
 // mails in Mailpit: the UK order mail is English, the German one is German.
 // ---------------------------------------------------------------------------------------------
 
-const MAILPIT = process.env.MAILPIT_URL ?? 'http://localhost:8025';
+const MAILPIT = process.env.MAILPIT_URL ?? 'http://localhost:8026';
 const PRODUCT = 'bouncy-rubber-ball';
 
 test.describe.configure({ mode: 'serial' });

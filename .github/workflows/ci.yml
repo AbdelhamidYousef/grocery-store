@@ -40,21 +40,21 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: ecommerce
-          POSTGRES_PASSWORD: ecommerce
-          POSTGRES_DB: ecommerce_test
+          POSTGRES_USER: grocery
+          POSTGRES_PASSWORD: grocery
+          POSTGRES_DB: grocery_test
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U ecommerce -d ecommerce_test"
+          --health-cmd "pg_isready -U grocery -d grocery_test"
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
     env:
       NODE_ENV: test
-      DATABASE_URL: postgres://ecommerce:ecommerce@localhost:5432/ecommerce_test
-      DATABASE_URL_TEST: postgres://ecommerce:ecommerce@localhost:5432/ecommerce_test
-      WEB_ORIGIN: http://localhost:5173
+      DATABASE_URL: postgres://grocery:grocery@localhost:5432/grocery_test
+      DATABASE_URL_TEST: postgres://grocery:grocery@localhost:5432/grocery_test
+      WEB_ORIGIN: http://localhost:5174
       LOG_LEVEL: silent
     steps:
       - uses: actions/checkout@v4
@@ -77,13 +77,13 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: ecommerce
-          POSTGRES_PASSWORD: ecommerce
-          POSTGRES_DB: ecommerce
+          POSTGRES_USER: grocery
+          POSTGRES_PASSWORD: grocery
+          POSTGRES_DB: grocery
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U ecommerce -d ecommerce"
+          --health-cmd "pg_isready -U grocery -d grocery"
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
@@ -91,7 +91,7 @@ jobs:
       # The e2e API runs as NODE_ENV=test on its own ports (playwright.config.ts starts it) and
       # reads the seeded database below. No Stripe key: it boots the fake payment gateway and the
       # specs pay through POST /test/webhooks/simulate.
-      DATABASE_URL: postgres://ecommerce:ecommerce@localhost:5432/ecommerce
+      DATABASE_URL: postgres://grocery:grocery@localhost:5432/grocery
       WEB_ORIGIN: http://localhost:5273
       LOG_LEVEL: warn
       E2E_WEB_MODE: preview

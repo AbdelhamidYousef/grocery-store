@@ -112,7 +112,7 @@ describe('POST /test/webhooks/simulate (NODE_ENV=test only)', () => {
       const other = makeTestApp({ config: { nodeEnv }, payments: new FakeStripe() });
       const res = await request(other)
         .post('/api/v1/test/webhooks/simulate')
-        .set('Origin', 'http://localhost:5173')
+        .set('Origin', 'http://localhost:5174')
         .send({ orderNumber: 'PW-2026-000001' });
       expect(res.status).toBe(404);
     }

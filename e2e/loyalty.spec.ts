@@ -17,7 +17,7 @@ import { ADMIN, api, register, restock, uniqueEmail } from './helpers';
 // Every test uses its own unique address, and buys products no other spec buys (checkout.spec
 // asserts exact stock numbers on its own products), so parallel specs cannot interfere.
 
-const MAILPIT = process.env.MAILPIT_URL ?? 'http://localhost:8025';
+const MAILPIT = process.env.MAILPIT_URL ?? 'http://localhost:8026';
 const ADDRESS = {
   fullName: 'Sam Rivers',
   line1: '1 Bone Street',

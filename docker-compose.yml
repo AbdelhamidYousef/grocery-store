@@ -1,19 +1,26 @@
 # Local services only. Production uses Neon (Postgres) and Resend (email), never Docker.
+name: grocery # prefixes containers, network and volume, so this never shares Pawsome's
 services:
   postgres:
     image: postgres:16-alpine
+    # Throwaway local data only, so trade crash safety for speed: the API tests truncate ~80 tables
+    # before every test, and with fsync on each truncate waited ~1.8 s for the disk (a 45-minute
+    # suite). Production (Neon) is unaffected. A crash can corrupt this volume: `docker compose
+    # down -v` and re-seed.
+    command:
+      ['postgres', '-c', 'fsync=off', '-c', 'synchronous_commit=off', '-c', 'full_page_writes=off']
     environment:
       # Throwaway local credentials: the port is bound to 127.0.0.1 and holds only seed data.
-      POSTGRES_USER: ecommerce
-      POSTGRES_PASSWORD: ecommerce
-      POSTGRES_DB: ecommerce
+      POSTGRES_USER: grocery
+      POSTGRES_PASSWORD: grocery
+      POSTGRES_DB: grocery
     ports:
-      - '127.0.0.1:5432:5432'
+      - '127.0.0.1:5433:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./docker/postgres/init-test-db.sql:/docker-entrypoint-initdb.d/01-test-db.sql:ro
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ecommerce -d ecommerce']
+      test: ['CMD-SHELL', 'pg_isready -U grocery -d grocery']
       interval: 5s
       timeout: 3s
       retries: 10
@@ -21,8 +28,8 @@ services:
   mailpit:
     image: axllent/mailpit:latest
     ports:
-      - '127.0.0.1:1025:1025' # SMTP: the API sends here in development
-      - '127.0.0.1:8025:8025' # web UI to read the captured emails
+      - '127.0.0.1:1026:1025' # SMTP: the API sends here in development
+      - '127.0.0.1:8026:8025' # web UI to read the captured emails
     healthcheck:
       test: ['CMD', '/mailpit', 'readyz']
       interval: 5s

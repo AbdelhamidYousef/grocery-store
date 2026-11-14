@@ -3,10 +3,10 @@ import { describe, expect, it } from 'vitest';
 
 import { createMailTransport, MAILPIT_URL } from '../../lib/mailer.ts';
 
-// The one test that talks to a real SMTP server: Mailpit from docker-compose (SMTP 1025, HTTP
-// API 8025). It proves the nodemailer wiring end to end, which a fake transport cannot. Skipped
+// The one test that talks to a real SMTP server: Mailpit from docker-compose (SMTP 1026, HTTP
+// API 8026). It proves the nodemailer wiring end to end, which a fake transport cannot. Skipped
 // (not failed) when Mailpit is not running, so the suite works on a bare checkout.
-const API = 'http://127.0.0.1:8025/api/v1';
+const API = 'http://127.0.0.1:8026/api/v1';
 const reachable = await fetch(`${API}/info`, { signal: AbortSignal.timeout(1500) })
   .then((r) => r.ok)
   .catch(() => false);

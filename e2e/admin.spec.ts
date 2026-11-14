@@ -12,7 +12,7 @@ import { ADMIN, api, register, uniqueEmail } from './helpers';
 // The public catalog answers with `Cache-Control: max-age=60`, so storefront checks use a brand
 // new browser context (empty HTTP cache) and poll with reloads instead of sleeping.
 
-const MAILPIT = process.env.MAILPIT_URL ?? 'http://localhost:8025';
+const MAILPIT = process.env.MAILPIT_URL ?? 'http://localhost:8026';
 const HOOK_HEADERS: Record<string, string> = process.env.TEST_HOOK_SECRET
   ? { 'x-test-hook-secret': process.env.TEST_HOOK_SECRET }
   : {};

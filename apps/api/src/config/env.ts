@@ -25,7 +25,7 @@ const testKey = (prefix: string, hint: string) =>
 export const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-    PORT: z.coerce.number().int().positive().default(3000),
+    PORT: z.coerce.number().int().positive().default(3001),
     DATABASE_URL: z.url(),
     // Only the test harness needs it; optional so the dev server boots without it.
     DATABASE_URL_TEST: z.url().optional(),
@@ -35,7 +35,7 @@ export const envSchema = z
     // Reduced to an origin (scheme + host + port) because that is what browsers send in `Origin`.
     WEB_ORIGIN: z
       .url()
-      .default('http://localhost:5173')
+      .default('http://localhost:5174')
       .transform((value) => new URL(value).origin),
     // Empty counts as unset: a copied `.env.example` carries `COOKIE_SECRET=` and must boot in dev.
     COOKIE_SECRET: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(32).optional()),
@@ -67,7 +67,7 @@ export const envSchema = z
       .pipe(z.string().min(16, 'use at least 16 characters').optional()),
     // Read by the web build, not the API; validated here too so one typo'd `.env` fails in one place.
     STRIPE_PUBLISHABLE_KEY: testKey('pk_test_', 'test-mode publishable key only'),
-    // Email. Development: Mailpit (smtp://127.0.0.1:1025, see docker-compose.yml) when SMTP_URL is
+    // Email. Development: Mailpit (smtp://127.0.0.1:1026, see docker-compose.yml) when SMTP_URL is
     // empty. Production: RESEND_API_KEY (sent over Resend's SMTP endpoint) or any SMTP_URL; with
     // neither, emails are logged and skipped and the API still boots.
     SMTP_URL: z

@@ -5,7 +5,7 @@ import { defineConfig } from 'vitest/config';
 // requests same-origin, so session cookies work without CORS or SameSite workarounds. Both the dev
 // server and `vite preview` (the production build, used by the CI e2e) need it.
 // The e2e suite runs its own API on another port and says so here.
-const proxy = { '/api': process.env.API_PROXY_TARGET ?? 'http://localhost:3000' };
+const proxy = { '/api': process.env.API_PROXY_TARGET ?? 'http://localhost:3001' };
 
 export default defineConfig({
   plugins: [react()],
@@ -13,7 +13,7 @@ export default defineConfig({
   // browser bundle, so the secret keys in the same file are never exposed).
   envDir: '../..',
   server: {
-    port: 5173,
+    port: 5174,
     proxy,
   },
   preview: { proxy },
