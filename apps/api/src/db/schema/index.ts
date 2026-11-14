@@ -44,3 +44,4 @@ export * from './users.ts';
 export * from './webhook-events.ts';
 export * from './wishlists.ts';
 export * from './withdrawal-requests.ts';
+export * from './returns.ts';
