@@ -209,6 +209,35 @@ describe('checkout and payment in the order currency', () => {
     expect(gateway.cancelled).toHaveLength(1);
   });
 
+  it('can still pay after switching store EUR -> GBP -> EUR before paying', async () => {
+    const { variants } = await createProduct({
+      variants: [{ priceCents: 1500, gbpCents: 1300, stock: 20 }],
+    });
+    const body = (address: object) => ({
+      email: 'ada@pawsome.test',
+      shippingAddress: address,
+      shippingMethodCode: 'standard',
+    });
+    const eu = makeShopper(app, undefined, 'eu-en');
+    await eu.addToCart(variants[0]!.id, 2);
+    expect((await eu.call('post', '/checkout', body(EU_ADDRESS))).status).toBe(200);
+    const uk = makeShopper(app, undefined, 'uk-en');
+    for (const [k, v] of eu.jar) uk.jar.set(k, v);
+    expect((await uk.call('post', '/checkout', body(UK_ADDRESS))).status).toBe(200);
+    for (const [k, v] of uk.jar) eu.jar.set(k, v);
+    const back = await eu.call('post', '/checkout', body(EU_ADDRESS));
+    expect(back.status).toBe(200);
+    const order = await orderByNumber(
+      bodyOf<{ data: { orderNumber: string } }>(back).data.orderNumber,
+    );
+    const [payment] = await db.select().from(payments).where(eq(payments.orderId, order.id));
+    const intent = await gateway.retrievePaymentIntent(payment!.providerPaymentIntentId!);
+    // A live EUR intent, not the first one (cancelled at the first switch) replayed by its key.
+    expect(intent).toMatchObject({ currency: 'eur', amountCents: order.totalCents });
+    expect(intent.status).not.toBe('canceled');
+    expect(gateway.cancelled).toHaveLength(2);
+  });
+
   it('ships only to the store view countries, in checkout and in quotes', async () => {
     const { variants } = await createProduct({ variants: [{ priceCents: 1500, gbpCents: 1300 }] });
     const uk = makeShopper(app, undefined, 'uk-en');

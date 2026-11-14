@@ -446,19 +446,19 @@ async function attachPaymentIntent(
       throw conflict(ErrorCode.CONFLICT, 'A payment for this cart is already in progress');
     }
     // The shopper switched store (currency) after the intent was made: an intent's currency can
-    // never change, so it is cancelled and a new one made in the order's currency.
-    if (
-      intent.status !== 'canceled' &&
-      intent.currency.toLowerCase() !== order.currency.toLowerCase()
-    ) {
-      await gateway.cancelPaymentIntent(intent.id);
+    // never change, so it is cancelled and a new one made in the order's currency. The new key
+    // names the intent it replaces: EUR -> GBP -> EUR must not replay the first, cancelled EUR
+    // intent, while a retry of this very switch (crash before the row was updated) still gets the
+    // same fresh intent back.
+    if (intent.currency.toLowerCase() !== order.currency.toLowerCase()) {
+      if (intent.status !== 'canceled') await gateway.cancelPaymentIntent(intent.id);
       const fresh = await gateway.createPaymentIntent({
         amountCents: order.totalCents,
         currency: order.currency,
         orderId: order.id,
         orderNumber: order.number,
         email: order.email,
-        idempotencyKey: intentKey(order),
+        idempotencyKey: `${intentKey(order)}:after:${intent.id}`,
       });
       if (!fresh.clientSecret) throw paymentProvider('Stripe returned no client secret');
       await repo.updatePayment(db, payment.id, {

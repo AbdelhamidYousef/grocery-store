@@ -111,6 +111,7 @@ Paused on 2026-11-08 at the owner's request. To resume:
 - Gates before every commit: delete stale `*.tsbuildinfo` outside node_modules, `pnpm typecheck && pnpm lint && pnpm format:check`, then the unit suites one package at a time; before `pnpm e2e`, check the lane's e2e ports with `ss -ltnp`.
 
 Known follow-ups:
+- Checkout race: a second checkout (other tab or store) while the first tab's payment is confirming, before the webhook, can re-total the pending order; the late payment then fails the amount/currency check and needs a manual refund. Fix idea: ask Stripe for the stored intent's status before re-pricing.
 - e2e specs create and buy products in the shared dev database, so local "Bestsellers" can show E2E test products. A deployed demo starts from the seed and is unaffected.
 - Playwright reuses any server already on the e2e ports (`reuseExistingServer: true`). Check `ss -ltnp` before `pnpm e2e`: a leftover dev API there makes many tests fail for no code reason.
 - `pnpm typecheck` can pass on a stale `*.tsbuildinfo`; delete those first when in doubt.
