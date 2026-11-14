@@ -165,3 +165,14 @@ describe('words', () => {
     expect(formatCountdown(-5)).toBe('under a minute');
   });
 });
+
+describe('STORE_HOLIDAYS: 2027 Dutch holidays', () => {
+  it("has King's Day on 27 April (26 April is a Monday working day), Ascension and Whit Monday", () => {
+    expect(STORE_HOLIDAYS).toEqual(
+      expect.arrayContaining(['2027-04-27', '2027-05-05', '2027-05-06', '2027-05-17']),
+    );
+    expect(STORE_HOLIDAYS).not.toContain('2027-04-26');
+    expect(isBusinessDay('2027-04-26', STORE_HOLIDAYS)).toBe(true);
+    expect(isBusinessDay('2027-04-27', STORE_HOLIDAYS)).toBe(false);
+  });
+});

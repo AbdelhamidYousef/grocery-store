@@ -12,8 +12,10 @@ export const STORE_HOLIDAYS: readonly string[] = [
   '2026-12-26',
   '2027-01-01',
   '2027-03-29',
-  '2027-04-26',
-  '2027-05-05',
+  '2027-04-27', // King's Day
+  '2027-05-05', // Liberation Day
+  '2027-05-06', // Ascension
+  '2027-05-17', // Whit Monday
   '2027-12-27',
 ];
 
