@@ -41,8 +41,8 @@ describe('seed', () => {
       brands: 6,
       tags: 6,
       collections: 5,
-      // 3 demo logins plus the 14 invented reviewers (phase 17).
-      users: 17,
+      // 3 demo logins, the 14 invented reviewers (phase 17) and the returns demo customer (phase 22).
+      users: 18,
       shipping: 2,
     });
   });
@@ -231,5 +231,73 @@ describe('seeded reviews and gallery (phase 17)', () => {
       sql`select count(*)::int as n from reviews where status = 'approved' and moderated_at is null`,
     );
     expect(row?.n).toBe(0);
+  });
+});
+
+describe('seeded sales, returns and vet items (phase 22)', () => {
+  const stats = async () =>
+    (
+      await db.execute<{
+        orders: number;
+        revenue: string;
+        days: number;
+        delivered: number;
+        returns: number;
+        requested: number;
+        approved: number;
+        refunded: number;
+        refunded_cents: string;
+        vet: number;
+        payments: number;
+      }>(sql`select
+        (select count(*)::int from orders where notes = 'seed:sales') as orders,
+        (select coalesce(sum(total_cents), 0)::bigint from orders where notes = 'seed:sales') as revenue,
+        (select count(distinct placed_at::date)::int from orders where notes = 'seed:sales') as days,
+        (select count(*)::int from orders where notes = 'seed:sales' and status = 'delivered') as delivered,
+        (select count(*)::int from returns) as returns,
+        (select count(*)::int from returns where status = 'requested') as requested,
+        (select count(*)::int from returns where status = 'approved') as approved,
+        (select count(*)::int from returns where status = 'refunded') as refunded,
+        (select coalesce(sum(refunded_cents), 0)::bigint from orders where notes = 'seed:sales') as refunded_cents,
+        (select count(*)::int from products where requires_vet_approval) as vet,
+        (select count(*)::int from payments) as payments`)
+    )[0]!;
+
+  it('writes about 90 days of orders (deterministic), three sample returns, and is idempotent', async () => {
+    await runSeed();
+    const first = await stats();
+    expect(first.orders).toBeGreaterThan(100);
+    expect(first.days).toBeGreaterThan(50); // spread over the quarter, not one burst
+    expect(first.delivered).toBeGreaterThan(first.orders / 2);
+    expect(first).toMatchObject({
+      returns: 3,
+      requested: 1,
+      approved: 1,
+      refunded: 1,
+      payments: 0,
+    });
+    await runSeed();
+    const again = await stats();
+    // Same rows, same money: the generator is seeded, and a re-seed replaces the history. (Dates
+    // hang off "now", so the calendar-day spread may shift by a day between runs; money does not.)
+    expect({ ...again, days: 0 }).toEqual({ ...first, days: 0 });
+  });
+
+  it('keeps every seeded order consistent: totals add up and refunds never exceed the total', async () => {
+    await runSeed();
+    const [bad] = await db.execute<{ n: number }>(sql`select count(*)::int as n from orders o
+      where o.notes = 'seed:sales' and (
+        o.total_cents <> o.subtotal_cents + o.shipping_cents
+        or o.subtotal_cents <> (select sum(line_total_cents) from order_items i where i.order_id = o.id)
+        or o.refunded_cents > o.total_cents)`);
+    expect(bad?.n).toBe(0);
+  });
+
+  it('gives the demo customer the three returns and flags four vet-approval products', async () => {
+    await runSeed();
+    const [row] = await db.execute<{ n: number }>(sql`select count(*)::int as n from returns r
+      join users u on u.id = r.user_id where u.email = 'casey@pawsome.test'`);
+    expect(row?.n).toBe(3);
+    expect((await stats()).vet).toBe(4);
   });
 });

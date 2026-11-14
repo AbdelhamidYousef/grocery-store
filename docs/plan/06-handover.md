@@ -100,6 +100,7 @@ Known follow-ups:
 - `pnpm typecheck` can pass on a stale `*.tsbuildinfo`; delete those first when in doubt.
 - Hero slides still use catalogue photos; generated hero art is a later image task.
 - Phase 17 (reviews): seed review photos and the gallery reuse catalogue pictures; live photo upload writes to `UPLOAD_DIR` (ephemeral on Render), so the public demo should set `UPLOADS_ENABLED=false`. Migration `0020_reviews_ugc` (the lead renumbers if phase 19 also took 0019).
+- Phase 22 (post-purchase): migrations `0021_returns`, `0022_return_refund_intent`, `0023_vet_approval`, `0024_order_refunded_cents` (the lead renumbers if another phase also took them; the hand-written triggers/backfill are marked at the end of each file). `OrderRefundedEvent` now carries `{orderId, refundId, amountCents, refundedCents, full, lines, shippingCents}`: phase 19 subscribes after merge and keys on `refundId`. Dev without Stripe: set `RETURNS_SIMULATED=true` to see refunds. Demo logins gain `casey@pawsome.test` (sample returns).
 
 Remote viewing: the screenshot tour of the current `main` (phases 0–13) is a private page at
 https://claude.ai/artifact/GPjeWpRVGZNQeZVcmnvdz1. For the live dev site on your tailnet, run

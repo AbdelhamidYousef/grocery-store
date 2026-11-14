@@ -47,6 +47,7 @@ import {
 } from './promotions.ts';
 import { seedReviews } from './reviews.ts';
 import { seedRewards } from './rewards.ts';
+import { RETURNS_DEMO_EMAIL, seedSales } from './sales.ts';
 import { validateSeed } from './schema.ts';
 import { shippingMethods } from './shipping.ts';
 import { tags } from './tags.ts';
@@ -491,6 +492,9 @@ export async function runSeed(now = new Date()) {
 
     // ---- reviews and the customer gallery (phase 17): after the products and the users ----
     await seedReviews(tx, { products, productId, passwordHash, now });
+
+    // ---- ~90 days of sales history and sample returns (phase 22): after products and users ----
+    await seedSales(tx, { passwordHash, now });
   });
 }
 
@@ -501,4 +505,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   console.log('seed complete');
   console.log(`\nDemo logins (password for all: ${DEMO_PASSWORD})`);
   for (const u of demoUsers) console.log(`  ${u.role.padEnd(8)} ${u.email}`);
+  console.log(`  customer ${RETURNS_DEMO_EMAIL} (has sample returns on three delivered orders)`);
 }
