@@ -1,8 +1,10 @@
 import type { Order } from '@store/shared';
 
+import type { EmailText } from './i18n/index.ts';
 import {
   addressLines,
   escapeHtml,
+  htmlOf,
   itemsTable,
   itemsText,
   paragraph,
@@ -11,30 +13,38 @@ import {
 } from './layout.ts';
 
 // Sent once, when the order moves to `shipped`.
-export function orderShipped(order: Order): Email {
+export function orderShipped(order: Order, x: EmailText): Email {
   const address = addressLines(order.shippingAddress);
-  const subject = `Your Pawsome order ${order.number} is on its way`;
+  const name = order.shippingAddress.fullName;
+  const subject = x.t('shipped.subject', { number: order.number });
   const text = [
-    `Good news, ${order.shippingAddress.fullName}: order ${order.number} has shipped!`,
+    x.t('shipped.good', { name, number: order.number }),
     '',
-    `Shipping method: ${order.shippingMethod.name}`,
+    x.t('shipped.method', { method: order.shippingMethod.name }),
     '',
-    itemsText(order),
+    itemsText(order, x),
     '',
-    'Delivering to:',
+    x.t('order.deliveringTo'),
     ...address,
     '',
-    '- The Pawsome team',
+    x.t('mail.signoff'),
   ].join('\n');
-  const html = shell({
-    preheader: `Order ${order.number} has shipped.`,
-    heading: 'Your order is on its way!',
+  const html = shell(x, {
+    preheader: x.t('shipped.preheader', { number: order.number }),
+    heading: x.t('shipped.heading'),
     body: [
       paragraph(
-        `Hi ${escapeHtml(order.shippingAddress.fullName)}, order <strong>${escapeHtml(order.number)}</strong> has shipped with ${escapeHtml(order.shippingMethod.name)} shipping.`,
+        htmlOf(
+          x,
+          'shipped.intro',
+          { name, number: order.number, method: order.shippingMethod.name },
+          ['number'],
+        ),
       ),
-      itemsTable(order),
-      paragraph(`<strong>Delivering to</strong><br>${address.map(escapeHtml).join('<br>')}`),
+      itemsTable(order, x),
+      paragraph(
+        `<strong>${escapeHtml(x.t('order.deliveringTo').replace(/:$/, ''))}</strong><br>${address.map(escapeHtml).join('<br>')}`,
+      ),
     ].join('\n'),
   });
   return { subject, text, html };

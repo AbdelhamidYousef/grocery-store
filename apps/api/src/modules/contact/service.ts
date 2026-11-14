@@ -3,6 +3,7 @@ import type { ContactBody, ContactReceipt } from '@store/shared';
 import { env } from '../../config/env.ts';
 import { db } from '../../db/client.ts';
 import { contactMessages } from '../../db/schema/index.ts';
+import { currentStore } from '../i18n/context.ts';
 import { enqueueEmail, type Outbox } from '../mail/outbox.ts';
 
 export const contactReference = (id: string): string => `MSG-${id.slice(0, 8).toUpperCase()}`;
@@ -42,6 +43,8 @@ export async function submitContact(
       kind: 'contact_ack',
       to: created.email,
       payload,
+      // Answered in the language of the store view the visitor wrote from.
+      storeView: currentStore().code,
       dedupeKey: `contact_ack:${created.id}`,
     });
     await enqueueEmail(tx, {

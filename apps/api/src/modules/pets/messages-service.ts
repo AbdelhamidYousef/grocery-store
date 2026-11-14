@@ -13,6 +13,7 @@ import type { Logger } from 'pino';
 import { env } from '../../config/env.ts';
 import { db, type Tx } from '../../db/client.ts';
 import { newsletterSubscribers, petMessages, pets, users } from '../../db/schema/index.ts';
+import { storeFor } from '../../emails/i18n/index.ts';
 import { mintPersonalCode } from '../loyalty/codes.ts';
 import { enqueueEmail, type Outbox } from '../mail/outbox.ts';
 import { unsubscribeUrl } from '../newsletter/service.ts';
@@ -57,6 +58,7 @@ export async function sendPetMessages(deps: {
       userId: pets.userId,
       email: users.email,
       unsubscribeToken: newsletterSubscribers.unsubscribeToken,
+      storeView: newsletterSubscribers.storeView,
     })
     .from(pets)
     .innerJoin(users, eq(users.id, pets.userId))
@@ -87,13 +89,14 @@ export async function sendPetMessages(deps: {
           await enqueueEmail(tx, {
             kind: 'pet_birthday',
             to: c.email,
+            storeView: c.storeView,
             dedupeKey: `pet_birthday:${c.petId}:${year}`,
             payload: {
               petName: c.petName,
               code: code.code,
               percent: BIRTHDAY_CODE_PERCENT,
               days: BIRTHDAY_CODE_DAYS,
-              shopUrl: `${origin()}/c/${PET_CATEGORY_SLUGS[c.species]}`,
+              shopUrl: `${origin()}/${storeFor(c.storeView).code}/c/${PET_CATEGORY_SLUGS[c.species]}`,
               unsubscribeUrl: unsub,
             },
           });
@@ -107,12 +110,14 @@ export async function sendPetMessages(deps: {
           await enqueueEmail(tx, {
             kind: 'pet_life_stage',
             to: c.email,
+            storeView: c.storeView,
             dedupeKey: `pet_life_stage:${c.petId}:${kind}`,
             payload: {
               petName: c.petName,
               species,
               ageLabel: stage.label,
-              categoryUrl: `${origin()}/c/${PET_CATEGORY_SLUGS[c.species]}`,
+              milestone: kind,
+              categoryUrl: `${origin()}/${storeFor(c.storeView).code}/c/${PET_CATEGORY_SLUGS[c.species]}`,
               unsubscribeUrl: unsub,
             },
           });

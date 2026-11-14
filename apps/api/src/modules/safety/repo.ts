@@ -55,9 +55,13 @@ export async function findNotice(id: string): Promise<NoticeRow | undefined> {
 // Distinct customer emails from orders that were paid for and contain an affected variant.
 // Guests count: the email is on the order itself, not on an account. "Paid" excludes orders that
 // never completed (pending payment) and cancelled ones.
-export async function listBuyerEmails(tx: Tx, noticeId: string): Promise<string[]> {
+export async function listBuyerEmails(
+  tx: Tx,
+  noticeId: string,
+): Promise<{ email: string; storeView: string }[]> {
+  // Latest order per buyer decides the language of the notice.
   const rows = await tx
-    .selectDistinct({ email: orders.email })
+    .selectDistinctOn([orders.email], { email: orders.email, storeView: orders.storeView })
     .from(orders)
     .innerJoin(orderItems, eq(orderItems.orderId, orders.id))
     .innerJoin(
@@ -67,8 +71,9 @@ export async function listBuyerEmails(tx: Tx, noticeId: string): Promise<string[
         eq(safetyNoticeVariants.noticeId, noticeId),
       ),
     )
-    .where(sql`${orders.status} not in ('pending_payment', 'cancelled')`);
-  return rows.map((r) => r.email);
+    .where(sql`${orders.status} not in ('pending_payment', 'cancelled')`)
+    .orderBy(orders.email, desc(orders.createdAt));
+  return rows;
 }
 
 // Inserts the deliveries that do not exist yet and returns ONLY the new emails: the unique pair

@@ -8,7 +8,9 @@ import { env } from '../../config/env.ts';
 import { stockQuantity, stockReserved } from '../../db/available.ts';
 import { db } from '../../db/client.ts';
 import { inventory, productVariants, products, stockAlerts } from '../../db/schema/index.ts';
+import { storeFor } from '../../emails/i18n/index.ts';
 import { conflict, notFound, validation } from '../../lib/errors.ts';
+import { currentStore } from '../i18n/context.ts';
 import { enqueueEmail, type Outbox } from '../mail/outbox.ts';
 
 const origin = (): string => env.WEB_ORIGIN.replace(/\/$/, '');
@@ -64,6 +66,7 @@ export async function createAlert(input: {
       email,
       userId: input.userId,
       token: randomBytes(24).toString('base64url'),
+      storeView: currentStore().code,
     });
   });
 }
@@ -104,6 +107,7 @@ export async function sendDueAlerts(deps: {
         id: stockAlerts.id,
         email: stockAlerts.email,
         token: stockAlerts.token,
+        storeView: stockAlerts.storeView,
         available: availableOf,
         productName: products.name,
         productSlug: products.slug,
@@ -128,11 +132,12 @@ export async function sendDueAlerts(deps: {
       await enqueueEmail(tx, {
         kind: 'stock_alert',
         to: a.email,
+        storeView: a.storeView,
         dedupeKey: `stock_alert:${a.id}`,
         payload: {
           productName: a.productName,
           variantName: a.variantName,
-          productUrl: `${origin()}/products/${a.productSlug}?variant=${encodeURIComponent(a.sku)}`,
+          productUrl: `${origin()}/${storeFor(a.storeView).code}/products/${a.productSlug}?variant=${encodeURIComponent(a.sku)}`,
           cancelUrl: cancelUrl(a.token),
         },
       });

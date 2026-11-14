@@ -2,9 +2,11 @@ import type { Order } from '@store/shared';
 
 import { env } from '../config/env.ts';
 
+import type { EmailText } from './i18n/index.ts';
 import {
   addressLines,
   escapeHtml,
+  htmlOf,
   itemsTable,
   itemsText,
   paragraph,
@@ -13,40 +15,41 @@ import {
   type Email,
 } from './layout.ts';
 
-const trackUrl = (number: string) =>
-  `${env.WEB_ORIGIN.replace(/\/$/, '')}/track-order?number=${encodeURIComponent(number)}`;
+const trackUrl = (number: string, x: EmailText) =>
+  x.url(env.WEB_ORIGIN, `/track-order?number=${encodeURIComponent(number)}`);
 
 // Sent once, in the same transaction that marks the order paid (via the outbox).
-export function orderConfirmation(order: Order): Email {
+export function orderConfirmation(order: Order, x: EmailText): Email {
   const address = addressLines(order.shippingAddress);
-  const subject = `Your Pawsome order ${order.number} is confirmed`;
+  const name = order.shippingAddress.fullName;
+  const subject = x.t('confirm.subject', { number: order.number });
   const text = [
-    `Thank you for your order, ${order.shippingAddress.fullName}!`,
+    x.t('confirm.thanks', { name }),
     '',
-    `Order ${order.number} is paid and we are getting it ready.`,
+    x.t('confirm.paid', { number: order.number }),
     '',
-    itemsText(order),
+    itemsText(order, x),
     '',
-    'Shipping to:',
+    x.t('order.shippingTo'),
     ...address,
     '',
-    "We'll email you again when it ships.",
-    `Follow your order any time: ${trackUrl(order.number)}`,
+    x.t('confirm.willEmail'),
+    x.t('confirm.follow', { url: trackUrl(order.number, x) }),
     '',
-    '- The Pawsome team',
+    x.t('mail.signoff'),
   ].join('\n');
-  const html = shell({
-    preheader: `Order ${order.number} is confirmed.`,
-    heading: 'Thank you for your order!',
+  const html = shell(x, {
+    preheader: x.t('confirm.preheader', { number: order.number }),
+    heading: x.t('confirm.heading'),
     body: [
+      paragraph(htmlOf(x, 'confirm.intro', { name, number: order.number }, ['number'])),
+      itemsTable(order, x),
       paragraph(
-        `Hi ${escapeHtml(order.shippingAddress.fullName)}, order <strong>${escapeHtml(order.number)}</strong> is paid and we are getting it ready.`,
+        `<strong>${escapeHtml(x.t('order.shippingTo').replace(/:$/, ''))}</strong><br>${address.map(escapeHtml).join('<br>')}`,
       ),
-      itemsTable(order),
-      paragraph(`<strong>Shipping to</strong><br>${address.map(escapeHtml).join('<br>')}`),
-      paragraph("We'll email you again when it ships."),
+      paragraph(escapeHtml(x.t('confirm.willEmail'))),
       paragraph(
-        `<a href="${escapeHtml(trackUrl(order.number))}" style="color:${PRIMARY};font-weight:bold;">Track your order</a> (you will need the email address you ordered with).`,
+        `<a href="${escapeHtml(trackUrl(order.number, x))}" style="color:${PRIMARY};font-weight:bold;">${escapeHtml(x.t('confirm.track'))}</a> ${escapeHtml(x.t('confirm.trackNote'))}`,
       ),
     ].join('\n'),
   });

@@ -146,8 +146,9 @@ describe('POST /admin/safety-notices/:id/notify', () => {
       .sort();
     expect(recipients).toEqual(['guest@pawsome.test', 'second@pawsome.test']);
     expect(
-      transport.sent.find((m) => m.to === 'guest@pawsome.test' && m.subject.includes('recall'))
-        ?.text,
+      transport.sent.find(
+        (m) => m.to.toLowerCase() === 'guest@pawsome.test' && m.subject.includes('recall'),
+      )?.text,
     ).toContain('red');
   });
 

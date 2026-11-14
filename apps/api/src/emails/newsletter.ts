@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-import { escapeHtml, paragraph, PRIMARY, shell, type Email } from './layout.ts';
+import type { EmailText } from './i18n/index.ts';
+import { button, escapeHtml, paragraph, shell, type Email } from './layout.ts';
 
 export const NewsletterConfirmPayloadSchema = z.object({
   confirmUrl: z.string(),
@@ -15,73 +16,71 @@ export const NewsletterWelcomePayloadSchema = z.object({
   unsubscribeUrl: z.string(),
 });
 
-const button = (href: string, label: string): string =>
-  `<p style="margin:0 0 16px;"><a href="${escapeHtml(href)}" style="display:inline-block;background:${PRIMARY};color:#ffffff;font-weight:bold;text-decoration:none;padding:12px 20px;border-radius:8px;">${escapeHtml(label)}</a></p>`;
-
 /** Every marketing mail ends with this: one click, no login, no questions. */
-export const unsubscribeParagraph = (url: string): string =>
+export const unsubscribeParagraph = (url: string, x: EmailText): string =>
   paragraph(
-    `<span style="font-size:13px;">You get this because you subscribed to Pawsome news. <a href="${escapeHtml(url)}">Unsubscribe with one click</a>.</span>`,
+    `<span style="font-size:13px;">${escapeHtml(x.t('news.unsub.lead'))} <a href="${escapeHtml(url)}">${escapeHtml(x.t('news.unsub.link'))}</a>.</span>`,
   );
-export const unsubscribeText = (url: string): string =>
-  `You get this because you subscribed to Pawsome news. Unsubscribe with one click: ${url}`;
+export const unsubscribeText = (url: string, x: EmailText): string =>
+  x.t('news.unsub.text', { url });
 
 // Step one of double opt-in: nothing is sent to this address until the link is clicked.
-export function newsletterConfirm(rawPayload: Record<string, unknown> | null): Email {
+export function newsletterConfirm(rawPayload: Record<string, unknown> | null, x: EmailText): Email {
   const p = NewsletterConfirmPayloadSchema.parse(rawPayload);
-  const subject = 'Confirm your Pawsome subscription';
+  const subject = x.t('news.confirm.subject');
   const text = [
-    'One more step: please confirm that you want Pawsome news, offers and pet tips.',
+    x.t('news.confirm.l1'),
     '',
-    `Confirm: ${p.confirmUrl}`,
+    x.t('news.confirm.link', { url: p.confirmUrl }),
     '',
-    `The link works for ${p.hours} hours. If you did not ask for this, ignore this email and nothing will be sent to you.`,
+    x.tn('news.confirm.hours', p.hours),
     '',
-    unsubscribeText(p.unsubscribeUrl),
+    unsubscribeText(p.unsubscribeUrl, x),
     '',
-    '- The Pawsome team',
+    x.t('mail.signoff'),
   ].join('\n');
-  const html = shell({
-    preheader: 'Confirm your address to get your welcome code',
-    heading: 'Confirm your subscription',
+  const html = shell(x, {
+    preheader: x.t('news.confirm.preheader'),
+    heading: x.t('news.confirm.heading'),
     body: [
-      paragraph('One more step: please confirm that you want Pawsome news, offers and pet tips.'),
-      button(p.confirmUrl, 'Yes, subscribe me'),
-      paragraph(
-        `The link works for ${p.hours} hours. If you did not ask for this, ignore this email and nothing will be sent to you.`,
-      ),
-      unsubscribeParagraph(p.unsubscribeUrl),
+      paragraph(escapeHtml(x.t('news.confirm.l1'))),
+      button(p.confirmUrl, x.t('news.confirm.button')),
+      paragraph(escapeHtml(x.tn('news.confirm.hours', p.hours))),
+      unsubscribeParagraph(p.unsubscribeUrl, x),
     ].join('\n'),
   });
   return { subject, text, html };
 }
 
 // Step two: confirmed, here is the welcome code (10%, first order only, single use).
-export function newsletterWelcome(rawPayload: Record<string, unknown> | null): Email {
+export function newsletterWelcome(rawPayload: Record<string, unknown> | null, x: EmailText): Email {
   const p = NewsletterWelcomePayloadSchema.parse(rawPayload);
-  const subject = `Welcome to Pawsome: ${p.percent}% off your first order`;
+  const subject = x.t('news.welcome.subject', { percent: p.percent });
   const text = [
-    'You are in. Thank you for subscribing!',
+    x.t('news.welcome.l1'),
     '',
-    `Your welcome code: ${p.code}`,
-    `${p.percent}% off your first order, one use, valid for ${p.days} days.`,
+    x.t('news.welcome.code', { code: p.code }),
+    x.tn('news.welcome.terms', p.days, { percent: p.percent }),
     '',
-    unsubscribeText(p.unsubscribeUrl),
+    unsubscribeText(p.unsubscribeUrl, x),
     '',
-    '- The Pawsome team',
+    x.t('mail.signoff'),
   ].join('\n');
-  const html = shell({
-    preheader: `Your ${p.percent}% welcome code is inside`,
-    heading: 'Welcome to the pack',
+  const [codeLead = '', codeTail = ''] = x
+    .t('news.welcome.code', { code: '\u0000' })
+    .split('\u0000');
+  const html = shell(x, {
+    preheader: x.t('news.welcome.preheader', { percent: p.percent }),
+    heading: x.t('news.welcome.heading'),
     body: [
-      paragraph('You are in. Thank you for subscribing!'),
+      paragraph(escapeHtml(x.t('news.welcome.l1'))),
       paragraph(
-        `Your welcome code: <strong style="font-size:20px;letter-spacing:1px;">${escapeHtml(p.code)}</strong>`,
+        `${escapeHtml(codeLead)}<strong style="font-size:20px;letter-spacing:1px;">${escapeHtml(p.code)}</strong>${escapeHtml(codeTail)}`,
       ),
       paragraph(
-        `${p.percent}% off your first order, one use, valid for ${p.days} days. Enter it in the cart.`,
+        `${escapeHtml(x.tn('news.welcome.terms', p.days, { percent: p.percent }))} ${escapeHtml(x.t('news.welcome.enter'))}`,
       ),
-      unsubscribeParagraph(p.unsubscribeUrl),
+      unsubscribeParagraph(p.unsubscribeUrl, x),
     ].join('\n'),
   });
   return { subject, text, html };

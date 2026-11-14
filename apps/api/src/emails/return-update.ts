@@ -1,8 +1,8 @@
-import { formatMoney } from '@store/shared';
 import { z } from 'zod';
 
 import { env } from '../config/env.ts';
 
+import type { EmailText } from './i18n/index.ts';
 import { escapeHtml, paragraph, shell, type Email } from './layout.ts';
 
 export const RETURN_EMAIL_KINDS = [
@@ -32,80 +32,75 @@ export const returnReference = (returnId: string): string =>
 
 // One template per step of the return, rendered from a small payload (so a wording fix reaches
 // emails still waiting in the outbox). Names are escaped: they come from the catalogue and the
-// admin's reject reason is free text.
+// admin's reject reason is free text. The words come from the customer's language; the amount is in
+// the order's own currency (it is in the payload), formatted in the customer's locale.
 export function returnUpdate(
   kind: ReturnEmailKind,
   rawPayload: Record<string, unknown> | null,
+  x: EmailText,
 ): Email {
   const p = ReturnEmailPayloadSchema.parse(rawPayload);
   const ref = returnReference(p.returnId);
-  const money = formatMoney(p.refundCents, p.currency);
-  const list = p.items.map((i) => `${i.quantity} x ${i.name}`);
-  const accountUrl = `${env.WEB_ORIGIN.replace(/\/$/, '')}/account/orders/${encodeURIComponent(p.orderNumber)}`;
+  const money = x.money(p.refundCents, p.currency);
+  const list = p.items.map((i) => `${i.quantity} x ${i.name}`).join(', ');
+  const accountUrl = x.url(env.WEB_ORIGIN, `/account/orders/${encodeURIComponent(p.orderNumber)}`);
+  const v = { ref, order: p.orderNumber, list, money };
 
   const copy: Record<ReturnEmailKind, { subject: string; heading: string; lines: string[] }> = {
     return_requested: {
-      subject: `We got your return request for order ${p.orderNumber}`,
-      heading: 'We got your return request',
-      lines: [
-        `Thanks, we have your request (${ref}) for order ${p.orderNumber}. Someone will look at it soon and email you the next step.`,
-        `You asked to return: ${list.join(', ')}.`,
-      ],
+      subject: x.t('return.requested.subject', v),
+      heading: x.t('return.requested.heading'),
+      lines: [x.t('return.requested.l1', v), x.t('return.requested.l2', v)],
     },
     return_approved: {
-      subject: `Your return ${ref} is approved`,
-      heading: 'Your return is approved',
+      subject: x.t('return.approved.subject', v),
+      heading: x.t('return.approved.heading'),
       lines: [
-        `Good news: your return ${ref} for order ${p.orderNumber} is approved.`,
-        `How to send it back: pack ${list.join(', ')} in the original packaging if you can, write ${ref} on the parcel, and post it to Pawsome Returns, 1 Bone Street, Riga LV-1010 (a made-up address: this is a demo shop).`,
-        'When it arrives and we have checked it, we refund you and send another email.',
+        x.t('return.approved.l1', v),
+        x.t('return.approved.l2', v),
+        x.t('return.approved.l3'),
       ],
     },
     return_rejected: {
-      subject: `About your return ${ref}`,
-      heading: 'We could not accept this return',
+      subject: x.t('return.rejected.subject', v),
+      heading: x.t('return.rejected.heading'),
       lines: [
-        `We are sorry: we could not accept return ${ref} for order ${p.orderNumber}.`,
+        x.t('return.rejected.l1', v),
         p.rejectReason
-          ? `Reason: ${p.rejectReason}`
-          : 'Write to us if you would like to know more.',
+          ? x.t('return.rejected.reason', { reason: p.rejectReason })
+          : x.t('return.rejected.noReason'),
       ],
     },
     return_received: {
-      subject: `We received your return ${ref}`,
-      heading: 'Your parcel arrived',
-      lines: [
-        `Your return ${ref} for order ${p.orderNumber} has arrived: ${list.join(', ')}.`,
-        `We are preparing your refund of ${money}. You will get one more email when it is sent.`,
-      ],
+      subject: x.t('return.received.subject', v),
+      heading: x.t('return.received.heading'),
+      lines: [x.t('return.received.l1', v), x.t('return.received.l2', v)],
     },
     return_refunded: {
-      subject: `Your refund of ${money} is on its way`,
-      heading: 'Your refund is on its way',
+      subject: x.t('return.refunded.subject', v),
+      heading: x.t('return.refunded.heading'),
       lines: [
-        `We refunded ${money} for return ${ref} (order ${p.orderNumber}).`,
-        p.simulated
-          ? 'This is a demo shop: the refund was simulated and no money moved.'
-          : 'It usually shows up on your card within a few days, depending on your bank.',
+        x.t('return.refunded.l1', v),
+        p.simulated ? x.t('return.refunded.simulated') : x.t('return.refunded.real'),
       ],
     },
   };
   const c = copy[kind];
   const text = [
-    `Hello ${p.firstName},`,
+    x.t('mail.hello', { name: p.firstName }),
     '',
     ...c.lines.flatMap((l) => [l, '']),
-    `Order: ${accountUrl}`,
+    x.t('mail.orderLine', { url: accountUrl }),
     '',
-    '- The Pawsome team',
+    x.t('mail.signoff'),
   ].join('\n');
-  const html = shell({
+  const html = shell(x, {
     preheader: c.subject,
     heading: c.heading,
     body: [
-      paragraph(`Hello ${escapeHtml(p.firstName)},`),
+      paragraph(escapeHtml(x.t('mail.hello', { name: p.firstName }))),
       ...c.lines.map((l) => paragraph(escapeHtml(l))),
-      paragraph(`<a href="${escapeHtml(accountUrl)}">See your order</a>`),
+      paragraph(`<a href="${escapeHtml(accountUrl)}">${escapeHtml(x.t('mail.seeOrder'))}</a>`),
     ].join('\n'),
   });
   return { subject: c.subject, text, html };

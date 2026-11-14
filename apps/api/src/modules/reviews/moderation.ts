@@ -41,6 +41,7 @@ async function transition(
         await enqueueEmail(tx, {
           kind: 'review_approved',
           to: who.email,
+          storeView: who.storeView,
           payload: {
             firstName: who.firstName,
             productName: who.productName,

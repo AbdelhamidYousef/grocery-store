@@ -1,6 +1,7 @@
 import type { Order } from '@store/shared';
 
 import { contactAck, contactNotify } from './contact.ts';
+import { emailText } from './i18n/index.ts';
 import { newsletterConfirm, newsletterWelcome } from './newsletter.ts';
 import { orderConfirmation } from './order-confirmation.ts';
 import { orderShipped } from './order-shipped.ts';
@@ -44,14 +45,16 @@ export function renderEmail(
   kind: OrderEmailKind,
   order: Order,
   payload: EmailPayload | null = null,
+  storeView?: string | null,
 ) {
+  const x = emailText(storeView);
   switch (kind) {
     case 'order_confirmation':
-      return orderConfirmation(order);
+      return orderConfirmation(order, x);
     case 'order_shipped':
-      return orderShipped(order);
+      return orderShipped(order, x);
     case 'withdrawal_ack':
-      return withdrawalAck(order, payload);
+      return withdrawalAck(order, payload, x);
   }
 }
 
@@ -64,39 +67,41 @@ export function renderQueuedEmail(
   kind: EmailKind,
   order: Order | null,
   payload: EmailPayload | null,
+  storeView?: string | null,
 ) {
   if (isOrderEmailKind(kind)) {
     if (!order) throw new Error(`email "${kind}" needs an order`);
-    return renderEmail(kind, order, payload);
+    return renderEmail(kind, order, payload, storeView);
   }
+  const x = emailText(storeView);
   switch (kind) {
     case 'return_requested':
     case 'return_approved':
     case 'return_rejected':
     case 'return_received':
     case 'return_refunded':
-      return returnUpdate(kind, payload);
+      return returnUpdate(kind, payload, x);
     case 'vet_held':
     case 'vet_approved':
     case 'vet_rejected':
-      return vetUpdate(kind, payload);
+      return vetUpdate(kind, payload, x);
     case 'contact_ack':
-      return contactAck(payload);
+      return contactAck(payload, x);
     case 'contact_notify':
-      return contactNotify(payload);
+      return contactNotify(payload, x);
     case 'safety_notice':
-      return safetyNotice(payload);
+      return safetyNotice(payload, x);
     case 'review_approved':
-      return reviewApproved(payload);
+      return reviewApproved(payload, x);
     case 'newsletter_confirm':
-      return newsletterConfirm(payload);
+      return newsletterConfirm(payload, x);
     case 'newsletter_welcome':
-      return newsletterWelcome(payload);
+      return newsletterWelcome(payload, x);
     case 'stock_alert':
-      return stockAlert(payload);
+      return stockAlert(payload, x);
     case 'pet_birthday':
-      return petBirthday(payload);
+      return petBirthday(payload, x);
     case 'pet_life_stage':
-      return petLifeStage(payload);
+      return petLifeStage(payload, x);
   }
 }

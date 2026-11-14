@@ -1,4 +1,6 @@
-import { formatMoney, type Order } from '@store/shared';
+import type { Order } from '@store/shared';
+
+import type { EmailText } from './i18n/index.ts';
 
 // Email clients ignore <style> blocks and external CSS in many cases, so every style is inline and
 // the layout is a single-column table-free block that degrades to readable text. Colours are the
@@ -26,9 +28,29 @@ export function escapeHtml(value: string): string {
     .replaceAll("'", '&#39;');
 }
 
-export function shell(opts: { preheader: string; heading: string; body: string }): string {
+// A dictionary string for HTML: every value is escaped, and the named ones are wrapped in <strong>.
+// The string itself is trusted (it is ours); only the values (names, numbers, notes) are not.
+export function htmlOf(
+  x: EmailText,
+  key: Parameters<EmailText['t']>[0],
+  params: Record<string, string | number> = {},
+  bold: readonly string[] = [],
+): string {
+  const safe = Object.fromEntries(
+    Object.entries(params).map(([k, v]) => [
+      k,
+      bold.includes(k) ? `<strong>${escapeHtml(String(v))}</strong>` : escapeHtml(String(v)),
+    ]),
+  );
+  return x.t(key, safe);
+}
+
+export function shell(
+  x: EmailText,
+  opts: { preheader: string; heading: string; body: string },
+): string {
   return `<!doctype html>
-<html lang="en">
+<html lang="${x.lang}">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(opts.heading)}</title></head>
 <body style="margin:0;padding:0;background:${BG};color:${INK};font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;">
 <div style="display:none;max-height:0;overflow:hidden;">${escapeHtml(opts.preheader)}</div>
@@ -38,7 +60,7 @@ export function shell(opts: { preheader: string; heading: string; body: string }
     <h1 style="margin:0 0 12px;font-size:22px;line-height:1.25;color:${INK};">${escapeHtml(opts.heading)}</h1>
     ${opts.body}
   </div>
-  <p style="margin:16px 0 0;font-size:13px;color:${MUTED};">Pawsome is a fictional demo shop made for a portfolio. Nothing here is real and no card was charged.</p>
+  <p style="margin:16px 0 0;font-size:13px;color:${MUTED};">${escapeHtml(x.t('mail.footer'))}</p>
 </div>
 </body>
 </html>`;
@@ -46,24 +68,28 @@ export function shell(opts: { preheader: string; heading: string; body: string }
 
 export const paragraph = (html: string): string => `<p style="margin:0 0 12px;">${html}</p>`;
 
-export function itemsTable(order: Order): string {
+export const button = (href: string, label: string): string =>
+  `<p style="margin:0 0 16px;"><a href="${escapeHtml(href)}" style="display:inline-block;background:${PRIMARY};color:#ffffff;font-weight:bold;text-decoration:none;padding:12px 20px;border-radius:8px;">${escapeHtml(label)}</a></p>`;
+
+export function itemsTable(order: Order, x: EmailText): string {
+  const money = (cents: number) => x.money(cents, order.totals.currency);
   const rows = order.items
     .map(
       (i) => `<tr>
-      <td style="padding:8px 0;border-bottom:1px solid ${BORDER};">${escapeHtml(i.productName)}<br><span style="color:${MUTED};font-size:14px;">${escapeHtml(i.variantName)} &middot; qty ${i.quantity}</span></td>
-      <td style="padding:8px 0;border-bottom:1px solid ${BORDER};text-align:right;white-space:nowrap;">${formatMoney(i.lineTotalCents, order.totals.currency)}</td>
+      <td style="padding:8px 0;border-bottom:1px solid ${BORDER};">${escapeHtml(i.productName)}<br><span style="color:${MUTED};font-size:14px;">${escapeHtml(i.variantName)} &middot; ${escapeHtml(x.t('order.qty', { quantity: i.quantity }))}</span></td>
+      <td style="padding:8px 0;border-bottom:1px solid ${BORDER};text-align:right;white-space:nowrap;">${money(i.lineTotalCents)}</td>
     </tr>`,
     )
     .join('');
   const total = (label: string, cents: number, strong = false) =>
-    `<tr><td style="padding:4px 0;${strong ? 'font-weight:bold;' : `color:${MUTED};`}">${label}</td><td style="padding:4px 0;text-align:right;${strong ? 'font-weight:bold;' : ''}">${formatMoney(cents, order.totals.currency)}</td></tr>`;
+    `<tr><td style="padding:4px 0;${strong ? 'font-weight:bold;' : `color:${MUTED};`}">${label}</td><td style="padding:4px 0;text-align:right;${strong ? 'font-weight:bold;' : ''}">${money(cents)}</td></tr>`;
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 12px;">
     ${rows}
-    ${total('Subtotal', order.totals.subtotalCents)}
-    ${total(`Shipping (${escapeHtml(order.shippingMethod.name)})`, order.totals.shippingCents)}
-    ${order.totals.discountCents > 0 ? total('Discount', -order.totals.discountCents) : ''}
-    ${order.totals.donationCents > 0 ? total('Donation to Whisker Hollow Rescue (demo)', order.totals.donationCents) : ''}
-    ${total('Total', order.totals.totalCents, true)}
+    ${total(escapeHtml(x.t('order.subtotal')), order.totals.subtotalCents)}
+    ${total(escapeHtml(x.t('order.shipping', { method: order.shippingMethod.name })), order.totals.shippingCents)}
+    ${order.totals.discountCents > 0 ? total(escapeHtml(x.t('order.discount')), -order.totals.discountCents) : ''}
+    ${order.totals.donationCents > 0 ? total(escapeHtml(x.t('order.donation')), order.totals.donationCents) : ''}
+    ${total(escapeHtml(x.t('order.total')), order.totals.totalCents, true)}
   </table>`;
 }
 
@@ -77,24 +103,22 @@ export function addressLines(a: Order['shippingAddress']): string[] {
   ];
 }
 
-export function itemsText(order: Order): string {
+export function itemsText(order: Order, x: EmailText): string {
+  const money = (cents: number) => x.money(cents, order.totals.currency);
   const lines = order.items.map(
-    (i) =>
-      `- ${i.productName} (${i.variantName}) x ${i.quantity}  ${formatMoney(i.lineTotalCents, order.totals.currency)}`,
+    (i) => `- ${i.productName} (${i.variantName}) x ${i.quantity}  ${money(i.lineTotalCents)}`,
   );
   return [
     ...lines,
     '',
-    `Subtotal: ${formatMoney(order.totals.subtotalCents, order.totals.currency)}`,
-    `Shipping (${order.shippingMethod.name}): ${formatMoney(order.totals.shippingCents, order.totals.currency)}`,
+    `${x.t('order.subtotal')}${x.colon}${money(order.totals.subtotalCents)}`,
+    `${x.t('order.shipping', { method: order.shippingMethod.name })}${x.colon}${money(order.totals.shippingCents)}`,
     ...(order.totals.discountCents > 0
-      ? [`Discount: -${formatMoney(order.totals.discountCents, order.totals.currency)}`]
+      ? [`${x.t('order.discount')}${x.colon}-${money(order.totals.discountCents)}`]
       : []),
     ...(order.totals.donationCents > 0
-      ? [
-          `Donation to Whisker Hollow Rescue (demo): ${formatMoney(order.totals.donationCents, order.totals.currency)}`,
-        ]
+      ? [`${x.t('order.donation')}${x.colon}${money(order.totals.donationCents)}`]
       : []),
-    `Total: ${formatMoney(order.totals.totalCents, order.totals.currency)}`,
+    `${x.t('order.total')}${x.colon}${money(order.totals.totalCents)}`,
   ].join('\n');
 }

@@ -310,6 +310,7 @@ export async function emailContext(tx: Tx, reviewId: string) {
   const [row] = await tx
     .select({
       email: users.email,
+      storeView: users.storeView,
       firstName: users.firstName,
       productName: products.name,
       productSlug: products.slug,

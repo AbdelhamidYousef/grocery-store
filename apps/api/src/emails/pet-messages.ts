@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-import { escapeHtml, paragraph, PRIMARY, shell, type Email } from './layout.ts';
+import type { EmailText } from './i18n/index.ts';
+import { button, escapeHtml, paragraph, shell, type Email } from './layout.ts';
 import { unsubscribeParagraph, unsubscribeText } from './newsletter.ts';
 
 export const PetBirthdayPayloadSchema = z.object({
@@ -15,68 +16,72 @@ export const PetBirthdayPayloadSchema = z.object({
 export const PetLifeStagePayloadSchema = z.object({
   petName: z.string(),
   species: z.enum(['dog', 'cat']),
+  // The English label, kept for mails queued before `milestone` existed.
   ageLabel: z.string(),
+  // Which milestone (`life_stage_8w` ...): the age is written in the customer's language from it.
+  milestone: z.enum(['life_stage_8w', 'life_stage_6m', 'life_stage_12m']).optional(),
   categoryUrl: z.string(),
   unsubscribeUrl: z.string(),
 });
 
-const button = (href: string, label: string): string =>
-  `<p style="margin:0 0 16px;"><a href="${escapeHtml(href)}" style="display:inline-block;background:${PRIMARY};color:#ffffff;font-weight:bold;text-decoration:none;padding:12px 20px;border-radius:8px;">${escapeHtml(label)}</a></p>`;
-
-export function petBirthday(rawPayload: Record<string, unknown> | null): Email {
+export function petBirthday(rawPayload: Record<string, unknown> | null, x: EmailText): Email {
   const p = PetBirthdayPayloadSchema.parse(rawPayload);
-  const subject = `Happy birthday, ${p.petName}!`;
+  const v = { pet: p.petName, percent: p.percent, code: p.code };
+  const subject = x.t('pet.birthday.subject', v);
+  const [codeLead = '', codeTail = ''] = x
+    .t('pet.birthday.code', { code: '\u0000' })
+    .split('\u0000');
   const text = [
-    `Happy birthday, ${p.petName}! 🎉`,
+    `${x.t('pet.birthday.subject', v)} 🎉`,
     '',
-    `A treat from us: ${p.percent}% off, just for you. Code: ${p.code}`,
-    `One use, valid for ${p.days} days, and only on your account.`,
+    `${x.t('pet.birthday.treat', v)} ${x.t('pet.birthday.code', v)}`,
+    x.tn('pet.birthday.terms', p.days),
     '',
-    `Shop: ${p.shopUrl}`,
+    x.t('pet.birthday.shop', { url: p.shopUrl }),
     '',
-    unsubscribeText(p.unsubscribeUrl),
+    unsubscribeText(p.unsubscribeUrl, x),
     '',
-    '- The Pawsome team',
+    x.t('mail.signoff'),
   ].join('\n');
-  const html = shell({
-    preheader: `${p.percent}% off for ${p.petName}'s birthday`,
-    heading: `Happy birthday, ${p.petName}!`,
+  const html = shell(x, {
+    preheader: x.t('pet.birthday.preheader', v),
+    heading: x.t('pet.birthday.heading', v),
     body: [
       paragraph(
-        `A treat from us: ${p.percent}% off, just for you. Code: <strong style="font-size:20px;letter-spacing:1px;">${escapeHtml(p.code)}</strong>`,
+        `${escapeHtml(x.t('pet.birthday.treat', v))} ${escapeHtml(codeLead)}<strong style="font-size:20px;letter-spacing:1px;">${escapeHtml(p.code)}</strong>${escapeHtml(codeTail)}`,
       ),
-      paragraph(`One use, valid for ${p.days} days, and only on your account.`),
-      button(p.shopUrl, 'Pick a birthday present'),
-      unsubscribeParagraph(p.unsubscribeUrl),
+      paragraph(escapeHtml(x.tn('pet.birthday.terms', p.days))),
+      button(p.shopUrl, x.t('pet.birthday.button')),
+      unsubscribeParagraph(p.unsubscribeUrl, x),
     ].join('\n'),
   });
   return { subject, text, html };
 }
 
-export function petLifeStage(rawPayload: Record<string, unknown> | null): Email {
+export function petLifeStage(rawPayload: Record<string, unknown> | null, x: EmailText): Email {
   const p = PetLifeStagePayloadSchema.parse(rawPayload);
-  const young = p.species === 'dog' ? 'puppy' : 'kitten';
-  const subject = `${p.petName} is ${p.ageLabel} old: time to look at food?`;
+  const age = p.milestone ? x.t(`pet.age.${p.milestone}`) : p.ageLabel;
+  const v = { pet: p.petName, age };
+  const body = x.t(p.species === 'dog' ? 'pet.stage.dog' : 'pet.stage.cat');
+  const subject = x.t('pet.stage.subject', v);
   const text = [
-    `${p.petName} is ${p.ageLabel} old today.`,
+    x.t('pet.stage.today', v),
     '',
-    `A growing ${young} needs different food as it gets older. It may be time to switch, and your vet can tell you when.`,
+    body,
     '',
-    `See what we have: ${p.categoryUrl}`,
+    x.t('pet.stage.see', { url: p.categoryUrl }),
     '',
-    unsubscribeText(p.unsubscribeUrl),
+    unsubscribeText(p.unsubscribeUrl, x),
     '',
-    '- The Pawsome team',
+    x.t('mail.signoff'),
   ].join('\n');
-  const html = shell({
-    preheader: `Growing ${young}s change what they eat`,
-    heading: `${p.petName} is ${p.ageLabel} old`,
+  const html = shell(x, {
+    preheader: x.t(p.species === 'dog' ? 'pet.stage.preheader.dog' : 'pet.stage.preheader.cat'),
+    heading: x.t('pet.stage.heading', v),
     body: [
-      paragraph(
-        `A growing ${young} needs different food as it gets older. It may be time to switch, and your vet can tell you when.`,
-      ),
-      button(p.categoryUrl, 'Browse food'),
-      unsubscribeParagraph(p.unsubscribeUrl),
+      paragraph(escapeHtml(body)),
+      button(p.categoryUrl, x.t('pet.stage.button')),
+      unsubscribeParagraph(p.unsubscribeUrl, x),
     ].join('\n'),
   });
   return { subject, text, html };

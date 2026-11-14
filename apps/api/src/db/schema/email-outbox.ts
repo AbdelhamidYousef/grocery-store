@@ -34,6 +34,10 @@ export const emailOutbox = pgTable(
     // `<kind>:<orderId>` for order emails, or `<kind>:<reference>` for the rest. Unique, so replaying a transition (a retried webhook) can never queue a
     // second copy of the same email.
     dedupeKey: text('dedupe_key').notNull(),
+    // The store view the email is written for: language, number and date format, link prefix.
+    // Taken from the order's snapshot (or the subscriber's) when the email is queued, never from
+    // whoever triggers it.
+    storeView: text('store_view').notNull().default('eu-en'),
     attempts: integer('attempts').notNull().default(0),
     lastError: text('last_error'),
     // Backoff: a failed send is retried later, not in a tight loop against a dead SMTP server.

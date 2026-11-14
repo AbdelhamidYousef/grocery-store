@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm';
 
 import { db } from '../../db/client.ts';
 import { users } from '../../db/schema/index.ts';
+import { currentStore } from '../i18n/context.ts';
 
 export type UserRow = typeof users.$inferSelect;
 
@@ -27,6 +28,10 @@ export async function insertUser(values: {
   firstName: string;
   lastName: string;
 }): Promise<UserRow | undefined> {
-  const [row] = await db.insert(users).values(values).onConflictDoNothing().returning();
+  const [row] = await db
+    .insert(users)
+    .values({ ...values, storeView: currentStore().code })
+    .onConflictDoNothing()
+    .returning();
   return row;
 }

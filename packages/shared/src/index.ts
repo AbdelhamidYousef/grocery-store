@@ -15,3 +15,4 @@ export * from './pricing/index.ts';
 export * from './loyalty.ts';
 export * from './pet-messages.ts';
 export * from './stores.ts';
+export * from './plural.ts';

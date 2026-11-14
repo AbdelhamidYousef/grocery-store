@@ -2,7 +2,8 @@ import { and, asc, eq, isNull, lte, lt, sql } from 'drizzle-orm';
 import type { Logger } from 'pino';
 
 import { db, type Tx } from '../../db/client.ts';
-import { emailOutbox } from '../../db/schema/index.ts';
+import { emailOutbox, orders } from '../../db/schema/index.ts';
+import { storeFor } from '../../emails/i18n/index.ts';
 import {
   EMAIL_KINDS,
   renderQueuedEmail,
@@ -50,10 +51,22 @@ export async function enqueueEmail(
     orderId?: string;
     payload?: EmailPayload;
     dedupeKey?: string;
+    /** Store view to write it for. Defaults to the order's snapshot, then English (eu-en). */
+    storeView?: string | undefined;
   },
 ): Promise<void> {
   const dedupeKey = email.dedupeKey ?? (email.orderId && `${email.kind}:${email.orderId}`);
   if (!dedupeKey) throw new Error(`email "${email.kind}" needs an orderId or a dedupeKey`);
+  // The language follows the order (its stored store view, not the admin's request) or the
+  // subscriber; anything unknown is the default store, which is English.
+  let storeView = email.storeView;
+  if (!storeView && email.orderId) {
+    const [order] = await tx
+      .select({ storeView: orders.storeView })
+      .from(orders)
+      .where(eq(orders.id, email.orderId));
+    storeView = order?.storeView;
+  }
   await tx
     .insert(emailOutbox)
     .values({
@@ -62,6 +75,7 @@ export async function enqueueEmail(
       payload: email.payload ?? null,
       toEmail: email.to,
       dedupeKey,
+      storeView: storeFor(storeView).code,
     })
     .onConflictDoNothing({ target: emailOutbox.dedupeKey });
 }
@@ -144,7 +158,7 @@ export function createOutbox(opts: { transport: MailTransport; log: Logger }): O
                 await checkoutRepo.findPaymentByOrder(tx, order.id),
               )
             : null;
-          const email = renderQueuedEmail(row.kind, dto, row.payload);
+          const email = renderQueuedEmail(row.kind, dto, row.payload, row.storeView);
           await transport.send({
             to: row.toEmail,
             ...email,

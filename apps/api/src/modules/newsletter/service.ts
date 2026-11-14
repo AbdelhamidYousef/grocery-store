@@ -13,6 +13,7 @@ import { env } from '../../config/env.ts';
 import { db, type Tx } from '../../db/client.ts';
 import { newsletterSubscribers } from '../../db/schema/index.ts';
 import { AppError, notFound } from '../../lib/errors.ts';
+import { currentStore } from '../i18n/context.ts';
 import { mintPersonalCode } from '../loyalty/codes.ts';
 import { enqueueEmail, type Outbox } from '../mail/outbox.ts';
 
@@ -55,6 +56,7 @@ export async function subscribe(
       tokenExpiresAt: new Date(now.getTime() + NEWSLETTER_CONFIRM_HOURS * HOUR_MS),
       pets,
       consentText: NEWSLETTER_CONSENT_TEXT,
+      storeView: currentStore().code,
       ...(input.userId && { userId: input.userId }),
     };
     let unsubscribeToken: string;
@@ -76,6 +78,7 @@ export async function subscribe(
     await enqueueEmail(tx, {
       kind: 'newsletter_confirm',
       to: email,
+      storeView: currentStore().code,
       dedupeKey: `newsletter_confirm:${hashToken(token).slice(0, 16)}`,
       payload: {
         confirmUrl: confirmUrl(token),
@@ -132,6 +135,7 @@ export async function confirm(
       await enqueueEmail(tx, {
         kind: 'newsletter_welcome',
         to: row.email,
+        storeView: row.storeView,
         dedupeKey: `newsletter_welcome:${row.id}`,
         payload: {
           code,

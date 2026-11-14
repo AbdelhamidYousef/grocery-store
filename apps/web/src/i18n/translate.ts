@@ -1,21 +1,9 @@
-import type { Dictionary, Entry, Params, PluralForms } from './types';
+import { interpolate, pickPlural } from '@store/shared';
 
-export function interpolate(template: string, params?: Params): string {
-  if (!params) return template;
-  return template.replace(/\{(\w+)\}/g, (whole, name: string) => {
-    const value = params[name];
-    return value === undefined ? whole : String(value);
-  });
-}
+import type { Dictionary, Entry, Params } from './types';
 
-// Plural rules are per language (English and German have two forms, French treats 0 and 1 as
-// singular, Arabic has six), so the form comes from `Intl.PluralRules`, never `n === 1`.
-// A `zero` form, where a dictionary defines one, wins for exactly 0.
-export function pickPlural(forms: PluralForms, count: number, locale: string): string {
-  if (count === 0 && forms.zero !== undefined) return forms.zero;
-  const category = new Intl.PluralRules(locale).select(count);
-  return category === 'one' ? forms.one : forms.other;
-}
+// Shared with the API's email dictionaries (packages/shared/src/plural.ts).
+export { interpolate, pickPlural };
 
 const warned = new Set<string>();
 function warnMissing(locale: string, key: string): void {

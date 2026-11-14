@@ -46,11 +46,17 @@ export async function notifyBuyers(
 
   const result = await db.transaction(async (tx) => {
     const buyers = await repo.listBuyerEmails(tx, notice.id);
-    const fresh = await repo.claimDeliveries(tx, notice.id, buyers);
+    const storeOf = new Map(buyers.map((b) => [b.email, b.storeView]));
+    const fresh = await repo.claimDeliveries(
+      tx,
+      notice.id,
+      buyers.map((b) => b.email),
+    );
     for (const email of fresh) {
       await enqueueEmail(tx, {
         kind: 'safety_notice',
         to: email,
+        storeView: storeOf.get(email),
         dedupeKey: `safety_notice:${notice.id}:${email.toLowerCase()}`,
         payload: {
           title: notice.title,

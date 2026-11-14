@@ -1,7 +1,8 @@
 import type { Order } from '@store/shared';
 import { z } from 'zod';
 
-import { escapeHtml, paragraph, shell, type Email } from './layout.ts';
+import type { EmailText } from './i18n/index.ts';
+import { escapeHtml, htmlOf, paragraph, shell, type Email } from './layout.ts';
 
 export const WithdrawalPayloadSchema = z.object({
   reference: z.string(),
@@ -12,43 +13,45 @@ export const WithdrawalPayloadSchema = z.object({
 });
 export type WithdrawalPayload = z.infer<typeof WithdrawalPayloadSchema>;
 
-const WHEN = new Intl.DateTimeFormat('en-GB', {
-  dateStyle: 'long',
-  timeStyle: 'long',
-  timeZone: 'UTC',
-});
-
 // Acknowledgement of a withdrawal. EU rules ask the trader to confirm receipt on a "durable
 // medium" (an email qualifies), so this states what was received and exactly when.
-export function withdrawalAck(order: Order, rawPayload: Record<string, unknown> | null): Email {
+export function withdrawalAck(
+  order: Order,
+  rawPayload: Record<string, unknown> | null,
+  x: EmailText,
+): Email {
   const p = WithdrawalPayloadSchema.parse(rawPayload);
-  const when = WHEN.format(new Date(p.requestedAt));
-  const scope = p.itemsText ?? 'the whole order';
-  const subject = `We received your withdrawal for order ${order.number}`;
+  const when = x.date(p.requestedAt);
+  const scope = p.itemsText ?? x.t('withdrawal.wholeOrder');
+  const name = order.shippingAddress.fullName;
+  const subject = x.t('withdrawal.subject', { number: order.number });
   const text = [
-    `Hello ${order.shippingAddress.fullName},`,
+    x.t('mail.hello', { name }),
     '',
-    `This email confirms that on ${when} we received your statement withdrawing from the contract for order ${order.number}.`,
+    x.t('withdrawal.body', { when, number: order.number }),
     '',
-    `Reference: ${p.reference}`,
-    `Covers: ${scope}`,
-    ...(p.reason ? [`Reason you gave: ${p.reason}`] : []),
+    x.t('withdrawal.reference', { reference: p.reference }),
+    x.t('withdrawal.covers', { scope }),
+    ...(p.reason ? [x.t('withdrawal.reason', { reason: p.reason })] : []),
     '',
-    'We will write again with the next steps. Keep this email as your proof.',
+    x.t('withdrawal.next'),
     '',
-    '- The Pawsome team',
+    x.t('mail.signoff'),
   ].join('\n');
-  const html = shell({
-    preheader: `Withdrawal for order ${order.number} received.`,
-    heading: 'We received your withdrawal',
+  const html = shell(x, {
+    preheader: x.t('withdrawal.preheader', { number: order.number }),
+    heading: x.t('withdrawal.heading'),
     body: [
+      paragraph(escapeHtml(x.t('mail.hello', { name }))),
+      paragraph(htmlOf(x, 'withdrawal.body', { when, number: order.number }, ['when', 'number'])),
       paragraph(
-        `Hello ${escapeHtml(order.shippingAddress.fullName)}, this email confirms that on <strong>${escapeHtml(when)}</strong> we received your statement withdrawing from the contract for order <strong>${escapeHtml(order.number)}</strong>.`,
+        [
+          htmlOf(x, 'withdrawal.reference', { reference: p.reference }, ['reference']),
+          htmlOf(x, 'withdrawal.covers', { scope }),
+          ...(p.reason ? [htmlOf(x, 'withdrawal.reason', { reason: p.reason })] : []),
+        ].join('<br>'),
       ),
-      paragraph(
-        `Reference: <strong>${escapeHtml(p.reference)}</strong><br>Covers: ${escapeHtml(scope)}${p.reason ? `<br>Reason you gave: ${escapeHtml(p.reason)}` : ''}`,
-      ),
-      paragraph('We will write again with the next steps. Keep this email as your proof.'),
+      paragraph(escapeHtml(x.t('withdrawal.next'))),
     ].join('\n'),
   });
   return { subject, text, html };

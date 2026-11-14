@@ -6,9 +6,10 @@ import { db } from '../../db/client.ts';
 import { emailOutbox } from '../../db/schema/index.ts';
 import { MemoryTransport } from '../../lib/mailer.ts';
 import { makeTestApp, TEST_HOOK_SECRET } from '../../test/app.ts';
-import { createShippingMethods } from '../../test/factories.ts';
+import { createProduct, createShippingMethods } from '../../test/factories.ts';
 import { FakeStripe } from '../../test/fake-stripe.ts';
-import { placeOrder, simulate } from '../../test/orders.ts';
+import { placeOrder, simulate, TEST_ADDRESS } from '../../test/orders.ts';
+import { makeShopper } from '../../test/shopper.ts';
 import { transitionOrder } from '../orders/service.ts';
 
 import { createOutbox } from './outbox.ts';
@@ -44,6 +45,29 @@ describe('order emails through the outbox', () => {
     expect(transport.sent[0]).toMatchObject({ to: 'grace@pawsome.test' });
     expect(transport.sent[0]?.subject).toContain(number);
     expect(transport.sent[0]?.html).toContain('Thank you for your order');
+  });
+
+  it('writes the order emails in the language the order was placed in, whoever triggers them', async () => {
+    const { variants } = await createProduct({ variants: [{ priceCents: 1000, stock: 10 }] });
+    const shopper = makeShopper(app, undefined, 'de-de');
+    await shopper.addToCart(variants[0]!.id, 1);
+    const res = await shopper.call('post', '/checkout', {
+      email: 'hanna@pawsome.test',
+      shippingAddress: { ...TEST_ADDRESS, country: 'DE' },
+      shippingMethodCode: 'standard',
+    });
+    expect(res.status).toBe(200);
+    const number = (res.body as { data: { orderNumber: string } }).data.orderNumber;
+    await simulate(app, number);
+    // The admin's transition request carries no store view: the order's own snapshot decides.
+    await transitionOrder({ gateway: fake, log }, number, 'processing', { actor: 'admin:a@b.c' });
+    await ship(number);
+    await outbox.drain();
+    expect(transport.sent.map((m) => m.subject)).toEqual([
+      `Ihre Pawsome-Bestellung ${number} ist bestätigt`,
+      `Ihre Pawsome-Bestellung ${number} ist unterwegs`,
+    ]);
+    expect(transport.sent[0]?.html).toContain('Vielen Dank für Ihre Bestellung');
   });
 
   it('sends the confirmation once even if the payment event is delivered again', async () => {

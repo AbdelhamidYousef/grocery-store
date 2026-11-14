@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 import { env } from '../config/env.ts';
 
-import { escapeHtml, paragraph, shell, type Email } from './layout.ts';
+import type { EmailText } from './i18n/index.ts';
+import { escapeHtml, htmlOf, paragraph, shell, type Email } from './layout.ts';
 
 export const ReviewApprovedPayloadSchema = z.object({
   firstName: z.string(),
@@ -11,26 +12,25 @@ export const ReviewApprovedPayloadSchema = z.object({
 });
 
 // Sent once when a moderator approves a review (queued in the same transaction as the approval).
-export function reviewApproved(rawPayload: Record<string, unknown> | null): Email {
+export function reviewApproved(rawPayload: Record<string, unknown> | null, x: EmailText): Email {
   const p = ReviewApprovedPayloadSchema.parse(rawPayload);
-  const url = `${env.WEB_ORIGIN.replace(/\/$/, '')}/products/${encodeURIComponent(p.productSlug)}#reviews`;
-  const subject = `Your review of ${p.productName} is live`;
+  const url = x.url(env.WEB_ORIGIN, `/products/${encodeURIComponent(p.productSlug)}#reviews`);
+  const subject = x.t('review.subject', { product: p.productName });
   const text = [
-    `Hello ${p.firstName},`,
+    x.t('mail.hello', { name: p.firstName }),
     '',
-    `Thank you for reviewing ${p.productName}! Your review has passed our check and is now on the product page, where it helps other pet owners choose.`,
-    `See it here: ${url}`,
+    x.t('review.l1', { product: p.productName }),
+    x.t('review.see', { url }),
     '',
-    '- The Pawsome team',
+    x.t('mail.signoff'),
   ].join('\n');
-  const html = shell({
-    preheader: `Your review of ${p.productName} is live.`,
-    heading: 'Thank you for your review!',
+  const html = shell(x, {
+    preheader: x.t('review.preheader', { product: p.productName }),
+    heading: x.t('review.heading'),
     body: [
-      paragraph(
-        `Hello ${escapeHtml(p.firstName)}, thank you for reviewing <strong>${escapeHtml(p.productName)}</strong>! Your review has passed our check and is now on the product page, where it helps other pet owners choose.`,
-      ),
-      paragraph(`<a href="${escapeHtml(url)}">See your review</a>`),
+      paragraph(escapeHtml(x.t('mail.hello', { name: p.firstName }))),
+      paragraph(htmlOf(x, 'review.l1', { product: p.productName }, ['product'])),
+      paragraph(`<a href="${escapeHtml(url)}">${escapeHtml(x.t('review.link'))}</a>`),
     ].join('\n'),
   });
   return { subject, text, html };
