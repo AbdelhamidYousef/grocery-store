@@ -54,6 +54,7 @@ const GROUPS: FooterGroup[] = [
       { label: 'Help centre', to: '/help' },
       { label: 'Track your order', to: '/track-order' },
       { label: 'Contact us', to: '/contact' },
+      { label: 'Newsletter', to: '/newsletter' },
       legal('shipping'),
       legal('returns'),
     ],

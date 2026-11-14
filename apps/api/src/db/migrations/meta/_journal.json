@@ -183,6 +183,13 @@
       "when": 1794636877057,
       "tag": "0025_referrals",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1794636878288,
+      "tag": "0026_newsletter",
+      "breakpoints": true
     }
   ]
 }

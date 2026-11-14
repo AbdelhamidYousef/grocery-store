@@ -26,6 +26,7 @@ import { registerLoyaltySubscribers } from './loyalty/service.ts';
 import type { Outbox } from './mail/outbox.ts';
 import { merchandisingRouter } from './merchandising/router.ts';
 import { navigationRouter } from './navigation/router.ts';
+import { createNewsletterRouter } from './newsletter/router.ts';
 import { createPetsRouter } from './pets/router.ts';
 import { promotionsRouter } from './promotions/router.ts';
 import { registerPromotionSubscribers } from './promotions/service.ts';
@@ -44,6 +45,7 @@ export function createModulesRouter(opts: {
   authRateLimit: RateLimitOptions;
   lookupRateLimit?: RateLimitOptions;
   contactRateLimit?: RateLimitOptions;
+  newsletterRateLimit?: RateLimitOptions;
   suggestRateLimit?: RateLimitOptions;
   reviewRateLimit?: RateLimitOptions;
   voteRateLimit?: RateLimitOptions;
@@ -99,6 +101,7 @@ export function createModulesRouter(opts: {
   router.use(createPetsRouter());
   router.use(createReviewsRouter(opts));
   router.use(createLoyaltyRouter());
+  router.use(createNewsletterRouter(opts));
   router.use(cartRouter);
   router.use(createTrackingRouter(opts));
   router.use(createWithdrawalsRouter(opts));

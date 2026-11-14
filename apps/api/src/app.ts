@@ -30,6 +30,7 @@ export interface AppConfig {
   lookupRateLimit?: RateLimitOptions;
   /** Public contact form: 5 per hour per IP when omitted. */
   contactRateLimit?: RateLimitOptions;
+  newsletterRateLimit?: RateLimitOptions;
   suggestRateLimit?: RateLimitOptions;
   /** Reviews per signed-in user (5 per hour when omitted) and helpful votes (30 per hour). */
   reviewRateLimit?: RateLimitOptions;
@@ -124,6 +125,7 @@ export function createApp({ logger, pingDb, payments, outbox, config }: AppDeps)
       authRateLimit: config.authRateLimit,
       ...(config.lookupRateLimit && { lookupRateLimit: config.lookupRateLimit }),
       ...(config.contactRateLimit && { contactRateLimit: config.contactRateLimit }),
+      ...(config.newsletterRateLimit && { newsletterRateLimit: config.newsletterRateLimit }),
       ...(config.suggestRateLimit && { suggestRateLimit: config.suggestRateLimit }),
       ...(config.reviewRateLimit && { reviewRateLimit: config.reviewRateLimit }),
       ...(config.voteRateLimit && { voteRateLimit: config.voteRateLimit }),

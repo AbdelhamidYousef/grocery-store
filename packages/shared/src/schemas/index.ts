@@ -27,3 +27,4 @@ export * from './search.ts';
 export * from './navigation.ts';
 export * from './reviews.ts';
 export * from './loyalty.ts';
+export * from './newsletter.ts';

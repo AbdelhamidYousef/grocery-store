@@ -1,6 +1,7 @@
 import type { Order } from '@store/shared';
 
 import { contactAck, contactNotify } from './contact.ts';
+import { newsletterConfirm, newsletterWelcome } from './newsletter.ts';
 import { orderConfirmation } from './order-confirmation.ts';
 import { orderShipped } from './order-shipped.ts';
 import { reviewApproved } from './review-approved.ts';
@@ -21,6 +22,8 @@ export const GENERAL_EMAIL_KINDS = [
   'contact_notify',
   'safety_notice',
   'review_approved',
+  'newsletter_confirm',
+  'newsletter_welcome',
 ] as const;
 
 export const EMAIL_KINDS = [...ORDER_EMAIL_KINDS, ...GENERAL_EMAIL_KINDS] as const;
@@ -66,5 +69,9 @@ export function renderQueuedEmail(
       return safetyNotice(payload);
     case 'review_approved':
       return reviewApproved(payload);
+    case 'newsletter_confirm':
+      return newsletterConfirm(payload);
+    case 'newsletter_welcome':
+      return newsletterWelcome(payload);
   }
 }

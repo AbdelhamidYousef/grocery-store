@@ -12,6 +12,11 @@
 export const TEST_IDS = {
   pageHome: 'page-home',
   earnPoints: 'earn-points',
+  newsletterForm: 'newsletter-form',
+  newsletterDone: 'newsletter-done',
+  pageNewsletter: 'page-newsletter',
+  newsletterConfirmed: 'newsletter-confirmed',
+  newsletterUnsubscribed: 'newsletter-unsubscribed',
   referralPanel: 'referral-panel',
   referralLink: 'referral-link',
   charityTotal: 'charity-total',

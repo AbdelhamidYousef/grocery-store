@@ -15,10 +15,15 @@ const group = (n: number) =>
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export interface PersonalCodeSpec {
-  userId: string;
-  kind: 'fixed' | 'free_shipping';
-  /** Cents for `fixed`; ignored for `free_shipping`. */
+  /** The only account that may use the code; omit for a code anyone holding it may use once. */
+  userId?: string;
+  kind: 'fixed' | 'free_shipping' | 'percent';
+  /** Cents for `fixed`, whole percent for `percent`; ignored for `free_shipping`. */
   valueCents: number;
+  /** Only valid on a customer's first order (the newsletter welcome code). */
+  firstOrderOnly?: boolean;
+  /** 1 gives `PREFIX-XXXX`, 2 (default) gives `PREFIX-XXXX-XXXX`. */
+  groups?: 1 | 2;
   minSpendCents?: number;
   expiresInDays: number;
   /** "PAWS", "REF" ... */
@@ -35,12 +40,16 @@ export async function mintPersonalCode(run: Run, spec: PersonalCodeSpec) {
     const [row] = await run
       .insert(discountCodes)
       .values({
-        code: `${spec.prefix}-${group(4)}-${group(4)}`,
+        code:
+          spec.groups === 1
+            ? `${spec.prefix}-${group(4)}`
+            : `${spec.prefix}-${group(4)}-${group(4)}`,
         kind: spec.kind,
-        value: spec.kind === 'fixed' ? spec.valueCents : 0,
+        value: spec.kind === 'free_shipping' ? 0 : spec.valueCents,
+        firstOrderOnly: spec.firstOrderOnly ?? false,
         minSpendCents: spec.minSpendCents ?? 0,
         maxUses: 1,
-        ownerUserId: spec.userId,
+        ownerUserId: spec.userId ?? null,
         startsAt: now,
         endsAt: new Date(now.getTime() + spec.expiresInDays * DAY_MS),
       })

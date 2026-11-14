@@ -4,6 +4,7 @@ import { readRecentlyViewed } from '../../lib/recently-viewed';
 import { RecentlyViewed } from '../catalog/pdp/RecentlyViewed';
 import { ShoppableGallery } from '../gallery/ShoppableGallery';
 import { SeasonalCollectionSlot } from '../merchandising/SeasonalCollectionSlot';
+import { NewsletterSlot } from '../newsletter/NewsletterSlot';
 
 import { registerHomeSlot } from './slots';
 
@@ -22,3 +23,5 @@ registerHomeSlot({
 // Phase 17: the customer gallery (#RealPawsomePets). It renders nothing until the API says there
 // is at least one published photo, so an empty gallery leaves no heading behind.
 registerHomeSlot({ id: 'customer-gallery', render: () => createElement(ShoppableGallery) });
+// Phase 19: the newsletter sign-up (double opt-in, welcome code after the confirming click).
+registerHomeSlot({ id: 'newsletter', render: () => createElement(NewsletterSlot) });

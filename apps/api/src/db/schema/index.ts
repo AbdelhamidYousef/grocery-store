@@ -16,6 +16,7 @@ export * from './inventory-adjustments.ts';
 export * from './inventory.ts';
 export * from './job-runs.ts';
 export * from './menu-promos.ts';
+export * from './newsletter.ts';
 export * from './order-items.ts';
 export * from './order-status-history.ts';
 export * from './orders.ts';

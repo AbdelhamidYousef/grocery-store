@@ -65,6 +65,7 @@ export function makeTestApp(
       contactRateLimit: { windowMs: 60_000, limit: 100_000 },
       reviewRateLimit: { windowMs: 60_000, limit: 100_000 },
       voteRateLimit: { windowMs: 60_000, limit: 100_000 },
+      newsletterRateLimit: { windowMs: 60_000, limit: 100_000 },
       suggestRateLimit: { windowMs: 60_000, limit: 100_000 },
       uploads: { dir: TEST_UPLOAD_DIR, enabled: true },
       testHooks: { secret: TEST_HOOK_SECRET, realStripe: false },

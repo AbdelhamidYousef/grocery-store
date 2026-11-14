@@ -18,6 +18,11 @@ import GuidesPage from './pages/GuidesPage';
 import HelpPage from './pages/HelpPage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
+import {
+  NewsletterConfirmPage,
+  NewsletterPage,
+  NewsletterUnsubscribePage,
+} from './pages/NewsletterPage';
 import NotFoundPage from './pages/NotFoundPage';
 import PetsPage from './pages/PetsPage';
 import ProductPage from './pages/ProductPage';
@@ -54,6 +59,9 @@ export const routes: RouteObject[] = [
           { path: 'collections/:slug', element: <CollectionPage /> },
           { path: 'search', element: <SearchPage /> },
           { path: 'charity', element: <CharityPage /> },
+          { path: 'newsletter', element: <NewsletterPage /> },
+          { path: 'newsletter/confirm', element: <NewsletterConfirmPage /> },
+          { path: 'newsletter/unsubscribe', element: <NewsletterUnsubscribePage /> },
           { path: 'gift-finder', element: <GiftFinderPage /> },
           { path: 'gift-finder/result', element: <GiftResultPage /> },
           { path: 'contact', element: <ContactPage /> },
