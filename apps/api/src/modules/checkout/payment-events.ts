@@ -5,6 +5,7 @@ import { db, type Tx } from '../../db/client.ts';
 import type { StripeEvent } from '../../lib/stripe.ts';
 import { canTransition } from '../orders/state-machine.ts';
 import { applyTransition } from '../orders/transition.ts';
+import { hasRefundInFlight } from '../returns/refunded.ts';
 import { queueVetEmail } from '../vet/admin-service.ts';
 import { findVetDetails } from '../vet/repo.ts';
 
@@ -149,6 +150,10 @@ async function refunded(tx: Tx, charge: z.infer<typeof ChargeObject>, actor: str
   // Only an order that was actually paid can be refunded; the state machine knows which
   // statuses those are (including the provider-only ones: a dashboard refund mid-shipping).
   if (!canTransition(order.status, 'refunded', { fromProvider: true })) return;
+  // A return is mid-refund (gateway called, not yet marked): this event IS its refund. The return
+  // finishes the order itself (right amount, one event); acting here would count the money twice
+  // and strand the return.
+  if (order.status === 'delivered' && (await hasRefundInFlight(tx, order.id))) return;
   await applyTransition(tx, order, 'refunded', {
     actor,
     note: 'Refunded in Stripe',

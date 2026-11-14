@@ -213,13 +213,9 @@ export async function refund(
       if (err instanceof InvalidReturnTransitionError) throw invalid(err);
       throw err;
     }
-    if (order.status !== 'delivered') {
-      throw conflict(
-        ErrorCode.CONFLICT,
-        `The order is ${order.status}, so this return cannot be refunded`,
-      );
-    }
     if (ret.refundIntentAt) {
+      // Continue whatever the order is by now: the money may already have moved, and the intent
+      // is the one thing that must be finished (a webhook can have changed the order meanwhile).
       if (ret.refundShipping !== opts.refundShipping) {
         throw conflict(
           ErrorCode.CONFLICT,
@@ -227,6 +223,12 @@ export async function refund(
         );
       }
       return { done: false as const, ret };
+    }
+    if (order.status !== 'delivered') {
+      throw conflict(
+        ErrorCode.CONFLICT,
+        `The order is ${order.status}, so this return cannot be refunded`,
+      );
     }
     // Price the lines NOW, from the units already refunded or in an intent (not from what was open
     // when the customer asked): a rejected return in between must not shift the rounding, or the
@@ -295,9 +297,10 @@ export async function refund(
     const locked = await repo.lockReturn(tx, ret.id);
     if (!order || !locked) throw notFound('Return not found');
     if (locked.status === 'refunded') return; // a parallel click finished it first
-    // The order's running total of money handed back (analytics reads revenue net of it).
+    // The order's running total of money handed back (analytics reads revenue net of it), never
+    // above what was paid.
     await checkoutRepo.updateOrder(tx, order.id, {
-      refundedCents: order.refundedCents + locked.refundCents,
+      refundedCents: Math.min(order.refundedCents + locked.refundCents, order.totalCents),
     });
     const row = await repo.updateReturn(tx, ret.id, {
       status: 'refunded',
@@ -311,9 +314,14 @@ export async function refund(
     // cannot be returned, so they do not hold the order open.
     const lines = await checkoutRepo.listOrderItems(tx, order.id);
     const back = await repo.refundedQuantities(tx, order.id);
-    const full = lines
-      .filter((l) => l.lineTotalCents - l.discountCents > 0)
-      .every((l) => (back.get(l.id) ?? 0) >= l.quantity);
+    // If the order is already refunded (a whole-order refund got there first and emitted its own
+    // full event for what was left), this return only reports its share: not full, no transition.
+    const alreadyRefunded = order.status === 'refunded';
+    const full =
+      !alreadyRefunded &&
+      lines
+        .filter((l) => l.lineTotalCents - l.discountCents > 0)
+        .every((l) => (back.get(l.id) ?? 0) >= l.quantity);
     if (full) {
       await applyTransition(tx, order, 'refunded', {
         actor,

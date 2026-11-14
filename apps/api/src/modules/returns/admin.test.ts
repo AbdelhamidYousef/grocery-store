@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { pino } from 'pino';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { db } from '../../db/client.ts';
 import {
@@ -363,6 +363,59 @@ describe('admin returns: refund safety', () => {
     expect(sum).toBe(1000);
     expect(fake.refundedCents(await intentOf(o.number))).toBe(1000);
     expect((await orderByNumber(o.number)).status).toBe('refunded');
+  });
+
+  it('a charge.refunded webhook between the gateway call and the mark neither strands nor double-counts the return', async () => {
+    const o = await deliveredOrder(app, { quantity: 2, priceCents: 1000 });
+    const order = await orderByNumber(o.number);
+    const [line] = await lines(o.number);
+    const id = await requestReturn(o, [{ orderItemId: line!.id, quantity: 2 }]);
+    await act(id, 'approve');
+    await act(id, 'receive');
+    const real = fake.refundPaymentIntent.bind(fake);
+    const spy = vi
+      .spyOn(fake, 'refundPaymentIntent')
+      .mockImplementation(async (...args: Parameters<typeof real>) => {
+        const info = await real(...args);
+        // Stripe tells us about the refund while we are still between step 2 and step 3.
+        expect((await simulate(app, o.number, 'charge.refunded')).status).toBe(200);
+        return info;
+      });
+    try {
+      const res = await act(id, 'refund');
+      expect(res.status).toBe(200);
+    } finally {
+      spy.mockRestore();
+    }
+    const after = await orderByNumber(o.number);
+    expect(after.status).toBe('refunded');
+    expect(after.refundedCents).toBe(2000);
+    expect((await detail(id)).return.status).toBe('refunded');
+    // One full event, carrying the return's real amount (not 0, not a second copy).
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({
+      orderId: order.id,
+      refundId: id,
+      amountCents: 2000,
+      full: true,
+    });
+    // A late duplicate webhook after completion changes nothing.
+    await simulate(app, o.number, 'charge.refunded');
+    expect(events).toHaveLength(1);
+    expect((await act(id, 'refund')).status).toBe(200);
+  });
+
+  it('can still finish a refund whose order a webhook already moved to refunded', async () => {
+    const o = await deliveredOrder(app, { quantity: 1, priceCents: 1000 });
+    const [line] = await lines(o.number);
+    const id = await requestReturn(o, [{ orderItemId: line!.id, quantity: 1 }]);
+    await act(id, 'approve');
+    await act(id, 'receive');
+    fake.failNext('refund');
+    expect((await act(id, 'refund')).status).toBe(502); // intent written
+    await db.update(orders).set({ status: 'refunded' }).where(eq(orders.number, o.number));
+    expect((await act(id, 'refund')).status).toBe(200);
+    expect((await detail(id)).return.status).toBe('refunded');
   });
 
   it('never lets returns refund the round-up donation', async () => {
