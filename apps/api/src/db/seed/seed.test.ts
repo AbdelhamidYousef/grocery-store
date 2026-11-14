@@ -223,7 +223,7 @@ describe('seeded reviews (phase 17)', () => {
   });
 });
 
-describe('seeded sales, returns and vet items (phase 22)', () => {
+describe('seeded sales and returns (phase 22)', () => {
   const stats = async () =>
     (
       await db.execute<{
@@ -236,7 +236,6 @@ describe('seeded sales, returns and vet items (phase 22)', () => {
         approved: number;
         refunded: number;
         refunded_cents: string;
-        vet: number;
         payments: number;
       }>(sql`select
         (select count(*)::int from orders where notes = 'seed:sales') as orders,
@@ -248,7 +247,6 @@ describe('seeded sales, returns and vet items (phase 22)', () => {
         (select count(*)::int from returns where status = 'approved') as approved,
         (select count(*)::int from returns where status = 'refunded') as refunded,
         (select coalesce(sum(refunded_cents), 0)::bigint from orders where notes = 'seed:sales') as refunded_cents,
-        (select count(*)::int from products where requires_vet_approval) as vet,
         (select count(*)::int from payments) as payments`)
     )[0]!;
 
@@ -282,11 +280,10 @@ describe('seeded sales, returns and vet items (phase 22)', () => {
     expect(bad?.n).toBe(0);
   });
 
-  it('gives the demo customer the three returns and flags four vet-approval products', async () => {
+  it('gives the demo customer the three returns', async () => {
     await runSeed();
     const [row] = await db.execute<{ n: number }>(sql`select count(*)::int as n from returns r
       join users u on u.id = r.user_id where u.email = 'casey@pawsome.test'`);
     expect(row?.n).toBe(3);
-    expect((await stats()).vet).toBe(4);
   });
 });

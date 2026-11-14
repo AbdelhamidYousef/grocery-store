@@ -98,7 +98,6 @@ export const account = {
 
   'account.status.pending_payment': 'Awaiting payment',
   'account.status.paid': 'Paid',
-  'account.status.awaiting_vet_approval': 'Waiting for vet approval',
   'account.status.processing': 'Being packed',
   'account.status.shipped': 'Shipped',
   'account.status.delivered': 'Delivered',
@@ -106,7 +105,6 @@ export const account = {
   'account.status.refunded': 'Refunded',
   'account.timeline.pending_payment': 'Order created',
   'account.timeline.paid': 'Payment confirmed',
-  'account.timeline.awaiting_vet_approval': 'Waiting for a vet to approve your order',
   'account.timeline.processing': 'We are packing your order',
   'account.timeline.shipped': 'On its way to you',
   'account.timeline.delivered': 'Delivered',
@@ -134,7 +132,6 @@ export const account = {
   'account.tracking.when': '{date} UTC',
   'account.tracking.state.pending_payment': 'Awaiting payment',
   'account.tracking.state.paid': 'Payment confirmed',
-  'account.tracking.state.awaiting_vet_approval': 'Waiting for vet approval',
   'account.tracking.state.processing': 'Being packed',
   'account.tracking.state.shipped': 'On its way',
   'account.tracking.state.delivered': 'Delivered',

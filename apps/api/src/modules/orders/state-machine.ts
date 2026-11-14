@@ -5,16 +5,14 @@ import type { OrderStatus } from '@store/shared';
 // delivered order be cancelled?" has exactly one answer and it is readable in ten lines.
 //
 //   pending_payment -> paid | cancelled
-//   paid            -> processing | refunded | cancelled | awaiting_vet_approval
-//   awaiting_vet_approval -> processing | cancelled
+//   paid            -> processing | refunded | cancelled
 //   processing      -> shipped | cancelled
 //   shipped         -> delivered
 //   delivered       -> refunded
 //   cancelled, refunded: terminal
 export const TRANSITIONS: Readonly<Record<OrderStatus, readonly OrderStatus[]>> = {
   pending_payment: ['paid', 'cancelled'],
-  paid: ['processing', 'refunded', 'cancelled', 'awaiting_vet_approval'],
-  awaiting_vet_approval: ['processing', 'cancelled'],
+  paid: ['processing', 'refunded', 'cancelled'],
   processing: ['shipped', 'cancelled'],
   shipped: ['delivered'],
   delivered: ['refunded'],
@@ -29,7 +27,6 @@ export const TRANSITIONS: Readonly<Record<OrderStatus, readonly OrderStatus[]>> 
 export const PROVIDER_ONLY_TRANSITIONS: Readonly<Record<OrderStatus, readonly OrderStatus[]>> = {
   pending_payment: [],
   paid: [],
-  awaiting_vet_approval: ['refunded'],
   processing: ['refunded'],
   shipped: ['refunded'],
   delivered: [],
@@ -53,12 +50,8 @@ export function canTransition(
 
 // What an admin (or anyone asking) may choose next; the web shows exactly these buttons. `paid` is
 // never requestable: money arriving is a fact reported by Stripe (confirmPayment), not a choice.
-// The vet hold is reached only by the payment confirmation (an order with a vet-approval item) and
-// left only by the vet decision (which records who decided and the confirmation code), so the
-// generic status buttons offer neither door.
 export function requestableNext(from: OrderStatus): readonly OrderStatus[] {
-  if (from === 'awaiting_vet_approval') return [];
-  return TRANSITIONS[from].filter((to) => to !== 'paid' && to !== 'awaiting_vet_approval');
+  return TRANSITIONS[from].filter((to) => to !== 'paid');
 }
 
 export class InvalidTransitionError extends Error {
@@ -92,11 +85,7 @@ export function stockEffect(from: OrderStatus, to: OrderStatus): StockEffect {
   if (from === 'pending_payment' && to === 'cancelled') return 'release';
   // Paid and processing orders have been committed (quantity reduced) but not dispatched.
   // Cancelling or refunding one means the parcel never goes out, so the units are sellable again.
-  // An order held for a vet's decision has been committed too: a rejection puts the units back.
-  if (
-    (from === 'paid' || from === 'processing' || from === 'awaiting_vet_approval') &&
-    (to === 'cancelled' || to === 'refunded')
-  ) {
+  if ((from === 'paid' || from === 'processing') && (to === 'cancelled' || to === 'refunded')) {
     return 'restock';
   }
   // Shipped/delivered then refunded: the goods are out. They come back (if at all) damaged, late

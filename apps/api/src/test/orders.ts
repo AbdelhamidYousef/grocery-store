@@ -125,35 +125,3 @@ export async function deliveredOrder(
   await markDelivered(placed.number, opts.daysAgo ?? 1);
   return { ...placed, buyer };
 }
-
-export const TEST_VET = {
-  vetName: 'Dr Rosa Marsh',
-  clinic: 'Pawside Vet Clinic',
-  vetEmail: 'rosa@pawside-vet.test',
-};
-
-// Buys a vet-approval product (signed in, with vet details) and pays it; the order then waits in
-// `awaiting_vet_approval`.
-export async function heldOrder(app: Express, opts: { quantity?: number; stock?: number } = {}) {
-  const { variants } = await createProduct({
-    requiresVetApproval: true,
-    variants: [{ priceCents: 1500, stock: opts.stock ?? 10 }],
-  });
-  const variantId = variants[0]!.id;
-  const buyer = await signedIn(
-    app,
-    'customer',
-    `vetbuyer${Math.random().toString(36).slice(2, 8)}@pawsome.test`,
-  );
-  await buyer.shopper.addToCart(variantId, opts.quantity ?? 2);
-  const res = await buyer.shopper.call('post', '/checkout', {
-    email: buyer.user.email,
-    shippingAddress: TEST_ADDRESS,
-    shippingMethodCode: 'standard',
-    vetDetails: TEST_VET,
-  });
-  if (res.status !== 200) throw new Error(`checkout failed: ${res.status}`);
-  const number = bodyOf<{ data: { orderNumber: string } }>(res).data.orderNumber;
-  await simulate(app, number);
-  return { number, variantId, buyer };
-}

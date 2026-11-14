@@ -38,16 +38,6 @@ export async function transitionOrder(
   const seen = await repo.findOrderByNumber(number);
   if (!seen) throw notFound('Order not found');
 
-  // The vet hold is entered by the payment confirmation and left by the vet decision (which records
-  // who decided, and refunds on a rejection): the generic status endpoint offers neither door.
-  if (seen.status === 'awaiting_vet_approval' || to === 'awaiting_vet_approval') {
-    throw conflict(
-      ErrorCode.CONFLICT,
-      "This order is held for a vet's approval; decide it in the vet approvals queue",
-      { from: seen.status, to, allowed: requestableNext(seen.status) },
-    );
-  }
-
   // `paid` is reached only through confirmPayment (a webhook or the reconciler), the single place
   // that checks the amount that really arrived. An admin cannot declare an order paid.
   if (to === 'paid') {

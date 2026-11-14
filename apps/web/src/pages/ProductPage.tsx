@@ -29,7 +29,6 @@ import { SizeGuideButton } from '../features/catalog/pdp/SizeGuide';
 import { useProduct } from '../features/catalog/queries';
 import { variantFromSku } from '../features/catalog/resolve-variant';
 import { VariantPicker } from '../features/catalog/VariantPicker';
-import { VetBanner } from '../features/checkout/VetBanner';
 import { EarnPoints } from '../features/loyalty/EarnPoints';
 import { formatRating } from '../features/reviews/format';
 import { RatingStars } from '../features/reviews/RatingStars';
@@ -176,8 +175,6 @@ function ProductView({ product }: { product: ProductDetail }) {
                 <ProductBadges badges={product.badges} />
               </div>
             </div>
-
-            {product.requiresVetApproval && <VetBanner />}
 
             {product.safetyNotices.map((notice) => (
               <SafetyNoticeBox key={notice.id} notice={notice} />

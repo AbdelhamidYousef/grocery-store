@@ -13,7 +13,6 @@ import { createReturnsAdminRouter } from '../returns/admin-router.ts';
 import type { ReturnsConfig } from '../returns/config.ts';
 import { createReviewsAdminRouter } from '../reviews/admin-router.ts';
 import { createSafetyAdminRouter } from '../safety/admin-router.ts';
-import { createVetAdminRouter } from '../vet/admin-router.ts';
 
 import { createAnalyticsRouter } from './analytics/router.ts';
 import { auditMutations } from './audit.ts';
@@ -51,7 +50,6 @@ export function createAdminRouter(deps: {
   admin.use(createNavigationAdminRouter());
   admin.use(createReviewsAdminRouter(deps));
   admin.use(createReturnsAdminRouter(deps));
-  admin.use(createVetAdminRouter(deps));
   admin.use(createLoyaltyAdminRouter());
   admin.use(createTranslationsAdminRouter());
   router.use('/admin', admin);

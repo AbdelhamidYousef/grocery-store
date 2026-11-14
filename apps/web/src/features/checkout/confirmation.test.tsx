@@ -168,17 +168,6 @@ describe('confirmation page', () => {
     expect(screen.getByRole('link', { name: 'Try again' })).toHaveAttribute('href', '/checkout');
   });
 
-  it('treats an order held for vet approval as paid instead of polling on', async () => {
-    server.use(
-      statusOf('awaiting_vet_approval', 'succeeded'),
-      orderOf(makeOrder({ status: 'awaiting_vet_approval' })),
-    );
-    renderApp(PATH);
-    await waitFor(() =>
-      expect(screen.getByTestId('confirmation-status')).toHaveAttribute('data-state', 'paid'),
-    );
-  });
-
   it('says so for a cancelled order', async () => {
     server.use(statusOf('cancelled'), orderOf(makeOrder({ status: 'cancelled' })));
     renderApp(PATH);

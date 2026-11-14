@@ -24,9 +24,7 @@ import { usePurchaseTracking } from './purchase-tracking';
 type View = 'pending' | 'paid' | 'timeout' | 'failed' | 'cancelled' | 'not-found' | 'error';
 
 // Paid and anything after paid (the shop may already be packing it by the time this page opens).
-// A vet-approval order goes from pending straight to `awaiting_vet_approval` as seen from here
-// (both moves share one transaction), so it counts as paid too.
-const PAID: OrderStatus[] = ['paid', 'awaiting_vet_approval', 'processing', 'shipped', 'delivered'];
+const PAID: OrderStatus[] = ['paid', 'processing', 'shipped', 'delivered'];
 
 const COPY: Record<View, { title: StringKey; body: StringKey }> = {
   pending: {

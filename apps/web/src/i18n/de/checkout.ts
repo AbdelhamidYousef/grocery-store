@@ -22,7 +22,6 @@ export const checkout: Record<keyof typeof enNs, Entry> = {
   'checkout.step.editAria': '{title} ändern',
   'checkout.step.editDetails': 'Kontakt und Adresse ändern',
   'checkout.step.editShipping': 'Versandart ändern',
-  'checkout.step.vetSummary': 'Tierarzt: {name}, {clinic}',
 
   // ---------- step 1: details ----------
   'checkout.details.haveAccount': 'Sie haben ein Konto?',
@@ -43,19 +42,6 @@ export const checkout: Record<keyof typeof enNs, Entry> = {
   'checkout.details.phoneHint': 'Nur für den Zusteller.',
   'checkout.details.saveAddress': 'Diese Adresse in meinem Konto speichern',
   'checkout.details.continue': 'Weiter zum Versand',
-
-  // ---------- vet ----------
-  'checkout.vet.bannerTitle': 'Benötigt das Okay eines Tierarztes.',
-  'checkout.vet.bannerBody':
-    'Nach der Zahlung halten wir diese Bestellung zurück, bis ein Tierarzt sie freigibt, und packen sie dann. Demo-Shop: Das ist keine echte Medizin, und es wird kein Tierarzt kontaktiert.',
-  'checkout.vet.legend': 'Ihr Tierarzt',
-  'checkout.vet.intro':
-    'Ein Artikel in Ihrem Warenkorb benötigt das Okay eines Tierarztes, bevor wir ihn packen. Wir schreiben Ihnen per E-Mail, sobald entschieden ist.',
-  'checkout.vet.demo':
-    'Demo-Shop: Das ist keine echte Medizin, und es wird kein Tierarzt kontaktiert.',
-  'checkout.vet.name': 'Name des Tierarztes',
-  'checkout.vet.clinic': 'Praxis',
-  'checkout.vet.email': 'E-Mail des Tierarztes',
 
   // ---------- step 2: shipping ----------
   'checkout.shipping.loading': 'Versandoptionen werden geladen',
@@ -153,7 +139,5 @@ export const checkout: Record<keyof typeof enNs, Entry> = {
   // ---------- messages from outside (Zod rules in @store/shared) ----------
   'msg.checkout.required': 'Pflichtfeld',
   'msg.checkout.emailInvalid': 'Ungültige E-Mail-Adresse',
-  'msg.checkout.vetName': 'Geben Sie den Namen des Tierarztes ein',
-  'msg.checkout.vetClinic': 'Geben Sie die Praxis ein',
   'msg.checkout.countryUnsupported': 'In dieses Land liefern wir nicht',
 };

@@ -32,6 +32,5 @@ export * from './stock-alerts.ts';
 export * from './wishlist.ts';
 export * from './reorder.ts';
 export * from './returns.ts';
-export * from './vet.ts';
 export * from './analytics.ts';
 export * from './translations.ts';

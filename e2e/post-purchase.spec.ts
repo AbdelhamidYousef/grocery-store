@@ -3,8 +3,7 @@ import { expect, test, type Browser, type Page } from '@playwright/test';
 import { ADMIN, api, register, uniqueEmail } from './helpers';
 
 // After the sale, end to end: a delivered order is returned, approved, received (stock back) and
-// refunded (simulated payment gateway, NODE_ENV=test), a vet-approval order is held and then
-// approved from the queue, and the analytics page shows non-zero figures.
+// refunded (simulated payment gateway, NODE_ENV=test), and the analytics page shows non-zero figures.
 //
 // Payments use the same fake gateway and POST /test/webhooks/simulate as the other specs; "delivered"
 // is reached through the admin's own status buttons (API), as in production.
@@ -174,72 +173,6 @@ test('a delivered order is returned, approved, received, refunded and restocked'
     `/admin/orders/${number}`,
   );
   expect(detail.body.data.order.status).toBe('refunded');
-
-  await admin.context.close();
-  await buyerCtx.close();
-});
-
-test('a vet-approval order is held after payment and goes on when an admin approves it', async ({
-  browser,
-}) => {
-  const admin = await adminSession(browser);
-  const buyerCtx = await browser.newContext();
-  const buyer = await buyerCtx.newPage();
-  const email = uniqueEmail();
-  await register(buyer, email);
-  await expect(buyer).toHaveURL(/\/account$/);
-
-  // The product page of a flagged item says so; checkout then asks for the vet.
-  await buyer.goto('/products/calm-chews');
-  await expect(buyer.getByTestId('vet-banner')).toContainText("Needs a vet's okay");
-  const product = await api<{ data: { variants: { id: string }[] } }>(
-    buyer,
-    'GET',
-    '/products/calm-chews',
-  );
-  const variantId = product.body.data.variants[0]!.id;
-  await api(buyer, 'POST', '/cart/items', { variantId, quantity: 1 });
-  await buyer.goto('/checkout');
-  await expect(buyer.getByTestId('vet-details-form')).toBeVisible();
-  await buyer.getByTestId('checkout-continue-shipping').click();
-  await expect(buyer.getByLabel("Vet's name")).toHaveAttribute('aria-invalid', 'true');
-
-  // Placing without vet details is refused by the API, with them it is held after payment.
-  const refused = await api(buyer, 'POST', '/checkout', {
-    email,
-    shippingAddress: ADDRESS,
-    shippingMethodCode: 'standard',
-  });
-  expect(refused.status).toBe(422);
-  const number = await checkout(
-    buyer,
-    email,
-    variantId,
-    1,
-    {
-      vetDetails: {
-        vetName: 'Dr Rosa Marsh',
-        clinic: 'Pawside Vet Clinic',
-        vetEmail: 'rosa@pawside-vet.test',
-      },
-    },
-    true,
-  );
-  await buyer.goto(`/account/orders/${number}`);
-  await expect(buyer.getByTestId('order-status-badge')).toContainText('Waiting for vet approval');
-
-  await admin.page.goto('/admin/vet-approvals');
-  const row = admin.page.getByTestId('admin-vet-row').filter({ hasText: number });
-  await expect(row).toContainText('Dr Rosa Marsh');
-  await row.getByRole('button', { name: /^Approve order/ }).click();
-  await expect(admin.page.getByTestId('admin-vet-row').filter({ hasText: number })).toHaveCount(0);
-
-  await buyer.reload();
-  await expect(buyer.getByTestId('order-status-badge')).toContainText('Being packed');
-  await admin.page.getByRole('button', { name: 'Approved' }).click();
-  await expect(admin.page.getByTestId('admin-vet-row').filter({ hasText: number })).toContainText(
-    'VET-SIM-',
-  );
 
   await admin.context.close();
   await buyerCtx.close();

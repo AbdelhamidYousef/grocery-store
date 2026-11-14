@@ -211,7 +211,6 @@ export function makeProduct(overrides: Partial<ProductDetail> = {}): ProductDeta
     bundle: null,
     kits: [],
     rating: { count: 0, averageTenths: 0 },
-    requiresVetApproval: false,
     ...overrides,
   };
 }
@@ -266,11 +265,7 @@ export function makeCartItem(overrides: Partial<WebCartItem> = {}): WebCartItem 
 }
 
 // Totals follow the items, like the real API (sold-out lines excluded).
-export function makeCart(
-  items: WebCartItem[] = [],
-  warnings: WebCart['warnings'] = [],
-  requiresVetApproval = false,
-): WebCart {
+export function makeCart(items: WebCartItem[] = [], warnings: WebCart['warnings'] = []): WebCart {
   const buyable = items.filter((i) => i.available > 0);
   return {
     items,
@@ -280,7 +275,6 @@ export function makeCart(
     weightGrams: 0,
     warnings,
     pricing: makeCartPricing(),
-    requiresVetApproval,
   };
 }
 

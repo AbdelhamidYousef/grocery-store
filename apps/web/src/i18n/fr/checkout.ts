@@ -21,7 +21,6 @@ export const checkout: Record<keyof typeof enNs, Entry> = {
   'checkout.step.editAria': 'Modifier {title}',
   'checkout.step.editDetails': 'Modifier le contact et l’adresse',
   'checkout.step.editShipping': 'Modifier le mode de livraison',
-  'checkout.step.vetSummary': 'Vétérinaire : {name}, {clinic}',
 
   // ---------- step 1: details ----------
   'checkout.details.haveAccount': 'Vous avez un compte ?',
@@ -42,19 +41,6 @@ export const checkout: Record<keyof typeof enNs, Entry> = {
   'checkout.details.phoneHint': 'Uniquement pour le livreur.',
   'checkout.details.saveAddress': 'Enregistrer cette adresse dans mon compte',
   'checkout.details.continue': 'Continuer vers la livraison',
-
-  // ---------- vet ----------
-  'checkout.vet.bannerTitle': 'Nécessite l’accord d’un vétérinaire.',
-  'checkout.vet.bannerBody':
-    'Après le paiement, nous mettons cette commande en attente jusqu’à l’approbation d’un vétérinaire, puis nous la préparons. Boutique de démonstration : ce n’est pas un vrai médicament et aucun vétérinaire n’est contacté.',
-  'checkout.vet.legend': 'Votre vétérinaire',
-  'checkout.vet.intro':
-    'Un article de votre panier nécessite l’accord d’un vétérinaire avant que nous le préparions. Nous vous écrirons dès que la décision sera prise.',
-  'checkout.vet.demo':
-    'Boutique de démonstration : ce n’est pas un vrai médicament et aucun vétérinaire n’est contacté.',
-  'checkout.vet.name': 'Nom du vétérinaire',
-  'checkout.vet.clinic': 'Clinique',
-  'checkout.vet.email': 'E-mail du vétérinaire',
 
   // ---------- step 2: shipping ----------
   'checkout.shipping.loading': 'Chargement des options de livraison',
@@ -155,7 +141,5 @@ export const checkout: Record<keyof typeof enNs, Entry> = {
   // ---------- messages from outside (Zod rules in @store/shared) ----------
   'msg.checkout.required': 'Obligatoire',
   'msg.checkout.emailInvalid': 'Adresse e-mail invalide',
-  'msg.checkout.vetName': 'Saisissez le nom du vétérinaire',
-  'msg.checkout.vetClinic': 'Saisissez la clinique',
   'msg.checkout.countryUnsupported': 'Nous ne livrons pas dans ce pays',
 };

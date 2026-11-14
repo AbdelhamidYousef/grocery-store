@@ -27,7 +27,7 @@ export const validation = (details?: unknown, message = 'Request validation fail
   new AppError(ErrorCode.VALIDATION_ERROR, message, details);
 
 // The request is well-formed but the business rule says no (a return of more units than were
-// bought, a vet form missing for a flagged cart). Same code as a schema failure so the web handles
+// bought). Same code as a schema failure so the web handles
 // both identically; 422 tells them apart in logs and tests.
 export const unprocessable = (message: string, details?: unknown) =>
   new AppError(ErrorCode.VALIDATION_ERROR, message, details, 422);

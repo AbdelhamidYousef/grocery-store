@@ -10,13 +10,7 @@ import {
 import type { Logger } from 'pino';
 
 import { db } from '../../db/client.ts';
-import {
-  conflict,
-  notFound,
-  paymentProvider,
-  unprocessable,
-  validation,
-} from '../../lib/errors.ts';
+import { conflict, notFound, paymentProvider, validation } from '../../lib/errors.ts';
 import type { PaymentGateway } from '../../lib/stripe.ts';
 import type { AuthUser } from '../auth/sessions.ts';
 import * as cartRepo from '../cart/repo.ts';
@@ -27,7 +21,6 @@ import { toOrderDto, totalsOf } from '../orders/view.ts';
 import * as promotionsRepo from '../promotions/repo.ts';
 import * as promotions from '../promotions/service.ts';
 import { assertTrialAllowed, customerKey } from '../trials/service.ts';
-import * as vetRepo from '../vet/repo.ts';
 
 import { cancelPendingOrder, releaseReservations } from './orders.ts';
 import * as repo from './repo.ts';
@@ -179,15 +172,6 @@ async function reserveAndSave(
     const method = await repo.findActiveShippingMethod(input.shippingMethodCode, tx, cart.currency);
     if (!method) throw fieldError('shippingMethodCode', 'Unknown shipping method');
 
-    // An item that needs a vet's approval: the details are required, decided by the cart the
-    // server just priced (never by a flag from the browser). 422 = well-formed, rule says no.
-    if (cart.requiresVetApproval && !input.vetDetails) {
-      throw unprocessable("Add your vet's details to continue", {
-        formErrors: [],
-        fieldErrors: { vetDetails: ["Your cart has an item that needs a vet's approval"] },
-      });
-    }
-
     // The engine decides every amount, now with the chosen method and the customer's email (a
     // guest's per-customer and first-order history is only known from here on). The code row is
     // locked before its uses are counted, so two checkouts racing for a capped code queue up.
@@ -315,14 +299,6 @@ async function reserveAndSave(
         toStatus: 'pending_payment',
         actor: 'customer',
       });
-    }
-
-    // The vet's details live with the order (admin-only). Kept in step with the cart: replaced when
-    // the form was edited, removed when the flagged item left the cart.
-    if (cart.requiresVetApproval && input.vetDetails) {
-      await vetRepo.upsertVetDetails(tx, order.id, input.vetDetails);
-    } else {
-      await vetRepo.deleteVetDetails(tx, order.id);
     }
 
     const pricedLine = new Map(priced.lines.map((l) => [l.variantId, l]));

@@ -125,7 +125,7 @@ export async function countRedemptions(
   return { total: total?.n ?? 0, mine: mine?.n ?? 0 };
 }
 
-const PLACED = ['paid', 'awaiting_vet_approval', 'processing', 'shipped', 'delivered'] as const;
+const PLACED = ['paid', 'processing', 'shipped', 'delivered'] as const;
 
 // Orders the customer has really placed (paid at some point), for first-order-only codes.
 export async function countPlacedOrders(run: Run, userId: string | null, email: string | null) {

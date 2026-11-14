@@ -214,9 +214,6 @@ export const TEST_IDS = {
 
   pageAdmin: 'page-admin',
   adminNav: 'admin-nav',
-  vetDetailsForm: 'vet-details-form',
-  vetBanner: 'vet-banner',
-  adminVetRow: 'admin-vet-row',
   analyticsKpi: 'analytics-kpi',
   analyticsChart: 'analytics-chart',
   analyticsTopProduct: 'analytics-top-product',

@@ -44,6 +44,5 @@ export * from './webhook-events.ts';
 export * from './wishlists.ts';
 export * from './withdrawal-requests.ts';
 export * from './returns.ts';
-export * from './order-vet-details.ts';
 export * from './translations.ts';
 export * from './variant-prices.ts';

@@ -114,7 +114,6 @@ export type LineRow = {
   productName: string;
   productSlug: string;
   productStatus: 'draft' | 'active' | 'archived';
-  requiresVetApproval: boolean;
   stock: number | null;
   reserved: number | null;
 };
@@ -145,9 +144,6 @@ export async function listLines(
         productName: products.name,
         productSlug: products.slug,
         productStatus: products.status,
-        // Flagged itself, or a kit with a flagged component: a kit must not smuggle a vet-approval
-        // item past the hold.
-        requiresVetApproval: sql<boolean>`(${products.requiresVetApproval} or exists (select 1 from bundle_items bi join product_variants cv on cv.id = bi.component_variant_id join products cp on cp.id = cv.product_id where bi.bundle_variant_id = ${productVariants.id} and cp.requires_vet_approval))`,
         stock: stockQuantity(productVariants.id),
         reserved: stockReserved(productVariants.id),
       })

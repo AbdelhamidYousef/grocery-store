@@ -34,7 +34,6 @@ import { ReturnsAdmin } from '../features/admin/returns/ReturnsAdmin';
 import { ReviewsAdmin } from '../features/admin/reviews/ReviewsAdmin';
 import { TagsAdmin } from '../features/admin/TagsAdmin';
 import { TranslationsAdmin } from '../features/admin/translations/TranslationsAdmin';
-import { VetApprovalsAdmin } from '../features/admin/vet/VetApprovalsAdmin';
 
 // One lazy chunk for the whole back office, with its own small route table underneath
 // (`admin/*` in routes.tsx), like the account area. RequireAdmin wraps this route there.
@@ -49,7 +48,6 @@ export default function AdminPage() {
         <Route path="products/:id" element={<ProductEdit />} />
         <Route path="orders" element={<OrdersList />} />
         <Route path="returns" element={<ReturnsAdmin />} />
-        <Route path="vet-approvals" element={<VetApprovalsAdmin />} />
         <Route path="returns/:id" element={<ReturnDetail />} />
         <Route path="reviews" element={<ReviewsAdmin />} />
         <Route path="orders/:number" element={<OrderDetail />} />

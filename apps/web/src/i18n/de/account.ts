@@ -100,7 +100,6 @@ export const account: Record<keyof typeof enNs, Entry> = {
 
   'account.status.pending_payment': 'Zahlung ausstehend',
   'account.status.paid': 'Bezahlt',
-  'account.status.awaiting_vet_approval': 'Wartet auf Freigabe durch den Tierarzt',
   'account.status.processing': 'Wird gepackt',
   'account.status.shipped': 'Versendet',
   'account.status.delivered': 'Geliefert',
@@ -108,7 +107,6 @@ export const account: Record<keyof typeof enNs, Entry> = {
   'account.status.refunded': 'Erstattet',
   'account.timeline.pending_payment': 'Bestellung angelegt',
   'account.timeline.paid': 'Zahlung bestätigt',
-  'account.timeline.awaiting_vet_approval': 'Ein Tierarzt muss Ihre Bestellung noch freigeben',
   'account.timeline.processing': 'Wir packen Ihre Bestellung',
   'account.timeline.shipped': 'Auf dem Weg zu Ihnen',
   'account.timeline.delivered': 'Geliefert',
@@ -138,7 +136,6 @@ export const account: Record<keyof typeof enNs, Entry> = {
   'account.tracking.when': '{date} UTC',
   'account.tracking.state.pending_payment': 'Zahlung ausstehend',
   'account.tracking.state.paid': 'Zahlung bestätigt',
-  'account.tracking.state.awaiting_vet_approval': 'Wartet auf Freigabe durch den Tierarzt',
   'account.tracking.state.processing': 'Wird gepackt',
   'account.tracking.state.shipped': 'Unterwegs',
   'account.tracking.state.delivered': 'Geliefert',

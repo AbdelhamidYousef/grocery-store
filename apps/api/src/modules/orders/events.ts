@@ -19,13 +19,13 @@ export interface OrderCancelledEvent {
   orderId: string;
 }
 // One event for every money-back on an order, partial or full. Emitted by `applyTransition` for a
-// whole-order refund, by the returns service for each refunded return, and by a vet rejection.
+// whole-order refund, by the returns service for each refunded return.
 // Subscribers (loyalty clawback, referral voiding, round-up reversal) must be idempotent per
 // `refundId`: the event is emitted inside the transaction that records the refund, so it fires
 // once per refund, but a subscriber that writes its own rows keys them on `refundId` anyway.
 export interface OrderRefundedEvent {
   orderId: string;
-  /** Id of this refund (the return's id, or `vet-rejection:<orderId>`); null for a whole-order
+  /** Id of this refund (the return's id); null for a whole-order
    *  refund through a status change, of which an order can have only one. */
   refundId: string | null;
   /** Money returned by THIS refund, integer cents. Never a running total. */

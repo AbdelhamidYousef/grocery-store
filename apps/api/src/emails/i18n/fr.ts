@@ -83,26 +83,6 @@ export const fr: Record<EmailKey, TextEntry> = {
   'return.refunded.real':
     'Il apparaît généralement sur votre carte sous quelques jours, selon votre banque.',
 
-  'vet.held.subject': 'La commande {number} attend l’accord d’un vétérinaire',
-  'vet.held.heading': 'Votre commande attend l’accord d’un vétérinaire',
-  'vet.held.l1':
-    'Merci ! La commande {number} contient un article qui nécessite l’accord d’un vétérinaire ; nous la retenons jusqu’à la décision. Votre paiement est en sécurité et les articles sont mis de côté pour vous.',
-  'vet.held.l2':
-    'Nous vous écrirons dès qu’il y aura une réponse. (Boutique de démonstration : aucun vrai vétérinaire n’est contacté.)',
-  'vet.approved.subject': 'La commande {number} est approuvée et en préparation',
-  'vet.approved.heading': 'Approuvée, nous la préparons',
-  'vet.approved.l1':
-    'Bonne nouvelle : le contrôle vétérinaire de la commande {number} est terminé et votre commande est en cours de préparation.',
-  'vet.rejected.subject': 'La commande {number} n’a pas été approuvée',
-  'vet.rejected.heading': 'Nous n’avons pas pu approuver cette commande',
-  'vet.rejected.l1':
-    'Nous sommes désolés : le contrôle vétérinaire de la commande {number} n’a pas été approuvé ; la commande est annulée et votre paiement est intégralement remboursé.',
-  'vet.rejected.reason': 'Motif : {reason}',
-  'vet.rejected.simulated':
-    'Ceci est une boutique de démonstration : le remboursement a été simulé et aucun argent n’a bougé.',
-  'vet.rejected.real':
-    'Le remboursement apparaît généralement sur votre carte sous quelques jours.',
-
   'news.unsub.text':
     'Vous recevez ce message parce que vous êtes abonné aux actualités Pawsome. Se désabonner en un clic : {url}',
   'news.unsub.lead': 'Vous recevez ce message parce que vous êtes abonné aux actualités Pawsome.',

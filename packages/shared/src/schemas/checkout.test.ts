@@ -71,8 +71,8 @@ describe('CheckoutRequestSchema', () => {
 });
 
 describe('order helpers', () => {
-  it('knows the eight order statuses', () => {
-    expect(OrderStatusSchema.options).toHaveLength(8);
+  it('knows the seven order statuses', () => {
+    expect(OrderStatusSchema.options).toHaveLength(7);
   });
 
   it('accepts only well-formed order numbers', () => {

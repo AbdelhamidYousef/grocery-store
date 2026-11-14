@@ -7,7 +7,6 @@ import type { StringKey } from '../../i18n';
 export const STATUS_KEY: Record<OrderStatus, StringKey> = {
   pending_payment: 'account.status.pending_payment',
   paid: 'account.status.paid',
-  awaiting_vet_approval: 'account.status.awaiting_vet_approval',
   processing: 'account.status.processing',
   shipped: 'account.status.shipped',
   delivered: 'account.status.delivered',
@@ -18,7 +17,6 @@ export const STATUS_KEY: Record<OrderStatus, StringKey> = {
 export const STATUS_TONE: Record<OrderStatus, BadgeTone> = {
   pending_payment: 'neutral',
   paid: 'primary',
-  awaiting_vet_approval: 'pet',
   processing: 'primary',
   shipped: 'primary',
   delivered: 'success',
@@ -30,7 +28,6 @@ export const STATUS_TONE: Record<OrderStatus, BadgeTone> = {
 export const TIMELINE_KEY: Record<OrderStatus, StringKey> = {
   pending_payment: 'account.timeline.pending_payment',
   paid: 'account.timeline.paid',
-  awaiting_vet_approval: 'account.timeline.awaiting_vet_approval',
   processing: 'account.timeline.processing',
   shipped: 'account.timeline.shipped',
   delivered: 'account.timeline.delivered',

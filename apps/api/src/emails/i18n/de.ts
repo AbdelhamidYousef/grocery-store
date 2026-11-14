@@ -84,26 +84,6 @@ export const de: Record<EmailKey, TextEntry> = {
   'return.refunded.real':
     'Sie erscheint in der Regel innerhalb weniger Tage auf Ihrer Karte, je nach Bank.',
 
-  'vet.held.subject': 'Bestellung {number} wartet auf die Freigabe einer Tierarztpraxis',
-  'vet.held.heading': 'Ihre Bestellung wartet auf die Freigabe einer Tierarztpraxis',
-  'vet.held.l1':
-    'Vielen Dank! Die Bestellung {number} enthält einen Artikel, der die Freigabe einer Tierarztpraxis braucht. Wir halten sie zurück, bis darüber entschieden ist. Ihre Zahlung ist sicher und die Artikel sind für Sie reserviert.',
-  'vet.held.l2':
-    'Wir schreiben Ihnen, sobald es eine Antwort gibt. (Demo-Shop: Es wird keine echte Tierarztpraxis kontaktiert.)',
-  'vet.approved.subject': 'Bestellung {number} ist freigegeben und wird gepackt',
-  'vet.approved.heading': 'Freigegeben, wir packen sie',
-  'vet.approved.l1':
-    'Gute Nachrichten: Die tierärztliche Prüfung der Bestellung {number} ist abgeschlossen und Ihre Bestellung wird jetzt gepackt.',
-  'vet.rejected.subject': 'Bestellung {number} wurde nicht freigegeben',
-  'vet.rejected.heading': 'Wir konnten diese Bestellung nicht freigeben',
-  'vet.rejected.l1':
-    'Es tut uns leid: Die tierärztliche Prüfung der Bestellung {number} wurde nicht freigegeben. Die Bestellung ist storniert und Ihre Zahlung wird vollständig erstattet.',
-  'vet.rejected.reason': 'Grund: {reason}',
-  'vet.rejected.simulated':
-    'Dies ist ein Demo-Shop: Die Erstattung wurde simuliert und es wurde kein Geld bewegt.',
-  'vet.rejected.real':
-    'Die Erstattung erscheint in der Regel innerhalb weniger Tage auf Ihrer Karte.',
-
   'news.unsub.text':
     'Sie erhalten diese E-Mail, weil Sie die Pawsome-News abonniert haben. Mit einem Klick abmelden: {url}',
   'news.unsub.lead': 'Sie erhalten diese E-Mail, weil Sie die Pawsome-News abonniert haben.',

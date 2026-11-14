@@ -71,7 +71,7 @@ describe('admin order list', () => {
     expect(params.get('q')).toBe('sam');
     expect(params.get('page')).toBe('2');
     expect(screen.getByLabelText('Status')).toHaveValue('shipped');
-    expect(within(screen.getByLabelText('Status')).getAllByRole('option')).toHaveLength(9);
+    expect(within(screen.getByLabelText('Status')).getAllByRole('option')).toHaveLength(8);
   });
 
   it('writes a filter into the URL', async () => {

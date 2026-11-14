@@ -14,7 +14,6 @@ export function isPaidOrLater(status: OrderStatus): boolean {
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   pending_payment: 'Waiting for payment',
   paid: 'Paid',
-  awaiting_vet_approval: 'Waiting for vet approval',
   processing: 'Being packed',
   shipped: 'On its way',
   delivered: 'Delivered',

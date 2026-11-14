@@ -86,25 +86,6 @@ export const en = {
   'return.refunded.real':
     'It usually shows up on your card within a few days, depending on your bank.',
 
-  // ----- vet check -----
-  'vet.held.subject': "Order {number} is waiting for a vet's okay",
-  'vet.held.heading': "Your order is waiting for a vet's okay",
-  'vet.held.l1':
-    "Thank you! Order {number} includes an item that needs a vet's approval, so we are holding it until that is decided. Your payment is safe and the items are set aside for you.",
-  'vet.held.l2':
-    'We will email you as soon as there is an answer. (Demo shop: no real vet is contacted.)',
-  'vet.approved.subject': 'Order {number} is approved and being packed',
-  'vet.approved.heading': 'Approved, we are packing it',
-  'vet.approved.l1':
-    'Good news: the vet check for order {number} is done and your order is now being packed.',
-  'vet.rejected.subject': 'Order {number} was not approved',
-  'vet.rejected.heading': 'We could not approve this order',
-  'vet.rejected.l1':
-    'We are sorry: the vet check for order {number} was not approved, so the order is cancelled and your payment is refunded in full.',
-  'vet.rejected.reason': 'Reason: {reason}',
-  'vet.rejected.simulated': 'This is a demo shop: the refund was simulated and no money moved.',
-  'vet.rejected.real': 'The refund usually shows up on your card within a few days.',
-
   // ----- newsletter -----
   'news.unsub.text':
     'You get this because you subscribed to Pawsome news. Unsubscribe with one click: {url}',

@@ -12,14 +12,7 @@ import { useFormat } from '../../i18n/format';
 import { TEST_IDS } from '../../lib/test-ids';
 import { useStore } from '../stores/StoreContext';
 
-import {
-  DetailsSchema,
-  DetailsWithVetSchema,
-  shippingCountries,
-  type Details,
-  type DetailsInput,
-} from './details';
-import { VetDetailsForm } from './VetDetailsForm';
+import { DetailsSchema, shippingCountries, type Details, type DetailsInput } from './details';
 
 // Step 1. Validation is the API's own schema, so "what the form accepts" and "what the server
 // accepts" cannot drift; the server stays the judge (it re-validates and prices everything).
@@ -27,15 +20,12 @@ import { VetDetailsForm } from './VetDetailsForm';
 export function DetailsStep({
   defaults,
   signedIn,
-  requiresVet = false,
   saveAddress,
   onSaveAddressChange,
   onSubmit,
 }: {
   defaults: DetailsInput;
   signedIn: boolean;
-  /** The cart holds an item that needs a vet's approval: the vet's details become required. */
-  requiresVet?: boolean;
   saveAddress: boolean;
   onSaveAddressChange: (value: boolean) => void;
   onSubmit: (details: Details) => void;
@@ -52,14 +42,8 @@ export function DetailsStep({
     handleSubmit,
     formState: { errors },
   } = useForm<DetailsInput, unknown, Details>({
-    resolver: zodResolver(requiresVet ? DetailsWithVetSchema : DetailsSchema),
-    // The vet fields exist only when the cart needs a vet; blank inputs, never an invalid object.
-    defaultValues: requiresVet
-      ? {
-          ...defaults,
-          vetDetails: defaults.vetDetails ?? { vetName: '', clinic: '', vetEmail: '' },
-        }
-      : defaults,
+    resolver: zodResolver(DetailsSchema),
+    defaultValues: defaults,
   });
   const a = errors.shippingAddress;
 
@@ -146,7 +130,6 @@ export function DetailsStep({
         error={a?.phone?.message}
         {...register('shippingAddress.phone')}
       />
-      {requiresVet && <VetDetailsForm register={register} errors={errors.vetDetails} />}
       {signedIn && (
         <Checkbox
           label={t('checkout.details.saveAddress')}

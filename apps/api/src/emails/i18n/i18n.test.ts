@@ -4,7 +4,6 @@ import { renderQueuedEmail } from '../index.ts';
 import { newsletterConfirm } from '../newsletter.ts';
 import { orderConfirmation } from '../order-confirmation.ts';
 import { orderShipped } from '../order-shipped.ts';
-import { vetUpdate } from '../vet-update.ts';
 
 import { de } from './de.ts';
 import { en } from './en.ts';
@@ -105,17 +104,18 @@ describe('order emails in the order language', () => {
 
   it('other mails render in the language too, and an unknown store falls back to English', () => {
     expect(
-      vetUpdate('vet_held', { firstName: 'Ada', orderNumber: 'PW-1' }, emailText('fr-fr')).subject,
-    ).toContain('attend l’accord');
-    expect(
       newsletterConfirm(
         { confirmUrl: 'https://x/c', unsubscribeUrl: 'https://x/u', hours: 48 },
         emailText('de-de'),
       ).subject,
     ).toBe('Bestätigen Sie Ihr Pawsome-Abonnement');
     expect(
-      renderQueuedEmail('vet_approved', null, { firstName: 'Ada', orderNumber: 'PW-1' }, 'zz-zz')
-        ?.subject,
-    ).toBe('Order PW-1 is approved and being packed');
+      renderQueuedEmail(
+        'newsletter_confirm',
+        null,
+        { confirmUrl: 'https://x/c', unsubscribeUrl: 'https://x/u', hours: 48 },
+        'zz-zz',
+      )?.subject,
+    ).toBe(en['news.confirm.subject']);
   });
 });

@@ -523,7 +523,6 @@ export async function getProduct(
       count: rows.product.ratingCount,
       averageTenths: averageTenths(rows.product.ratingCount, rows.product.ratingSum),
     },
-    requiresVetApproval: rows.product.requiresVetApproval,
     ...(await bundleFields(rows.product.id, rows.variants)),
   };
 }

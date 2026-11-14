@@ -116,7 +116,6 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
   const removeIds: string[] = [];
   const items: CartItem[] = [];
   let weightGrams = 0;
-  let requiresVetApproval = false;
   const purchasableLines: { total: number; qty: number }[] = [];
   const pricingLines: promotions.PricingLineInput[] = [];
 
@@ -194,7 +193,6 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
     // Sold-out lines are shown but never counted: the subtotal is what can actually be bought.
     if (available > 0) {
       purchasableLines.push({ total: lineTotal, qty: quantity });
-      if (line.requiresVetApproval) requiresVetApproval = true;
       pricingLines.push({
         variantId: line.variantId,
         productId: line.productId,
@@ -230,7 +228,6 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
     weightGrams,
     warnings,
     pricing,
-    requiresVetApproval,
   };
 }
 
@@ -244,7 +241,6 @@ export function emptyCart(): Cart {
     weightGrams: 0,
     warnings: [],
     pricing: EMPTY_PRICING,
-    requiresVetApproval: false,
   };
 }
 

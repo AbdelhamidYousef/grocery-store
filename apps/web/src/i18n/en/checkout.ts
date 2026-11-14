@@ -20,7 +20,6 @@ export const checkout = {
   'checkout.step.editAria': 'Edit {title}',
   'checkout.step.editDetails': 'Edit contact and address',
   'checkout.step.editShipping': 'Edit shipping method',
-  'checkout.step.vetSummary': 'Vet: {name}, {clinic}',
 
   // ---------- step 1: details ----------
   'checkout.details.haveAccount': 'Have an account?',
@@ -40,18 +39,6 @@ export const checkout = {
   'checkout.details.phoneHint': 'Only for the courier.',
   'checkout.details.saveAddress': 'Save this address to my account',
   'checkout.details.continue': 'Continue to shipping',
-
-  // ---------- vet ----------
-  'checkout.vet.bannerTitle': "Needs a vet's okay.",
-  'checkout.vet.bannerBody':
-    'After you pay, we hold this order until a vet approves it, then pack it. Demo shop: this is not real medicine and no vet is contacted.',
-  'checkout.vet.legend': 'Your vet',
-  'checkout.vet.intro':
-    "An item in your cart needs a vet's okay before we pack it. We will email you as soon as it is decided.",
-  'checkout.vet.demo': 'Demo shop: this is not real medicine and no vet is contacted.',
-  'checkout.vet.name': "Vet's name",
-  'checkout.vet.clinic': 'Clinic',
-  'checkout.vet.email': "Vet's email",
 
   // ---------- step 2: shipping ----------
   'checkout.shipping.loading': 'Loading shipping options',
@@ -147,7 +134,5 @@ export const checkout = {
   // ---------- messages from outside (Zod rules in @store/shared) ----------
   'msg.checkout.required': 'Required',
   'msg.checkout.emailInvalid': 'Invalid email address',
-  'msg.checkout.vetName': "Enter the vet's name",
-  'msg.checkout.vetClinic': 'Enter the clinic',
   'msg.checkout.countryUnsupported': 'We do not ship to this country',
 } satisfies Dictionary;

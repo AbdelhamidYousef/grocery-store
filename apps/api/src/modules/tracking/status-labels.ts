@@ -6,7 +6,6 @@ import type { OrderStatus } from '@store/shared';
 const LABELS: Record<OrderStatus, string> = {
   pending_payment: 'Awaiting payment',
   paid: 'Payment confirmed',
-  awaiting_vet_approval: 'Waiting for vet approval',
   processing: 'Being packed',
   shipped: 'On its way',
   delivered: 'Delivered',

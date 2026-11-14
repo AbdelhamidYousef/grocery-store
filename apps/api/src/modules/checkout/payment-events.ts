@@ -6,8 +6,6 @@ import type { StripeEvent } from '../../lib/stripe.ts';
 import { canTransition } from '../orders/state-machine.ts';
 import { applyTransition } from '../orders/transition.ts';
 import { hasRefundInFlight } from '../returns/refunded.ts';
-import { queueVetEmail } from '../vet/admin-service.ts';
-import { findVetDetails } from '../vet/repo.ts';
 
 import { cancelPendingOrder } from './orders.ts';
 import * as repo from './repo.ts';
@@ -107,19 +105,8 @@ export async function confirmPayment(
   }
 
   // Stock commit, payment row, cart and history all happen inside the state machine.
-  const paidOrder = await applyTransition(tx, order, 'paid', { actor });
+  await applyTransition(tx, order, 'paid', { actor });
   // The confirmation email was queued by applyTransition, in this same transaction.
-
-  // An order with a vet-approval item does not go to packing: it waits for an admin's decision
-  // (phase 22). Same transaction, so the order is never visible as plain `paid` and then moved.
-  // Stock stays committed meanwhile (the units are held, not on the shelf).
-  if (await findVetDetails(tx, order.id)) {
-    await applyTransition(tx, paidOrder, 'awaiting_vet_approval', {
-      actor,
-      note: "Waiting for a vet's approval",
-    });
-    await queueVetEmail(tx, 'vet_held', paidOrder);
-  }
   return 'paid';
 }
 
