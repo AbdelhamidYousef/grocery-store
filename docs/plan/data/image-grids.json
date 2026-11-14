@@ -1,0 +1,302 @@
+[
+ {
+  "grid": "grid-01",
+  "slugs": [
+   "bananas",
+   "apples",
+   "lemons",
+   "strawberries"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a loose bunch of ripe yellow bananas; top-right: four red and green apples with a few leaves; bottom-left: four yellow lemons in a red mesh net; bottom-right: a cardboard punnet filled with bright red strawberries."
+ },
+ {
+  "grid": "grid-02",
+  "slugs": [
+   "tomatoes",
+   "cucumber",
+   "organic-carrots",
+   "potatoes"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a branch of ripe red tomatoes on the vine; top-right: one long dark green cucumber; bottom-left: a clear bag of orange carrots with a green paper label strip; bottom-right: a pile of light brown potatoes."
+ },
+ {
+  "grid": "grid-03",
+  "slugs": [
+   "mushrooms",
+   "organic-baby-spinach",
+   "butterhead-lettuce",
+   "fresh-basil"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a heap of white button mushrooms; top-right: a clear bag of bright green baby spinach leaves; bottom-left: one round green lettuce head; bottom-right: a small pot with a bushy green basil plant."
+ },
+ {
+  "grid": "grid-04",
+  "slugs": [
+   "rye-sourdough-loaf",
+   "wholemeal-toast",
+   "seeded-loaf",
+   "baguette"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a dark round rye loaf with a floured crust; top-right: sliced dark wholemeal toast bread in a clear bag; bottom-left: a brown oval loaf covered in seeds; bottom-right: a long golden baguette with diagonal cuts."
+ },
+ {
+  "grid": "grid-05",
+  "slugs": [
+   "broetchen-6",
+   "laugenbrezel-4",
+   "seeded-rolls-4",
+   "spelt-rolls-4"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: six golden round bread rolls; top-right: four glossy brown pretzels dotted with salt; bottom-left: four dark rolls covered with seeds; bottom-right: four pale round spelt rolls."
+ },
+ {
+  "grid": "grid-06",
+  "slugs": [
+   "butter-croissants-4",
+   "berliner-4",
+   "marble-cake",
+   "apple-strudel"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: four golden croissants; top-right: four round sugar-dusted doughnuts; bottom-left: a sliced marble loaf cake with brown swirls; bottom-right: a golden strudel log dusted with icing sugar."
+ },
+ {
+  "grid": "grid-07",
+  "slugs": [
+   "whole-milk-1l",
+   "lactose-free-milk-1l",
+   "whipping-cream",
+   "natural-yoghurt-500g"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a white milk carton with a blue screw cap; top-right: a light blue milk carton with a green cap; bottom-left: a small white cream carton with a yellow stripe; bottom-right: a white yoghurt tub with a foil lid."
+ },
+ {
+  "grid": "grid-08",
+  "slugs": [
+   "quark-40",
+   "strawberry-yoghurt",
+   "high-protein-skyr",
+   "gouda-counter"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a white quark tub with a pale yellow lid; top-right: a small pink-topped yoghurt cup; bottom-left: a large white tub with a pale grey lid; bottom-right: a wedge of pale yellow Gouda cheese with a red rind."
+ },
+ {
+  "grid": "grid-09",
+  "slugs": [
+   "mozzarella",
+   "cream-cheese",
+   "free-range-eggs-10",
+   "butter-250g"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a white mozzarella ball in a clear pot; top-right: a round white cream cheese tub with a silver lid; bottom-left: a carton of ten brown eggs; bottom-right: a block of butter in gold paper foil."
+ },
+ {
+  "grid": "grid-10",
+  "slugs": [
+   "minced-beef",
+   "chicken-breast",
+   "pork-schnitzel",
+   "chicken-drumsticks"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a tray of fresh red minced beef; top-right: pale pink chicken breast fillets on a tray; bottom-left: four flat raw pork schnitzels on a tray; bottom-right: a tray of raw chicken drumsticks."
+ },
+ {
+  "grid": "grid-11",
+  "slugs": [
+   "black-forest-ham",
+   "salami-100g",
+   "bratwurst-6",
+   "turkey-slices"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: thin folded slices of dark smoked ham with a white fat edge; top-right: a pack of overlapping red salami slices; bottom-left: six pale raw bratwurst in a tray; bottom-right: a pack of thin pink turkey slices."
+ },
+ {
+  "grid": "grid-12",
+  "slugs": [
+   "salmon-fillet",
+   "cod-fillets",
+   "smoked-trout",
+   "matjes-herring"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: an orange salmon fillet with white fat lines; top-right: two white raw cod fillets on a tray; bottom-left: two pink smoked trout fillets in a vacuum pack; bottom-right: a jar of herring fillets with onion rings."
+ },
+ {
+  "grid": "grid-13",
+  "slugs": [
+   "spaghetti-500g",
+   "spaetzle-500g",
+   "basmati-rice-1kg",
+   "chopped-tomatoes"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a clear-windowed pack of straight spaghetti; top-right: a pack of short wavy yellow egg noodles; bottom-left: a pack of long white rice grains; bottom-right: a plain tin of chopped tomatoes."
+ },
+ {
+  "grid": "grid-14",
+  "slugs": [
+   "chickpeas-tin",
+   "tuna-in-oil",
+   "wheat-flour-1kg",
+   "sugar-1kg"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a plain tin of chickpeas; top-right: a small round tin of tuna; bottom-left: a white paper bag of flour; bottom-right: a white paper bag of granulated sugar."
+ },
+ {
+  "grid": "grid-15",
+  "slugs": [
+   "olive-oil-500ml",
+   "rolled-oats-500g",
+   "strawberry-jam",
+   "peanut-butter"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a dark green glass bottle of olive oil; top-right: a cardboard pack of rolled oats with an oat-field green band; bottom-left: a glass jar of red jam with a gingham lid; bottom-right: a glass jar of beige peanut butter."
+ },
+ {
+  "grid": "grid-16",
+  "slugs": [
+   "frozen-peas",
+   "frozen-leaf-spinach",
+   "frozen-mixed-berries",
+   "frozen-stir-fry-veg"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a clear bag of frozen green peas; top-right: a frozen bag with green spinach portions; bottom-left: a bag of frozen red and purple berries; bottom-right: a bag with colourful frozen chopped vegetables."
+ },
+ {
+  "grid": "grid-17",
+  "slugs": [
+   "frozen-pizza-margherita",
+   "frozen-fish-fingers",
+   "frozen-fries",
+   "frozen-prawns"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a round pizza with red sauce and white cheese in a flat box; top-right: ten golden breaded fish fingers on a plate; bottom-left: a pile of golden fries next to a plain frozen bag; bottom-right: a bag of pink peeled prawns."
+ },
+ {
+  "grid": "grid-18",
+  "slugs": [
+   "vanilla-ice-cream",
+   "chocolate-ice-cream",
+   "strawberry-sorbet",
+   "ice-lollies-8"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a cream-coloured ice cream tub with a lid; top-right: a dark brown ice cream tub with a lid; bottom-left: a pink sorbet tub with a lid; bottom-right: a box of coloured ice lollies, orange red and yellow."
+ },
+ {
+  "grid": "grid-19",
+  "slugs": [
+   "still-water-1-5l",
+   "sparkling-water-1-5l",
+   "medium-water-1-5l",
+   "apple-juice-1l"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a clear plastic bottle of water with a light blue cap; top-right: a clear plastic bottle of water with a dark blue cap; bottom-left: a clear plastic bottle of water with a mid-blue cap; bottom-right: a glass bottle of cloudy golden apple juice."
+ },
+ {
+  "grid": "grid-20",
+  "slugs": [
+   "apfelschorle-1l",
+   "orange-juice-1l",
+   "cola-1-5l",
+   "lemonade-1l"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a clear plastic bottle of pale golden apple spritzer; top-right: a carton of bright orange juice with a screw cap; bottom-left: a plastic bottle of dark brown cola; bottom-right: a clear bottle of pale yellow lemonade."
+ },
+ {
+  "grid": "grid-21",
+  "slugs": [
+   "coffee-beans-500g",
+   "ground-coffee-500g",
+   "black-tea-20",
+   "peppermint-tea-20"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a brown paper-look coffee pack with dark beans visible; top-right: a red vacuum coffee brick pack; bottom-left: a small box of tea bags in dark red; bottom-right: a small green box of tea bags."
+ },
+ {
+  "grid": "grid-22",
+  "slugs": [
+   "paprika-crisps",
+   "salted-peanuts",
+   "mixed-nuts",
+   "pretzel-sticks"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a red crinkled snack bag; top-right: a small bag of roasted peanuts; bottom-left: a clear bag of mixed shelled nuts; bottom-right: a bag of thin brown salted sticks."
+ },
+ {
+  "grid": "grid-23",
+  "slugs": [
+   "milk-chocolate",
+   "dark-chocolate-70",
+   "hazelnut-chocolate",
+   "fruit-gummies"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a plain milk chocolate bar in purple paper; top-right: a dark chocolate bar in dark brown paper; bottom-left: a chocolate bar in warm orange paper; bottom-right: a bag of colourful gummy sweets."
+ },
+ {
+  "grid": "grid-24",
+  "slugs": [
+   "butter-biscuits",
+   "oat-cookies",
+   "lebkuchen",
+   "chocolate-wafers"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a pack of square biscuits with a yellow sleeve; top-right: a pack of round oat cookies; bottom-left: round brown gingerbread cakes with a chocolate glaze; bottom-right: a pack of rectangular brown wafers."
+ },
+ {
+  "grid": "grid-25",
+  "slugs": [
+   "all-purpose-cleaner",
+   "glass-cleaner",
+   "bathroom-cleaner",
+   "kitchen-sponges-6"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a blue spray bottle of cleaner; top-right: a light blue trigger spray bottle; bottom-left: a turquoise spray bottle; bottom-right: six yellow and green sponges stacked."
+ },
+ {
+  "grid": "grid-26",
+  "slugs": [
+   "toilet-paper-8",
+   "kitchen-roll-4",
+   "tissues-box",
+   "bin-bags-20"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a plastic-wrapped pack of eight white toilet rolls; top-right: a plastic-wrapped pack of four white kitchen rolls; bottom-left: a square box of white tissues with one tissue sticking out; bottom-right: a roll of black bin bags in a plain sleeve."
+ },
+ {
+  "grid": "grid-27",
+  "slugs": [
+   "laundry-liquid-1-5l",
+   "fabric-softener-1l",
+   "dish-soap-500ml",
+   "dishwasher-tabs-30"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a blue jug of laundry liquid with a measuring cap; top-right: a lavender-purple bottle with a handle; bottom-left: a yellow squeezy bottle of washing-up liquid; bottom-right: a white box with a stack of cleaning tablets."
+ },
+ {
+  "grid": "grid-28",
+  "slugs": [
+   "shampoo-250ml",
+   "shower-gel-250ml",
+   "toothpaste-75ml",
+   "toothbrushes-2"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a pale green shampoo bottle; top-right: a light blue shower gel bottle; bottom-left: a white toothpaste tube standing on its cap; bottom-right: two toothbrushes, one white and one blue, lying side by side."
+ },
+ {
+  "grid": "grid-29",
+  "slugs": [
+   "roll-on-deodorant",
+   "hand-soap-300ml",
+   "nappies-size-4",
+   "baby-wipes-64"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a small white roll-on bottle with a silver cap; top-right: a pink pump bottle of soap; bottom-left: a pastel yellow pack of nappies; bottom-right: a soft green packet of wet wipes with a flip lid."
+ },
+ {
+  "grid": "grid-30",
+  "slugs": [
+   "baby-shampoo-200ml",
+   "nappy-cream-100ml",
+   "baby-oat-porridge",
+   "baby-fruit-pouches-4"
+  ],
+  "prompt": "A square 2x2 grid of four separate studio product photos for a grocery delivery app, each item centred alone in its own quadrant with wide empty white margins, nothing crossing the quadrant lines, pure white background everywhere, soft natural light, gentle shadow, photorealistic, no text, no labels, no logos. top-left: a small cream bottle with a rounded cap; top-right: a white tube of cream with a pale blue cap; bottom-left: a pastel box of baby porridge with a measuring scoop beside it; bottom-right: four soft orange pouches with spouts."
+ }
+]

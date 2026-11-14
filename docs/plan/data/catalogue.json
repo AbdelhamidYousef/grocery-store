@@ -1,0 +1,4709 @@
+{
+ "brands": [
+  {
+   "slug": "meadowbrook",
+   "name": "Meadowbrook Dairy",
+   "blurb": "A small dairy label for milk, yoghurt, quark and butter from farms in Brandenburg."
+  },
+  {
+   "slug": "ofenfrisch",
+   "name": "Ofenfrisch",
+   "blurb": "A neighbourhood bakery brand baking bread, rolls and cakes every morning."
+  },
+  {
+   "slug": "greenfield-organic",
+   "name": "Greenfield Organic",
+   "blurb": "Certified organic fruit, vegetables and pantry staples."
+  },
+  {
+   "slug": "grocery-basics",
+   "name": "Grocery Basics",
+   "blurb": "The house brand: plain packaging, everyday staples at low prices."
+  },
+  {
+   "slug": "cleanwell",
+   "name": "Cleanwell",
+   "blurb": "Household cleaning, paper goods and personal care for everyday use."
+  },
+  {
+   "slug": "quellwerk",
+   "name": "Quellwerk",
+   "blurb": "Mineral water, juices and soft drinks bottled in returnable bottles."
+  },
+  {
+   "slug": "nordkueste",
+   "name": "Nordküste",
+   "blurb": "Fresh meat, fish and frozen foods from regional and coastal suppliers."
+  },
+  {
+   "slug": "little-sprout",
+   "name": "Little Sprout",
+   "blurb": "Gentle food and care products for babies and toddlers."
+  }
+ ],
+ "departments": [
+  {
+   "slug": "fruit-veg",
+   "name": "Fruit & veg",
+   "nameDe": "Obst & Gemüse",
+   "subcategories": [
+    {
+     "slug": "fruit",
+     "name": "Fruit",
+     "nameDe": "Obst"
+    },
+    {
+     "slug": "vegetables",
+     "name": "Vegetables",
+     "nameDe": "Gemüse"
+    },
+    {
+     "slug": "herbs-salad",
+     "name": "Herbs & salad",
+     "nameDe": "Kräuter & Salat"
+    }
+   ]
+  },
+  {
+   "slug": "bakery",
+   "name": "Bakery",
+   "nameDe": "Bäckerei",
+   "subcategories": [
+    {
+     "slug": "bread",
+     "name": "Bread",
+     "nameDe": "Brot"
+    },
+    {
+     "slug": "rolls-pretzels",
+     "name": "Rolls & pretzels",
+     "nameDe": "Brötchen & Laugengebäck"
+    },
+    {
+     "slug": "cakes-pastries",
+     "name": "Cakes & pastries",
+     "nameDe": "Kuchen & Gebäck"
+    }
+   ]
+  },
+  {
+   "slug": "dairy-eggs",
+   "name": "Dairy & eggs",
+   "nameDe": "Milch & Eier",
+   "subcategories": [
+    {
+     "slug": "milk-cream",
+     "name": "Milk & cream",
+     "nameDe": "Milch & Sahne"
+    },
+    {
+     "slug": "yoghurt-quark",
+     "name": "Yoghurt & quark",
+     "nameDe": "Joghurt & Quark"
+    },
+    {
+     "slug": "cheese",
+     "name": "Cheese",
+     "nameDe": "Käse"
+    },
+    {
+     "slug": "eggs-butter",
+     "name": "Eggs & butter",
+     "nameDe": "Eier & Butter"
+    }
+   ]
+  },
+  {
+   "slug": "meat-fish",
+   "name": "Meat & fish",
+   "nameDe": "Fleisch & Fisch",
+   "subcategories": [
+    {
+     "slug": "meat",
+     "name": "Fresh meat",
+     "nameDe": "Frischfleisch"
+    },
+    {
+     "slug": "sausage-ham",
+     "name": "Sausage & ham",
+     "nameDe": "Wurst & Schinken"
+    },
+    {
+     "slug": "fish",
+     "name": "Fish",
+     "nameDe": "Fisch"
+    }
+   ]
+  },
+  {
+   "slug": "pantry",
+   "name": "Pantry",
+   "nameDe": "Vorrat",
+   "subcategories": [
+    {
+     "slug": "pasta-rice",
+     "name": "Pasta & rice",
+     "nameDe": "Nudeln & Reis"
+    },
+    {
+     "slug": "tins",
+     "name": "Tins & jars",
+     "nameDe": "Konserven & Gläser"
+    },
+    {
+     "slug": "baking-oils",
+     "name": "Baking & oils",
+     "nameDe": "Backen & Öle"
+    },
+    {
+     "slug": "breakfast",
+     "name": "Breakfast & spreads",
+     "nameDe": "Frühstück & Aufstriche"
+    }
+   ]
+  },
+  {
+   "slug": "frozen",
+   "name": "Frozen",
+   "nameDe": "Tiefkühl",
+   "subcategories": [
+    {
+     "slug": "frozen-veg",
+     "name": "Frozen vegetables & fruit",
+     "nameDe": "TK-Gemüse & Obst"
+    },
+    {
+     "slug": "frozen-meals",
+     "name": "Frozen meals & snacks",
+     "nameDe": "TK-Gerichte & Snacks"
+    },
+    {
+     "slug": "ice-cream",
+     "name": "Ice cream",
+     "nameDe": "Eis"
+    }
+   ]
+  },
+  {
+   "slug": "drinks",
+   "name": "Drinks",
+   "nameDe": "Getränke",
+   "subcategories": [
+    {
+     "slug": "water",
+     "name": "Water",
+     "nameDe": "Wasser"
+    },
+    {
+     "slug": "juice-soft",
+     "name": "Juice & soft drinks",
+     "nameDe": "Saft & Softdrinks"
+    },
+    {
+     "slug": "coffee-tea",
+     "name": "Coffee & tea",
+     "nameDe": "Kaffee & Tee"
+    }
+   ]
+  },
+  {
+   "slug": "snacks-sweets",
+   "name": "Snacks & sweets",
+   "nameDe": "Snacks & Süßes",
+   "subcategories": [
+    {
+     "slug": "crisps-nuts",
+     "name": "Crisps & nuts",
+     "nameDe": "Chips & Nüsse"
+    },
+    {
+     "slug": "chocolate-sweets",
+     "name": "Chocolate & sweets",
+     "nameDe": "Schokolade & Süßigkeiten"
+    },
+    {
+     "slug": "biscuits",
+     "name": "Biscuits",
+     "nameDe": "Kekse & Gebäck"
+    }
+   ]
+  },
+  {
+   "slug": "household",
+   "name": "Household",
+   "nameDe": "Haushalt",
+   "subcategories": [
+    {
+     "slug": "cleaning",
+     "name": "Cleaning",
+     "nameDe": "Reinigung"
+    },
+    {
+     "slug": "paper-bags",
+     "name": "Paper & bags",
+     "nameDe": "Papier & Beutel"
+    },
+    {
+     "slug": "laundry-dishes",
+     "name": "Laundry & dishes",
+     "nameDe": "Wäsche & Geschirr"
+    }
+   ]
+  },
+  {
+   "slug": "personal-care-baby",
+   "name": "Personal care & baby",
+   "nameDe": "Körperpflege & Baby",
+   "subcategories": [
+    {
+     "slug": "personal-care",
+     "name": "Personal care",
+     "nameDe": "Körperpflege"
+    },
+    {
+     "slug": "baby",
+     "name": "Baby",
+     "nameDe": "Baby"
+    }
+   ]
+  }
+ ],
+ "products": [
+  {
+   "slug": "bananas",
+   "name": "Bananas",
+   "nameDe": "Bananen",
+   "brand": null,
+   "department": "fruit-veg",
+   "subcategory": "fruit",
+   "description": "Ripe yellow bananas, sold loose by weight. A typical portion is about five bananas.",
+   "descriptionDe": "Reife gelbe Bananen, lose nach Gewicht. Eine typische Portion sind etwa fünf Bananen.",
+   "priceCents": 189,
+   "net": {
+    "amount": 500,
+    "unit": "g"
+   },
+   "soldByWeight": true,
+   "shelfLifeDays": 5,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 380,
+    "energyKcal": 90,
+    "fat": 3,
+    "saturates": 1,
+    "carbs": 200,
+    "sugars": 125,
+    "fibre": 20,
+    "protein": 11,
+    "salt": 0
+   },
+   "ingredients": "Bananas.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a loose bunch of ripe yellow bananas, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "apples",
+   "name": "Apples",
+   "nameDe": "Äpfel",
+   "brand": null,
+   "department": "fruit-veg",
+   "subcategory": "fruit",
+   "description": "Crisp red-green apples from the Altes Land, sold loose by weight.",
+   "descriptionDe": "Knackige rot-grüne Äpfel aus dem Alten Land, lose nach Gewicht.",
+   "priceCents": 279,
+   "net": {
+    "amount": 500,
+    "unit": "g"
+   },
+   "soldByWeight": true,
+   "shelfLifeDays": 21,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 220,
+    "energyKcal": 52,
+    "fat": 3,
+    "saturates": 1,
+    "carbs": 115,
+    "sugars": 100,
+    "fibre": 20,
+    "protein": 3,
+    "salt": 0
+   },
+   "ingredients": "Apples.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of four red and green apples with a few leaves, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "lemons",
+   "name": "Lemons",
+   "nameDe": "Zitronen",
+   "brand": null,
+   "department": "fruit-veg",
+   "subcategory": "fruit",
+   "description": "A net of four untreated lemons for cooking, baking and drinks.",
+   "descriptionDe": "Ein Netz mit vier unbehandelten Zitronen zum Kochen, Backen und für Getränke.",
+   "priceCents": 199,
+   "net": {
+    "amount": 4,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 14,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 100,
+    "energyKcal": 24,
+    "fat": 3,
+    "saturates": 0,
+    "carbs": 30,
+    "sugars": 25,
+    "fibre": 20,
+    "protein": 6,
+    "salt": 0
+   },
+   "ingredients": "Lemons.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of four yellow lemons in a red mesh net, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "strawberries",
+   "name": "Strawberries",
+   "nameDe": "Erdbeeren",
+   "brand": null,
+   "department": "fruit-veg",
+   "subcategory": "fruit",
+   "description": "Sweet strawberries in a 500 g punnet. Best eaten within a few days.",
+   "descriptionDe": "Süße Erdbeeren in der 500-g-Schale. Am besten innerhalb weniger Tage essen.",
+   "priceCents": 349,
+   "net": {
+    "amount": 500,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 4,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 130,
+    "energyKcal": 32,
+    "fat": 3,
+    "saturates": 0,
+    "carbs": 55,
+    "sugars": 49,
+    "fibre": 20,
+    "protein": 7,
+    "salt": 0
+   },
+   "ingredients": "Strawberries.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a cardboard punnet filled with bright red strawberries, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "tomatoes",
+   "name": "Vine tomatoes",
+   "nameDe": "Strauchtomaten",
+   "brand": null,
+   "department": "fruit-veg",
+   "subcategory": "vegetables",
+   "description": "Red tomatoes on the vine, sold loose by weight.",
+   "descriptionDe": "Rote Strauchtomaten, lose nach Gewicht.",
+   "priceCents": 349,
+   "net": {
+    "amount": 500,
+    "unit": "g"
+   },
+   "soldByWeight": true,
+   "shelfLifeDays": 7,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 75,
+    "energyKcal": 18,
+    "fat": 2,
+    "saturates": 0,
+    "carbs": 26,
+    "sugars": 26,
+    "fibre": 12,
+    "protein": 9,
+    "salt": 1
+   },
+   "ingredients": "Tomatoes.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a branch of ripe red tomatoes on the vine, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "cucumber",
+   "name": "Cucumber",
+   "nameDe": "Salatgurke",
+   "brand": null,
+   "department": "fruit-veg",
+   "subcategory": "vegetables",
+   "description": "One fresh salad cucumber, about 400 g.",
+   "descriptionDe": "Eine frische Salatgurke, etwa 400 g.",
+   "priceCents": 89,
+   "net": {
+    "amount": 1,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 8,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 50,
+    "energyKcal": 12,
+    "fat": 1,
+    "saturates": 0,
+    "carbs": 18,
+    "sugars": 17,
+    "fibre": 5,
+    "protein": 6,
+    "salt": 0
+   },
+   "ingredients": "Cucumber.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of one long dark green cucumber, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "organic-carrots",
+   "name": "Organic carrots",
+   "nameDe": "Bio-Karotten",
+   "brand": "greenfield-organic",
+   "department": "fruit-veg",
+   "subcategory": "vegetables",
+   "description": "Organic carrots in a 1 kg bag, good raw or cooked.",
+   "descriptionDe": "Bio-Karotten im 1-kg-Beutel, roh oder gekocht lecker.",
+   "priceCents": 229,
+   "net": {
+    "amount": 1000,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 21,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 130,
+    "energyKcal": 31,
+    "fat": 2,
+    "saturates": 0,
+    "carbs": 48,
+    "sugars": 48,
+    "fibre": 28,
+    "protein": 8,
+    "salt": 2
+   },
+   "ingredients": "Carrots.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "organic"
+   ],
+   "look": "Product photo of a clear bag of orange carrots with a green paper label strip, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "potatoes",
+   "name": "Potatoes",
+   "nameDe": "Kartoffeln",
+   "brand": null,
+   "department": "fruit-veg",
+   "subcategory": "vegetables",
+   "description": "Waxy potatoes for boiling and frying, sold loose by weight.",
+   "descriptionDe": "Festkochende Kartoffeln zum Kochen und Braten, lose nach Gewicht.",
+   "priceCents": 189,
+   "net": {
+    "amount": 1000,
+    "unit": "g"
+   },
+   "soldByWeight": true,
+   "shelfLifeDays": 21,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 310,
+    "energyKcal": 73,
+    "fat": 1,
+    "saturates": 0,
+    "carbs": 150,
+    "sugars": 10,
+    "fibre": 21,
+    "protein": 20,
+    "salt": 0
+   },
+   "ingredients": "Potatoes.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a pile of light brown potatoes, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "mushrooms",
+   "name": "Button mushrooms",
+   "nameDe": "Champignons",
+   "brand": null,
+   "department": "fruit-veg",
+   "subcategory": "vegetables",
+   "description": "White button mushrooms, sold loose by weight.",
+   "descriptionDe": "Weiße Champignons, lose nach Gewicht.",
+   "priceCents": 699,
+   "net": {
+    "amount": 250,
+    "unit": "g"
+   },
+   "soldByWeight": true,
+   "shelfLifeDays": 6,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 90,
+    "energyKcal": 22,
+    "fat": 3,
+    "saturates": 0,
+    "carbs": 5,
+    "sugars": 2,
+    "fibre": 15,
+    "protein": 31,
+    "salt": 0
+   },
+   "ingredients": "Mushrooms.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a heap of white button mushrooms, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "organic-baby-spinach",
+   "name": "Organic baby spinach",
+   "nameDe": "Bio-Babyspinat",
+   "brand": "greenfield-organic",
+   "department": "fruit-veg",
+   "subcategory": "herbs-salad",
+   "description": "Washed organic baby spinach leaves in a 200 g bag.",
+   "descriptionDe": "Gewaschene Bio-Babyspinatblätter im 200-g-Beutel.",
+   "priceCents": 229,
+   "net": {
+    "amount": 200,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 6,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 85,
+    "energyKcal": 20,
+    "fat": 4,
+    "saturates": 1,
+    "carbs": 10,
+    "sugars": 5,
+    "fibre": 26,
+    "protein": 29,
+    "salt": 2
+   },
+   "ingredients": "Spinach.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "organic"
+   ],
+   "look": "Product photo of a clear bag of bright green baby spinach leaves, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "butterhead-lettuce",
+   "name": "Butterhead lettuce",
+   "nameDe": "Kopfsalat",
+   "brand": null,
+   "department": "fruit-veg",
+   "subcategory": "herbs-salad",
+   "description": "One soft butterhead lettuce with loose green leaves.",
+   "descriptionDe": "Ein zarter Kopfsalat mit lockeren grünen Blättern.",
+   "priceCents": 129,
+   "net": {
+    "amount": 1,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 6,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 55,
+    "energyKcal": 13,
+    "fat": 2,
+    "saturates": 0,
+    "carbs": 10,
+    "sugars": 8,
+    "fibre": 13,
+    "protein": 13,
+    "salt": 1
+   },
+   "ingredients": "Lettuce.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of one round green lettuce head, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "fresh-basil",
+   "name": "Fresh basil",
+   "nameDe": "Basilikum im Topf",
+   "brand": null,
+   "department": "fruit-veg",
+   "subcategory": "herbs-salad",
+   "description": "A potted basil plant for the kitchen window.",
+   "descriptionDe": "Eine Basilikumpflanze im Topf für das Küchenfenster.",
+   "priceCents": 229,
+   "net": {
+    "amount": 1,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 7,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 100,
+    "energyKcal": 24,
+    "fat": 6,
+    "saturates": 1,
+    "carbs": 26,
+    "sugars": 3,
+    "fibre": 16,
+    "protein": 31,
+    "salt": 0
+   },
+   "ingredients": "Basil.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a small pot with a bushy green basil plant, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "rye-sourdough-loaf",
+   "name": "Rye sourdough loaf",
+   "nameDe": "Roggensauerteigbrot",
+   "brand": "ofenfrisch",
+   "department": "bakery",
+   "subcategory": "bread",
+   "description": "A dense 750 g rye loaf made with sourdough.",
+   "descriptionDe": "Ein kräftiges 750-g-Roggenbrot mit Sauerteig.",
+   "priceCents": 329,
+   "net": {
+    "amount": 750,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 5,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 950,
+    "energyKcal": 225,
+    "fat": 12,
+    "saturates": 2,
+    "carbs": 430,
+    "sugars": 30,
+    "fibre": 70,
+    "protein": 70,
+    "salt": 12
+   },
+   "ingredients": "Rye flour, water, rye sourdough (RYE), salt, yeast.",
+   "allergens": [
+    "gluten"
+   ],
+   "dietary": [
+    "vegan",
+    "vegetarian"
+   ],
+   "look": "Product photo of a dark round rye loaf with a floured crust, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "wholemeal-toast",
+   "name": "Wholemeal toast",
+   "nameDe": "Vollkorntoast",
+   "brand": "grocery-basics",
+   "department": "bakery",
+   "subcategory": "bread",
+   "description": "Sliced wholemeal toast bread, 500 g.",
+   "descriptionDe": "Vollkorntoastbrot in Scheiben, 500 g.",
+   "priceCents": 149,
+   "net": {
+    "amount": 500,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 10,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 960,
+    "energyKcal": 228,
+    "fat": 22,
+    "saturates": 4,
+    "carbs": 400,
+    "sugars": 38,
+    "fibre": 60,
+    "protein": 80,
+    "salt": 11
+   },
+   "ingredients": "WHEAT wholemeal flour, water, WHEAT gluten, yeast, sugar, rapeseed oil, salt.",
+   "allergens": [
+    "gluten"
+   ],
+   "dietary": [
+    "vegan",
+    "vegetarian"
+   ],
+   "look": "Product photo of sliced dark wholemeal toast bread in a clear bag, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "seeded-loaf",
+   "name": "Seeded loaf",
+   "nameDe": "Körnerbrot",
+   "brand": "ofenfrisch",
+   "department": "bakery",
+   "subcategory": "bread",
+   "description": "A 500 g loaf with sunflower, pumpkin and linseeds.",
+   "descriptionDe": "Ein 500-g-Brot mit Sonnenblumen-, Kürbis- und Leinsamen.",
+   "priceCents": 299,
+   "net": {
+    "amount": 500,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 4,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1050,
+    "energyKcal": 251,
+    "fat": 95,
+    "saturates": 12,
+    "carbs": 300,
+    "sugars": 25,
+    "fibre": 80,
+    "protein": 95,
+    "salt": 12
+   },
+   "ingredients": "WHEAT flour, water, sunflower seeds, linseeds, pumpkin seeds, rye flour, salt, yeast.",
+   "allergens": [
+    "gluten"
+   ],
+   "dietary": [
+    "vegan",
+    "vegetarian"
+   ],
+   "look": "Product photo of a brown oval loaf covered in seeds, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "baguette",
+   "name": "Baguette",
+   "nameDe": "Baguette",
+   "brand": "ofenfrisch",
+   "department": "bakery",
+   "subcategory": "bread",
+   "description": "A crusty white baguette, baked this morning.",
+   "descriptionDe": "Ein knuspriges helles Baguette, heute früh gebacken.",
+   "priceCents": 129,
+   "net": {
+    "amount": 250,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 2,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1060,
+    "energyKcal": 250,
+    "fat": 10,
+    "saturates": 2,
+    "carbs": 520,
+    "sugars": 20,
+    "fibre": 25,
+    "protein": 85,
+    "salt": 13
+   },
+   "ingredients": "WHEAT flour, water, salt, yeast.",
+   "allergens": [
+    "gluten"
+   ],
+   "dietary": [
+    "vegan",
+    "vegetarian"
+   ],
+   "look": "Product photo of a long golden baguette with diagonal cuts, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "broetchen-6",
+   "name": "Brötchen, 6 pack",
+   "nameDe": "Brötchen, 6er",
+   "brand": "ofenfrisch",
+   "department": "bakery",
+   "subcategory": "rolls-pretzels",
+   "description": "Six classic wheat rolls with a crisp crust.",
+   "descriptionDe": "Sechs klassische Weizenbrötchen mit knuspriger Kruste.",
+   "priceCents": 229,
+   "net": {
+    "amount": 6,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 2,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1020,
+    "energyKcal": 240,
+    "fat": 10,
+    "saturates": 2,
+    "carbs": 490,
+    "sugars": 15,
+    "fibre": 25,
+    "protein": 80,
+    "salt": 12
+   },
+   "ingredients": "WHEAT flour, water, salt, yeast, malt.",
+   "allergens": [
+    "gluten"
+   ],
+   "dietary": [
+    "vegan",
+    "vegetarian"
+   ],
+   "look": "Product photo of six golden round bread rolls, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "laugenbrezel-4",
+   "name": "Laugenbrezel, 4 pack",
+   "nameDe": "Laugenbrezeln, 4er",
+   "brand": "ofenfrisch",
+   "department": "bakery",
+   "subcategory": "rolls-pretzels",
+   "description": "Four soft lye pretzels with coarse salt.",
+   "descriptionDe": "Vier weiche Laugenbrezeln mit grobem Salz.",
+   "priceCents": 299,
+   "net": {
+    "amount": 4,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 2,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1050,
+    "energyKcal": 250,
+    "fat": 25,
+    "saturates": 5,
+    "carbs": 490,
+    "sugars": 15,
+    "fibre": 30,
+    "protein": 85,
+    "salt": 28
+   },
+   "ingredients": "WHEAT flour, water, rapeseed oil, salt, yeast, sodium hydroxide.",
+   "allergens": [
+    "gluten"
+   ],
+   "dietary": [
+    "vegan",
+    "vegetarian"
+   ],
+   "look": "Product photo of four glossy brown pretzels dotted with salt, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "seeded-rolls-4",
+   "name": "Seeded rolls, 4 pack",
+   "nameDe": "Körnerbrötchen, 4er",
+   "brand": "ofenfrisch",
+   "department": "bakery",
+   "subcategory": "rolls-pretzels",
+   "description": "Four rolls topped with sesame and sunflower seeds.",
+   "descriptionDe": "Vier Brötchen mit Sesam und Sonnenblumenkernen.",
+   "priceCents": 249,
+   "net": {
+    "amount": 4,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 2,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1130,
+    "energyKcal": 270,
+    "fat": 60,
+    "saturates": 8,
+    "carbs": 420,
+    "sugars": 20,
+    "fibre": 50,
+    "protein": 95,
+    "salt": 12
+   },
+   "ingredients": "WHEAT flour, water, sunflower seeds, SESAME, salt, yeast.",
+   "allergens": [
+    "gluten",
+    "sesame"
+   ],
+   "dietary": [
+    "vegan",
+    "vegetarian"
+   ],
+   "look": "Product photo of four dark rolls covered with seeds, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "spelt-rolls-4",
+   "name": "Spelt rolls, 4 pack",
+   "nameDe": "Dinkelbrötchen, 4er",
+   "brand": "ofenfrisch",
+   "department": "bakery",
+   "subcategory": "rolls-pretzels",
+   "description": "Four light rolls made from spelt flour.",
+   "descriptionDe": "Vier helle Brötchen aus Dinkelmehl.",
+   "priceCents": 259,
+   "net": {
+    "amount": 4,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 2,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1040,
+    "energyKcal": 245,
+    "fat": 15,
+    "saturates": 2,
+    "carbs": 470,
+    "sugars": 15,
+    "fibre": 35,
+    "protein": 95,
+    "salt": 12
+   },
+   "ingredients": "SPELT flour, water, salt, yeast.",
+   "allergens": [
+    "gluten"
+   ],
+   "dietary": [
+    "vegan",
+    "vegetarian"
+   ],
+   "look": "Product photo of four pale round spelt rolls, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "butter-croissants-4",
+   "name": "Butter croissants, 4 pack",
+   "nameDe": "Butterhörnchen, 4er",
+   "brand": "ofenfrisch",
+   "department": "bakery",
+   "subcategory": "cakes-pastries",
+   "description": "Four flaky croissants made with butter.",
+   "descriptionDe": "Vier blättrige Croissants mit Butter.",
+   "priceCents": 279,
+   "net": {
+    "amount": 4,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 4,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1750,
+    "energyKcal": 420,
+    "fat": 230,
+    "saturates": 140,
+    "carbs": 440,
+    "sugars": 60,
+    "fibre": 25,
+    "protein": 80,
+    "salt": 11
+   },
+   "ingredients": "WHEAT flour, BUTTER (27%), water, sugar, yeast, salt, EGG.",
+   "allergens": [
+    "gluten",
+    "milk",
+    "eggs"
+   ],
+   "dietary": [
+    "vegetarian"
+   ],
+   "look": "Product photo of four golden croissants, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "berliner-4",
+   "name": "Berliner doughnuts, 4 pack",
+   "nameDe": "Berliner, 4er",
+   "brand": "ofenfrisch",
+   "department": "bakery",
+   "subcategory": "cakes-pastries",
+   "description": "Four jam-filled doughnuts dusted with sugar.",
+   "descriptionDe": "Vier mit Marmelade gefüllte Berliner, mit Zucker bestreut.",
+   "priceCents": 349,
+   "net": {
+    "amount": 4,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 3,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1450,
+    "energyKcal": 345,
+    "fat": 150,
+    "saturates": 60,
+    "carbs": 490,
+    "sugars": 170,
+    "fibre": 15,
+    "protein": 60,
+    "salt": 5
+   },
+   "ingredients": "WHEAT flour, plum jam (plums, sugar), sugar, vegetable fats, EGG, MILK, yeast, salt.",
+   "allergens": [
+    "gluten",
+    "eggs",
+    "milk"
+   ],
+   "dietary": [
+    "vegetarian"
+   ],
+   "look": "Product photo of four round sugar-dusted doughnuts, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "marble-cake",
+   "name": "Marble cake",
+   "nameDe": "Marmorkuchen",
+   "brand": "ofenfrisch",
+   "department": "bakery",
+   "subcategory": "cakes-pastries",
+   "description": "A 400 g marble loaf cake with cocoa swirls.",
+   "descriptionDe": "Ein 400-g-Marmorkuchen mit Kakaostreifen.",
+   "priceCents": 299,
+   "net": {
+    "amount": 400,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 7,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1700,
+    "energyKcal": 405,
+    "fat": 200,
+    "saturates": 90,
+    "carbs": 470,
+    "sugars": 270,
+    "fibre": 10,
+    "protein": 60,
+    "salt": 4
+   },
+   "ingredients": "WHEAT flour, sugar, BUTTER, EGG, rapeseed oil, cocoa, baking powder.",
+   "allergens": [
+    "gluten",
+    "milk",
+    "eggs"
+   ],
+   "dietary": [
+    "vegetarian"
+   ],
+   "look": "Product photo of a sliced marble loaf cake with brown swirls, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "apple-strudel",
+   "name": "Apple strudel",
+   "nameDe": "Apfelstrudel",
+   "brand": "ofenfrisch",
+   "department": "bakery",
+   "subcategory": "cakes-pastries",
+   "description": "A 450 g apple strudel with raisins and cinnamon.",
+   "descriptionDe": "Ein 450-g-Apfelstrudel mit Rosinen und Zimt.",
+   "priceCents": 399,
+   "net": {
+    "amount": 450,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 4,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 950,
+    "energyKcal": 225,
+    "fat": 90,
+    "saturates": 40,
+    "carbs": 350,
+    "sugars": 180,
+    "fibre": 20,
+    "protein": 25,
+    "salt": 2
+   },
+   "ingredients": "Apples, WHEAT flour, sugar, BUTTER, raisins, cinnamon, water, salt.",
+   "allergens": [
+    "gluten",
+    "milk"
+   ],
+   "dietary": [
+    "vegetarian"
+   ],
+   "look": "Product photo of a golden strudel log dusted with icing sugar, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "whole-milk-1l",
+   "name": "Whole milk, 1 l",
+   "nameDe": "Vollmilch, 1 l",
+   "brand": "meadowbrook",
+   "department": "dairy-eggs",
+   "subcategory": "milk-cream",
+   "description": "Fresh whole milk with 3.8 percent fat.",
+   "descriptionDe": "Frische Vollmilch mit 3,8 Prozent Fett.",
+   "priceCents": 129,
+   "net": {
+    "amount": 1000,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 8,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 270,
+    "energyKcal": 65,
+    "fat": 38,
+    "saturates": 24,
+    "carbs": 47,
+    "sugars": 47,
+    "fibre": 0,
+    "protein": 34,
+    "salt": 1
+   },
+   "ingredients": "Whole MILK.",
+   "allergens": [
+    "milk"
+   ],
+   "dietary": [
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a white milk carton with a blue screw cap, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "lactose-free-milk-1l",
+   "name": "Lactose-free milk, 1 l",
+   "nameDe": "Laktosefreie Milch, 1 l",
+   "brand": "meadowbrook",
+   "department": "dairy-eggs",
+   "subcategory": "milk-cream",
+   "description": "Semi-skimmed milk with the lactose removed.",
+   "descriptionDe": "Fettarme Milch, bei der der Milchzucker entfernt wurde.",
+   "priceCents": 149,
+   "net": {
+    "amount": 1000,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 8,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 200,
+    "energyKcal": 47,
+    "fat": 15,
+    "saturates": 10,
+    "carbs": 48,
+    "sugars": 48,
+    "fibre": 0,
+    "protein": 34,
+    "salt": 1
+   },
+   "ingredients": "Semi-skimmed MILK, lactase.",
+   "allergens": [
+    "milk"
+   ],
+   "dietary": [
+    "vegetarian",
+    "gluten-free",
+    "lactose-free"
+   ],
+   "look": "Product photo of a light blue milk carton with a green cap, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "whipping-cream",
+   "name": "Whipping cream",
+   "nameDe": "Schlagsahne",
+   "brand": "meadowbrook",
+   "department": "dairy-eggs",
+   "subcategory": "milk-cream",
+   "description": "A 200 ml pot of cream with 30 percent fat for whipping and cooking.",
+   "descriptionDe": "Ein 200-ml-Becher Sahne mit 30 Prozent Fett zum Schlagen und Kochen.",
+   "priceCents": 119,
+   "net": {
+    "amount": 200,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 14,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1250,
+    "energyKcal": 300,
+    "fat": 300,
+    "saturates": 200,
+    "carbs": 40,
+    "sugars": 40,
+    "fibre": 0,
+    "protein": 22,
+    "salt": 1
+   },
+   "ingredients": "CREAM.",
+   "allergens": [
+    "milk"
+   ],
+   "dietary": [
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a small white cream carton with a yellow stripe, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "natural-yoghurt-500g",
+   "name": "Natural yoghurt, 500 g",
+   "nameDe": "Naturjoghurt, 500 g",
+   "brand": "meadowbrook",
+   "department": "dairy-eggs",
+   "subcategory": "yoghurt-quark",
+   "description": "Mild natural yoghurt with 3.5 percent fat.",
+   "descriptionDe": "Milder Naturjoghurt mit 3,5 Prozent Fett.",
+   "priceCents": 109,
+   "net": {
+    "amount": 500,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 16,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 285,
+    "energyKcal": 68,
+    "fat": 35,
+    "saturates": 23,
+    "carbs": 47,
+    "sugars": 47,
+    "fibre": 0,
+    "protein": 35,
+    "salt": 1
+   },
+   "ingredients": "Whole MILK, yoghurt cultures.",
+   "allergens": [
+    "milk"
+   ],
+   "dietary": [
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a white yoghurt tub with a foil lid, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "quark-40",
+   "name": "Quark, 40 percent fat in dry matter",
+   "nameDe": "Speisequark 40 %",
+   "brand": "meadowbrook",
+   "department": "dairy-eggs",
+   "subcategory": "yoghurt-quark",
+   "description": "A 250 g tub of creamy quark for desserts and baking.",
+   "descriptionDe": "Ein 250-g-Becher cremiger Quark für Desserts und zum Backen.",
+   "priceCents": 99,
+   "net": {
+    "amount": 250,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 18,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 480,
+    "energyKcal": 115,
+    "fat": 110,
+    "saturates": 70,
+    "carbs": 35,
+    "sugars": 35,
+    "fibre": 0,
+    "protein": 120,
+    "salt": 1
+   },
+   "ingredients": "MILK, CREAM, lactic cultures.",
+   "allergens": [
+    "milk"
+   ],
+   "dietary": [
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a white quark tub with a pale yellow lid, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "strawberry-yoghurt",
+   "name": "Strawberry yoghurt",
+   "nameDe": "Erdbeerjoghurt",
+   "brand": "meadowbrook",
+   "department": "dairy-eggs",
+   "subcategory": "yoghurt-quark",
+   "description": "A 150 g yoghurt with strawberry pieces.",
+   "descriptionDe": "Ein 150-g-Joghurt mit Erdbeerstücken.",
+   "priceCents": 59,
+   "net": {
+    "amount": 150,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 18,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 440,
+    "energyKcal": 105,
+    "fat": 30,
+    "saturates": 20,
+    "carbs": 150,
+    "sugars": 135,
+    "fibre": 3,
+    "protein": 33,
+    "salt": 1
+   },
+   "ingredients": "Whole MILK, sugar, strawberries (8%), starch, yoghurt cultures.",
+   "allergens": [
+    "milk"
+   ],
+   "dietary": [
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a small pink-topped yoghurt cup, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "high-protein-skyr",
+   "name": "High-protein skyr",
+   "nameDe": "Skyr, proteinreich",
+   "brand": "meadowbrook",
+   "department": "dairy-eggs",
+   "subcategory": "yoghurt-quark",
+   "description": "A thick 450 g skyr-style yoghurt, low in fat.",
+   "descriptionDe": "Ein dickflüssiger Skyr-Joghurt, 450 g, fettarm.",
+   "priceCents": 199,
+   "net": {
+    "amount": 450,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 18,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 270,
+    "energyKcal": 64,
+    "fat": 2,
+    "saturates": 1,
+    "carbs": 40,
+    "sugars": 40,
+    "fibre": 0,
+    "protein": 110,
+    "salt": 1
+   },
+   "ingredients": "Skimmed MILK, skyr cultures.",
+   "allergens": [
+    "milk"
+   ],
+   "dietary": [
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a large white tub with a pale grey lid, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "gouda-counter",
+   "name": "Gouda from the counter",
+   "nameDe": "Gouda von der Theke",
+   "brand": "meadowbrook",
+   "department": "dairy-eggs",
+   "subcategory": "cheese",
+   "description": "Medium-aged Gouda cut to order at the counter, sold by weight.",
+   "descriptionDe": "Mittelalter Gouda, frisch von der Theke geschnitten, nach Gewicht.",
+   "priceCents": 1499,
+   "net": {
+    "amount": 250,
+    "unit": "g"
+   },
+   "soldByWeight": true,
+   "shelfLifeDays": 21,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1480,
+    "energyKcal": 356,
+    "fat": 28,
+    "saturates": 18,
+    "carbs": 0,
+    "sugars": 0,
+    "fibre": 0,
+    "protein": 25,
+    "salt": 18
+   },
+   "ingredients": "MILK, salt, cheese cultures, rennet.",
+   "allergens": [
+    "milk"
+   ],
+   "dietary": [
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a wedge of pale yellow Gouda cheese with a red rind, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "mozzarella",
+   "name": "Mozzarella",
+   "nameDe": "Mozzarella",
+   "brand": "meadowbrook",
+   "department": "dairy-eggs",
+   "subcategory": "cheese",
+   "description": "A 125 g ball of mozzarella in brine.",
+   "descriptionDe": "Eine 125-g-Kugel Mozzarella in Lake.",
+   "priceCents": 89,
+   "net": {
+    "amount": 125,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 21,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1000,
+    "energyKcal": 240,
+    "fat": 18,
+    "saturates": 12,
+    "carbs": 1,
+    "sugars": 1,
+    "fibre": 0,
+    "protein": 18,
+    "salt": 2
+   },
+   "ingredients": "MILK, salt, rennet, acidity regulator.",
+   "allergens": [
+    "milk"
+   ],
+   "dietary": [
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a white mozzarella ball in a clear pot, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "cream-cheese",
+   "name": "Cream cheese",
+   "nameDe": "Frischkäse",
+   "brand": "meadowbrook",
+   "department": "dairy-eggs",
+   "subcategory": "cheese",
+   "description": "A 200 g tub of natural cream cheese.",
+   "descriptionDe": "Eine 200-g-Packung Frischkäse natur.",
+   "priceCents": 129,
+   "net": {
+    "amount": 200,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 21,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1300,
+    "energyKcal": 310,
+    "fat": 30,
+    "saturates": 20,
+    "carbs": 35,
+    "sugars": 35,
+    "fibre": 0,
+    "protein": 60,
+    "salt": 11
+   },
+   "ingredients": "MILK, CREAM, salt, lactic cultures.",
+   "allergens": [
+    "milk"
+   ],
+   "dietary": [
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a round white cream cheese tub with a silver lid, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "free-range-eggs-10",
+   "name": "Free-range eggs, 10 pack",
+   "nameDe": "Freilandeier, 10er",
+   "brand": "meadowbrook",
+   "department": "dairy-eggs",
+   "subcategory": "eggs-butter",
+   "description": "Ten medium free-range eggs.",
+   "descriptionDe": "Zehn mittelgroße Freilandeier.",
+   "priceCents": 329,
+   "net": {
+    "amount": 10,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 21,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 600,
+    "energyKcal": 143,
+    "fat": 95,
+    "saturates": 31,
+    "carbs": 5,
+    "sugars": 5,
+    "fibre": 0,
+    "protein": 126,
+    "salt": 4
+   },
+   "ingredients": "Eggs.",
+   "allergens": [
+    "eggs"
+   ],
+   "dietary": [
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a carton of ten brown eggs, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "butter-250g",
+   "name": "Butter, 250 g",
+   "nameDe": "Butter, 250 g",
+   "brand": "meadowbrook",
+   "department": "dairy-eggs",
+   "subcategory": "eggs-butter",
+   "description": "A block of mild-soured butter.",
+   "descriptionDe": "Ein Block Sauerrahmbutter.",
+   "priceCents": 249,
+   "net": {
+    "amount": 250,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 30,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 3000,
+    "energyKcal": 740,
+    "fat": 825,
+    "saturates": 520,
+    "carbs": 6,
+    "sugars": 6,
+    "fibre": 0,
+    "protein": 6,
+    "salt": 2
+   },
+   "ingredients": "BUTTER (from CREAM).",
+   "allergens": [
+    "milk"
+   ],
+   "dietary": [
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a block of butter in gold paper foil, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "minced-beef",
+   "name": "Minced beef",
+   "nameDe": "Rinderhack",
+   "brand": "nordkueste",
+   "department": "meat-fish",
+   "subcategory": "meat",
+   "description": "Fresh minced beef, sold by weight.",
+   "descriptionDe": "Frisches Rinderhackfleisch, nach Gewicht.",
+   "priceCents": 1199,
+   "net": {
+    "amount": 500,
+    "unit": "g"
+   },
+   "soldByWeight": true,
+   "shelfLifeDays": 3,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 790,
+    "energyKcal": 190,
+    "fat": 120,
+    "saturates": 50,
+    "carbs": 0,
+    "sugars": 0,
+    "fibre": 0,
+    "protein": 190,
+    "salt": 1
+   },
+   "ingredients": "Beef.",
+   "allergens": [],
+   "dietary": [
+    "gluten-free"
+   ],
+   "look": "Product photo of a tray of fresh red minced beef, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "chicken-breast",
+   "name": "Chicken breast fillet",
+   "nameDe": "Hähnchenbrustfilet",
+   "brand": "nordkueste",
+   "department": "meat-fish",
+   "subcategory": "meat",
+   "description": "Skinless chicken breast fillets, sold by weight.",
+   "descriptionDe": "Hähnchenbrustfilets ohne Haut, nach Gewicht.",
+   "priceCents": 1299,
+   "net": {
+    "amount": 500,
+    "unit": "g"
+   },
+   "soldByWeight": true,
+   "shelfLifeDays": 4,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 420,
+    "energyKcal": 100,
+    "fat": 12,
+    "saturates": 4,
+    "carbs": 0,
+    "sugars": 0,
+    "fibre": 0,
+    "protein": 230,
+    "salt": 1
+   },
+   "ingredients": "Chicken.",
+   "allergens": [],
+   "dietary": [
+    "gluten-free"
+   ],
+   "look": "Product photo of pale pink chicken breast fillets on a tray, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "pork-schnitzel",
+   "name": "Pork schnitzel",
+   "nameDe": "Schweineschnitzel",
+   "brand": "nordkueste",
+   "department": "meat-fish",
+   "subcategory": "meat",
+   "description": "Four raw pork schnitzel, 400 g in total.",
+   "descriptionDe": "Vier rohe Schweineschnitzel, zusammen 400 g.",
+   "priceCents": 449,
+   "net": {
+    "amount": 400,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 4,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 470,
+    "energyKcal": 112,
+    "fat": 20,
+    "saturates": 8,
+    "carbs": 0,
+    "sugars": 0,
+    "fibre": 0,
+    "protein": 215,
+    "salt": 1
+   },
+   "ingredients": "Pork.",
+   "allergens": [],
+   "dietary": [
+    "gluten-free"
+   ],
+   "look": "Product photo of four flat raw pork schnitzels on a tray, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "chicken-drumsticks",
+   "name": "Chicken drumsticks",
+   "nameDe": "Hähnchenunterkeulen",
+   "brand": "nordkueste",
+   "department": "meat-fish",
+   "subcategory": "meat",
+   "description": "A 1 kg pack of chicken drumsticks.",
+   "descriptionDe": "Eine 1-kg-Packung Hähnchenunterkeulen.",
+   "priceCents": 499,
+   "net": {
+    "amount": 1000,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 4,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 640,
+    "energyKcal": 153,
+    "fat": 80,
+    "saturates": 22,
+    "carbs": 0,
+    "sugars": 0,
+    "fibre": 0,
+    "protein": 200,
+    "salt": 1
+   },
+   "ingredients": "Chicken.",
+   "allergens": [],
+   "dietary": [
+    "gluten-free"
+   ],
+   "look": "Product photo of a tray of raw chicken drumsticks, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "black-forest-ham",
+   "name": "Black Forest ham",
+   "nameDe": "Schwarzwälder Schinken",
+   "brand": "nordkueste",
+   "department": "meat-fish",
+   "subcategory": "sausage-ham",
+   "description": "Smoked ham sliced at the counter, sold by weight.",
+   "descriptionDe": "Geräucherter Schinken, an der Theke geschnitten, nach Gewicht.",
+   "priceCents": 2499,
+   "net": {
+    "amount": 100,
+    "unit": "g"
+   },
+   "soldByWeight": true,
+   "shelfLifeDays": 10,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 600,
+    "energyKcal": 143,
+    "fat": 50,
+    "saturates": 20,
+    "carbs": 0,
+    "sugars": 0,
+    "fibre": 0,
+    "protein": 260,
+    "salt": 45
+   },
+   "ingredients": "Pork, salt, spices, dextrose, antioxidant, preservative.",
+   "allergens": [],
+   "dietary": [
+    "gluten-free"
+   ],
+   "look": "Product photo of thin folded slices of dark smoked ham with a white fat edge, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "salami-100g",
+   "name": "Salami, 100 g",
+   "nameDe": "Salami, 100 g",
+   "brand": "nordkueste",
+   "department": "meat-fish",
+   "subcategory": "sausage-ham",
+   "description": "Sliced pork salami, 100 g.",
+   "descriptionDe": "Geschnittene Schweinesalami, 100 g.",
+   "priceCents": 199,
+   "net": {
+    "amount": 100,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 30,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1600,
+    "energyKcal": 385,
+    "fat": 320,
+    "saturates": 120,
+    "carbs": 10,
+    "sugars": 10,
+    "fibre": 0,
+    "protein": 240,
+    "salt": 50
+   },
+   "ingredients": "Pork, bacon, salt, dextrose, spices, antioxidant, preservative.",
+   "allergens": [],
+   "dietary": [
+    "gluten-free"
+   ],
+   "look": "Product photo of a pack of overlapping red salami slices, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "bratwurst-6",
+   "name": "Bratwurst, 6 pack",
+   "nameDe": "Bratwurst, 6er",
+   "brand": "nordkueste",
+   "department": "meat-fish",
+   "subcategory": "sausage-ham",
+   "description": "Six raw pork bratwurst for the pan or grill.",
+   "descriptionDe": "Sechs rohe Schweinebratwürste für Pfanne oder Grill.",
+   "priceCents": 399,
+   "net": {
+    "amount": 300,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 6,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1150,
+    "energyKcal": 275,
+    "fat": 240,
+    "saturates": 90,
+    "carbs": 10,
+    "sugars": 5,
+    "fibre": 0,
+    "protein": 130,
+    "salt": 22
+   },
+   "ingredients": "Pork, water, salt, spices, MUSTARD, onions.",
+   "allergens": [
+    "mustard"
+   ],
+   "dietary": [
+    "gluten-free"
+   ],
+   "look": "Product photo of six pale raw bratwurst in a tray, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "turkey-slices",
+   "name": "Turkey breast slices",
+   "nameDe": "Putenbrust in Scheiben",
+   "brand": "nordkueste",
+   "department": "meat-fish",
+   "subcategory": "sausage-ham",
+   "description": "A 100 g pack of sliced cooked turkey breast, low in fat.",
+   "descriptionDe": "Eine 100-g-Packung gekochte Putenbrust in Scheiben, fettarm.",
+   "priceCents": 169,
+   "net": {
+    "amount": 100,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 14,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 420,
+    "energyKcal": 100,
+    "fat": 10,
+    "saturates": 3,
+    "carbs": 10,
+    "sugars": 10,
+    "fibre": 0,
+    "protein": 200,
+    "salt": 20
+   },
+   "ingredients": "Turkey breast (95%), salt, dextrose, spices.",
+   "allergens": [],
+   "dietary": [
+    "gluten-free"
+   ],
+   "look": "Product photo of a pack of thin pink turkey slices, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "salmon-fillet",
+   "name": "Salmon fillet",
+   "nameDe": "Lachsfilet",
+   "brand": "nordkueste",
+   "department": "meat-fish",
+   "subcategory": "fish",
+   "description": "Fresh salmon fillet, sold by weight.",
+   "descriptionDe": "Frisches Lachsfilet, nach Gewicht.",
+   "priceCents": 2599,
+   "net": {
+    "amount": 500,
+    "unit": "g"
+   },
+   "soldByWeight": true,
+   "shelfLifeDays": 3,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 880,
+    "energyKcal": 210,
+    "fat": 130,
+    "saturates": 25,
+    "carbs": 0,
+    "sugars": 0,
+    "fibre": 0,
+    "protein": 200,
+    "salt": 1
+   },
+   "ingredients": "Salmon (FISH).",
+   "allergens": [
+    "fish"
+   ],
+   "dietary": [
+    "gluten-free"
+   ],
+   "look": "Product photo of an orange salmon fillet with white fat lines, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "cod-fillets",
+   "name": "Cod fillets",
+   "nameDe": "Kabeljaufilets",
+   "brand": "nordkueste",
+   "department": "meat-fish",
+   "subcategory": "fish",
+   "description": "Two skinless cod fillets, 250 g in total.",
+   "descriptionDe": "Zwei Kabeljaufilets ohne Haut, zusammen 250 g.",
+   "priceCents": 649,
+   "net": {
+    "amount": 250,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 3,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 330,
+    "energyKcal": 78,
+    "fat": 7,
+    "saturates": 1,
+    "carbs": 0,
+    "sugars": 0,
+    "fibre": 0,
+    "protein": 180,
+    "salt": 2
+   },
+   "ingredients": "Cod (FISH).",
+   "allergens": [
+    "fish"
+   ],
+   "dietary": [
+    "gluten-free"
+   ],
+   "look": "Product photo of two white raw cod fillets on a tray, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "smoked-trout",
+   "name": "Smoked trout",
+   "nameDe": "Räucherforelle",
+   "brand": "nordkueste",
+   "department": "meat-fish",
+   "subcategory": "fish",
+   "description": "Two smoked trout fillets, 150 g in total.",
+   "descriptionDe": "Zwei Räucherforellenfilets, zusammen 150 g.",
+   "priceCents": 329,
+   "net": {
+    "amount": 150,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 12,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 640,
+    "energyKcal": 153,
+    "fat": 80,
+    "saturates": 15,
+    "carbs": 0,
+    "sugars": 0,
+    "fibre": 0,
+    "protein": 210,
+    "salt": 25
+   },
+   "ingredients": "Trout (FISH), salt, smoke.",
+   "allergens": [
+    "fish"
+   ],
+   "dietary": [
+    "gluten-free"
+   ],
+   "look": "Product photo of two pink smoked trout fillets in a vacuum pack, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "matjes-herring",
+   "name": "Matjes herring fillets",
+   "nameDe": "Matjesfilets",
+   "brand": "nordkueste",
+   "department": "meat-fish",
+   "subcategory": "fish",
+   "description": "Herring fillets in a mild oil marinade, 200 g.",
+   "descriptionDe": "Heringsfilets in milder Ölmarinade, 200 g.",
+   "priceCents": 229,
+   "net": {
+    "amount": 200,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 30,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 900,
+    "energyKcal": 215,
+    "fat": 150,
+    "saturates": 25,
+    "carbs": 10,
+    "sugars": 5,
+    "fibre": 0,
+    "protein": 120,
+    "salt": 32
+   },
+   "ingredients": "Herring (FISH), rapeseed oil, salt, sugar, onions.",
+   "allergens": [
+    "fish"
+   ],
+   "dietary": [
+    "gluten-free"
+   ],
+   "look": "Product photo of a jar of herring fillets with onion rings, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "spaghetti-500g",
+   "name": "Spaghetti, 500 g",
+   "nameDe": "Spaghetti, 500 g",
+   "brand": "grocery-basics",
+   "department": "pantry",
+   "subcategory": "pasta-rice",
+   "description": "Durum wheat spaghetti.",
+   "descriptionDe": "Spaghetti aus Hartweizen.",
+   "priceCents": 99,
+   "net": {
+    "amount": 500,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 540,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1500,
+    "energyKcal": 358,
+    "fat": 15,
+    "saturates": 3,
+    "carbs": 720,
+    "sugars": 30,
+    "fibre": 30,
+    "protein": 125,
+    "salt": 1
+   },
+   "ingredients": "Durum WHEAT semolina.",
+   "allergens": [
+    "gluten"
+   ],
+   "dietary": [
+    "vegan",
+    "vegetarian"
+   ],
+   "look": "Product photo of a clear-windowed pack of straight spaghetti, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "spaetzle-500g",
+   "name": "Spätzle, 500 g",
+   "nameDe": "Spätzle, 500 g",
+   "brand": "grocery-basics",
+   "department": "pantry",
+   "subcategory": "pasta-rice",
+   "description": "Swabian egg noodles, ready in a few minutes.",
+   "descriptionDe": "Schwäbische Eiernudeln, in wenigen Minuten fertig.",
+   "priceCents": 179,
+   "net": {
+    "amount": 500,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 180,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1500,
+    "energyKcal": 355,
+    "fat": 25,
+    "saturates": 5,
+    "carbs": 690,
+    "sugars": 20,
+    "fibre": 30,
+    "protein": 135,
+    "salt": 1
+   },
+   "ingredients": "WHEAT flour, EGG (30%), durum WHEAT semolina, water, salt.",
+   "allergens": [
+    "gluten",
+    "eggs"
+   ],
+   "dietary": [
+    "vegetarian"
+   ],
+   "look": "Product photo of a pack of short wavy yellow egg noodles, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "basmati-rice-1kg",
+   "name": "Basmati rice, 1 kg",
+   "nameDe": "Basmatireis, 1 kg",
+   "brand": "grocery-basics",
+   "department": "pantry",
+   "subcategory": "pasta-rice",
+   "description": "Long-grain basmati rice.",
+   "descriptionDe": "Langkörniger Basmatireis.",
+   "priceCents": 279,
+   "net": {
+    "amount": 1000,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 720,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1480,
+    "energyKcal": 350,
+    "fat": 5,
+    "saturates": 1,
+    "carbs": 770,
+    "sugars": 5,
+    "fibre": 10,
+    "protein": 85,
+    "salt": 0
+   },
+   "ingredients": "Basmati rice.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a pack of long white rice grains, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "chopped-tomatoes",
+   "name": "Chopped tomatoes",
+   "nameDe": "Gehackte Tomaten",
+   "brand": "grocery-basics",
+   "department": "pantry",
+   "subcategory": "tins",
+   "description": "A 400 g tin of chopped tomatoes.",
+   "descriptionDe": "Eine 400-g-Dose gehackte Tomaten.",
+   "priceCents": 79,
+   "net": {
+    "amount": 400,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 720,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 90,
+    "energyKcal": 21,
+    "fat": 2,
+    "saturates": 0,
+    "carbs": 32,
+    "sugars": 32,
+    "fibre": 10,
+    "protein": 10,
+    "salt": 2
+   },
+   "ingredients": "Tomatoes (97%), tomato juice, acidity regulator.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a plain tin of chopped tomatoes, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "chickpeas-tin",
+   "name": "Chickpeas",
+   "nameDe": "Kichererbsen",
+   "brand": "grocery-basics",
+   "department": "pantry",
+   "subcategory": "tins",
+   "description": "A 400 g tin of cooked chickpeas.",
+   "descriptionDe": "Eine 400-g-Dose gekochte Kichererbsen.",
+   "priceCents": 89,
+   "net": {
+    "amount": 400,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 720,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 560,
+    "energyKcal": 133,
+    "fat": 28,
+    "saturates": 3,
+    "carbs": 170,
+    "sugars": 5,
+    "fibre": 60,
+    "protein": 70,
+    "salt": 6
+   },
+   "ingredients": "Chickpeas, water, salt.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a plain tin of chickpeas, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "tuna-in-oil",
+   "name": "Tuna in sunflower oil",
+   "nameDe": "Thunfisch in Sonnenblumenöl",
+   "brand": "grocery-basics",
+   "department": "pantry",
+   "subcategory": "tins",
+   "description": "A 140 g tin of tuna chunks in sunflower oil.",
+   "descriptionDe": "Eine 140-g-Dose Thunfischstücke in Sonnenblumenöl.",
+   "priceCents": 189,
+   "net": {
+    "amount": 140,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 1080,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 900,
+    "energyKcal": 215,
+    "fat": 130,
+    "saturates": 15,
+    "carbs": 0,
+    "sugars": 0,
+    "fibre": 0,
+    "protein": 260,
+    "salt": 10
+   },
+   "ingredients": "Tuna (FISH), sunflower oil, salt.",
+   "allergens": [
+    "fish"
+   ],
+   "dietary": [
+    "gluten-free"
+   ],
+   "look": "Product photo of a small round tin of tuna, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "wheat-flour-1kg",
+   "name": "Wheat flour, 1 kg",
+   "nameDe": "Weizenmehl, 1 kg",
+   "brand": "grocery-basics",
+   "department": "pantry",
+   "subcategory": "baking-oils",
+   "description": "Plain wheat flour type 405.",
+   "descriptionDe": "Weizenmehl Type 405.",
+   "priceCents": 89,
+   "net": {
+    "amount": 1000,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 360,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1450,
+    "energyKcal": 340,
+    "fat": 12,
+    "saturates": 2,
+    "carbs": 700,
+    "sugars": 3,
+    "fibre": 35,
+    "protein": 100,
+    "salt": 0
+   },
+   "ingredients": "WHEAT flour.",
+   "allergens": [
+    "gluten"
+   ],
+   "dietary": [
+    "vegan",
+    "vegetarian"
+   ],
+   "look": "Product photo of a white paper bag of flour, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "sugar-1kg",
+   "name": "Sugar, 1 kg",
+   "nameDe": "Zucker, 1 kg",
+   "brand": "grocery-basics",
+   "department": "pantry",
+   "subcategory": "baking-oils",
+   "description": "White granulated sugar.",
+   "descriptionDe": "Weißer Haushaltszucker.",
+   "priceCents": 119,
+   "net": {
+    "amount": 1000,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 1080,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1700,
+    "energyKcal": 400,
+    "fat": 0,
+    "saturates": 0,
+    "carbs": 1000,
+    "sugars": 1000,
+    "fibre": 0,
+    "protein": 0,
+    "salt": 0
+   },
+   "ingredients": "Sugar.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a white paper bag of granulated sugar, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "olive-oil-500ml",
+   "name": "Olive oil, 500 ml",
+   "nameDe": "Olivenöl, 500 ml",
+   "brand": "grocery-basics",
+   "department": "pantry",
+   "subcategory": "baking-oils",
+   "description": "Extra virgin olive oil in a dark glass bottle.",
+   "descriptionDe": "Natives Olivenöl extra in dunkler Glasflasche.",
+   "priceCents": 699,
+   "net": {
+    "amount": 500,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 540,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 3700,
+    "energyKcal": 900,
+    "fat": 1000,
+    "saturates": 150,
+    "carbs": 0,
+    "sugars": 0,
+    "fibre": 0,
+    "protein": 0,
+    "salt": 0
+   },
+   "ingredients": "Extra virgin olive oil.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a dark green glass bottle of olive oil, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "rolled-oats-500g",
+   "name": "Rolled oats, 500 g",
+   "nameDe": "Haferflocken, 500 g",
+   "brand": "greenfield-organic",
+   "department": "pantry",
+   "subcategory": "breakfast",
+   "description": "Organic wholegrain rolled oats.",
+   "descriptionDe": "Bio-Haferflocken aus Vollkorn.",
+   "priceCents": 149,
+   "net": {
+    "amount": 500,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 360,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1520,
+    "energyKcal": 362,
+    "fat": 70,
+    "saturates": 13,
+    "carbs": 590,
+    "sugars": 10,
+    "fibre": 100,
+    "protein": 135,
+    "salt": 0
+   },
+   "ingredients": "Organic wholegrain OATS.",
+   "allergens": [
+    "gluten"
+   ],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "organic"
+   ],
+   "look": "Product photo of a cardboard pack of rolled oats with an oat-field green band, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "strawberry-jam",
+   "name": "Strawberry jam",
+   "nameDe": "Erdbeerkonfitüre",
+   "brand": "grocery-basics",
+   "department": "pantry",
+   "subcategory": "breakfast",
+   "description": "A 450 g jar of strawberry jam.",
+   "descriptionDe": "Ein 450-g-Glas Erdbeerkonfitüre.",
+   "priceCents": 219,
+   "net": {
+    "amount": 450,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 540,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1000,
+    "energyKcal": 235,
+    "fat": 1,
+    "saturates": 0,
+    "carbs": 570,
+    "sugars": 550,
+    "fibre": 5,
+    "protein": 3,
+    "salt": 0
+   },
+   "ingredients": "Strawberries (45%), sugar, gelling agent pectin, lemon juice.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a glass jar of red jam with a gingham lid, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "peanut-butter",
+   "name": "Peanut butter",
+   "nameDe": "Erdnussbutter",
+   "brand": "grocery-basics",
+   "department": "pantry",
+   "subcategory": "breakfast",
+   "description": "A 350 g jar of creamy peanut butter.",
+   "descriptionDe": "Ein 350-g-Glas cremige Erdnussbutter.",
+   "priceCents": 249,
+   "net": {
+    "amount": 350,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 360,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 2500,
+    "energyKcal": 600,
+    "fat": 500,
+    "saturates": 100,
+    "carbs": 70,
+    "sugars": 50,
+    "fibre": 70,
+    "protein": 250,
+    "salt": 10
+   },
+   "ingredients": "PEANUTS (96%), salt.",
+   "allergens": [
+    "peanuts"
+   ],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a glass jar of beige peanut butter, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "frozen-peas",
+   "name": "Garden peas",
+   "nameDe": "Gartenerbsen",
+   "brand": "nordkueste",
+   "department": "frozen",
+   "subcategory": "frozen-veg",
+   "description": "A 750 g bag of frozen garden peas.",
+   "descriptionDe": "Ein 750-g-Beutel TK-Gartenerbsen.",
+   "priceCents": 199,
+   "net": {
+    "amount": 750,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 360,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 290,
+    "energyKcal": 69,
+    "fat": 10,
+    "saturates": 2,
+    "carbs": 100,
+    "sugars": 40,
+    "fibre": 50,
+    "protein": 60,
+    "salt": 0
+   },
+   "ingredients": "Peas.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a clear bag of frozen green peas, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "frozen-leaf-spinach",
+   "name": "Leaf spinach",
+   "nameDe": "Blattspinat",
+   "brand": "nordkueste",
+   "department": "frozen",
+   "subcategory": "frozen-veg",
+   "description": "A 450 g bag of frozen leaf spinach portions.",
+   "descriptionDe": "Ein 450-g-Beutel TK-Blattspinat in Portionen.",
+   "priceCents": 169,
+   "net": {
+    "amount": 450,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 360,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 90,
+    "energyKcal": 22,
+    "fat": 4,
+    "saturates": 1,
+    "carbs": 12,
+    "sugars": 5,
+    "fibre": 25,
+    "protein": 28,
+    "salt": 2
+   },
+   "ingredients": "Spinach.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a frozen bag with green spinach portions, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "frozen-mixed-berries",
+   "name": "Mixed berries",
+   "nameDe": "Beerenmischung",
+   "brand": "nordkueste",
+   "department": "frozen",
+   "subcategory": "frozen-veg",
+   "description": "A 300 g bag of frozen strawberries, raspberries and blackcurrants.",
+   "descriptionDe": "Ein 300-g-Beutel TK-Erdbeeren, Himbeeren und Johannisbeeren.",
+   "priceCents": 299,
+   "net": {
+    "amount": 300,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 360,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 160,
+    "energyKcal": 38,
+    "fat": 5,
+    "saturates": 1,
+    "carbs": 70,
+    "sugars": 60,
+    "fibre": 45,
+    "protein": 9,
+    "salt": 0
+   },
+   "ingredients": "Strawberries, raspberries, blackcurrants, redcurrants.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a bag of frozen red and purple berries, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "frozen-stir-fry-veg",
+   "name": "Stir-fry vegetables",
+   "nameDe": "Gemüsepfanne",
+   "brand": "nordkueste",
+   "department": "frozen",
+   "subcategory": "frozen-veg",
+   "description": "A 600 g mix of frozen vegetables for the pan.",
+   "descriptionDe": "Eine 600-g-Mischung TK-Gemüse für die Pfanne.",
+   "priceCents": 229,
+   "net": {
+    "amount": 600,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 360,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 190,
+    "energyKcal": 45,
+    "fat": 5,
+    "saturates": 1,
+    "carbs": 70,
+    "sugars": 40,
+    "fibre": 32,
+    "protein": 20,
+    "salt": 1
+   },
+   "ingredients": "Broccoli, carrots, peppers, mushrooms, bamboo shoots, soybeans.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a bag with colourful frozen chopped vegetables, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "frozen-pizza-margherita",
+   "name": "Pizza Margherita",
+   "nameDe": "Pizza Margherita",
+   "brand": "nordkueste",
+   "department": "frozen",
+   "subcategory": "frozen-meals",
+   "description": "A 350 g stone-baked pizza with tomato and mozzarella.",
+   "descriptionDe": "Eine 350-g-Steinofenpizza mit Tomate und Mozzarella.",
+   "priceCents": 229,
+   "net": {
+    "amount": 350,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 270,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1050,
+    "energyKcal": 250,
+    "fat": 90,
+    "saturates": 40,
+    "carbs": 320,
+    "sugars": 35,
+    "fibre": 20,
+    "protein": 100,
+    "salt": 12
+   },
+   "ingredients": "WHEAT flour, tomatoes, MOZZARELLA (MILK), rapeseed oil, yeast, salt, spices.",
+   "allergens": [
+    "gluten",
+    "milk"
+   ],
+   "dietary": [
+    "vegetarian"
+   ],
+   "look": "Product photo of a round pizza with red sauce and white cheese in a flat box, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "frozen-fish-fingers",
+   "name": "Fish fingers",
+   "nameDe": "Fischstäbchen",
+   "brand": "nordkueste",
+   "department": "frozen",
+   "subcategory": "frozen-meals",
+   "description": "Ten breaded fish fingers made from Alaska pollock, 300 g.",
+   "descriptionDe": "Zehn panierte Fischstäbchen aus Alaska-Seelachs, 300 g.",
+   "priceCents": 279,
+   "net": {
+    "amount": 300,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 270,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 800,
+    "energyKcal": 190,
+    "fat": 80,
+    "saturates": 8,
+    "carbs": 180,
+    "sugars": 10,
+    "fibre": 15,
+    "protein": 130,
+    "salt": 12
+   },
+   "ingredients": "Alaska pollock (FISH, 58%), WHEAT flour, rapeseed oil, water, salt, yeast.",
+   "allergens": [
+    "fish",
+    "gluten"
+   ],
+   "dietary": [],
+   "look": "Product photo of ten golden breaded fish fingers on a plate, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "frozen-fries",
+   "name": "French fries",
+   "nameDe": "Pommes frites",
+   "brand": "nordkueste",
+   "department": "frozen",
+   "subcategory": "frozen-meals",
+   "description": "A 750 g bag of thin frozen fries for the oven.",
+   "descriptionDe": "Ein 750-g-Beutel dünne TK-Pommes für den Ofen.",
+   "priceCents": 169,
+   "net": {
+    "amount": 750,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 270,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 600,
+    "energyKcal": 143,
+    "fat": 50,
+    "saturates": 5,
+    "carbs": 230,
+    "sugars": 5,
+    "fibre": 28,
+    "protein": 22,
+    "salt": 1
+   },
+   "ingredients": "Potatoes, sunflower oil.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a pile of golden fries next to a plain frozen bag, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "frozen-prawns",
+   "name": "Raw prawns",
+   "nameDe": "Rohe Garnelen",
+   "brand": "nordkueste",
+   "department": "frozen",
+   "subcategory": "frozen-meals",
+   "description": "A 250 g bag of peeled raw king prawns.",
+   "descriptionDe": "Ein 250-g-Beutel geschälte rohe Riesengarnelen.",
+   "priceCents": 599,
+   "net": {
+    "amount": 250,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 270,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 330,
+    "energyKcal": 78,
+    "fat": 9,
+    "saturates": 2,
+    "carbs": 0,
+    "sugars": 0,
+    "fibre": 0,
+    "protein": 170,
+    "salt": 10
+   },
+   "ingredients": "King prawns (CRUSTACEANS, 90%), water, salt.",
+   "allergens": [
+    "crustaceans"
+   ],
+   "dietary": [
+    "gluten-free"
+   ],
+   "look": "Product photo of a bag of pink peeled prawns, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "vanilla-ice-cream",
+   "name": "Vanilla ice cream",
+   "nameDe": "Vanilleeis",
+   "brand": "meadowbrook",
+   "department": "frozen",
+   "subcategory": "ice-cream",
+   "description": "A 500 ml tub of vanilla ice cream.",
+   "descriptionDe": "Eine 500-ml-Packung Vanilleeis.",
+   "priceCents": 299,
+   "net": {
+    "amount": 500,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 360,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 820,
+    "energyKcal": 196,
+    "fat": 100,
+    "saturates": 66,
+    "carbs": 230,
+    "sugars": 210,
+    "fibre": 0,
+    "protein": 35,
+    "salt": 1
+   },
+   "ingredients": "MILK, CREAM, sugar, skimmed MILK powder, EGG yolk, vanilla.",
+   "allergens": [
+    "milk",
+    "eggs"
+   ],
+   "dietary": [
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a cream-coloured ice cream tub with a lid, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "chocolate-ice-cream",
+   "name": "Chocolate ice cream",
+   "nameDe": "Schokoladeneis",
+   "brand": "meadowbrook",
+   "department": "frozen",
+   "subcategory": "ice-cream",
+   "description": "A 500 ml tub of chocolate ice cream.",
+   "descriptionDe": "Eine 500-ml-Packung Schokoladeneis.",
+   "priceCents": 299,
+   "net": {
+    "amount": 500,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 360,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 920,
+    "energyKcal": 220,
+    "fat": 120,
+    "saturates": 75,
+    "carbs": 250,
+    "sugars": 220,
+    "fibre": 15,
+    "protein": 40,
+    "salt": 1
+   },
+   "ingredients": "MILK, CREAM, sugar, cocoa (6%), skimmed MILK powder.",
+   "allergens": [
+    "milk"
+   ],
+   "dietary": [
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a dark brown ice cream tub with a lid, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "strawberry-sorbet",
+   "name": "Strawberry sorbet",
+   "nameDe": "Erdbeersorbet",
+   "brand": "meadowbrook",
+   "department": "frozen",
+   "subcategory": "ice-cream",
+   "description": "A 500 ml tub of dairy-free strawberry sorbet.",
+   "descriptionDe": "Eine 500-ml-Packung milchfreies Erdbeersorbet.",
+   "priceCents": 279,
+   "net": {
+    "amount": 500,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 360,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 520,
+    "energyKcal": 123,
+    "fat": 0,
+    "saturates": 0,
+    "carbs": 300,
+    "sugars": 270,
+    "fibre": 10,
+    "protein": 4,
+    "salt": 0
+   },
+   "ingredients": "Strawberries (35%), sugar, water, lemon juice.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "lactose-free"
+   ],
+   "look": "Product photo of a pink sorbet tub with a lid, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "ice-lollies-8",
+   "name": "Fruit ice lollies, 8 pack",
+   "nameDe": "Wassereis, 8er",
+   "brand": "grocery-basics",
+   "department": "frozen",
+   "subcategory": "ice-cream",
+   "description": "Eight fruit ice lollies in orange, cherry and lemon.",
+   "descriptionDe": "Acht Wassereis am Stiel in Orange, Kirsche und Zitrone.",
+   "priceCents": 199,
+   "net": {
+    "amount": 8,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 360,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 250,
+    "energyKcal": 59,
+    "fat": 0,
+    "saturates": 0,
+    "carbs": 145,
+    "sugars": 140,
+    "fibre": 0,
+    "protein": 0,
+    "salt": 0
+   },
+   "ingredients": "Water, sugar, glucose syrup, fruit juices from concentrate, colours.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "lactose-free"
+   ],
+   "look": "Product photo of a box of coloured ice lollies, orange red and yellow, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "still-water-1-5l",
+   "name": "Still water, 1.5 l",
+   "nameDe": "Stilles Wasser, 1,5 l",
+   "brand": "quellwerk",
+   "department": "drinks",
+   "subcategory": "water",
+   "description": "Natural mineral water without carbonation in a returnable bottle.",
+   "descriptionDe": "Natürliches Mineralwasser ohne Kohlensäure in der Pfandflasche.",
+   "priceCents": 39,
+   "net": {
+    "amount": 1500,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 365,
+   "deposit": true,
+   "food": true,
+   "nutrition": {
+    "energyKj": 0,
+    "energyKcal": 0,
+    "fat": 0,
+    "saturates": 0,
+    "carbs": 0,
+    "sugars": 0,
+    "fibre": 0,
+    "protein": 0,
+    "salt": 0
+   },
+   "ingredients": "Natural mineral water.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "lactose-free"
+   ],
+   "look": "Product photo of a clear plastic bottle of water with a light blue cap, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "sparkling-water-1-5l",
+   "name": "Sparkling water, 1.5 l",
+   "nameDe": "Sprudelwasser, 1,5 l",
+   "brand": "quellwerk",
+   "department": "drinks",
+   "subcategory": "water",
+   "description": "Natural mineral water with strong carbonation.",
+   "descriptionDe": "Natürliches Mineralwasser mit viel Kohlensäure.",
+   "priceCents": 39,
+   "net": {
+    "amount": 1500,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 365,
+   "deposit": true,
+   "food": true,
+   "nutrition": {
+    "energyKj": 0,
+    "energyKcal": 0,
+    "fat": 0,
+    "saturates": 0,
+    "carbs": 0,
+    "sugars": 0,
+    "fibre": 0,
+    "protein": 0,
+    "salt": 0
+   },
+   "ingredients": "Natural mineral water, carbon dioxide.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "lactose-free"
+   ],
+   "look": "Product photo of a clear plastic bottle of water with a dark blue cap, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "medium-water-1-5l",
+   "name": "Medium water, 1.5 l",
+   "nameDe": "Medium-Wasser, 1,5 l",
+   "brand": "quellwerk",
+   "department": "drinks",
+   "subcategory": "water",
+   "description": "Natural mineral water with light carbonation.",
+   "descriptionDe": "Natürliches Mineralwasser mit wenig Kohlensäure.",
+   "priceCents": 39,
+   "net": {
+    "amount": 1500,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 365,
+   "deposit": true,
+   "food": true,
+   "nutrition": {
+    "energyKj": 0,
+    "energyKcal": 0,
+    "fat": 0,
+    "saturates": 0,
+    "carbs": 0,
+    "sugars": 0,
+    "fibre": 0,
+    "protein": 0,
+    "salt": 0
+   },
+   "ingredients": "Natural mineral water, carbon dioxide.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "lactose-free"
+   ],
+   "look": "Product photo of a clear plastic bottle of water with a mid-blue cap, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "apple-juice-1l",
+   "name": "Apple juice, 1 l",
+   "nameDe": "Apfelsaft, 1 l",
+   "brand": "quellwerk",
+   "department": "drinks",
+   "subcategory": "juice-soft",
+   "description": "Cloudy apple juice, pressed directly from apples.",
+   "descriptionDe": "Naturtrüber Apfelsaft, direkt gepresst.",
+   "priceCents": 199,
+   "net": {
+    "amount": 1000,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 270,
+   "deposit": true,
+   "food": true,
+   "nutrition": {
+    "energyKj": 190,
+    "energyKcal": 45,
+    "fat": 0,
+    "saturates": 0,
+    "carbs": 105,
+    "sugars": 105,
+    "fibre": 0,
+    "protein": 1,
+    "salt": 0
+   },
+   "ingredients": "Apple juice (100%).",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "lactose-free"
+   ],
+   "look": "Product photo of a glass bottle of cloudy golden apple juice, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "apfelschorle-1l",
+   "name": "Apfelschorle, 1 l",
+   "nameDe": "Apfelschorle, 1 l",
+   "brand": "quellwerk",
+   "department": "drinks",
+   "subcategory": "juice-soft",
+   "description": "Apple juice mixed with sparkling mineral water.",
+   "descriptionDe": "Apfelsaft gemischt mit sprudeligem Mineralwasser.",
+   "priceCents": 89,
+   "net": {
+    "amount": 1000,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 270,
+   "deposit": true,
+   "food": true,
+   "nutrition": {
+    "energyKj": 85,
+    "energyKcal": 20,
+    "fat": 0,
+    "saturates": 0,
+    "carbs": 48,
+    "sugars": 48,
+    "fibre": 0,
+    "protein": 0,
+    "salt": 0
+   },
+   "ingredients": "Mineral water, apple juice from concentrate (55%).",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "lactose-free"
+   ],
+   "look": "Product photo of a clear plastic bottle of pale golden apple spritzer, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "orange-juice-1l",
+   "name": "Orange juice, 1 l",
+   "nameDe": "Orangensaft, 1 l",
+   "brand": "quellwerk",
+   "department": "drinks",
+   "subcategory": "juice-soft",
+   "description": "Orange juice, not from concentrate.",
+   "descriptionDe": "Orangensaft, nicht aus Konzentrat.",
+   "priceCents": 229,
+   "net": {
+    "amount": 1000,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 30,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 180,
+    "energyKcal": 42,
+    "fat": 0,
+    "saturates": 0,
+    "carbs": 90,
+    "sugars": 90,
+    "fibre": 2,
+    "protein": 7,
+    "salt": 0
+   },
+   "ingredients": "Orange juice (100%).",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "lactose-free"
+   ],
+   "look": "Product photo of a carton of bright orange juice with a screw cap, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "cola-1-5l",
+   "name": "Cola, 1.5 l",
+   "nameDe": "Cola, 1,5 l",
+   "brand": "quellwerk",
+   "department": "drinks",
+   "subcategory": "juice-soft",
+   "description": "A sweet cola in a returnable bottle.",
+   "descriptionDe": "Eine süße Cola in der Pfandflasche.",
+   "priceCents": 129,
+   "net": {
+    "amount": 1500,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 270,
+   "deposit": true,
+   "food": true,
+   "nutrition": {
+    "energyKj": 180,
+    "energyKcal": 42,
+    "fat": 0,
+    "saturates": 0,
+    "carbs": 105,
+    "sugars": 105,
+    "fibre": 0,
+    "protein": 0,
+    "salt": 0
+   },
+   "ingredients": "Water, sugar, carbon dioxide, colour caramel E150d, acid phosphoric acid, natural flavourings, caffeine.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "lactose-free"
+   ],
+   "look": "Product photo of a plastic bottle of dark brown cola, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "lemonade-1l",
+   "name": "Lemonade, 1 l",
+   "nameDe": "Zitronenlimonade, 1 l",
+   "brand": "quellwerk",
+   "department": "drinks",
+   "subcategory": "juice-soft",
+   "description": "Sparkling lemonade made with lemon juice.",
+   "descriptionDe": "Sprudelnde Limonade mit Zitronensaft.",
+   "priceCents": 99,
+   "net": {
+    "amount": 1000,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 270,
+   "deposit": true,
+   "food": true,
+   "nutrition": {
+    "energyKj": 150,
+    "energyKcal": 35,
+    "fat": 0,
+    "saturates": 0,
+    "carbs": 85,
+    "sugars": 85,
+    "fibre": 0,
+    "protein": 0,
+    "salt": 0
+   },
+   "ingredients": "Water, sugar, carbon dioxide, lemon juice from concentrate (3%), acid citric acid, flavourings.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "lactose-free"
+   ],
+   "look": "Product photo of a clear bottle of pale yellow lemonade, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "coffee-beans-500g",
+   "name": "Coffee beans, 500 g",
+   "nameDe": "Kaffeebohnen, 500 g",
+   "brand": "grocery-basics",
+   "department": "drinks",
+   "subcategory": "coffee-tea",
+   "description": "Medium-roast whole coffee beans.",
+   "descriptionDe": "Mittelkräftig geröstete ganze Kaffeebohnen.",
+   "priceCents": 699,
+   "net": {
+    "amount": 500,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 360,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 10,
+    "energyKcal": 2,
+    "fat": 0,
+    "saturates": 0,
+    "carbs": 0,
+    "sugars": 0,
+    "fibre": 0,
+    "protein": 2,
+    "salt": 0
+   },
+   "ingredients": "Coffee beans.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "lactose-free"
+   ],
+   "look": "Product photo of a brown paper-look coffee pack with dark beans visible, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "ground-coffee-500g",
+   "name": "Ground coffee, 500 g",
+   "nameDe": "Filterkaffee, 500 g",
+   "brand": "grocery-basics",
+   "department": "drinks",
+   "subcategory": "coffee-tea",
+   "description": "Ground coffee for filter machines.",
+   "descriptionDe": "Gemahlener Kaffee für die Filtermaschine.",
+   "priceCents": 599,
+   "net": {
+    "amount": 500,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 360,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 10,
+    "energyKcal": 2,
+    "fat": 0,
+    "saturates": 0,
+    "carbs": 0,
+    "sugars": 0,
+    "fibre": 0,
+    "protein": 2,
+    "salt": 0
+   },
+   "ingredients": "Ground coffee.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "lactose-free"
+   ],
+   "look": "Product photo of a red vacuum coffee brick pack, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "black-tea-20",
+   "name": "Black tea, 20 bags",
+   "nameDe": "Schwarztee, 20 Beutel",
+   "brand": "grocery-basics",
+   "department": "drinks",
+   "subcategory": "coffee-tea",
+   "description": "Twenty black tea bags.",
+   "descriptionDe": "Zwanzig Beutel Schwarztee.",
+   "priceCents": 149,
+   "net": {
+    "amount": 20,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 720,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 5,
+    "energyKcal": 1,
+    "fat": 0,
+    "saturates": 0,
+    "carbs": 0,
+    "sugars": 0,
+    "fibre": 0,
+    "protein": 0,
+    "salt": 0
+   },
+   "ingredients": "Black tea.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "lactose-free"
+   ],
+   "look": "Product photo of a small box of tea bags in dark red, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "peppermint-tea-20",
+   "name": "Peppermint tea, 20 bags",
+   "nameDe": "Pfefferminztee, 20 Beutel",
+   "brand": "greenfield-organic",
+   "department": "drinks",
+   "subcategory": "coffee-tea",
+   "description": "Twenty organic peppermint tea bags.",
+   "descriptionDe": "Zwanzig Bio-Pfefferminztee-Beutel.",
+   "priceCents": 179,
+   "net": {
+    "amount": 20,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 720,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 5,
+    "energyKcal": 1,
+    "fat": 0,
+    "saturates": 0,
+    "carbs": 0,
+    "sugars": 0,
+    "fibre": 0,
+    "protein": 0,
+    "salt": 0
+   },
+   "ingredients": "Organic peppermint leaves.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "lactose-free",
+    "organic"
+   ],
+   "look": "Product photo of a small green box of tea bags, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "paprika-crisps",
+   "name": "Paprika crisps",
+   "nameDe": "Paprika-Chips",
+   "brand": "grocery-basics",
+   "department": "snacks-sweets",
+   "subcategory": "crisps-nuts",
+   "description": "A 150 g bag of paprika-flavoured crisps.",
+   "descriptionDe": "Eine 150-g-Tüte Chips mit Paprikageschmack.",
+   "priceCents": 169,
+   "net": {
+    "amount": 150,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 180,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 2150,
+    "energyKcal": 515,
+    "fat": 330,
+    "saturates": 30,
+    "carbs": 500,
+    "sugars": 10,
+    "fibre": 40,
+    "protein": 60,
+    "salt": 15
+   },
+   "ingredients": "Potatoes, sunflower oil, paprika seasoning (sugar, salt, paprika, onion powder).",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "lactose-free"
+   ],
+   "look": "Product photo of a red crinkled snack bag, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "salted-peanuts",
+   "name": "Salted peanuts",
+   "nameDe": "Erdnüsse, gesalzen",
+   "brand": "grocery-basics",
+   "department": "snacks-sweets",
+   "subcategory": "crisps-nuts",
+   "description": "A 200 g bag of roasted salted peanuts.",
+   "descriptionDe": "Eine 200-g-Tüte geröstete gesalzene Erdnüsse.",
+   "priceCents": 189,
+   "net": {
+    "amount": 200,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 270,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 2450,
+    "energyKcal": 590,
+    "fat": 500,
+    "saturates": 90,
+    "carbs": 80,
+    "sugars": 40,
+    "fibre": 80,
+    "protein": 260,
+    "salt": 10
+   },
+   "ingredients": "PEANUTS (97%), salt.",
+   "allergens": [
+    "peanuts"
+   ],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a small bag of roasted peanuts, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "mixed-nuts",
+   "name": "Mixed nuts",
+   "nameDe": "Nussmischung",
+   "brand": "grocery-basics",
+   "department": "snacks-sweets",
+   "subcategory": "crisps-nuts",
+   "description": "A 200 g mix of cashews, almonds, hazelnuts and walnuts.",
+   "descriptionDe": "Eine 200-g-Mischung aus Cashews, Mandeln, Haselnüssen und Walnüssen.",
+   "priceCents": 329,
+   "net": {
+    "amount": 200,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 270,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 2650,
+    "energyKcal": 640,
+    "fat": 560,
+    "saturates": 70,
+    "carbs": 70,
+    "sugars": 40,
+    "fibre": 70,
+    "protein": 200,
+    "salt": 0
+   },
+   "ingredients": "Cashews, almonds, hazelnuts, walnuts.",
+   "allergens": [
+    "nuts"
+   ],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a clear bag of mixed shelled nuts, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "pretzel-sticks",
+   "name": "Pretzel sticks",
+   "nameDe": "Salzstangen",
+   "brand": "ofenfrisch",
+   "department": "snacks-sweets",
+   "subcategory": "crisps-nuts",
+   "description": "A 250 g bag of crunchy salted pretzel sticks.",
+   "descriptionDe": "Eine 250-g-Tüte knusprige Salzstangen.",
+   "priceCents": 129,
+   "net": {
+    "amount": 250,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 180,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1650,
+    "energyKcal": 390,
+    "fat": 25,
+    "saturates": 3,
+    "carbs": 780,
+    "sugars": 30,
+    "fibre": 35,
+    "protein": 100,
+    "salt": 45
+   },
+   "ingredients": "WHEAT flour, rapeseed oil, salt, yeast, malt.",
+   "allergens": [
+    "gluten"
+   ],
+   "dietary": [
+    "vegan",
+    "vegetarian"
+   ],
+   "look": "Product photo of a bag of thin brown salted sticks, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "milk-chocolate",
+   "name": "Milk chocolate",
+   "nameDe": "Vollmilchschokolade",
+   "brand": "grocery-basics",
+   "department": "snacks-sweets",
+   "subcategory": "chocolate-sweets",
+   "description": "A 100 g bar of milk chocolate.",
+   "descriptionDe": "Eine 100-g-Tafel Vollmilchschokolade.",
+   "priceCents": 89,
+   "net": {
+    "amount": 100,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 270,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 2250,
+    "energyKcal": 540,
+    "fat": 310,
+    "saturates": 190,
+    "carbs": 570,
+    "sugars": 550,
+    "fibre": 15,
+    "protein": 75,
+    "salt": 2
+   },
+   "ingredients": "Sugar, cocoa butter, whole MILK powder, cocoa mass, SOYA lecithin.",
+   "allergens": [
+    "milk",
+    "soybeans"
+   ],
+   "dietary": [
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a plain milk chocolate bar in purple paper, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "dark-chocolate-70",
+   "name": "Dark chocolate 70 percent",
+   "nameDe": "Zartbitterschokolade 70 %",
+   "brand": "greenfield-organic",
+   "department": "snacks-sweets",
+   "subcategory": "chocolate-sweets",
+   "description": "A 100 g bar of organic dark chocolate.",
+   "descriptionDe": "Eine 100-g-Tafel Bio-Zartbitterschokolade.",
+   "priceCents": 199,
+   "net": {
+    "amount": 100,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 360,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 2400,
+    "energyKcal": 575,
+    "fat": 420,
+    "saturates": 260,
+    "carbs": 330,
+    "sugars": 280,
+    "fibre": 110,
+    "protein": 90,
+    "salt": 0
+   },
+   "ingredients": "Cocoa mass, sugar, cocoa butter, vanilla.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "lactose-free",
+    "organic"
+   ],
+   "look": "Product photo of a dark chocolate bar in dark brown paper, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "hazelnut-chocolate",
+   "name": "Hazelnut chocolate",
+   "nameDe": "Haselnussschokolade",
+   "brand": "grocery-basics",
+   "department": "snacks-sweets",
+   "subcategory": "chocolate-sweets",
+   "description": "A 100 g bar of milk chocolate with whole hazelnuts.",
+   "descriptionDe": "Eine 100-g-Tafel Vollmilchschokolade mit ganzen Haselnüssen.",
+   "priceCents": 109,
+   "net": {
+    "amount": 100,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 270,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 2350,
+    "energyKcal": 565,
+    "fat": 370,
+    "saturates": 190,
+    "carbs": 470,
+    "sugars": 450,
+    "fibre": 20,
+    "protein": 85,
+    "salt": 2
+   },
+   "ingredients": "Sugar, hazelnuts, cocoa butter, whole MILK powder, cocoa mass, SOYA lecithin.",
+   "allergens": [
+    "milk",
+    "nuts",
+    "soybeans"
+   ],
+   "dietary": [
+    "vegetarian",
+    "gluten-free"
+   ],
+   "look": "Product photo of a chocolate bar in warm orange paper, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "fruit-gummies",
+   "name": "Fruit gummies",
+   "nameDe": "Fruchtgummi",
+   "brand": "grocery-basics",
+   "department": "snacks-sweets",
+   "subcategory": "chocolate-sweets",
+   "description": "A 200 g bag of fruit gummies.",
+   "descriptionDe": "Eine 200-g-Tüte Fruchtgummi.",
+   "priceCents": 119,
+   "net": {
+    "amount": 200,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 360,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1450,
+    "energyKcal": 340,
+    "fat": 0,
+    "saturates": 0,
+    "carbs": 780,
+    "sugars": 470,
+    "fibre": 0,
+    "protein": 70,
+    "salt": 0
+   },
+   "ingredients": "Glucose syrup, sugar, gelatine, acid citric acid, flavourings, colours.",
+   "allergens": [],
+   "dietary": [
+    "gluten-free",
+    "lactose-free"
+   ],
+   "look": "Product photo of a bag of colourful gummy sweets, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "butter-biscuits",
+   "name": "Butter biscuits",
+   "nameDe": "Butterkekse",
+   "brand": "ofenfrisch",
+   "department": "snacks-sweets",
+   "subcategory": "biscuits",
+   "description": "A 200 g pack of classic butter biscuits.",
+   "descriptionDe": "Eine 200-g-Packung klassische Butterkekse.",
+   "priceCents": 129,
+   "net": {
+    "amount": 200,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 270,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1900,
+    "energyKcal": 450,
+    "fat": 100,
+    "saturates": 60,
+    "carbs": 730,
+    "sugars": 230,
+    "fibre": 25,
+    "protein": 75,
+    "salt": 8
+   },
+   "ingredients": "WHEAT flour, sugar, BUTTER (14%), EGG, MILK powder, salt.",
+   "allergens": [
+    "gluten",
+    "milk",
+    "eggs"
+   ],
+   "dietary": [
+    "vegetarian"
+   ],
+   "look": "Product photo of a pack of square biscuits with a yellow sleeve, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "oat-cookies",
+   "name": "Oat cookies",
+   "nameDe": "Haferkekse",
+   "brand": "grocery-basics",
+   "department": "snacks-sweets",
+   "subcategory": "biscuits",
+   "description": "A 225 g pack of crunchy oat cookies.",
+   "descriptionDe": "Eine 225-g-Packung knusprige Haferkekse.",
+   "priceCents": 149,
+   "net": {
+    "amount": 225,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 270,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1950,
+    "energyKcal": 465,
+    "fat": 200,
+    "saturates": 80,
+    "carbs": 640,
+    "sugars": 260,
+    "fibre": 45,
+    "protein": 70,
+    "salt": 6
+   },
+   "ingredients": "WHEAT flour, OATS (22%), sugar, vegetable fats, glucose syrup, salt.",
+   "allergens": [
+    "gluten"
+   ],
+   "dietary": [
+    "vegan",
+    "vegetarian"
+   ],
+   "look": "Product photo of a pack of round oat cookies, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "lebkuchen",
+   "name": "Gingerbread (Lebkuchen)",
+   "nameDe": "Lebkuchen",
+   "brand": "ofenfrisch",
+   "department": "snacks-sweets",
+   "subcategory": "biscuits",
+   "description": "A 200 g pack of soft spiced gingerbread, a Berlin winter favourite.",
+   "descriptionDe": "Eine 200-g-Packung weicher Lebkuchen, ein Winterklassiker.",
+   "priceCents": 249,
+   "net": {
+    "amount": 200,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 180,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1650,
+    "energyKcal": 395,
+    "fat": 60,
+    "saturates": 20,
+    "carbs": 780,
+    "sugars": 420,
+    "fibre": 35,
+    "protein": 60,
+    "salt": 3
+   },
+   "ingredients": "WHEAT flour, sugar, honey, almonds, hazelnuts, EGG, spices, raising agent.",
+   "allergens": [
+    "gluten",
+    "nuts",
+    "eggs"
+   ],
+   "dietary": [
+    "vegetarian"
+   ],
+   "look": "Product photo of round brown gingerbread cakes with a chocolate glaze, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "chocolate-wafers",
+   "name": "Chocolate wafers",
+   "nameDe": "Schokowaffeln",
+   "brand": "grocery-basics",
+   "department": "snacks-sweets",
+   "subcategory": "biscuits",
+   "description": "A 250 g pack of wafers with hazelnut cream filling.",
+   "descriptionDe": "Eine 250-g-Packung Waffeln mit Haselnusscreme.",
+   "priceCents": 149,
+   "net": {
+    "amount": 250,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 270,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 2150,
+    "energyKcal": 515,
+    "fat": 280,
+    "saturates": 130,
+    "carbs": 590,
+    "sugars": 380,
+    "fibre": 20,
+    "protein": 60,
+    "salt": 3
+   },
+   "ingredients": "Sugar, vegetable fats, WHEAT flour, hazelnuts, cocoa, skimmed MILK powder, SOYA lecithin.",
+   "allergens": [
+    "gluten",
+    "nuts",
+    "milk",
+    "soybeans"
+   ],
+   "dietary": [
+    "vegetarian"
+   ],
+   "look": "Product photo of a pack of rectangular brown wafers, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "all-purpose-cleaner",
+   "name": "All-purpose cleaner, 750 ml",
+   "nameDe": "Allzweckreiniger, 750 ml",
+   "brand": "cleanwell",
+   "department": "household",
+   "subcategory": "cleaning",
+   "description": "A spray cleaner for kitchen and bathroom surfaces.",
+   "descriptionDe": "Ein Sprühreiniger für Oberflächen in Küche und Bad.",
+   "priceCents": 179,
+   "net": {
+    "amount": 750,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a blue spray bottle of cleaner, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "glass-cleaner",
+   "name": "Glass cleaner, 500 ml",
+   "nameDe": "Glasreiniger, 500 ml",
+   "brand": "cleanwell",
+   "department": "household",
+   "subcategory": "cleaning",
+   "description": "A streak-free cleaner for windows and mirrors.",
+   "descriptionDe": "Ein streifenfreier Reiniger für Fenster und Spiegel.",
+   "priceCents": 149,
+   "net": {
+    "amount": 500,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a light blue trigger spray bottle, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "bathroom-cleaner",
+   "name": "Bathroom cleaner, 500 ml",
+   "nameDe": "Badreiniger, 500 ml",
+   "brand": "cleanwell",
+   "department": "household",
+   "subcategory": "cleaning",
+   "description": "Removes limescale from tiles, taps and showers.",
+   "descriptionDe": "Entfernt Kalk von Fliesen, Armaturen und Duschen.",
+   "priceCents": 169,
+   "net": {
+    "amount": 500,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a turquoise spray bottle, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "kitchen-sponges-6",
+   "name": "Kitchen sponges, 6 pack",
+   "nameDe": "Küchenschwämme, 6er",
+   "brand": "cleanwell",
+   "department": "household",
+   "subcategory": "cleaning",
+   "description": "Six sponges with a soft and a scouring side.",
+   "descriptionDe": "Sechs Schwämme mit weicher und rauer Seite.",
+   "priceCents": 129,
+   "net": {
+    "amount": 6,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of six yellow and green sponges stacked, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "toilet-paper-8",
+   "name": "Toilet paper, 8 rolls",
+   "nameDe": "Toilettenpapier, 8 Rollen",
+   "brand": "cleanwell",
+   "department": "household",
+   "subcategory": "paper-bags",
+   "description": "Eight rolls of three-ply toilet paper.",
+   "descriptionDe": "Acht Rollen dreilagiges Toilettenpapier.",
+   "priceCents": 329,
+   "net": {
+    "amount": 8,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a plastic-wrapped pack of eight white toilet rolls, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "kitchen-roll-4",
+   "name": "Kitchen roll, 4 rolls",
+   "nameDe": "Küchenrolle, 4 Rollen",
+   "brand": "cleanwell",
+   "department": "household",
+   "subcategory": "paper-bags",
+   "description": "Four absorbent kitchen rolls.",
+   "descriptionDe": "Vier saugstarke Küchenrollen.",
+   "priceCents": 249,
+   "net": {
+    "amount": 4,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a plastic-wrapped pack of four white kitchen rolls, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "tissues-box",
+   "name": "Tissues, box",
+   "nameDe": "Taschentücher-Box",
+   "brand": "cleanwell",
+   "department": "household",
+   "subcategory": "paper-bags",
+   "description": "A box of 100 soft two-ply tissues.",
+   "descriptionDe": "Eine Box mit 100 weichen zweilagigen Taschentüchern.",
+   "priceCents": 149,
+   "net": {
+    "amount": 100,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a square box of white tissues with one tissue sticking out, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "bin-bags-20",
+   "name": "Bin bags, 20 pack",
+   "nameDe": "Müllbeutel, 20er",
+   "brand": "grocery-basics",
+   "department": "household",
+   "subcategory": "paper-bags",
+   "description": "Twenty bin bags with drawstring, 35 litres.",
+   "descriptionDe": "Zwanzig Müllbeutel mit Zugband, 35 Liter.",
+   "priceCents": 149,
+   "net": {
+    "amount": 20,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a roll of black bin bags in a plain sleeve, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "laundry-liquid-1-5l",
+   "name": "Laundry liquid, 1.5 l",
+   "nameDe": "Flüssigwaschmittel, 1,5 l",
+   "brand": "cleanwell",
+   "department": "household",
+   "subcategory": "laundry-dishes",
+   "description": "Liquid detergent for about 25 washes.",
+   "descriptionDe": "Flüssigwaschmittel für etwa 25 Waschladungen.",
+   "priceCents": 499,
+   "net": {
+    "amount": 1500,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a blue jug of laundry liquid with a measuring cap, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "fabric-softener-1l",
+   "name": "Fabric softener, 1 l",
+   "nameDe": "Weichspüler, 1 l",
+   "brand": "cleanwell",
+   "department": "household",
+   "subcategory": "laundry-dishes",
+   "description": "A light-scented fabric softener.",
+   "descriptionDe": "Ein Weichspüler mit leichtem Duft.",
+   "priceCents": 229,
+   "net": {
+    "amount": 1000,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a lavender-purple bottle with a handle, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "dish-soap-500ml",
+   "name": "Dish soap, 500 ml",
+   "nameDe": "Spülmittel, 500 ml",
+   "brand": "cleanwell",
+   "department": "household",
+   "subcategory": "laundry-dishes",
+   "description": "A washing-up liquid that cuts through grease.",
+   "descriptionDe": "Ein Spülmittel, das Fett gut löst.",
+   "priceCents": 139,
+   "net": {
+    "amount": 500,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a yellow squeezy bottle of washing-up liquid, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "dishwasher-tabs-30",
+   "name": "Dishwasher tabs, 30 pack",
+   "nameDe": "Spülmaschinentabs, 30er",
+   "brand": "cleanwell",
+   "department": "household",
+   "subcategory": "laundry-dishes",
+   "description": "Thirty all-in-one dishwasher tablets.",
+   "descriptionDe": "Dreißig All-in-One-Spülmaschinentabs.",
+   "priceCents": 399,
+   "net": {
+    "amount": 30,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a white box with a stack of cleaning tablets, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "shampoo-250ml",
+   "name": "Shampoo, 250 ml",
+   "nameDe": "Shampoo, 250 ml",
+   "brand": "cleanwell",
+   "department": "personal-care-baby",
+   "subcategory": "personal-care",
+   "description": "A mild shampoo for daily use.",
+   "descriptionDe": "Ein mildes Shampoo für die tägliche Anwendung.",
+   "priceCents": 179,
+   "net": {
+    "amount": 250,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a pale green shampoo bottle, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "shower-gel-250ml",
+   "name": "Shower gel, 250 ml",
+   "nameDe": "Duschgel, 250 ml",
+   "brand": "cleanwell",
+   "department": "personal-care-baby",
+   "subcategory": "personal-care",
+   "description": "A fresh-scented shower gel.",
+   "descriptionDe": "Ein frisch duftendes Duschgel.",
+   "priceCents": 149,
+   "net": {
+    "amount": 250,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a light blue shower gel bottle, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "toothpaste-75ml",
+   "name": "Toothpaste, 75 ml",
+   "nameDe": "Zahncreme, 75 ml",
+   "brand": "cleanwell",
+   "department": "personal-care-baby",
+   "subcategory": "personal-care",
+   "description": "A fluoride toothpaste with a mint taste.",
+   "descriptionDe": "Eine fluoridhaltige Zahncreme mit Minzgeschmack.",
+   "priceCents": 129,
+   "net": {
+    "amount": 75,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a white toothpaste tube standing on its cap, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "toothbrushes-2",
+   "name": "Toothbrushes, 2 pack",
+   "nameDe": "Zahnbürsten, 2er",
+   "brand": "cleanwell",
+   "department": "personal-care-baby",
+   "subcategory": "personal-care",
+   "description": "Two medium toothbrushes.",
+   "descriptionDe": "Zwei Zahnbürsten mit mittlerem Härtegrad.",
+   "priceCents": 179,
+   "net": {
+    "amount": 2,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of two toothbrushes, one white and one blue, lying side by side, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "roll-on-deodorant",
+   "name": "Roll-on deodorant, 50 ml",
+   "nameDe": "Deoroller, 50 ml",
+   "brand": "cleanwell",
+   "department": "personal-care-baby",
+   "subcategory": "personal-care",
+   "description": "A roll-on deodorant without aluminium salts.",
+   "descriptionDe": "Ein Deoroller ohne Aluminiumsalze.",
+   "priceCents": 149,
+   "net": {
+    "amount": 50,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a small white roll-on bottle with a silver cap, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "hand-soap-300ml",
+   "name": "Hand soap, 300 ml",
+   "nameDe": "Handseife, 300 ml",
+   "brand": "cleanwell",
+   "department": "personal-care-baby",
+   "subcategory": "personal-care",
+   "description": "A liquid hand soap with pump dispenser.",
+   "descriptionDe": "Eine Flüssigseife mit Pumpspender.",
+   "priceCents": 119,
+   "net": {
+    "amount": 300,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a pink pump bottle of soap, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "nappies-size-4",
+   "name": "Nappies size 4, 40 pack",
+   "nameDe": "Windeln Größe 4, 40er",
+   "brand": "little-sprout",
+   "department": "personal-care-baby",
+   "subcategory": "baby",
+   "description": "Forty nappies for babies from 7 to 14 kg.",
+   "descriptionDe": "Vierzig Windeln für Babys von 7 bis 14 kg.",
+   "priceCents": 899,
+   "net": {
+    "amount": 40,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a pastel yellow pack of nappies, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "baby-wipes-64",
+   "name": "Baby wipes, 64 pack",
+   "nameDe": "Feuchttücher, 64er",
+   "brand": "little-sprout",
+   "department": "personal-care-baby",
+   "subcategory": "baby",
+   "description": "Sixty-four fragrance-free baby wipes.",
+   "descriptionDe": "Vierundsechzig parfümfreie Feuchttücher für Babys.",
+   "priceCents": 149,
+   "net": {
+    "amount": 64,
+    "unit": "piece"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a soft green packet of wet wipes with a flip lid, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "baby-shampoo-200ml",
+   "name": "Baby shampoo, 200 ml",
+   "nameDe": "Babyshampoo, 200 ml",
+   "brand": "little-sprout",
+   "department": "personal-care-baby",
+   "subcategory": "baby",
+   "description": "A tear-free shampoo for delicate hair and skin.",
+   "descriptionDe": "Ein tränenfreies Shampoo für zarte Haut und Haare.",
+   "priceCents": 229,
+   "net": {
+    "amount": 200,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a small cream bottle with a rounded cap, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "nappy-cream-100ml",
+   "name": "Nappy cream, 100 ml",
+   "nameDe": "Wundschutzcreme, 100 ml",
+   "brand": "little-sprout",
+   "department": "personal-care-baby",
+   "subcategory": "baby",
+   "description": "A zinc-based cream that protects against nappy rash.",
+   "descriptionDe": "Eine Creme auf Zinkbasis, die vor Wundsein schützt.",
+   "priceCents": 249,
+   "net": {
+    "amount": 100,
+    "unit": "ml"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 0,
+   "deposit": false,
+   "food": false,
+   "nutrition": null,
+   "ingredients": null,
+   "allergens": [],
+   "dietary": [],
+   "look": "Product photo of a white tube of cream with a pale blue cap, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "baby-oat-porridge",
+   "name": "Baby oat porridge",
+   "nameDe": "Babybrei Hafer",
+   "brand": "little-sprout",
+   "department": "personal-care-baby",
+   "subcategory": "baby",
+   "description": "A 250 g oat porridge for babies from six months.",
+   "descriptionDe": "Ein 250-g-Haferbrei für Babys ab dem sechsten Monat.",
+   "priceCents": 249,
+   "net": {
+    "amount": 250,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 360,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 1650,
+    "energyKcal": 390,
+    "fat": 60,
+    "saturates": 10,
+    "carbs": 670,
+    "sugars": 20,
+    "fibre": 70,
+    "protein": 130,
+    "salt": 1
+   },
+   "ingredients": "Wholegrain OATS (98%), vitamins, minerals.",
+   "allergens": [
+    "gluten"
+   ],
+   "dietary": [
+    "vegan",
+    "vegetarian"
+   ],
+   "look": "Product photo of a pastel box of baby porridge with a measuring scoop beside it, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  },
+  {
+   "slug": "baby-fruit-pouches-4",
+   "name": "Apple and banana pouches, 4 pack",
+   "nameDe": "Quetschies Apfel-Banane, 4er",
+   "brand": "little-sprout",
+   "department": "personal-care-baby",
+   "subcategory": "baby",
+   "description": "Four pouches of apple and banana puree, 90 g each.",
+   "descriptionDe": "Vier Quetschbeutel Apfel-Banane-Püree, je 90 g.",
+   "priceCents": 349,
+   "net": {
+    "amount": 360,
+    "unit": "g"
+   },
+   "soldByWeight": false,
+   "shelfLifeDays": 270,
+   "deposit": false,
+   "food": true,
+   "nutrition": {
+    "energyKj": 260,
+    "energyKcal": 62,
+    "fat": 3,
+    "saturates": 1,
+    "carbs": 135,
+    "sugars": 115,
+    "fibre": 20,
+    "protein": 5,
+    "salt": 0
+   },
+   "ingredients": "Apples (65%), bananas (35%), vitamin C.",
+   "allergens": [],
+   "dietary": [
+    "vegan",
+    "vegetarian",
+    "gluten-free",
+    "lactose-free"
+   ],
+   "look": "Product photo of four soft orange pouches with spouts, on a plain white background, no text or logos legible.",
+   "variantOf": null
+  }
+ ]
+}
