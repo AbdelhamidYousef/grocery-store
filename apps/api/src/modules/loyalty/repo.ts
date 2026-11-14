@@ -89,3 +89,49 @@ export async function findUserByEmail(run: Run, email: string) {
     .where(eq(users.email, email));
   return row;
 }
+
+// ---- per-order sums, for redeeming and reversing ----
+
+const sumFor = (
+  orderId: string,
+  kind: 'earn' | 'redeem' | 'reversal',
+  sign: 'pos' | 'neg' | 'any',
+) =>
+  sql<number>`coalesce(sum(${pointsLedger.delta}) filter (where ${pointsLedger.orderId} = ${orderId} and ${pointsLedger.kind} = ${kind} ${
+    sign === 'pos'
+      ? sql`and ${pointsLedger.delta} > 0`
+      : sign === 'neg'
+        ? sql`and ${pointsLedger.delta} < 0`
+        : sql``
+  }), 0)::int`;
+
+export interface OrderPoints {
+  earned: number;
+  /** Points paid with at checkout (positive number). */
+  redeemed: number;
+  /** Earned points already taken back (positive number). */
+  clawedBack: number;
+  /** Redeemed points already given back (positive number). */
+  givenBack: number;
+}
+
+export async function pointsOfOrder(run: Run, orderId: string): Promise<OrderPoints> {
+  const [row] = await run
+    .select({
+      earned: sumFor(orderId, 'earn', 'any'),
+      redeemed: sumFor(orderId, 'redeem', 'any'),
+      clawed: sumFor(orderId, 'reversal', 'neg'),
+      given: sumFor(orderId, 'reversal', 'pos'),
+    })
+    .from(pointsLedger);
+  return {
+    earned: row?.earned ?? 0,
+    redeemed: -(row?.redeemed ?? 0),
+    clawedBack: -(row?.clawed ?? 0),
+    givenBack: row?.given ?? 0,
+  };
+}
+
+export async function deleteEntry(run: Run, refKey: string): Promise<void> {
+  await run.delete(pointsLedger).where(eq(pointsLedger.refKey, refKey));
+}

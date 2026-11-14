@@ -21,6 +21,8 @@ export interface OrderCancelledEvent {
 export interface OrderRefundedEvent {
   orderId: string;
   refundedCents: number;
+  /** The refund's own id, when there is one (phase 22); keys the reversal rows so a retry is a no-op. */
+  refundId?: string;
   /** False for a partial refund (only phase 22 emits those). */
   full: boolean;
 }

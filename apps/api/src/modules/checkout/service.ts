@@ -15,6 +15,7 @@ import type { PaymentGateway } from '../../lib/stripe.ts';
 import type { AuthUser } from '../auth/sessions.ts';
 import * as cartRepo from '../cart/repo.ts';
 import { getCart, loadCart } from '../cart/service.ts';
+import * as loyalty from '../loyalty/service.ts';
 import { toOrderDto, totalsOf } from '../orders/view.ts';
 import * as promotionsRepo from '../promotions/repo.ts';
 import * as promotions from '../promotions/service.ts';
@@ -164,6 +165,15 @@ async function reserveAndSave(
     // locked before its uses are counted, so two checkouts racing for a capped code queue up.
     const email = user?.email ?? input.email;
     const key = customerKey(user?.id ?? null, email);
+
+    // Loyalty points are a credit for the engine (it caps them at the merchandise left and never
+    // lets them touch shipping). The user row is locked first so two checkouts of one customer
+    // cannot spend the same points; the balance is re-read under that lock.
+    const requestedPoints = input.pointsToRedeem ?? 0;
+    if (requestedPoints > 0) {
+      if (!user) throw fieldError('pointsToRedeem', 'Sign in to use your points');
+      await loyalty.assertCanRedeem(tx, user.id, requestedPoints, pending?.id);
+    }
     const result = await promotions.price(tx, {
       currency: cart.currency,
       lines: cart.items
@@ -185,6 +195,17 @@ async function reserveAndSave(
       },
       lockCode: true,
       exceptOrderId: pending?.id,
+      credits:
+        requestedPoints > 0
+          ? [
+              {
+                type: 'points',
+                refId: 'loyalty-points',
+                label: 'Loyalty points',
+                cents: requestedPoints,
+              },
+            ]
+          : [],
     });
     if (cartRow.discountCode) {
       const refusal = promotions.codeRefusal(
@@ -316,6 +337,11 @@ async function reserveAndSave(
           ]
         : []),
     ]);
+    // Points actually applied (the engine capped them at the merchandise left): 1 point = 1 cent.
+    if (user && (requestedPoints > 0 || pending)) {
+      const applied = priced.adjustments.find((a) => a.type === 'credit')?.cents ?? 0;
+      await loyalty.recordRedemption(tx, user.id, order.id, applied);
+    }
     const codeUsed =
       result.code !== null && priced.adjustments.some((a) => a.refId === result.code?.id);
     await promotionsRepo.replaceRedemption(

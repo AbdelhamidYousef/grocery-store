@@ -53,6 +53,9 @@ export const CheckoutRequestSchema = z.object({
   billingAddress: CheckoutAddressSchema.optional(),
   shippingMethodCode: z.string().trim().min(1).max(40),
   notes: optionalText(500),
+  // Loyalty points to pay part of the merchandise with (1 point = 1 cent). Signed-in only; the
+  // server checks the balance under a lock and caps it at what is left of the merchandise.
+  pointsToRedeem: z.number().int().min(0).max(10_000_000).optional(),
 });
 export type CheckoutRequestInput = z.input<typeof CheckoutRequestSchema>;
 export type CheckoutRequest = z.output<typeof CheckoutRequestSchema>;

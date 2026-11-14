@@ -9,6 +9,7 @@ import { TEST_IDS } from '../../lib/test-ids';
 import { track } from '../../lib/track';
 import { useCreateAddress } from '../account/queries';
 import { formErrorMessage } from '../auth/form-errors';
+import { PointsRedeem } from '../loyalty/PointsRedeem';
 
 import { CheckoutSummary } from './CheckoutSummary';
 import type { Details } from './details';
@@ -27,6 +28,15 @@ function codeProblem(error: unknown): string | null {
   if (!(error instanceof ApiError) || error.code !== 'VALIDATION_ERROR') return null;
   const messages = (error.details as { fieldErrors?: { code?: unknown } } | undefined)?.fieldErrors
     ?.code;
+  const message = Array.isArray(messages) ? messages.find((m) => typeof m === 'string') : null;
+  return typeof message === 'string' ? message : null;
+}
+
+// The 400 for points the server would not take (balance changed under the shopper).
+function pointsProblem(error: unknown): string | null {
+  if (!(error instanceof ApiError) || error.code !== 'VALIDATION_ERROR') return null;
+  const messages = (error.details as { fieldErrors?: { pointsToRedeem?: unknown } } | undefined)
+    ?.fieldErrors?.pointsToRedeem;
   const message = Array.isArray(messages) ? messages.find((m) => typeof m === 'string') : null;
   return typeof message === 'string' ? message : null;
 }
@@ -62,6 +72,8 @@ export function CheckoutFlow({
   const [saveAddress, setSaveAddress] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [codeError, setCodeError] = useState<string | null>(null);
+  const [points, setPoints] = useState(0);
+  const [pointsError, setPointsError] = useState<string | null>(null);
 
   const place = usePlaceOrder();
   const createAddress = useCreateAddress();
@@ -74,6 +86,7 @@ export function CheckoutFlow({
     setPlaced(null);
     setError(null);
     setCodeError(null);
+    setPointsError(null);
   };
 
   const continueToPayment = (quote: ShippingQuote) => {
@@ -92,6 +105,7 @@ export function CheckoutFlow({
         email: details.email,
         shippingAddress: details.shippingAddress,
         shippingMethodCode: quote.code,
+        ...(user && points > 0 && { pointsToRedeem: points }),
       },
       {
         onSuccess: (order) => {
@@ -117,6 +131,7 @@ export function CheckoutFlow({
         onError: (e) => {
           setError(placeErrorMessage(e));
           setCodeError(codeProblem(e));
+          setPointsError(pointsProblem(e));
         },
       },
     );
@@ -174,6 +189,15 @@ export function CheckoutFlow({
                 >
                   {error}
                 </p>
+              )}
+              {user && (
+                <PointsRedeem
+                  merchandiseCents={cart.pricing.merchandiseCents}
+                  currency={cart.currency}
+                  value={points}
+                  onChange={setPoints}
+                  problem={pointsError}
+                />
               )}
               <ShippingStep
                 country={details.shippingAddress.country}
