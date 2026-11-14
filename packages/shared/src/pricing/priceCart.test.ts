@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { priceCart } from './priceCart.ts';
+import { MIN_CHARGE_CENTS, priceCart } from './priceCart.ts';
 import type { PriceCartInput, PricingCode, PricingLine } from './types.ts';
 
 const NOW = new Date('2026-10-31T12:00:00Z');
@@ -495,6 +495,24 @@ describe('priceCart step 5: credits', () => {
     const r = priceCart(cart({ lines: [line('a', 1000)], credits: [credit(1000)] }));
     expect(r.notices).toEqual([]);
     expect(r.totalCents).toBe(500);
+  });
+
+  it('never takes the payable total under the 50 cent Stripe minimum', () => {
+    const free = { methodCents: 0 };
+    const r = priceCart(
+      cart({ lines: [line('a', 1000)], shipping: free, credits: [credit(1000)] }),
+    );
+    expect(r.adjustments[0]!.cents).toBe(950);
+    expect(r.totalCents).toBe(MIN_CHARGE_CENTS);
+    expect(r.notices).toEqual([{ key: 'credit_capped', refId: 'cr1', cents: 50 }]);
+  });
+
+  it('gives no credit to a basket that is already under the minimum', () => {
+    const r = priceCart(
+      cart({ lines: [line('a', 30)], shipping: { methodCents: 0 }, credits: [credit(30)] }),
+    );
+    expect(r.adjustments).toEqual([]);
+    expect(r.totalCents).toBe(30);
   });
 
   it('several credits apply in order and share the cap', () => {

@@ -37,6 +37,9 @@ function progressTowards(current: number, threshold: number): Progress {
   };
 }
 
+/** Stripe's smallest charge (EUR 0.50): credits stop short of it. */
+export const MIN_CHARGE_CENTS = 50;
+
 export function priceCart(rawInput: PriceCartInput): PricedCart {
   const input = PriceCartInputSchema.parse(rawInput);
   const { now, customer, code, shipping } = input;
@@ -191,7 +194,11 @@ export function priceCart(rawInput: PriceCartInput): PricedCart {
   // ---- 5. credits: last, capped at what is left of the merchandise, never on shipping ----
   for (const credit of input.credits) {
     const left = remaining.reduce((a, b) => a + b, 0);
-    const applied = Math.min(credit.cents, left);
+    // Stripe refuses a charge under 50 cents, so a credit may not take what the customer pays
+    // (merchandise + shipping) below MIN_CHARGE_CENTS. A basket that is already under it gets no
+    // credit at all.
+    const room = Math.max(0, left + shippingCents - MIN_CHARGE_CENTS);
+    const applied = Math.min(credit.cents, left, room);
     if (applied < credit.cents)
       notices.push({ key: 'credit_capped', refId: credit.refId, cents: credit.cents - applied });
     if (applied === 0) continue;

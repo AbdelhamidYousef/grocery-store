@@ -10,12 +10,19 @@ import { API, server, signedInAs } from '../../test/server';
 
 import { PointsRedeem } from './PointsRedeem';
 
-function Harness({ merchandiseCents }: { merchandiseCents: number }) {
+function Harness({
+  merchandiseCents,
+  shippingCents = 0,
+}: {
+  merchandiseCents: number;
+  shippingCents?: number;
+}) {
   const [value, setValue] = useState(0);
   return (
     <>
       <PointsRedeem
         merchandiseCents={merchandiseCents}
+        shippingCents={shippingCents}
         currency="EUR"
         value={value}
         onChange={setValue}
@@ -32,6 +39,19 @@ const balance = (n: number) =>
   );
 
 describe('PointsRedeem', () => {
+  it('"use max" leaves at least 50 cents to pay by card', async () => {
+    balance(5000);
+    renderWithProviders(<Harness merchandiseCents={2000} />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Use max (1950)' }));
+    expect(screen.getByTestId('chosen')).toHaveTextContent('1950');
+  });
+
+  it('delivery counts towards the minimum, so more points can be used', async () => {
+    balance(5000);
+    renderWithProviders(<Harness merchandiseCents={2000} shippingCents={499} />);
+    expect(await screen.findByRole('button', { name: 'Use max (2000)' })).toBeInTheDocument();
+  });
+
   it('renders nothing when there are no points', async () => {
     server.use(signedInAs());
     renderWithProviders(<Harness merchandiseCents={2000} />);
@@ -49,7 +69,7 @@ describe('PointsRedeem', () => {
 
   it('caps what is typed at the merchandise total, and Clear resets it', async () => {
     balance(5000);
-    renderWithProviders(<Harness merchandiseCents={1200} />);
+    renderWithProviders(<Harness merchandiseCents={1200} shippingCents={50} />);
     const input = await screen.findByLabelText('Use loyalty points');
     await userEvent.type(input, '4000');
     expect(screen.getByTestId('chosen')).toHaveTextContent('1200');

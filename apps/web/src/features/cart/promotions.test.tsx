@@ -261,7 +261,11 @@ describe('notice sentences', () => {
     ],
     ['code_first_order_only', undefined, 'SAVE is for first orders only.'],
     ['code_not_stackable', undefined, 'Your bulk discount saves more than SAVE, so we used that.'],
-    ['credit_capped', undefined, 'Your credit was capped so the total never goes below zero.'],
+    [
+      'credit_capped',
+      undefined,
+      'Your credit was capped so you still pay at least 0.50 (the card minimum).',
+    ],
   ];
   it.each(cases)('maps %s to a sentence', (key, cents, sentence) => {
     expect(noticeSentence({ key, ...(cents !== undefined && { cents }) }, pricing, 'EUR')).toBe(

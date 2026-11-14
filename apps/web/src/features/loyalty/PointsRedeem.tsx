@@ -1,4 +1,4 @@
-import { formatMoney, pointsToCents } from '@store/shared';
+import { formatMoney, MIN_CHARGE_CENTS, pointsToCents } from '@store/shared';
 import { useId, useState } from 'react';
 
 import { Button } from '../../components/ui/Button';
@@ -11,12 +11,15 @@ import { usePoints } from './queries';
 // this control only proposes. It shows nothing for a guest or a balance of zero.
 export function PointsRedeem({
   merchandiseCents,
+  shippingCents = 0,
   currency,
   value,
   onChange,
   problem,
 }: {
   merchandiseCents: number;
+  /** Delivery cost of the chosen method; it counts towards the card minimum. */
+  shippingCents?: number;
   currency: string;
   value: number;
   onChange: (points: number) => void;
@@ -26,7 +29,13 @@ export function PointsRedeem({
   const { data } = usePoints();
   const [text, setText] = useState(value > 0 ? String(value) : '');
   if (!data || data.balance <= 0) return null;
-  const max = Math.min(data.balance, merchandiseCents);
+  // The engine keeps the payable total (items + delivery) at or above the card minimum, so the
+  // box offers no more than that either; the server's answer still decides.
+  const max = Math.min(
+    data.balance,
+    merchandiseCents,
+    Math.max(0, merchandiseCents + shippingCents - MIN_CHARGE_CENTS),
+  );
   const commit = (raw: string) => {
     setText(raw);
     const n = Number.parseInt(raw, 10);
@@ -42,7 +51,8 @@ export function PointsRedeem({
       </label>
       <p className="text-sm text-muted">
         You have {data.balance} points (worth {formatMoney(pointsToCents(data.balance), currency)}).
-        100 points = {formatMoney(100, currency)} off your items.
+        100 points = {formatMoney(100, currency)} off your items. You always pay at least{' '}
+        {formatMoney(MIN_CHARGE_CENTS, currency)} by card.
       </p>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <input

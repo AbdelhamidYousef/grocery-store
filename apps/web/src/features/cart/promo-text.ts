@@ -37,7 +37,7 @@ export function noticeSentence(
       return `Your ${tier?.label ?? 'bulk discount'} saves more than ${code}, so we used that.`;
     }
     case 'credit_capped':
-      return 'Your credit was capped so the total never goes below zero.';
+      return 'Your credit was capped so you still pay at least 0.50 (the card minimum).';
     default:
       return null;
   }

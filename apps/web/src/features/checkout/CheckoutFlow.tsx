@@ -196,6 +196,7 @@ export function CheckoutFlow({
               {user && (
                 <PointsRedeem
                   merchandiseCents={cart.pricing.merchandiseCents}
+                  shippingCents={selectedQuote?.priceCents ?? 0}
                   currency={cart.currency}
                   value={points}
                   onChange={setPoints}

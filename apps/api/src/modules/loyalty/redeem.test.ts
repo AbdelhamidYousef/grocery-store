@@ -132,6 +132,21 @@ describe('redeeming points at checkout', () => {
   });
 });
 
+describe('the card minimum', () => {
+  it('keeps at least 50 cents payable when the points would cover everything (free delivery)', async () => {
+    const c = await customerCart(3000, 2); // 60.00: free standard delivery
+    await give(c.user.id, 6000);
+    const res = await checkout(c.shopper, { pointsToRedeem: 6000 });
+    expect(res.status).toBe(200);
+    const order = await orderByNumber(numberOf(res));
+    expect(order.shippingCents).toBe(0);
+    expect(order.totalCents).toBe(50);
+    expect(order.discountCents).toBe(5950);
+    // only what was applied is spent
+    expect(await balanceOf(c.user.id)).toBe(50);
+  });
+});
+
 describe('reversal', () => {
   it('a cancelled or failed payment gives the points back', async () => {
     const c = await customerCart();
