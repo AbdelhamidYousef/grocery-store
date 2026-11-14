@@ -15,6 +15,7 @@ import { requestId } from './middleware/request-id.ts';
 import { createWebhookRouter } from './modules/checkout/webhook.ts';
 import { createModulesRouter } from './modules/index.ts';
 import type { Outbox } from './modules/mail/outbox.ts';
+import { DEFAULT_RETURNS_CONFIG, type ReturnsConfig } from './modules/returns/config.ts';
 
 export interface AppConfig {
   nodeEnv: 'development' | 'test' | 'production';
@@ -46,6 +47,8 @@ export interface AppConfig {
    * Stripe client, so the simulator must read the amounts from Stripe instead of the database.
    */
   testHooks?: { secret: string; realStripe: boolean };
+  /** Returns (phase 22). Defaults: 30-day window, refunds go through the gateway. */
+  returns?: ReturnsConfig;
 }
 
 export interface AppDeps {
@@ -137,6 +140,7 @@ export function createApp({ logger, pingDb, payments, outbox, config }: AppDeps)
       outbox,
       nodeEnv: config.nodeEnv,
       ...(config.testHooks && { testHooks: config.testHooks }),
+      returns: config.returns ?? DEFAULT_RETURNS_CONFIG,
     }),
   );
 

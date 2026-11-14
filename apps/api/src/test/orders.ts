@@ -3,7 +3,7 @@ import type { Express } from 'express';
 import request from 'supertest';
 
 import { db } from '../db/client.ts';
-import { inventory, orders } from '../db/schema/index.ts';
+import { inventory, orderStatusHistory, orders } from '../db/schema/index.ts';
 import { createSession } from '../modules/auth/sessions.ts';
 
 import { TEST_HOOK_SECRET } from './app.ts';
@@ -87,4 +87,41 @@ export async function signedIn(
   const user = await createUser({ role, ...(email && { email }) });
   const { token } = await createSession(user.id);
   return { user, shopper: makeShopper(app, token) };
+}
+
+// Puts a paid order into `delivered` as if it had shipped `daysAgo` days ago: sets the status and
+// writes the history row the return window is measured from. Skips the shipping steps on purpose
+// (their stock effects are none: the units left the shelf at payment).
+export async function markDelivered(number: string, daysAgo = 1) {
+  const order = await orderByNumber(number);
+  await db.update(orders).set({ status: 'delivered' }).where(eq(orders.id, order.id));
+  await db.insert(orderStatusHistory).values({
+    orderId: order.id,
+    fromStatus: 'shipped',
+    toStatus: 'delivered',
+    actor: 'test',
+    createdAt: new Date(Date.now() - daysAgo * 86_400_000),
+  });
+}
+
+// A signed-in customer who has bought and received something: the starting point of return tests.
+export async function deliveredOrder(
+  app: Express,
+  opts: { quantity?: number; priceCents?: number; daysAgo?: number; stock?: number } = {},
+) {
+  const buyer = await signedIn(
+    app,
+    'customer',
+    `buyer${Math.random().toString(36).slice(2, 8)}@pawsome.test`,
+  );
+  const placed = await placeOrder(app, {
+    shopper: buyer.shopper,
+    email: buyer.user.email,
+    ...(opts.quantity !== undefined && { quantity: opts.quantity }),
+    ...(opts.priceCents !== undefined && { priceCents: opts.priceCents }),
+    ...(opts.stock !== undefined && { stock: opts.stock }),
+  });
+  await simulate(app, placed.number);
+  await markDelivered(placed.number, opts.daysAgo ?? 1);
+  return { ...placed, buyer };
 }

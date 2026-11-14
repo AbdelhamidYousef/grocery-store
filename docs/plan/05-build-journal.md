@@ -988,3 +988,8 @@ Learn: derive what can drift (kit stock), store what is a decision (kit price), 
 - `returns` and `return_items` tables, shared enums and labels, and a return state machine with its own table and an exhaustive 25-pair test. The order keeps its status: it becomes `refunded` only when every line is fully returned and refunded (step 22.4).
 - Learn: a sub-process with its own life (request, approval, parcel arrives, money back) deserves its own entity and states. Overloading the order status would break "delivered -> refunded" for a partial return and make every order consumer learn about returns. The exhaustive test is the safety net: add a state and it fails until each pair is decided.
 - Tests: api 28 state-machine tests (25 pairs, terminal states, rejected frees quantity).
+
+### 22.3 — customer return request
+- `POST /orders/:number/returns` and `GET /orders/:number/returns` (owner only). Rules in a pure `assessEligibility` (delivered, window, units left, free lines), the request itself under the order row lock, refunds in integer cents from `price paid - allocated discount`.
+- Learn: put the rule in a pure function and the endpoint becomes a thin shell around a lock and an insert. The lock is on the ORDER (not on the return rows): a new return has no row to lock yet, and the order is what every concurrent request has in common. The cumulative-floor split guarantees cents are neither lost nor invented across several partial returns.
+- Tests: api 17 (5 eligibility unit tests; 12 endpoint tests: happy path, discount and remainder cent, not delivered, window edge, configured window, over-quantity, duplicate/foreign/free line, 404/401/400, concurrent requests, order stays delivered, eligibility listing) and shared 6 (refund maths, body schema).

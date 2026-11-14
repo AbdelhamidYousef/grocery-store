@@ -26,6 +26,12 @@ export const forbidden = (message = 'Forbidden') => new AppError(ErrorCode.FORBI
 export const validation = (details?: unknown, message = 'Request validation failed') =>
   new AppError(ErrorCode.VALIDATION_ERROR, message, details);
 
+// The request is well-formed but the business rule says no (a return of more units than were
+// bought, a vet form missing for a flagged cart). Same code as a schema failure so the web handles
+// both identically; 422 tells them apart in logs and tests.
+export const unprocessable = (message: string, details?: unknown) =>
+  new AppError(ErrorCode.VALIDATION_ERROR, message, details, 422);
+
 // Covers CONFLICT, OUT_OF_STOCK, CART_CHANGED and TRIAL_LIMIT: all are 409s that differ only by code.
 export const conflict = (
   code:

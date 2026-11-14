@@ -58,6 +58,12 @@ const app = createApp({
     authRateLimit: { windowMs: env.RATE_LIMIT_AUTH_WINDOW_MS, limit: env.RATE_LIMIT_AUTH_MAX },
     uploads: { dir: resolve(API_ROOT, env.UPLOAD_DIR), enabled: env.UPLOADS_ENABLED },
     ...(env.JOBS_SECRET && { jobsSecret: env.JOBS_SECRET }),
+    // The simulation switch only counts when there is no gateway at all, so it can never hide a
+    // real Stripe failure (see config/env.ts).
+    returns: {
+      windowDays: env.RETURN_WINDOW_DAYS,
+      simulated: env.RETURNS_SIMULATED && gatewayKind === 'unconfigured',
+    },
     ...(env.TEST_HOOK_SECRET && {
       testHooks: { secret: env.TEST_HOOK_SECRET, realStripe: gatewayKind === 'stripe' },
     }),

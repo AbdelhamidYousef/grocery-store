@@ -31,6 +31,8 @@ import { createPetsRouter } from './pets/router.ts';
 import { promotionsRouter } from './promotions/router.ts';
 import { registerPromotionSubscribers } from './promotions/service.ts';
 import { createReorderRouter } from './reorder/router.ts';
+import type { ReturnsConfig } from './returns/config.ts';
+import { createReturnsRouter } from './returns/router.ts';
 import { createReviewsRouter } from './reviews/router.ts';
 import { safetyRouter } from './safety/router.ts';
 import { createSearchRouter } from './search/router.ts';
@@ -56,6 +58,7 @@ export function createModulesRouter(opts: {
   uploads: UploadConfig;
   payments: PaymentGateway;
   outbox: Outbox;
+  returns: ReturnsConfig;
   nodeEnv: 'development' | 'test' | 'production';
   jobsSecret?: string;
   testHooks?: { secret: string; realStripe: boolean };
@@ -109,6 +112,7 @@ export function createModulesRouter(opts: {
   router.use(createStockAlertsRouter(opts));
   router.use(createWishlistRouter());
   router.use(createReorderRouter());
+  router.use(createReturnsRouter(opts));
   router.use(cartRouter);
   router.use(createTrackingRouter(opts));
   router.use(createWithdrawalsRouter(opts));
