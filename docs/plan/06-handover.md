@@ -16,7 +16,7 @@ Written by the build sessions for the owner and the next session. Newest state f
 - **G2 done** (2026-11-14): two store views (`de-en`, `de-de`, EUR, Germany only; migration 0043),
   green palette and Plus Jakarta Sans, bag-and-leaf `Logo`, favicon and manifest, Pawsome renamed in the
   shell and emails, tone of voice in `docs/plan/03-conventions.md`. Gates green: shared 260, web 900,
-  API 1,361 + 2 skipped, e2e 75 + 1 skipped. Still Pawsome: the house brand in the seed (brands, German
+  API 1,361 + 2 skipped, e2e 75 + 1 skipped (re-run after the en-IE and du follow-ups). Still Pawsome: the house brand in the seed (brands, German
   translation, "Made in" spec), and pet-themed home content: all G3. German UI and emails use "du"; seed
   product and guide texts still say "Sie" (G3). Local DB was reset (`pnpm db:reset`) to pick up `@grocery.test` accounts. Not pushed.
 
