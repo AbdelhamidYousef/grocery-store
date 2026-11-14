@@ -4,6 +4,7 @@ import { Button } from '../../components/ui/Button';
 import { useT } from '../../i18n';
 import { useFormat } from '../../i18n/format';
 import { TEST_IDS } from '../../lib/test-ids';
+import { useStorePath } from '../stores/StoreContext';
 
 import { useReferral } from './queries';
 
@@ -13,9 +14,10 @@ export function ReferralPanel() {
   const { data } = useReferral();
   const { t } = useT();
   const fmt = useFormat();
+  const storePath = useStorePath();
   const [copied, setCopied] = useState(false);
   if (!data) return null;
-  const link = `${window.location.origin}/?ref=${data.code}`;
+  const link = `${window.location.origin}${storePath('/')}?ref=${data.code}`;
   const money = (c: number) => fmt.money(c, 'EUR');
   const copy = async () => {
     try {

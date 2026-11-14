@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useT } from '../../i18n';
+import { useStorePath } from '../stores/StoreContext';
 
 // Confirms the payment with Stripe.js. `redirect: 'if_required'` keeps the shopper on the page for
 // plain cards (we navigate ourselves) and only redirects for methods that need it (3-D Secure,
@@ -16,6 +17,7 @@ export function usePay(orderNumber: string) {
   const elements = useElements();
   const navigate = useNavigate();
   const { t } = useT();
+  const storePath = useStorePath();
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,7 +29,7 @@ export function usePay(orderNumber: string) {
       const result = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/checkout/confirmation/${encodeURIComponent(orderNumber)}`,
+          return_url: `${window.location.origin}${storePath(`/checkout/confirmation/${encodeURIComponent(orderNumber)}`)}`,
         },
         redirect: 'if_required',
       });

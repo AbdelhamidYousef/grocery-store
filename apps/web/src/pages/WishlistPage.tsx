@@ -7,6 +7,7 @@ import { Button } from '../components/ui/Button';
 import { Skeleton } from '../components/ui/Skeleton';
 import { useAuth } from '../features/auth/AuthProvider';
 import { useAddToCartAction } from '../features/cart/queries';
+import { useStorePath } from '../features/stores/StoreContext';
 import { useWishlist, useWishlistActions } from '../features/wishlist/queries';
 import { useT } from '../i18n';
 import { useFormat } from '../i18n/format';
@@ -81,7 +82,10 @@ export default function WishlistPage() {
   const { remove, share } = useWishlistActions();
   const { user } = useAuth();
   const { t } = useT();
-  const shareUrl = data?.shareToken ? `${window.location.origin}/w/${data.shareToken}` : null;
+  const storePath = useStorePath();
+  const shareUrl = data?.shareToken
+    ? `${window.location.origin}${storePath(`/w/${data.shareToken}`)}`
+    : null;
 
   return (
     <Container className="py-8" data-testid={TEST_IDS.pageWishlist}>

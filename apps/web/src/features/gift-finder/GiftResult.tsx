@@ -10,6 +10,7 @@ import { useToast } from '../../components/ui/Toast';
 import { useT, type TFunction } from '../../i18n';
 import { useFormat } from '../../i18n/format';
 import { ProductCard } from '../catalog/ProductCard';
+import { useStorePath } from '../stores/StoreContext';
 
 import { GOAL_KEYS, PET_WORD_KEYS } from './labels';
 import { useGiftCandidates } from './queries';
@@ -53,6 +54,7 @@ export function GiftResult() {
   const { pathname } = useLocation();
   const toast = useToast();
   const { t } = useT();
+  const storePath = useStorePath();
   const fmt = useFormat();
   const searchText = search.toString();
   const { complete, partial } = useMemo(
@@ -71,7 +73,7 @@ export function GiftResult() {
     try {
       // The router's own path and query, not window.location: the same under any history type.
       await navigator.clipboard.writeText(
-        `${window.location.origin}${pathname}?${search.toString()}`,
+        `${window.location.origin}${storePath(pathname)}?${search.toString()}`,
       );
       toast.show(t('pets.gift.linkCopied'), 'success');
     } catch {
