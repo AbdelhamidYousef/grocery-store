@@ -12,6 +12,7 @@ import { ProductGrid } from '../features/catalog/ProductGrid';
 import { GuideCard } from '../features/guides/GuideCard';
 import { MarkdownBody } from '../features/guides/MarkdownBody';
 import { useGuide } from '../features/guides/queries';
+import { useCanonicalSlug } from '../features/stores/useCanonicalSlug';
 import { useT } from '../i18n';
 import { useFormat } from '../i18n/format';
 import { TEST_IDS } from '../lib/test-ids';
@@ -23,6 +24,7 @@ export default function GuidePage() {
   const { slug } = useParams();
   const { t } = useT();
   const { data: guide, error, isPending, refetch } = useGuide(slug);
+  useCanonicalSlug('guides', slug, guide?.slug);
 
   if (error instanceof ApiError && error.status === 404) return <NotFoundPage what="guide" />;
   if (error) {

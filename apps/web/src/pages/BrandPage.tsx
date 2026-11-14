@@ -10,6 +10,7 @@ import { Spinner } from '../components/ui/Spinner';
 import { hasActiveFilters, useProductListParams } from '../features/catalog/list-params';
 import { ProductListing } from '../features/catalog/ProductListing';
 import { useBrand } from '../features/merchandising/queries';
+import { useCanonicalSlug } from '../features/stores/useCanonicalSlug';
 import { useT } from '../i18n';
 import { TEST_IDS } from '../lib/test-ids';
 import { track } from '../lib/track';
@@ -20,6 +21,7 @@ export default function BrandPage() {
   const { t } = useT();
   const { slug } = useParams();
   const { data: brand, error, isPending, refetch } = useBrand(slug);
+  useCanonicalSlug('brands', slug, brand?.slug);
   const { query } = useProductListParams();
 
   useEffect(() => {

@@ -36,6 +36,7 @@ import { formatRating } from '../features/reviews/format';
 import { RatingStars } from '../features/reviews/RatingStars';
 import { ReviewsSection } from '../features/reviews/ReviewsSection';
 import { SafetyNoticeBox } from '../features/safety/SafetyNoticeBox';
+import { useCanonicalSlug } from '../features/stores/useCanonicalSlug';
 import { WishlistHeart } from '../features/wishlist/WishlistHeart';
 import { useT, type StringKey } from '../i18n';
 import { useFormat } from '../i18n/format';
@@ -58,6 +59,7 @@ export default function ProductPage() {
   const { t } = useT();
   const { slug } = useParams();
   const { data: product, error, isPending, refetch } = useProduct(slug);
+  useCanonicalSlug('products', slug, product?.slug);
 
   if (error instanceof ApiError && error.status === 404) return <NotFoundPage what="product" />;
   if (error) {

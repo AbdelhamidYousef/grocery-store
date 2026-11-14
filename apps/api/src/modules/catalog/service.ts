@@ -19,6 +19,7 @@ import {
 
 import { db } from '../../db/client.ts';
 import { notFound } from '../../lib/errors.ts';
+import { loadTranslations, overlay, pick, resolveSlug } from '../i18n/translations.ts';
 import {
   memberPricesForProducts,
   saleOffersForProducts,
@@ -51,26 +52,55 @@ function toNode(row: repo.CategoryRow, children: repo.CategoryRow[]): CategoryNo
   return { ...toCategory(row, total), children: children.map((c) => toCategory(c)) };
 }
 
-export async function getCategoryTree(): Promise<CategoryNode[]> {
-  const rows = await repo.listCategories();
-  return rows
-    .filter((r) => r.parentId === null)
-    .map((root) =>
-      toNode(
-        root,
-        rows.filter((r) => r.parentId === root.id),
-      ),
-    );
+// Names, descriptions and slugs in the store view's language (English fields where a translation
+// is missing).
+async function translateNodes(nodes: CategoryNode[]): Promise<CategoryNode[]> {
+  const flat = nodes.flatMap((n) => [n, ...n.children]);
+  const found = await loadTranslations(
+    'category',
+    flat.map((c) => c.slug),
+  );
+  if (found.size === 0) return nodes;
+  const one = <T extends Category>(c: T): T => {
+    const t = found.get(c.slug);
+    return t
+      ? {
+          ...c,
+          slug: pick(t, 'slug', c.slug),
+          name: pick(t, 'name', c.name),
+          description: pick(t, 'description', c.description),
+        }
+      : c;
+  };
+  return nodes.map((n) => ({ ...one(n), children: n.children.map(one) }));
 }
 
-export async function getCategory(slug: string): Promise<CategoryNode> {
+export async function getCategoryTree(): Promise<CategoryNode[]> {
+  const rows = await repo.listCategories();
+  return translateNodes(
+    rows
+      .filter((r) => r.parentId === null)
+      .map((root) =>
+        toNode(
+          root,
+          rows.filter((r) => r.parentId === root.id),
+        ),
+      ),
+  );
+}
+
+export async function getCategory(slugFromUrl: string): Promise<CategoryNode> {
+  const slug = await resolveSlug('category', slugFromUrl);
   const rows = await repo.getCategoryBySlug(slug);
   const self = rows.find((r) => r.slug === slug);
   if (!self) throw notFound('Category not found');
-  return toNode(
-    self,
-    rows.filter((r) => r.parentId === self.id),
-  );
+  const [node] = await translateNodes([
+    toNode(
+      self,
+      rows.filter((r) => r.parentId === self.id),
+    ),
+  ]);
+  return node as CategoryNode;
 }
 
 // ---------- product list ----------
@@ -165,6 +195,18 @@ function toFilters(query: ProductListQuery, index: BadgeIndex): repo.ProductFilt
   };
 }
 
+async function translateBrandFacet<T extends { value: string; label: string }>(
+  items: T[],
+): Promise<T[]> {
+  const found = await loadTranslations(
+    'brand',
+    items.map((i) => i.value),
+  );
+  return found.size === 0
+    ? items
+    : items.map((i) => ({ ...i, label: pick(found.get(i.value), 'name', i.label) }));
+}
+
 async function getFacets(query: ProductListQuery, index: BadgeIndex): Promise<Facets> {
   const rows = await repo.getFacets(toFilters(query, index), FACET_KEYS);
   // Every facet key is present (possibly empty) so the filter UI never has to guess.
@@ -179,7 +221,9 @@ async function getFacets(query: ProductListQuery, index: BadgeIndex): Promise<Fa
 
   return {
     attributes,
-    brand: rows.brand.map((b) => ({ value: b.slug, label: b.name, count: b.count })),
+    brand: await translateBrandFacet(
+      rows.brand.map((b) => ({ value: b.slug, label: b.name, count: b.count })),
+    ),
     tag: rows.tag.map((t) => ({ value: t.slug, label: t.name, count: t.count })),
     badge: [...badgeCounts]
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
@@ -225,7 +269,7 @@ async function buildCards(
     swatchesByProduct.set(s.productId, list);
   }
 
-  return rows.map((row) =>
+  const cards = rows.map((row) =>
     toCard(
       row,
       imageByProduct.get(row.id),
@@ -236,12 +280,46 @@ async function buildCards(
       viewer.isMember,
     ),
   );
+  return translateCards(cards);
+}
+
+async function translateCards(cards: ProductCard[]): Promise<ProductCard[]> {
+  const translated = await overlay('product', cards, (c, t) => ({
+    ...c,
+    slug: pick(t, 'slug', c.slug),
+    name: pick(t, 'name', c.name),
+  }));
+  const brandSlugs = [...new Set(translated.flatMap((c) => (c.brand ? [c.brand.slug] : [])))];
+  const brandT = await loadTranslations('brand', brandSlugs);
+  if (brandT.size === 0) return translated;
+  return translated.map((c) => {
+    const bt = c.brand ? brandT.get(c.brand.slug) : undefined;
+    if (!c.brand || !bt) return c;
+    const name = pick(bt, 'name', c.brand.name);
+    return { ...c, brand: { ...c.brand, name }, attributes: { ...c.attributes, brand: name } };
+  });
+}
+
+// A category, brand or collection slug in the query may be a translated one.
+async function withBaseSlugs(query: ProductListQuery): Promise<ProductListQuery> {
+  const [category, brand, collection] = await Promise.all([
+    query.category ? resolveSlug('category', query.category) : undefined,
+    query.brand ? Promise.all(query.brand.map((b) => resolveSlug('brand', b))) : undefined,
+    query.collection ? resolveSlug('collection', query.collection) : undefined,
+  ]);
+  return {
+    ...query,
+    ...(category !== undefined && { category }),
+    ...(brand !== undefined && { brand }),
+    ...(collection !== undefined && { collection }),
+  };
 }
 
 export async function listProducts(
-  query: ProductListQuery,
+  rawQuery: ProductListQuery,
   viewer: Viewer = GUEST,
 ): Promise<ProductListResponse> {
+  const query = await withBaseSlugs(rawQuery);
   // `relevance` only means something with a search term; without one it would be an arbitrary
   // order, so it quietly becomes the default.
   // Inside a collection the editor's order is the default, otherwise newest first.
@@ -335,8 +413,11 @@ const CONSTITUENT_ORDER: readonly string[] = CONSTITUENT_KEYS;
 const sortConstituents = <T extends { key: string }>(list: T[]): T[] =>
   [...list].sort((a, b) => CONSTITUENT_ORDER.indexOf(a.key) - CONSTITUENT_ORDER.indexOf(b.key));
 
-export async function getProduct(slug: string, viewer: Viewer = GUEST): Promise<ProductDetail> {
-  const rows = await repo.getProductBySlug(slug);
+export async function getProduct(
+  slugFromUrl: string,
+  viewer: Viewer = GUEST,
+): Promise<ProductDetail> {
+  const rows = await repo.getProductBySlug(await resolveSlug('product', slugFromUrl));
   // A product with no active variant cannot be bought, so it is as good as missing (the list
   // hides it for the same reason).
   if (!rows || rows.variants.length === 0) throw notFound('Product not found');
@@ -373,18 +454,39 @@ export async function getProduct(slug: string, viewer: Viewer = GUEST): Promise<
   const sellable = variants.filter((v) => !v.isTrial);
   const prices = (sellable.length > 0 ? sellable : variants).map((v) => v.priceCents);
   const { optionKeys = [], ...publicAttributes } = rows.product.attributes;
-  const attributes = { ...publicAttributes, ...(rows.brand && { brand: rows.brand.name }) };
+  const attributes: ProductDetail['attributes'] = {
+    ...publicAttributes,
+    ...(rows.brand && { brand: rows.brand.name }),
+  };
   const badges = (await getBadgeIndex()).get(rows.product.id) ?? [];
+
+  // Translated name, slug, description, category/brand names; each falls back to English alone.
+  const [pt, ct, bt] = await Promise.all([
+    loadTranslations('product', [rows.product.slug]),
+    loadTranslations('category', [rows.category.slug, ...(rows.parent ? [rows.parent.slug] : [])]),
+    rows.brand ? loadTranslations('brand', [rows.brand.slug]) : Promise.resolve(undefined),
+  ]);
+  const tr = pt.get(rows.product.slug);
+  const nameOf = <T extends { slug: string; name: string }>(c: T): T => {
+    const t = ct.get(c.slug);
+    return t ? { ...c, slug: pick(t, 'slug', c.slug), name: pick(t, 'name', c.name) } : c;
+  };
+  const category = nameOf(rows.category);
+  const parent = rows.parent ? nameOf(rows.parent) : null;
+  const brand = rows.brand
+    ? { ...rows.brand, name: pick(bt?.get(rows.brand.slug), 'name', rows.brand.name) }
+    : null;
+  if (brand) attributes.brand = brand.name;
 
   return {
     id: rows.product.id,
-    slug: rows.product.slug,
-    name: rows.product.name,
-    description: rows.product.description,
-    category: rows.category,
-    breadcrumb: rows.parent ? [rows.parent, rows.category] : [rows.category],
+    slug: pick(tr, 'slug', rows.product.slug),
+    name: pick(tr, 'name', rows.product.name),
+    description: pick(tr, 'description', rows.product.description),
+    category,
+    breadcrumb: parent ? [parent, category] : [category],
     attributes,
-    brand: rows.brand,
+    brand,
     tags: rows.tags,
     badges,
     optionKeys,

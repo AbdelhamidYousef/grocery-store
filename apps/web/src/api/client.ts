@@ -1,4 +1,5 @@
 import { ErrorCode } from '@store/shared';
+import { isStoreCode } from '@store/shared';
 import type { z } from 'zod';
 
 // The one place that calls fetch. Components never do (SSR guard-rail), and every response is
@@ -8,6 +9,14 @@ import type { z } from 'zod';
 // Empty in dev (the Vite proxy forwards /api, same origin so cookies just work). In production
 // the web and API live on different origins, but Vercel rewrites /api/* too, so this stays empty
 // there as well; VITE_API_URL exists for builds that talk to an API directly.
+// The store view comes from the page's URL prefix (`/de-de/...`), read per request: the prefix is
+// fixed for the life of a page load (switching store reloads). The API answers catalogue reads in
+// that store's language; the admin has no prefix and so reads English.
+export function storeViewHeader(): Record<string, string> {
+  const code = window.location.pathname.split('/')[1] ?? '';
+  return isStoreCode(code) ? { 'X-Store-View': code } : {};
+}
+
 export const API_BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
 
 export type ApiErrorCode = ErrorCode | 'NETWORK' | 'BAD_RESPONSE';
@@ -49,6 +58,7 @@ export async function apiFetch<S extends z.ZodType>(
       credentials: 'include',
       headers: {
         Accept: 'application/json',
+        ...storeViewHeader(),
         // A FormData body (photo upload) must NOT get a Content-Type from us: the browser adds
         // `multipart/form-data` together with the boundary it generated.
         ...(body === undefined || body instanceof FormData

@@ -37,6 +37,7 @@ import {
   variantConstituents,
 } from '../../db/schema/index.ts';
 import type { ProductAttributes } from '../../db/schema/products.ts';
+import { currentLang } from '../i18n/context.ts';
 
 export type CategoryRow = typeof categories.$inferSelect & { productCount: number };
 
@@ -282,14 +283,27 @@ function scopeConditions(f: ProductFilters): SQL[] {
   }
 
   if (f.q) {
-    conds.push(
+    const english =
       f.q.length <= SHORT_QUERY_MAX
         ? ilike(products.name, `%${likeEscape(f.q)}%`)
         : // A query made only of stop words ("the") compiles to an empty tsquery that matches
           // nothing; treat that case as a name substring search instead of an empty page.
           sql`(case when numnode(${tsQuery(f.q)}) = 0
                 then ${products.name} ilike ${'%' + likeEscape(f.q) + '%'}
-                else ${products.searchVector} @@ ${tsQuery(f.q)} end)`,
+                else ${products.searchVector} @@ ${tsQuery(f.q)} end)`;
+    // In a translated store view the search also matches the translated name and description
+    // (substring: Postgres has no German or French stemming configured here), next to English.
+    const lang = currentLang();
+    conds.push(
+      lang === 'en'
+        ? english
+        : or(
+            english,
+            sql`exists (select 1 from product_translations pt where pt.product_id = ${products.id}
+              and pt.locale = ${lang}
+              and (pt.name ilike ${'%' + likeEscape(f.q) + '%'}
+                or pt.description ilike ${'%' + likeEscape(f.q) + '%'}))`,
+          )!,
     );
   }
   return conds;

@@ -9,6 +9,7 @@ import {
 
 import { notFound } from '../../lib/errors.ts';
 import * as catalog from '../catalog/service.ts';
+import { loadTranslations, overlay, pick, resolveSlug } from '../i18n/translations.ts';
 
 import * as repo from './repo.ts';
 
@@ -32,6 +33,14 @@ export async function listCategories(): Promise<GuideCategory[]> {
   return rows.filter((r) => r.guideCount > 0);
 }
 
+const translateCards = <T extends GuideCard>(cards: T[]) =>
+  overlay('guide', cards, (c, t) => ({
+    ...c,
+    slug: pick(t, 'slug', c.slug),
+    title: pick(t, 'title', c.title),
+    summary: pick(t, 'summary', c.summary),
+  }));
+
 export async function listGuides(query: GuideListQuery): Promise<GuideListResponse> {
   const { rows, total } = await repo.listGuides({
     category: query.category,
@@ -39,7 +48,7 @@ export async function listGuides(query: GuideListQuery): Promise<GuideListRespon
     offset: (query.page - 1) * query.limit,
   });
   return {
-    data: rows.map(toCard),
+    data: await translateCards(rows.map(toCard)),
     meta: {
       page: query.page,
       limit: query.limit,
@@ -49,18 +58,23 @@ export async function listGuides(query: GuideListQuery): Promise<GuideListRespon
   };
 }
 
-export async function getGuide(slug: string): Promise<GuideDetail> {
-  const guide = await repo.findGuideBySlug(slug);
+export async function getGuide(slugFromUrl: string): Promise<GuideDetail> {
+  const guide = await repo.findGuideBySlug(await resolveSlug('guide', slugFromUrl));
   // Unknown, draft and not-yet-published guides all look the same from outside: 404.
   if (!guide) throw notFound('Guide not found');
   const [productIds, related] = await Promise.all([
     repo.listProductIds(guide.id),
     repo.listRelated(guide, RELATED_COUNT),
   ]);
+  const [[card], relatedCards, translations] = await Promise.all([
+    translateCards([toCard(guide)]),
+    translateCards(related.map(toCard)),
+    loadTranslations('guide', [guide.slug]),
+  ]);
   return {
-    ...toCard(guide),
-    bodyMd: guide.bodyMd,
+    ...(card as GuideCard),
+    bodyMd: pick(translations.get(guide.slug), 'bodyMd', guide.bodyMd),
     products: await catalog.listCardsByIds(productIds),
-    related: related.map(toCard),
+    related: relatedCards,
   };
 }

@@ -13,6 +13,7 @@ import { createErrorHandler, notFoundHandler } from './middleware/error.ts';
 import { createRateLimiter, type RateLimitOptions } from './middleware/rate-limit.ts';
 import { requestId } from './middleware/request-id.ts';
 import { createWebhookRouter } from './modules/checkout/webhook.ts';
+import { storeViewContext } from './modules/i18n/context.ts';
 import { createModulesRouter } from './modules/index.ts';
 import type { Outbox } from './modules/mail/outbox.ts';
 import { DEFAULT_RETURNS_CONFIG, type ReturnsConfig } from './modules/returns/config.ts';
@@ -93,6 +94,7 @@ export function createApp({ logger, pingDb, payments, outbox, config }: AppDeps)
   app.use('/api/v1', createWebhookRouter({ payments, outbox }));
   // Only our own web origin may call the API from a browser, and only it may send cookies.
   app.use(cors({ origin: config.webOrigin, credentials: true }));
+  app.use(storeViewContext);
   app.use(createRateLimiter(config.rateLimit));
   app.use(cookieParser(config.cookieSecret));
   // 100 kB is far above any legitimate request here; it caps the memory a hostile body can cost.

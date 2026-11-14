@@ -9,6 +9,7 @@ import { Spinner } from '../components/ui/Spinner';
 import { hasActiveFilters, useProductListParams } from '../features/catalog/list-params';
 import { ProductListing } from '../features/catalog/ProductListing';
 import { useCategories, useCategory } from '../features/catalog/queries';
+import { useCanonicalSlug } from '../features/stores/useCanonicalSlug';
 import { useT } from '../i18n';
 import { petAttributeForAccent, petBySlug } from '../lib/pets';
 import { TEST_IDS } from '../lib/test-ids';
@@ -19,6 +20,7 @@ export default function CategoryPage() {
   const { t } = useT();
   const { slug } = useParams();
   const { data: category, error, isPending, refetch } = useCategory(slug);
+  useCanonicalSlug('c', slug, category?.slug);
   const { data: tree } = useCategories();
   const { query } = useProductListParams();
 

@@ -77,3 +77,14 @@ describe('toListSearch', () => {
     expect(toListSearch({})).toBe('');
   });
 });
+
+describe('store view header', () => {
+  it('is sent from the URL prefix, and absent without one', async () => {
+    const { storeViewHeader } = await import('./client');
+    window.history.pushState({}, '', '/de-de/cart');
+    expect(storeViewHeader()).toEqual({ 'X-Store-View': 'de-de' });
+    window.history.pushState({}, '', '/admin/products');
+    expect(storeViewHeader()).toEqual({});
+    window.history.pushState({}, '', '/');
+  });
+});

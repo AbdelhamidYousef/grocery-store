@@ -10,6 +10,7 @@ import { Spinner } from '../components/ui/Spinner';
 import { hasActiveFilters, useProductListParams } from '../features/catalog/list-params';
 import { ProductListing } from '../features/catalog/ProductListing';
 import { useCollection } from '../features/merchandising/queries';
+import { useCanonicalSlug } from '../features/stores/useCanonicalSlug';
 import { lookupFor, useT, type TFunction } from '../i18n';
 import { useFormat } from '../i18n/format';
 import { TEST_IDS } from '../lib/test-ids';
@@ -37,6 +38,7 @@ export default function CollectionPage() {
   const fmt = useFormat();
   const { slug } = useParams();
   const { data: collection, error, isPending, refetch } = useCollection(slug);
+  useCanonicalSlug('collections', slug, collection?.slug);
   const { query } = useProductListParams();
 
   useEffect(() => {

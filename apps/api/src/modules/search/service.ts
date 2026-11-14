@@ -1,6 +1,7 @@
 import type { Suggestions } from '@store/shared';
 
 import * as catalogRepo from '../catalog/repo.ts';
+import { overlay, pick } from '../i18n/translations.ts';
 
 import * as repo from './repo.ts';
 
@@ -16,8 +17,25 @@ export async function suggest(q: string): Promise<Suggestions> {
   ]);
   const images = await catalogRepo.listPrimaryImages(productRows.map((p) => p.id));
   const imageOf = new Map(images.map((i) => [i.productId, i]));
+  const [productsT, categoriesT, brandsT] = await Promise.all([
+    overlay('product', productRows, (p, t) => ({
+      ...p,
+      name: pick(t, 'name', p.name),
+      slug: pick(t, 'slug', p.slug),
+    })),
+    overlay('category', categories, (c, t) => ({
+      ...c,
+      name: pick(t, 'name', c.name),
+      slug: pick(t, 'slug', c.slug),
+    })),
+    overlay('brand', brands, (b, t) => ({
+      ...b,
+      name: pick(t, 'name', b.name),
+      slug: pick(t, 'slug', b.slug),
+    })),
+  ]);
   return {
-    products: productRows.map((p) => ({
+    products: productsT.map((p) => ({
       name: p.name,
       slug: p.slug,
       imageUrl: imageOf.get(p.id)?.url ?? null,
@@ -25,7 +43,7 @@ export async function suggest(q: string): Promise<Suggestions> {
       priceFromCents: p.minCents,
       currency: p.currency,
     })),
-    categories,
-    brands,
+    categories: categoriesT,
+    brands: brandsT,
   };
 }
