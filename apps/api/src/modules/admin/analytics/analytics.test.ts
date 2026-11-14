@@ -127,6 +127,29 @@ describe('GET /admin/analytics', () => {
     expect(a.aovCents).toBe(Math.floor((2 * (partly.totalCents - 300) + 2) / 4));
   });
 
+  it('leaves the round-up donation out of revenue, and never goes below zero on a full refund', async () => {
+    const roundUp = async (o: { id: string; totalCents: number }, cents: number) => {
+      // the stored total includes the donation (orders_total_check)
+      await db
+        .update(orders)
+        .set({ donationCents: cents, totalCents: o.totalCents + cents })
+        .where(eq(orders.id, o.id));
+      return o.totalCents + cents;
+    };
+    const kept = await sale('2026-11-03T10:00:00Z');
+    await roundUp(kept, 40);
+    await db.update(orders).set({ refundedCents: 300 }).where(eq(orders.id, kept.id));
+    const gone = await sale('2026-11-03T11:00:00Z');
+    const goneTotal = await roundUp(gone, 70);
+    await db
+      .update(orders)
+      .set({ refundedCents: goneTotal, status: 'refunded' })
+      .where(eq(orders.id, gone.id));
+    const a = await get('from=2026-11-03&to=2026-11-03');
+    expect(a.revenue.totalCents).toBe(kept.totalCents - 300);
+    expect(a.revenue.series[0]?.revenueCents).toBe(kept.totalCents - 300);
+  });
+
   it('ignores orders that were never paid or were cancelled', async () => {
     const waiting = await placeOrder(app, {});
     await db
@@ -311,14 +334,14 @@ describe('GET /admin/analytics/export.csv', () => {
     );
     const rows = lines(res.text);
     expect(rows[0]).toBe(
-      'order_number,placed_at_utc,status,email,units,total_cents,total,refunded_cents,net_cents,net',
+      'order_number,placed_at_utc,status,email,units,total_cents,total,donation_cents,refunded_cents,net_cents,net',
     );
     expect(rows).toHaveLength(2);
     const net = o.totalCents - 250;
     expect(rows[1]).toContain(`,2,${o.totalCents},`);
     expect(
       rows[1]!.endsWith(
-        `,250,${net},${Math.trunc(net / 100)}.${String(net % 100).padStart(2, '0')}`,
+        `,0,250,${net},${Math.trunc(net / 100)}.${String(net % 100).padStart(2, '0')}`,
       ),
     ).toBe(true);
     expect(rows[1]).toContain('2026-11-03T10:00:00Z');

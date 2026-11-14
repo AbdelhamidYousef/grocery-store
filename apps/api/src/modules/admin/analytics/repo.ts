@@ -33,8 +33,12 @@ export async function currency(): Promise<string> {
   return rows[0]?.c ?? 'EUR';
 }
 
-// One row per bucket, empty buckets included (a chart needs the zero days). Revenue is NET:
-// what was charged minus what was handed back.
+// Net revenue of one order: what was charged, minus the round-up donation (it belongs to the
+// shelter, never the shop), minus what was handed back. Returns never refund the round-up and a
+// whole-order refund refunds everything (refunded = total), so clamping at zero is exact.
+const NET_REVENUE = sql`greatest(o.total_cents - o.donation_cents - o.refunded_cents, 0)`;
+
+// One row per bucket, empty buckets included (a chart needs the zero days). Revenue is NET (above).
 export async function revenueSeries(range: Range, interval: 'day' | 'week' | 'month') {
   return db.execute<{ bucket: string; revenue_cents: number; orders: number }>(sql`
     with b as (
@@ -45,7 +49,7 @@ export async function revenueSeries(range: Range, interval: 'day' | 'week' | 'mo
       ) as bucket
     )
     select to_char(b.bucket, 'YYYY-MM-DD') as bucket,
-      coalesce(sum(o.total_cents - o.refunded_cents), 0)::int as revenue_cents,
+      coalesce(sum(${NET_REVENUE}), 0)::int as revenue_cents,
       count(o.id)::int as orders
     from b
     left join orders o
@@ -62,9 +66,9 @@ export async function revenueSeries(range: Range, interval: 'day' | 'week' | 'mo
 export async function totals(range: Range) {
   const rows = await db.execute<{ orders: number; revenue: string; aov: string }>(sql`
     select count(*)::int as orders,
-      coalesce(sum(o.total_cents - o.refunded_cents), 0)::bigint as revenue,
+      coalesce(sum(${NET_REVENUE}), 0)::bigint as revenue,
       case when count(*) = 0 then 0
-        else (2 * sum(o.total_cents - o.refunded_cents) + count(*)) / (2 * count(*)) end::bigint as aov
+        else (2 * sum(${NET_REVENUE}) + count(*)) / (2 * count(*)) end::bigint as aov
     from orders o
     where o.status in ${paidList} and ${inRange(range.from, range.to)}
   `);
@@ -166,12 +170,15 @@ export async function orderRows(range: Range, limit: number, offset: number) {
     email: string;
     units: number;
     total_cents: number;
+    donation_cents: number;
     refunded_cents: number;
+    net_cents: number;
   }>(sql`
     select o.number, to_char(o.placed_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as placed_at,
       o.status::text as status, o.email::text as email,
       (select coalesce(sum(oi.quantity), 0)::int from order_items oi where oi.order_id = o.id) as units,
-      o.total_cents, o.refunded_cents
+      o.total_cents, o.donation_cents, o.refunded_cents,
+      ${NET_REVENUE}::int as net_cents
     from orders o
     where o.status in ${paidList} and ${inRange(range.from, range.to)}
     order by o.placed_at, o.id

@@ -29,6 +29,7 @@ async function* rows(
       'units',
       'total_cents',
       'total',
+      'donation_cents',
       'refunded_cents',
       'net_cents',
       'net',
@@ -36,7 +37,7 @@ async function* rows(
     for (let offset = 0; ; offset += PAGE) {
       const page = await repo.orderRows(range, PAGE, offset);
       for (const o of page) {
-        const net = o.total_cents - o.refunded_cents;
+        const net = o.net_cents;
         yield [
           o.number,
           o.placed_at,
@@ -45,6 +46,7 @@ async function* rows(
           o.units,
           o.total_cents,
           formatCents(o.total_cents),
+          o.donation_cents,
           o.refunded_cents,
           net,
           formatCents(net),
