@@ -125,6 +125,15 @@ describe('POST /internal/jobs/run', () => {
     expect(await db.select().from(jobRuns)).toHaveLength(0);
   });
 
+  it('checks the secret before the body: a bad body without the secret is 401, not 400', async () => {
+    await request(app()).post('/api/v1/internal/jobs/run').send({ name: 12345 }).expect(401);
+    await request(app())
+      .post('/api/v1/internal/jobs/run')
+      .set('X-Jobs-Secret', SECRET)
+      .send({ name: 12345 })
+      .expect(400);
+  });
+
   it('is absent (404) when no secret is configured', async () => {
     await request(makeTestApp())
       .post('/api/v1/internal/jobs/run')

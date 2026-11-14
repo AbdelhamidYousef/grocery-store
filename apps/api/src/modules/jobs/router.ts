@@ -1,6 +1,6 @@
 import { timingSafeEqual } from 'node:crypto';
 
-import { Router as ExpressRouter, type Router } from 'express';
+import { Router as ExpressRouter, type RequestHandler, type Router } from 'express';
 import { z } from 'zod';
 
 import { jobs, runDueJobs, runJob } from '../../jobs/runner.ts';
@@ -29,10 +29,15 @@ export function createJobsRouter(opts: {
 }): Router {
   const router = ExpressRouter();
   const schemas = { body: BodySchema };
-  router.post('/internal/jobs/run', validate(schemas), async (req, res) => {
+  // The secret is checked BEFORE the body is validated: an unauthenticated caller must not be able
+  // to probe the body schema (a 400 would say "your secret is not even looked at yet").
+  const authorise: RequestHandler = (req, _res, next) => {
     if (!opts.secret) throw notFound();
     const given = req.get('x-jobs-secret') ?? '';
     if (!safeEqual(given, opts.secret)) throw unauthenticated('Invalid job secret');
+    next();
+  };
+  router.post('/internal/jobs/run', authorise, validate(schemas), async (req, res) => {
     const { body } = valid(req, schemas);
     const ctx = { now: new Date(), log: req.log, gateway: opts.payments, outbox: opts.outbox };
     if (body.name && !jobs.some((j) => j.name === body.name)) {
