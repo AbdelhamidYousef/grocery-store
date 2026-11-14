@@ -7,6 +7,7 @@ import { Skeleton } from '../../components/ui/Skeleton';
 import { formatDate } from '../../lib/format';
 import { TEST_IDS } from '../../lib/test-ids';
 import { OrderAddress, OrderSummary } from '../checkout/OrderSummary';
+import { ReorderButton } from '../reorder/ReorderButton';
 
 import { TIMELINE_LABEL } from './order-status';
 import { OrderStatusBadge } from './OrderStatusBadge';
@@ -87,6 +88,10 @@ export function OrderDetail() {
           Withdraw from contract
         </Link>
       </p>
+
+      {order.status !== 'pending_payment' && order.status !== 'cancelled' && (
+        <ReorderButton orderNumber={order.number} />
+      )}
 
       {order.timeline.length > 0 && (
         <ol

@@ -30,3 +30,4 @@ export * from './loyalty.ts';
 export * from './newsletter.ts';
 export * from './stock-alerts.ts';
 export * from './wishlist.ts';
+export * from './reorder.ts';

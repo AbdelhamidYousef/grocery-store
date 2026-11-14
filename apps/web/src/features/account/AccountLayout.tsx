@@ -9,6 +9,7 @@ const LINKS = [
   { to: '/account/addresses', label: 'Addresses', end: false },
   { to: '/account/pets', label: 'Pets', end: false },
   { to: '/account/orders', label: 'Orders', end: false },
+  { to: '/account/buy-again', label: 'Buy again', end: false },
   { to: '/account/rewards', label: 'Rewards', end: false },
 ] as const;
 

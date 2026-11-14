@@ -74,6 +74,9 @@ export function AccountMenu() {
               <Link to="/account" className={itemClass} onClick={() => setOpen(false)}>
                 My account
               </Link>
+              <Link to="/account/buy-again" className={itemClass} onClick={() => setOpen(false)}>
+                Buy again
+              </Link>
               {user.role === 'admin' && (
                 <Link to="/admin" className={itemClass} onClick={() => setOpen(false)}>
                   Admin

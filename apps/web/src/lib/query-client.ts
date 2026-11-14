@@ -60,6 +60,7 @@ export const keys = {
   rewards: ['rewards'] as const,
   referral: ['points', 'referral'] as const,
   wishlist: ['wishlist'] as const,
+  buyAgain: ['buy-again'] as const,
   sharedWishlist: (token: string) => ['wishlist', 'shared', token] as const,
   charityTotal: ['charity', 'total'] as const,
   myCodes: ['points', 'codes'] as const,

@@ -31,6 +31,7 @@ import { createPetsRouter } from './pets/router.ts';
 import { promotionsRouter } from './promotions/router.ts';
 import { registerPromotionSubscribers } from './promotions/service.ts';
 import { createReviewsRouter } from './reviews/router.ts';
+import { createReorderRouter } from './reorder/router.ts';
 import { safetyRouter } from './safety/router.ts';
 import { createSearchRouter } from './search/router.ts';
 import { createStockAlertsRouter } from './stock-alerts/router.ts';
@@ -107,6 +108,7 @@ export function createModulesRouter(opts: {
   router.use(createNewsletterRouter(opts));
   router.use(createStockAlertsRouter(opts));
   router.use(createWishlistRouter());
+  router.use(createReorderRouter());
   router.use(cartRouter);
   router.use(createTrackingRouter(opts));
   router.use(createWithdrawalsRouter(opts));

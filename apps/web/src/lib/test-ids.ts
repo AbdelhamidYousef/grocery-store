@@ -12,6 +12,10 @@
 export const TEST_IDS = {
   pageHome: 'page-home',
   earnPoints: 'earn-points',
+  reorder: 'reorder',
+  reorderSkipped: 'reorder-skipped',
+  pageBuyAgain: 'page-buy-again',
+  buyAgainRow: 'buy-again-row',
   wishlistHeart: 'wishlist-heart',
   wishlistRow: 'wishlist-row',
   wishlistShare: 'wishlist-share',
