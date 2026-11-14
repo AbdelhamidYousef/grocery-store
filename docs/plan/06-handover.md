@@ -1,7 +1,32 @@
 # Plan 06 — Handover after the unattended build (2026-10-31)
 
-Written by the build session for the owner. Everything below is local: **nothing is pushed**, no
-account was created, nothing is deployed.
+Written by the build sessions for the owner and for the next session.
+
+## Final state (2026-11-14) — start here
+
+- **Everything in the plan is built, merged on `main`, pushed and live**: phases 0–13 and the
+  expansion phases 14–22 and 24 (23 was cut). Live demo <https://pawsome-store-tau.vercel.app>
+  (stores `/eu-en/`, `/uk-en/` in GBP, `/de-de/`, `/fr-fr/`), repo
+  <https://github.com/AbdelhamidYousef/pawsome-store>. CI green on `main` (typecheck/lint/format,
+  unit + integration, e2e, gitleaks, audit). No worktree or lane is open; `feat/*` branches are merged.
+- Counts on the final tree: shared 338, web 969, API 1,462 + 2 skipped (live Stripe), e2e 79 + 1
+  skipped (real card).
+- Deploy: one Vercel project (web static + Express as a function on the same origin), Neon
+  Frankfurt, Stripe sandbox (test mode), hourly jobs via GitHub Actions. See `docs/DEPLOYMENT.md`.
+  A schema change must be migrated on Neon (direct URL, from a shell) **before** the push that needs
+  it; the seed is an upsert and safe to re-run on Neon.
+- Leftovers and known issues (none blocks the demo):
+  1. Checkout race across tabs while a payment is confirming (details under Known follow-ups).
+  2. Admin edits EUR promotion/shipping amounts only; GBP ones are seeded.
+  3. No confirm dialog when switching store with a full cart (lines without a price in the new
+     currency drop out).
+  4. hreflang alternates carry the English slug (works via redirect; proper fix in the 21 notes).
+  5. Product names inside emails are English snapshots.
+  6. A free gift without a GBP price is still given in the UK store (recorded at 0).
+  7. German/French text was written by the build agent: a native read is worth it (a French block
+     had leaked into the German seed and was fixed on 2026-11-14; a test now guards that case).
+  8. Emails are skipped on the demo until a Resend key is added; review photo upload is off there.
+  9. README statement-coverage figures are from phase 11.
 
 ## Where things stand
 
@@ -59,7 +84,7 @@ Merged into `main` (all gates green on 2026-11-07: shared 180, web 607, API 951 
 | 17 Reviews | done, merged 2026-11-14 (reviews with verified buyer, photo upload to local disk via multer + sharp, helpful votes, ratings on cards/PDP, moderation, shoppable gallery; security-review fixes; API 1,140+ pass, e2e 62 + 1 skipped). Set `UPLOADS_ENABLED=false` on the free-tier demo (ephemeral disk). `sweepOrphanUploads` waits for the phase 19 job runner |
 | 22 Post-purchase | done, merged 2026-11-14 (partial refunds, returns with refund + restock incl. kit snapshot, vet approval hold incl. kits, analytics dashboard + CSV; integrated with loyalty: proportional points reversal keyed on refundId, round-up kept on returns; shared 329, web 932, API 1,405 + 2 skipped, e2e 71 + 1 skipped). Demo login `casey@pawsome.test` has sample returns |
 | 24 Agent-ready | done, merged 2026-11-14 (tool registry: search, product, cart read/update, policies/FAQ; WebMCP adapter feature-detected on `document.modelContext`, falls back to `navigator.modelContext`; 30 calls/min client limit; /developers page; web 895, API 1,254 + 2 skipped, e2e 68 + 1 skipped). Manual check in Chrome 146+ with `chrome://flags/#enable-webmcp-testing` left to the owner |
-| 21 Stores & languages | DONE on `feat/phase-21` (`../ecommerce-p21`, DB `ecommerce_p21`, API 3121, e2e 3221/5221), ready to merge last 2026-11-14: 21.1 registry, 21.2 URL prefix, 21.3 switcher + hreflang, 21.4 string extraction, 21.5 de/fr, 21.6 catalogue translations, 21.7 seed + admin, 21.8 per-currency prices (migration 0035), 21.9 cart/orders/promotions/shipping in currency (0036), 21.10 emails in the order locale (0037), 21.11 e2e + quiz; plus seed refund fix and agent-spec console filter. Final counts, one uninterrupted run each: shared 338, web 969, API 1,459 + 2 skipped (117 files), e2e 79 + 1 skipped. Merge notes below |
+| 21 Stores & languages | done, merged and live 2026-11-14 (review fix: store-switch intent key; German seed fix): 21.1 registry, 21.2 URL prefix, 21.3 switcher + hreflang, 21.4 string extraction, 21.5 de/fr, 21.6 catalogue translations, 21.7 seed + admin, 21.8 per-currency prices (migration 0035), 21.9 cart/orders/promotions/shipping in currency (0036), 21.10 emails in the order locale (0037), 21.11 e2e + quiz; plus seed refund fix and agent-spec console filter. Final counts, one uninterrupted run each: shared 338, web 969, API 1,459 + 2 skipped (117 files), e2e 79 + 1 skipped. Merge notes below |
 | 17 Reviews | building 2026-11-14 on `feat/phase-17` (`../ecommerce-p17`, DB `ecommerce_p17`, API 3117, e2e 3217/5217) |
 | 21, 22, 24 | queued 2026-11-14: 22 ‖ 24 after 17/19, then 21 alone (touches every screen) |
 | 19 Loyalty | done, merged 2026-11-14 (job runner + cron entry, points earn/redeem/reversal, rewards, charity round-up, referrals, newsletter double opt-in, back-in-stock alerts, pet birthday + life-stage mails, wishlist + share link, buy again; review fixes; API 1,254 + 2 skipped, e2e 66 + 1 skipped). `.github/workflows/jobs.yml` needs repo variable `API_URL` + secret `JOBS_SECRET` (owner) |
