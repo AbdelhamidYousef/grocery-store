@@ -27,3 +27,17 @@ TRUNCATE gives every table fresh files on disk and Postgres waits for the disk t
 fine for a throwaway local database and never touches production (Neon). This is also the likely cause
 of the "full API suite hangs, admin tests time out" issue Pawsome recorded: slow truncates push the
 tests past their timeouts.
+
+### G0.3: package name, README stub, green checks
+The root workspace is now `grocery` (the `@store/*` package names are generic and stay), and the
+README is a short stub with the new local setup; the case study comes in G11. Every gate ran from a
+clean slate: `*.tsbuildinfo` deleted first, because `tsc -b` skips projects whose build info says
+nothing changed, so a stale file can make broken code look fine. Results: typecheck, lint, format
+clean; shared 338, web 969, API 1,461 + 2 skipped (live Stripe), e2e 79 + 1 skipped (real card).
+
+### Quiz: Phase G0
+1. Two folders hold almost the same `docker-compose.yml`. Without `name:`, what would they share, and
+   why is that dangerous here?
+2. The test setup truncates every table before each test. Why was that slow, and why is turning
+   `fsync` off acceptable locally but never in production?
+3. Why can `tsc -b` report success on code that doesn't compile, and what do you do about it?
