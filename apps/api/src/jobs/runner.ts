@@ -121,6 +121,15 @@ export async function runJob(name: string, ctx: JobContext): Promise<RunOutcome>
   }
 }
 
+/** Gives this period's claim back so the job can run again (manual re-runs only). */
+export async function forgetRun(name: string, now: Date): Promise<void> {
+  const job = jobs.find((j) => j.name === name);
+  if (!job) throw new Error(`unknown job "${name}"`);
+  await db
+    .delete(jobRuns)
+    .where(and(eq(jobRuns.name, name), eq(jobRuns.runKey, runKeyFor(job.every, now))));
+}
+
 /** Every registered job, once per its period; the ones already run this period are skipped. */
 export async function runDueJobs(ctx: JobContext): Promise<RunOutcome[]> {
   const outcomes: RunOutcome[] = [];

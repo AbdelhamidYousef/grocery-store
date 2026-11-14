@@ -11,6 +11,7 @@ import { bodyOf } from '../test/http.ts';
 
 import {
   CLAIM_STALE_MS,
+  forgetRun,
   jobs,
   registerJob,
   runDueJobs,
@@ -118,6 +119,15 @@ describe('runJob', () => {
     await newer;
     const [done] = await db.select().from(jobRuns).where(eq(jobRuns.name, 'test-job'));
     expect(done?.finishedAt).toBeInstanceOf(Date);
+  });
+
+  it('forgetRun gives the period back so a manual re-run is possible', async () => {
+    const ctx = ctxAt('2026-11-08T14:05:00Z');
+    await runJob('test-job', ctx);
+    expect((await runJob('test-job', ctx)).status).toBe('skipped');
+    await forgetRun('test-job', ctx.now);
+    expect((await runJob('test-job', ctx)).status).toBe('ran');
+    await expect(forgetRun('nope', ctx.now)).rejects.toThrow(/unknown job/);
   });
 
   it('rejects an unknown job name', async () => {

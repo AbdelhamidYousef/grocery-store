@@ -63,12 +63,19 @@ Merged into `main` (all gates green on 2026-11-07: shared 180, web 607, API 951 
 | 24, 21 | queued: 24 after 19 in lane B, then 21 alone |
 | 17 Reviews | building 2026-11-14 on `feat/phase-17` (`../ecommerce-p17`, DB `ecommerce_p17`, API 3117, e2e 3217/5217) |
 | 21, 22, 24 | queued 2026-11-14: 22 ‖ 24 after 17/19, then 21 alone (touches every screen) |
-| 19 Loyalty | in progress: lane `feat/phase-19` (`../ecommerce-p15`, DB `ecommerce_p15`, API 3115, e2e 3215/5215). 19.1 to 19.6 done and committed (job runner, points ledger, redeem + reversal, rewards shop, charity, referrals); resume at 19.7 (newsletter), see the notes below the table |
+| 19 Loyalty | in progress: lane `feat/phase-19` (`../ecommerce-p15`, DB `ecommerce_p15`, API 3115, e2e 3215/5215). 19.1 to 19.12 built and committed (job runner, points, redeem, rewards, charity, referrals, newsletter, stock alerts, pet mails, wishlist, buy again, e2e); ready for review and merge, see the notes below the table |
 | 16 PDP depth | in progress: lane `feat/phase-16` (`../ecommerce-p16`, DB `ecommerce_p16`, API 3116, e2e 3216/5216) |
 | 17 Reviews | queued: after 16 in lane B |
 | 21, 22, 24 | not started |
 
-Phase 19 resume notes (written after 19.6, for whoever builds 19.7 to 19.12):
+Phase 19 merge notes (19.7 to 19.12, written at the end of the phase):
+- Migrations added in this lane: `0025_newsletter`, `0026_stock_alerts` (hand-written trigger on `inventory` at the end: re-append when regenerating), `0027_pet_messages`, `0028_wishlists` (hand-written `updated_at` trigger at the end). Renumber after phase 17's at merge.
+- Jobs registered in `jobs/runner.ts`: `send-stock-alerts` (hourly), `pet-messages` (daily). `pnpm --filter @store/api job run <name> --force` forgets the period's claim first (manual re-run; the e2e uses it).
+- Mail kinds added to the outbox: `newsletter_confirm`, `newsletter_welcome`, `stock_alert`, `pet_birthday`, `pet_life_stage`. Marketing mail (welcome, pet mail) ends with the one-click unsubscribe link; the stock alert is transactional with a cancel link.
+- Review fixes for 19.2 to 19.6 (lead's list) are separate `fix(...)` commits: 50-cent card minimum in the engine, give-back before claw-back, voiding codes held by unpaid orders, referrer row lock, secret before validation, conditional job claims plus `runExclusiveSweep`.
+- Not done: kits get no back-in-stock alerts (derived stock has no row to trigger on); no "your friend ordered" mail for referrals; wishlist hearts are product-level (no variant picked); guest wishlists are never cleaned up (add an expiry job later).
+
+Earlier resume notes (written after 19.6, kept for reference):
 - Order events are the extension point: `onOrderPaid` / `onOrderCancelled` / `onOrderRefunded` (`modules/orders/events.ts`). Loyalty subscribes in `loyalty/service.ts` (points), `charity-service.ts` and `referrals-service.ts`; each exports a `register...Subscribers()` called from `modules/index.ts`. Handlers run inside the order's transaction, so keep them database-only (no email send; queue through the outbox).
 - Jobs: `jobs/runner.ts` has `registerJob({name, every, run})`; the new jobs (`send-stock-alerts` hourly, `pet-messages` daily) register there, and the CLI (`pnpm --filter @store/api job run <name>`), `JOBS_IN_PROCESS` and `POST /api/v1/internal/jobs/run` pick them up with no other change. The GitHub workflow `.github/workflows/jobs.yml` only runs once the repository variable `API_URL` and secret `JOBS_SECRET` exist (needs the owner's OK).
 - Personal single-use codes: `loyalty/codes.ts` `mintPersonalCode` (owner-only through `promotions.price`, `max_uses` 1, expiry). The newsletter welcome code (`WELCOME-XXXX`, 10% percent, first order only) needs a `percent` kind: extend `PersonalCodeSpec` (it supports `fixed` and `free_shipping` today) and keep the `WELCOME` prefix; it is not owner-bound (a subscriber may not have an account yet), so pass no owner or add an email-bound variant.

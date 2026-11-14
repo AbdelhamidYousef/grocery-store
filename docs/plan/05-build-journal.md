@@ -928,3 +928,14 @@ Learn: derive what can drift (kit stock), store what is a decision (kit price), 
 - Web: `ReorderButton` on a paid order (what was added, what was skipped and why), `/account/buy-again` with an add-to-cart per row at today's price (sold-out rows disabled), "Buy again" in the account nav and the account menu.
 - Tests: API 6 (guest 401, distinct variants newest first at today's price, unpaid and foreign orders and sold-out flag, partial reorder reporting sold out and no-longer-sold lines, order number accepted, 404s); web 5.
 - Learn / explain: a shortcut must reuse the real path (the cart service) so rules cannot drift; report what you could not do instead of failing everything or hiding it; show the price from now, not the price paid, because the order row is history and the catalogue is the offer.
+
+### 19.12 — e2e: loyalty flows
+- `e2e/loyalty.spec.ts`, four flows on the simulated gateway and Mailpit: (1) sign in, subscribe with the consent box (refused unticked), read the confirm mail, click the link, read the `WELCOME-XXXX` mail, apply it in the cart, order and pay, then see the same code refused on the next cart; (2) the cart's "Earn N points" equals the `+N` ledger row after the paid order, then the checkout shows the points box and the round-up checkbox, the order is placed with both and the ledger shows the `-N` redemption on that order; (3) heart a product, create a share link, open it in a logged-out browser (first name and the item, no Remove button), stop sharing and see it become a not-found page; (4) a sold-out product offers "Email me when back", nothing is sent while it is still sold out, an admin restock plus `job run send-stock-alerts --force` sends the mail with the product and cancel links.
+- Gates at the end of the phase: shared 295, web 800 and API 1176 passed (2 skipped) unit tests; the full e2e suite 64 passed, 1 skipped (the real-card Stripe test).
+- Learn / explain: an e2e test must own its data (its own products and addresses) or parallel specs corrupt each other's assertions; assert mail by reading the real inbox of a fake SMTP server, with a unique recipient; drive a scheduled job from its CLI so the test exercises the same entry point cron would.
+- Follow-ups: art for the newsletter block is plain CSS; kits get no stock alerts; wishlist hearts pick no variant; guest wishlists have no expiry job.
+
+#### Phase 19 quiz (no answers)
+1. Why is the "stock came back" rule a database trigger and not a call in the inventory service, and what does the hourly job re-check before it sends the mail?
+2. What makes the newsletter's double opt-in prove consent, and why does the confirm page send a POST on arrival instead of acting on the GET?
+3. A pet's birthday mail must go out once a year even if the job runs twice or crashes halfway: which row and which transaction guarantee that, and how are 29 February birthdays handled?
