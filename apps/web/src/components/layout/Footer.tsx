@@ -61,7 +61,12 @@ const GROUPS: FooterGroup[] = [
   },
   {
     title: 'Company',
-    links: [legal('about'), legal('accessibility'), { label: 'My account', to: '/account' }],
+    links: [
+      legal('about'),
+      legal('accessibility'),
+      { label: 'For developers', to: '/developers' },
+      { label: 'My account', to: '/account' },
+    ],
   },
   {
     title: 'Legal',

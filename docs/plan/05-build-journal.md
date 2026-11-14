@@ -960,3 +960,8 @@ Learn: derive what can drift (kit stock), store what is a decision (kit price), 
 - `call-limit.ts` (30/min sliding window), `AgentToolsBridge` (limiter as the adapter's `guard`, toast and cart refresh in `onCall`). Quantity and list limits were already in the schemas (quantity 1..99, 20 lines, search limit 24).
 - Tests: limiter window and refused calls not counted; toast shown on add, none on reads or failures; the 31st call is `RATE_LIMITED` and never reaches the API.
 - Learn / explain: client limits protect the shopper, server limits protect the system, never rely on the first for the second; an action by an agent must be visible to the human it acts for; when a plain module needs React context, a render-nothing bridge component is the usual seam.
+
+### 24.6 — /developers page
+- `pages/DevelopersPage.tsx`: what WebMCP is and its draft status, how to try it (Chrome 146+, the flag), the six tools (schema in a collapsible, example call and result), the error codes and the 30-a-minute limit, what is not exposed, and a demo/test-data note. Footer link under Company.
+- Tests: the page lists exactly the registry's tools in order; the demo note, not-exposed list and flag are present; footer link and no `noindex`; every documented input passes its schema.
+- Learn / explain: documentation generated from the code that runs cannot go stale, and where a part must be hand-written (examples) a test ties it to the code; saying plainly what is not exposed is as much part of an agent interface as the tool list.

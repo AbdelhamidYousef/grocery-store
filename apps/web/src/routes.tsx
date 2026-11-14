@@ -11,6 +11,7 @@ import CategoryPage from './pages/CategoryPage';
 import CharityPage from './pages/CharityPage';
 import CollectionPage from './pages/CollectionPage';
 import ContactPage from './pages/ContactPage';
+import DevelopersPage from './pages/DevelopersPage';
 import GiftFinderPage from './pages/GiftFinderPage';
 import GiftResultPage from './pages/GiftResultPage';
 import GuidePage from './pages/GuidePage';
@@ -62,6 +63,7 @@ export const routes: RouteObject[] = [
           { path: 'collections/:slug', element: <CollectionPage /> },
           { path: 'search', element: <SearchPage /> },
           { path: 'charity', element: <CharityPage /> },
+          { path: 'developers', element: <DevelopersPage /> },
           { path: 'wishlist', element: <WishlistPage /> },
           { path: 'w/:token', element: <SharedWishlistPage /> },
           { path: 'newsletter', element: <NewsletterPage /> },

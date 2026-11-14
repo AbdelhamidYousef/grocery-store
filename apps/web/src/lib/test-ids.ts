@@ -184,6 +184,9 @@ export const TEST_IDS = {
   guideProducts: 'guide-products',
   guideRelated: 'guide-related',
 
+  pageDevelopers: 'page-developers',
+  agentTool: 'agent-tool',
+  agentToolName: 'agent-tool-name',
   pageHelp: 'page-help',
   helpSearch: 'help-search',
   helpTopic: 'help-topic',
