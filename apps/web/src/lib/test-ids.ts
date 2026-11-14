@@ -12,6 +12,9 @@
 export const TEST_IDS = {
   pageHome: 'page-home',
   earnPoints: 'earn-points',
+  stockAlertForm: 'stock-alert-form',
+  stockAlertDone: 'stock-alert-done',
+  stockAlertCancelled: 'stock-alert-cancelled',
   newsletterForm: 'newsletter-form',
   newsletterDone: 'newsletter-done',
   pageNewsletter: 'page-newsletter',

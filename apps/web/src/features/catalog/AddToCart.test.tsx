@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { makeVariant } from '../../test/fixtures';
+import { renderWithProviders } from '../../test/render';
 
 import { AddToCart, MAX_QUANTITY } from './AddToCart';
 
@@ -45,7 +46,7 @@ describe('AddToCart', () => {
   });
 
   it('disables the stepper and says sold out for an unavailable variant', () => {
-    render(<AddToCart variant={makeVariant({ available: false, lowStock: true })} />);
+    renderWithProviders(<AddToCart variant={makeVariant({ available: false, lowStock: true })} />);
     expect(screen.getByRole('button', { name: 'Sold out' })).toBeDisabled();
     expect(screen.getByRole('spinbutton', { name: 'Quantity' })).toBeDisabled();
     expect(screen.queryByText('Only a few left')).not.toBeInTheDocument();

@@ -3,6 +3,7 @@ import { useId, useState } from 'react';
 
 import { Button } from '../../components/ui/Button';
 import { TEST_IDS } from '../../lib/test-ids';
+import { StockAlertForm } from '../stock-alerts/StockAlertForm';
 
 import { QuantityStepper } from './QuantityStepper';
 
@@ -54,6 +55,7 @@ export function AddToCart({ variant, onAdd, pending = false }: AddToCartProps) {
           {soldOut ? 'Sold out' : 'Add to cart'}
         </Button>
       </div>
+      {soldOut && <StockAlertForm variantId={variant.id} />}
       {!soldOut && !wired && (
         <p id={noteId} className="text-sm text-muted">
           Adding to the cart is not available here.

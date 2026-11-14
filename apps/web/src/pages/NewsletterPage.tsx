@@ -4,6 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 
 import { ApiError } from '../api/client';
 import { confirmNewsletter, unsubscribeNewsletter } from '../api/newsletter';
+import { cancelStockAlert } from '../api/stock-alerts';
 import { Container } from '../components/layout/Container';
 import { Seo } from '../components/Seo';
 import { Spinner } from '../components/ui/Spinner';
@@ -99,6 +100,17 @@ export function NewsletterUnsubscribePage() {
       testId={TEST_IDS.newsletterUnsubscribed}
       run={unsubscribeNewsletter}
       done={() => 'You are unsubscribed. We will not send you more news.'}
+    />
+  );
+}
+
+export function StockAlertCancelPage() {
+  return (
+    <TokenPage
+      title="Stock alert"
+      testId={TEST_IDS.stockAlertCancelled}
+      run={cancelStockAlert}
+      done={() => 'Done: we will not email you about that item.'}
     />
   );
 }

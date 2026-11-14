@@ -6,6 +6,7 @@ import { jobRuns } from '../db/schema/index.ts';
 import type { PaymentGateway } from '../lib/stripe.ts';
 import type { Outbox } from '../modules/mail/outbox.ts';
 import { syncFlashSales } from '../modules/promotions/service.ts';
+import { sendDueAlerts } from '../modules/stock-alerts/service.ts';
 
 import { runExclusiveSweep } from './release-stale-reservations.ts';
 
@@ -146,6 +147,13 @@ registerJob({
   name: 'activate-sales',
   every: 'hourly',
   run: (ctx) => syncFlashSales(db, ctx.now),
+});
+
+// Back-in-stock alerts: a trigger on `inventory` marks them due, this sends them (once each).
+registerJob({
+  name: 'send-stock-alerts',
+  every: 'hourly',
+  run: (ctx) => sendDueAlerts({ outbox: ctx.outbox, log: ctx.log }),
 });
 
 /** Ticks `runDueJobs` on an interval (development only: `JOBS_IN_PROCESS=true`). */

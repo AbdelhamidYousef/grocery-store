@@ -22,6 +22,7 @@ import {
   NewsletterConfirmPage,
   NewsletterPage,
   NewsletterUnsubscribePage,
+  StockAlertCancelPage,
 } from './pages/NewsletterPage';
 import NotFoundPage from './pages/NotFoundPage';
 import PetsPage from './pages/PetsPage';
@@ -62,6 +63,7 @@ export const routes: RouteObject[] = [
           { path: 'newsletter', element: <NewsletterPage /> },
           { path: 'newsletter/confirm', element: <NewsletterConfirmPage /> },
           { path: 'newsletter/unsubscribe', element: <NewsletterUnsubscribePage /> },
+          { path: 'stock-alerts/cancel', element: <StockAlertCancelPage /> },
           { path: 'gift-finder', element: <GiftFinderPage /> },
           { path: 'gift-finder/result', element: <GiftResultPage /> },
           { path: 'contact', element: <ContactPage /> },

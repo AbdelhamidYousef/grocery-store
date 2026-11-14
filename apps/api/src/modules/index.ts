@@ -33,6 +33,7 @@ import { registerPromotionSubscribers } from './promotions/service.ts';
 import { createReviewsRouter } from './reviews/router.ts';
 import { safetyRouter } from './safety/router.ts';
 import { createSearchRouter } from './search/router.ts';
+import { createStockAlertsRouter } from './stock-alerts/router.ts';
 import { createTrackingRouter } from './tracking/router.ts';
 import { registerTrialSubscribers } from './trials/service.ts';
 import { createWithdrawalsRouter } from './withdrawals/router.ts';
@@ -46,6 +47,7 @@ export function createModulesRouter(opts: {
   lookupRateLimit?: RateLimitOptions;
   contactRateLimit?: RateLimitOptions;
   newsletterRateLimit?: RateLimitOptions;
+  stockAlertRateLimit?: RateLimitOptions;
   suggestRateLimit?: RateLimitOptions;
   reviewRateLimit?: RateLimitOptions;
   voteRateLimit?: RateLimitOptions;
@@ -102,6 +104,7 @@ export function createModulesRouter(opts: {
   router.use(createReviewsRouter(opts));
   router.use(createLoyaltyRouter());
   router.use(createNewsletterRouter(opts));
+  router.use(createStockAlertsRouter(opts));
   router.use(cartRouter);
   router.use(createTrackingRouter(opts));
   router.use(createWithdrawalsRouter(opts));
