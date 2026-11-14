@@ -1042,3 +1042,8 @@ Learn: derive what can drift (kit stock), store what is a decision (kit price), 
 - `packages/shared/src/stores.ts`: `STORES`, `STORE_CODES`, `DEFAULT_STORE`, `storeFromCode`, `storeCodeSchema`, `isStoreCode`, `storeFromLanguages`.
 - Tests: codes unique and equal to the union, every currency/locale works with `formatMoney`, ship countries are ISO codes, language-to-store mapping.
 - Learn / explain: a store view is configuration, not code; everything else (language, price, shipping, VAT label) is looked up from its code, so adding a fifth view is one row.
+
+### 21.2 — router prefix (slice 1)
+- `lib/store-entry.ts` (`resolveEntry`, `pickStore`, `swapStorePrefix`), `lib/store-cookie.ts`, `features/stores/StoreContext.tsx` (`StoreLayout`, `useStore`, `useStorePath`), `routes.tsx` (outer `StoreLayout` route, `createAppRouter` with basename and legacy rewrite), `test/render.tsx`. No feature file changed.
+- Tests: entry rules (valid prefix, legacy with query and hash, root, admin, unknown code), layout context and prefixed links, app under `/uk-en`, unknown code is a 404; `e2e/stores.spec.ts` (legacy lands on `/eu-en`, root, language attribute, 404, admin).
+- Learn / explain: a router `basename` is the cheapest way to put a segment in front of every URL: the router adds it to all links and strips it before matching, so route definitions never change. Locale in the URL (not a cookie) makes pages crawlable and shareable; the cookie only decides where a bare `/` goes.

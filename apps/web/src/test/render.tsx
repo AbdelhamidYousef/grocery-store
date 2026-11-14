@@ -6,6 +6,7 @@ import { createMemoryRouter, RouterProvider, type RouteObject } from 'react-rout
 import { ToastProvider } from '../components/ui/Toast';
 import { AuthProvider } from '../features/auth/AuthProvider';
 import { ActivePetProvider } from '../features/pets/ActivePetProvider';
+import { resolveEntry } from '../lib/store-entry';
 import { routes } from '../routes';
 
 // The same provider stack as main.tsx. A fresh QueryClient per render so no test sees another's
@@ -31,7 +32,15 @@ export function renderApp(
   path: string,
   table: RouteObject[] = routes,
 ): ReturnType<typeof createMemoryRouter> {
-  const router = createMemoryRouter(table, { initialEntries: [path] });
+  // A plain path renders without a store prefix, so the many page tests keep asserting plain
+  // hrefs; a path that starts with a store code (`/de-de/cart`) gets that basename, exactly as in
+  // the browser. The legacy redirect itself is covered in `store-entry.test.ts` and the e2e.
+  const entry = resolveEntry(new URL(path, 'http://test'));
+  const prefixed = entry.replaceWith === null && entry.basename !== '';
+  const router = createMemoryRouter(table, {
+    initialEntries: [path],
+    basename: prefixed ? entry.basename : '/',
+  });
   renderWithProviders(<RouterProvider router={router} />);
   return router;
 }
