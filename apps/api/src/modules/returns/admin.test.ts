@@ -340,6 +340,30 @@ describe('admin returns: refund safety', () => {
     expect((await act(id, 'refund')).status).toBe(409);
   });
 
+  it('never lets returns refund the round-up donation', async () => {
+    const o = await deliveredOrder(app, { quantity: 2, priceCents: 1000 });
+    const order = await orderByNumber(o.number);
+    const [line] = await lines(o.number);
+    // A real order with a 200 round-up: total = lines + shipping + donation.
+    await db
+      .update(orders)
+      .set({ donationCents: 200, totalCents: order.totalCents + 200 })
+      .where(eq(orders.id, order.id));
+    const a = await requestReturn(o, [{ orderItemId: line!.id, quantity: 1 }]);
+    const b = await requestReturn(o, [{ orderItemId: line!.id, quantity: 1 }]);
+    for (const id of [a, b]) {
+      await act(id, 'approve');
+      await act(id, 'receive');
+    }
+    expect((await act(a, 'refund')).status).toBe(200);
+    // Pretend earlier refunds already handed back 700 more than the goods (e.g. shipping).
+    await db.update(returns).set({ refundCents: 1700 }).where(eq(returns.id, a));
+    // 1700 + 1000 fits the total (2790) but not the total without the donation (2590).
+    const res = await act(b, 'refund');
+    expect(res.status).toBe(409);
+    expect(errorOf(res).message).toMatch(/more than the customer paid/);
+  });
+
   it('records a simulated refund without calling the gateway when the flag is on', async () => {
     const simulated = makeTestApp({
       payments: fake,

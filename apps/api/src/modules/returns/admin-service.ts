@@ -233,7 +233,10 @@ export async function refund(
       shipping = order.shippingCents;
     }
     const total = lines + shipping;
-    if ((await refundedByReturns(tx, order.id)) + total > order.totalCents) {
+    // Returns hand back goods and shipping, never the round-up, so the ceiling is the total
+    // WITHOUT the donation (the whole-order refund is the only door to it).
+    const ceiling = order.totalCents - order.donationCents;
+    if ((await refundedByReturns(tx, order.id)) + total > ceiling) {
       throw conflict(ErrorCode.CONFLICT, 'This refund would give back more than the customer paid');
     }
     const frozen = await repo.updateReturn(tx, ret.id, {
