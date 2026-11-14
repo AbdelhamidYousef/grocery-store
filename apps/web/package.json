@@ -12,8 +12,8 @@
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@fontsource-variable/fredoka": "^5.3.0",
     "@fontsource-variable/nunito-sans": "^5.3.0",
+    "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
     "@hookform/resolvers": "^6.0.2",
     "@store/shared": "workspace:*",
     "@stripe/react-stripe-js": "^7.0.1",

@@ -1,7 +1,7 @@
 /* Fonts are self-hosted (bundled by Vite from node_modules): no request to Google at runtime,
    so no third-party DNS/TLS cost and no layout shift from a late font swap. Variable fonts mean
    one file covers every weight. */
-@import '@fontsource-variable/fredoka';
+@import '@fontsource-variable/plus-jakarta-sans';
 @import '@fontsource-variable/nunito-sans';
 @import './tokens.css';
 

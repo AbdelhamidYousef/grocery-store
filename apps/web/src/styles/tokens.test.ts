@@ -52,7 +52,13 @@ describe('design tokens meet WCAG AA for text', () => {
     ['--color-muted', '--color-surface'],
     ['--color-surface', '--color-primary'], // button label
     ['--color-surface', '--color-primary-hover'],
-    ['--color-ink', '--color-primary-bright'], // big coral fills
+    ['--color-ink', '--color-primary-bright'], // big green fills
+    ['--color-ink', '--color-accent'], // citrus badges
+    ['--color-ink', '--color-accent-soft'],
+    ['--color-primary', '--color-bg'], // green text and links
+    ['--color-primary', '--color-surface'],
+    ['--color-primary', '--color-primary-soft'],
+    ['--color-surface', '--color-primary-strong'],
     ['--color-ink', '--color-primary-soft'],
     ['--color-primary-strong', '--color-bg'], // links
     ['--color-primary-strong', '--color-surface'],

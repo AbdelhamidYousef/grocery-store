@@ -308,10 +308,10 @@ importers:
 
   apps/web:
     dependencies:
-      '@fontsource-variable/fredoka':
+      '@fontsource-variable/nunito-sans':
         specifier: ^5.3.0
         version: 5.3.0
-      '@fontsource-variable/nunito-sans':
+      '@fontsource-variable/plus-jakarta-sans':
         specifier: ^5.3.0
         version: 5.3.0
       '@hookform/resolvers':
@@ -1044,11 +1044,11 @@ packages:
       '@noble/hashes':
         optional: true
 
-  '@fontsource-variable/fredoka@5.3.0':
-    resolution: {integrity: sha512-13w98iw2RcmYfZQRZPLSu+0YJK3HHm5A2XrpU26moFIAePmfiKfvkmEJUgkc8r5GNR+pbDijOueS1KdGAMAWmQ==}
-
   '@fontsource-variable/nunito-sans@5.3.0':
     resolution: {integrity: sha512-Vk1PSfckNDwgw2yGcsvJP3o/0zEW8Rp6KzbD8Ql/6iRHQshnhhAjt+cSIfAUyp5vQuSlleGHFW2LfYaaex0diw==}
+
+  '@fontsource-variable/plus-jakarta-sans@5.3.0':
+    resolution: {integrity: sha512-/l/4r0yyWK9JzAlmA0LiYgGgmJe/Gswt4jTJEzr5QhJfwMbvJZDmYWyW0M4X7yCK69BajMVlV/Lx8g7WDc1+sw==}
 
   '@hookform/resolvers@6.0.2':
     resolution: {integrity: sha512-e2dqUOlaGuirKVOd/iZWk/Yg5zeaGw7t0hSc3LzxL3o7eZGwZkTyEbBL8H52m0wRKEsNLWoMGOiXGHbPHTXlEQ==}
@@ -4884,9 +4884,9 @@ snapshots:
     optionalDependencies:
       '@noble/hashes': 1.8.0
 
-  '@fontsource-variable/fredoka@5.3.0': {}
-
   '@fontsource-variable/nunito-sans@5.3.0': {}
+
+  '@fontsource-variable/plus-jakarta-sans@5.3.0': {}
 
   '@hookform/resolvers@6.0.2(react-hook-form@7.91.0(@types/react@18.3.31)(react@18.3.1))(zod@4.6.7)':
     dependencies:

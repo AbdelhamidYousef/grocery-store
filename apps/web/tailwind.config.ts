@@ -13,6 +13,7 @@ export default {
         surface: 'var(--color-surface)',
         line: 'var(--color-border)',
         star: 'var(--color-star)',
+        accent: { DEFAULT: 'var(--color-accent)', soft: 'var(--color-accent-soft)' },
         primary: {
           DEFAULT: 'var(--color-primary)',
           hover: 'var(--color-primary-hover)',
