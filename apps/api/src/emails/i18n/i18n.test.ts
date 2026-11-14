@@ -85,7 +85,7 @@ describe('order emails in the order language', () => {
     expect(mail.html).toContain('Menge 2');
   });
 
-  it('English keeps the number format of en-DE and the shipped mail follows the same language', () => {
+  it('English keeps the number format of en-IE and the shipped mail follows the same language', () => {
     const mail = orderShipped(order, emailText('de-en'));
     expect(mail.subject).toBe('Your Grocery order PW-2026-000007 is on its way');
     expect(mail.text).toContain('€25.98');

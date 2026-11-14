@@ -151,9 +151,9 @@ test('a buyer reviews with a photo, an admin approves it, others vote and sort',
   const card = buyer.getByTestId('review-card').filter({ hasText: title });
   await expect(card).toBeVisible();
   await expect(card.getByTestId('review-verified')).toBeVisible();
-  await expect(card).toContainText('weighs 12,5 kg');
+  await expect(card).toContainText('weighs 12.5 kg');
   await expect(card.getByTestId('review-photo')).toHaveCount(1);
-  await expect(buyer.getByRole('link', { name: /5,0 \(1 review\)/ })).toBeVisible();
+  await expect(buyer.getByRole('link', { name: /5\.0 \(1 review\)/ })).toBeVisible();
   // Your own review cannot be voted on; a second shopper can, once, and can take it back.
   await buyer.goto(`/products/${product.slug}`);
   await buyer.getByTestId('review-helpful').first().click();

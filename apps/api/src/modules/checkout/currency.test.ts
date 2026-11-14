@@ -81,7 +81,7 @@ describe('cart and checkout in the store currency', () => {
     expect(placed).toMatchObject({
       currency: 'EUR',
       storeView: 'de-en',
-      locale: 'en-DE',
+      locale: 'en-IE',
       subtotalCents: 3000,
       shippingCents: 590,
       totalCents: 3590,

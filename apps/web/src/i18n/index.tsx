@@ -23,7 +23,7 @@ const english = en as Dictionary;
 // The chain for each store: its own words first, then English. en-GB only lists the words that
 // differ from the default English (colour, favourite).
 const CHAINS: Record<string, readonly Partial<Dictionary>[]> = {
-  'en-DE': [english],
+  'en-IE': [english],
   'de-DE': [de, english],
 };
 

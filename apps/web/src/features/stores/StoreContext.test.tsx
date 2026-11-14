@@ -42,7 +42,7 @@ describe('the app under a store prefix', () => {
     renderApp('/de-en/cart');
     expect(await screen.findByRole('heading', { level: 1, name: 'Your cart' })).toBeInTheDocument();
     expect(screen.getByTestId('logo')).toHaveAttribute('href', '/de-en');
-    expect(document.documentElement.lang).toBe('en-DE');
+    expect(document.documentElement.lang).toBe('en-IE');
   });
 
   it('shows the not-found page for an unknown store code', async () => {

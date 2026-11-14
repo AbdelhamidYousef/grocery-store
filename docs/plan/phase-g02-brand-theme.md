@@ -17,7 +17,7 @@ Brand (decided on the owner's behalf, logged REVIEW):
   exclamation marks in system text, "du" in German.
 
 ## Step G2.1: two store views, Berlin only
-- `STORES`: `de-en` (English, `en-DE`) and `de-de` (German), both EUR, shipping to DE only. Remove
+- `STORES`: `de-en` (English, `en-IE`) and `de-de` (German), both EUR, shipping to DE only. Remove
   `eu-en`, `fr-fr`, `uk-en`, the French dictionaries (web and email), `en-gb`, GBP prices in seed,
   admin and tests. Old prefixes redirect to `de-en`.
 - Learn / explain: why removing a language early saves work in every later phase.

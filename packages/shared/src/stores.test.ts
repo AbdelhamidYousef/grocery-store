@@ -24,7 +24,7 @@ describe('store registry', () => {
       expect(Intl.NumberFormat.supportedLocalesOf(store.locale)).toHaveLength(1);
     }
     expect(formatMoney(123456, 'EUR', 'de-DE')).toMatch(/^1\.234,56\s€$/);
-    expect(formatMoney(123456, 'EUR', 'en-DE')).toMatch(/1,234\.56/);
+    expect(formatMoney(123456, 'EUR', 'en-IE')).toMatch(/1,234\.56/);
   });
 
   it('ships every store view to at least one country, as ISO alpha-2 codes', () => {
@@ -36,7 +36,7 @@ describe('store registry', () => {
 
   it('has exactly two store views, English and German, both EUR and shipping to DE', () => {
     expect(STORES.map((s) => [s.code, s.lang, s.locale, s.label, s.currency])).toEqual([
-      ['de-en', 'en', 'en-DE', 'English', 'EUR'],
+      ['de-en', 'en', 'en-IE', 'English', 'EUR'],
       ['de-de', 'de', 'de-DE', 'Deutsch', 'EUR'],
     ]);
     for (const store of STORES) expect(store.shipCountries).toEqual(['DE']);

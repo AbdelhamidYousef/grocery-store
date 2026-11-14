@@ -65,7 +65,7 @@ describe('Seo alternates', () => {
     );
     const alternates = [...document.head.querySelectorAll('link[rel="alternate"][hreflang]')];
     expect(alternates.map((l) => l.getAttribute('hreflang'))).toEqual([
-      'en-DE',
+      'en-IE',
       'de-DE',
       'x-default',
     ]);

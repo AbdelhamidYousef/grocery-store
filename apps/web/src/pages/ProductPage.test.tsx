@@ -343,7 +343,7 @@ describe('product tabs', () => {
     const user = userEvent.setup();
     const router = renderApp('/products/rope-tug#specs');
     const table = await screen.findByTestId('constituents-table');
-    expect(table).toHaveTextContent('26,5 %');
+    expect(table).toHaveTextContent('26.5 %');
     expect(table).toHaveTextContent('365 kcal');
     await user.click(screen.getByRole('radio', { name: /Large/ }));
     expect(screen.getByTestId('constituents-table')).toHaveTextContent('27 %');

@@ -111,14 +111,13 @@ tabs-by-keyboard test.
 ## Phase G2: Brand and theme
 
 ### G2.1: two store views
-The shop now has two store views, `de-en` (English, `en-DE`) and `de-de` (German), both in euros and
+The shop now has two store views, `de-en` (English, `en-IE`) and `de-de` (German), both in euros and
 shipping to Germany only. Gone: the French dictionaries (web and email), `en-GB`, every GBP price, rate
 card and promotion amount in the seed, the admin "Prices" dialog (it only existed to type GBP prices) and
 the currency buttons on the analytics page when there is one currency. The old `/eu-en`, `/uk-en` and
 `/fr-fr` prefixes redirect to the same path under `/de-en`. Migration 0043 changes the `store_view`
 defaults and moves old rows. The currency type narrowed to `'EUR'` on the store view; the engine (per
-currency maps, `variant_prices`) stays generic, with EUR data only. Side effect: English numbers now use
-German separators (`4,6`), because `en-DE` says so. Surprise: a fresh `db:reset` failed on migration 0040
+currency maps, `variant_prices`) stays generic, with EUR data only. The English view uses the locale `en-IE` (euro-zone English: dot decimals, € before the number). Surprise: a fresh `db:reset` failed on migration 0040
 (G1), because Postgres refuses to use an enum value added in the same transaction; fixed with `::text`.
 Learn: removing a language early saves work in every later phase, because each new feature would
 otherwise need its copy, its tests and its seed data four times.
@@ -151,7 +150,7 @@ Gates green: shared 260, web 900, API 1,361 + 2 skipped, e2e 75 + 1 skipped. Hea
 1280 and 375 px: mark crisp, no overflow.
 
 ### Quiz: Phase G2
-1. Why does the English store view use the locale `en-DE` and not `en-GB`, and what visible effect does
+1. Why does the English store view use the locale `en-IE` and not `en-DE`, and what visible effect does
    that have on a number such as 4.6?
 2. A colour pair passes AA when the contrast ratio is at least what, and which two pairs matter most
    for the primary green?

@@ -27,7 +27,7 @@ export interface StoreView {
 export const STORES: readonly StoreView[] = [
   {
     code: 'de-en',
-    locale: 'en-DE',
+    locale: 'en-IE',
     lang: 'en',
     label: 'English',
     currency: 'EUR',

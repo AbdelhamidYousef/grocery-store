@@ -9,10 +9,10 @@ import { ProductBadges } from '../../components/ui/ProductBadges';
 import { SalePrice } from '../../components/ui/SalePrice';
 import { UnitPrice } from '../../components/ui/UnitPrice';
 import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { productSrcSet } from '../../lib/images';
 import { accentForPetAttribute } from '../../lib/pets';
 import { TEST_IDS } from '../../lib/test-ids';
-import { formatRating } from '../reviews/format';
 import { RatingStars } from '../reviews/RatingStars';
 import { WishlistHeart } from '../wishlist/WishlistHeart';
 
@@ -42,6 +42,7 @@ export function ProductCard({
   footer,
 }: ProductCardProps) {
   const { t, tn } = useT();
+  const fmt = useFormat();
   const [preview, setPreview] = useState<string | null>(null);
   const [picked, setPicked] = useState<string | null>(null);
   const active = preview ?? picked;
@@ -102,7 +103,11 @@ export function ProductCard({
               <p className="flex items-center gap-1.5 text-xs text-muted">
                 <RatingStars tenths={product.rating.averageTenths} size="sm" />
                 <span aria-hidden="true">
-                  {formatRating(product.rating.averageTenths)} ({product.rating.count})
+                  {fmt.number(product.rating.averageTenths / 10, {
+                    minimumFractionDigits: 1,
+                    maximumFractionDigits: 1,
+                  })}{' '}
+                  ({product.rating.count})
                 </span>
                 <span className="sr-only">{tn('catalog.card.reviews', product.rating.count)}</span>
               </p>
