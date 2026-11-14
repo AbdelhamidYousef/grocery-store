@@ -82,6 +82,7 @@ Phase 21 resume notes (21.1 to 21.3 done on `feat/phase-21`; continue at 21.4 af
   - Seed: `db/seed/translations/{de,fr}.json` (all seeded products, categories, brands, collections, guides), upserted by `seedTranslations` at the end of the content seed; `pnpm --filter @store/api translations:export <de|fr>` prints what is missing. Admin: `/admin/translations`.
   - Not translated yet and worth a look in 21.10: email templates; the cart/order/checkout API error messages are English and shown through `tm()` only where a `msg.*` key exists.
   - API suite takes about 70 minutes under load on this machine (disk-bound truncates); run single files while iterating. `seed.test.ts` "sales ... idempotent" failed once under load and passed alone (not related to this phase).
+  - KNOWN GAP (hreflang): `<Seo>` alternates still derive every store's URL from one canonical, but categories/products/brands/collections/guides now have per-language slugs, so the `/de-de/...` alternate of an English page carries the English slug (it works: the API resolves any language's slug and the page redirects to the right one). Proper fix: have the detail endpoints return `slugs: {de, fr}` and pass them as the `alternates` override.
   - e2e: `loyalty.spec` and `checkout.spec` restock what they buy (`restock()` in `e2e/helpers.ts`); a new spec that buys a seeded product should do the same.
 
 Phase 19 merge notes (19.7 to 19.12, written at the end of the phase):
