@@ -115,6 +115,24 @@ describe('approving', () => {
   });
 });
 
+describe('a refund made in the Stripe dashboard while the order is held', () => {
+  it('refunds the order, puts the stock back, emits one full event and refuses a later approval', async () => {
+    const held = await heldOrder(app, { quantity: 2, stock: 10 });
+    expect(await stockOf(held.variantId)).toEqual({ quantity: 8, reserved: 0 });
+    expect((await simulate(app, held.number, 'charge.refunded')).status).toBe(200);
+    const order = await orderByNumber(held.number);
+    expect(order).toMatchObject({ status: 'refunded', refundedCents: order.totalCents });
+    expect(await stockOf(held.variantId)).toEqual({ quantity: 10, reserved: 0 });
+    expect(refunds).toHaveLength(1);
+    expect(refunds[0]).toMatchObject({ full: true, amountCents: order.totalCents });
+    // A redelivery changes nothing, and the held order can no longer be approved and shipped.
+    await simulate(app, held.number, 'charge.refunded');
+    expect(refunds).toHaveLength(1);
+    expect((await act(held.number, 'approve')).status).toBe(409);
+    expect((await orderByNumber(held.number)).status).toBe('refunded');
+  });
+});
+
 describe('rejecting', () => {
   it('needs a reason, cancels the order, restocks, refunds in full and emits both events', async () => {
     const held = await heldOrder(app, { quantity: 2, stock: 10 });

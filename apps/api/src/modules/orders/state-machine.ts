@@ -29,7 +29,7 @@ export const TRANSITIONS: Readonly<Record<OrderStatus, readonly OrderStatus[]>> 
 export const PROVIDER_ONLY_TRANSITIONS: Readonly<Record<OrderStatus, readonly OrderStatus[]>> = {
   pending_payment: [],
   paid: [],
-  awaiting_vet_approval: [],
+  awaiting_vet_approval: ['refunded'],
   processing: ['refunded'],
   shipped: ['refunded'],
   delivered: [],
