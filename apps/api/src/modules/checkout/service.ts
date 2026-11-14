@@ -117,9 +117,19 @@ async function reserveAndSave(
     // The free gift's stock row joins the same ordered lock set, so gift and lines are locked in
     // one variant-id order (no deadlock with another checkout holding the gift in its cart).
     const giftVariantId = await promotionsRepo.activeGiftVariantId(tx);
+    const toHold = await repo.expandBundles(
+      tx,
+      lines.map((l) => ({ variantId: l.variantId, quantity: l.quantity })),
+    );
+    const toRelease = await repo.expandBundles(
+      tx,
+      pendingItems.flatMap((i) =>
+        i.variantId === null ? [] : [{ variantId: i.variantId, quantity: i.quantity }],
+      ),
+    );
     const variantIds = [
-      ...lines.map((l) => l.variantId),
-      ...pendingItems.flatMap((i) => (i.variantId === null ? [] : [i.variantId])),
+      ...toHold.map((l) => l.variantId),
+      ...toRelease.map((l) => l.variantId),
       ...(giftVariantId ? [giftVariantId] : []),
     ];
     await repo.lockInventory(tx, [...new Set(variantIds)]);
@@ -200,7 +210,11 @@ async function reserveAndSave(
 
     // Variant-id order again for the writes (locks are already held, but one order everywhere is
     // easier to reason about).
-    for (const item of [...cart.items].sort((a, b) => a.variantId.localeCompare(b.variantId))) {
+    const held = await repo.expandBundles(
+      tx,
+      cart.items.map((i) => ({ variantId: i.variantId, quantity: i.quantity })),
+    );
+    for (const item of held.sort((a, b) => a.variantId.localeCompare(b.variantId))) {
       if (!(await repo.reserveStock(tx, item.variantId, item.quantity))) {
         // Unreachable while the locks hold; refuses instead of overselling if that ever changes.
         throw conflict(ErrorCode.OUT_OF_STOCK, 'An item just sold out', {

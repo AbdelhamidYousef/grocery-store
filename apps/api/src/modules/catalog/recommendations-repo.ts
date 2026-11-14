@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, inArray, ne, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 
+import { stockQuantity, stockReserved } from '../../db/available.ts';
 import { db } from '../../db/client.ts';
 import {
   inventory,
@@ -126,7 +127,7 @@ export async function sellableVariants(
         inArray(productVariants.productId, productIds),
         eq(productVariants.status, 'active'),
         eq(productVariants.isTrial, false),
-        sql`coalesce(${inventory.quantity} - ${inventory.reserved}, 0) > 0`,
+        sql`coalesce(${stockQuantity(productVariants.id)} - ${stockReserved(productVariants.id)}, 0) > 0`,
       ),
     )
     .orderBy(

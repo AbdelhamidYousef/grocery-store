@@ -27,6 +27,7 @@ import {
 } from '../schema/index.ts';
 
 import { HOUSE_BRAND, brands } from './brands.ts';
+import { seedBundles } from './bundles.ts';
 import { categories } from './categories.ts';
 import { collections, windowDates } from './collections.ts';
 import { loadContent, seedContent } from './content.ts';
@@ -394,6 +395,9 @@ export async function runSeed(now = new Date()) {
         })
         .where(eq(productsTable.id, id));
     }
+
+    // ---- kits (phase 16): built from the seeded products above ----
+    await seedBundles(tx);
 
     // ---- guides, help articles, testimonials (after products: guides link to them) ----
     await seedContent(tx, content, productId);

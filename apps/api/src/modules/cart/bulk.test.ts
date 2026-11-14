@@ -27,7 +27,8 @@ describe('POST /cart/items/bulk', () => {
     });
     expect(res.status).toBe(200);
     const cart = bodyOf<{ data: Cart }>(res).data;
-    expect(cart.items.map((i) => [i.quantity])).toEqual([[2], [1]]);
+    // The lines of one bulk add share a created_at, so their order is by id: compare as a set.
+    expect(cart.items.map((i) => i.quantity).sort()).toEqual([1, 2]);
     expect(cart.subtotalCents).toBe(4500);
   });
 

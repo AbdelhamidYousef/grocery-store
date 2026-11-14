@@ -13,6 +13,7 @@ import {
   type ProductCard,
   type ProductListQuery,
   type ProductListResponse,
+  bundleSavingCents,
 } from '@store/shared';
 
 import { db } from '../../db/client.ts';
@@ -25,6 +26,7 @@ import {
 import { noticesForVariants } from '../safety/service.ts';
 
 import { getBadgeIndex, type BadgeIndex } from './badge-index.ts';
+import * as bundlesRepo from './bundles-repo.ts';
 import * as repo from './repo.ts';
 
 function toCategory(row: repo.CategoryRow, productCount = row.productCount): Category {
@@ -411,5 +413,47 @@ export async function getProduct(slug: string, viewer: Viewer = GUEST): Promise<
       tip: rows.sizeGuide.tip,
     },
     deliveryNote: rows.deliveryNote,
+    ...(await bundleFields(rows.product.id, rows.variants)),
+  };
+}
+
+// A kit's own page lists what is inside; a component's page lists the kits it is part of. Both are
+// derived from bundle_items, so neither can disagree with what checkout actually reserves.
+async function bundleFields(productId: string, variants: { id: string; priceCents: number }[]) {
+  const variantIds = variants.map((v) => v.id);
+  const kits = await bundlesRepo.listKitsContaining(productId);
+  const lines = await bundlesRepo.listBundleLines([...variantIds, ...kits.map((k) => k.variantId)]);
+  const partsOf = (bundleVariantId: string) =>
+    lines
+      .filter((l) => l.bundleVariantId === bundleVariantId)
+      .map(({ bundleVariantId: _drop, componentVariantId, ...l }) => ({
+        variantId: componentVariantId,
+        ...l,
+      }));
+  const own = variants.find((v) => lines.some((l) => l.bundleVariantId === v.id));
+  const ownParts = own ? partsOf(own.id) : [];
+  return {
+    bundle:
+      own && ownParts.length > 0
+        ? {
+            variantId: own.id,
+            components: ownParts,
+            ...bundleSavingCents(own.priceCents, ownParts),
+          }
+        : null,
+    kits: kits.map((k) => {
+      const parts = partsOf(k.variantId);
+      return {
+        slug: k.slug,
+        name: k.name,
+        variantId: k.variantId,
+        priceCents: k.priceCents,
+        ...bundleSavingCents(k.priceCents, parts),
+        available: k.available,
+        contents: parts
+          .map((p) => (p.qty > 1 ? `${p.qty} x ${p.productName}` : p.productName))
+          .join(', '),
+      };
+    }),
   };
 }

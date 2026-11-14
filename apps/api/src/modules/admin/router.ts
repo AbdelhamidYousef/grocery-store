@@ -9,6 +9,7 @@ import { createPromotionsAdminRouter } from '../promotions/admin-router.ts';
 import { createSafetyAdminRouter } from '../safety/admin-router.ts';
 
 import { auditMutations } from './audit.ts';
+import { createBundlesAdminRouter } from './bundles/router.ts';
 import { createAdminContentRouter } from './content/router.ts';
 import { createAdminOrdersRouter } from './orders/router.ts';
 import { createPdpAdminRouter } from './pdp/router.ts';
@@ -27,6 +28,7 @@ export function createAdminRouter(deps: { payments: PaymentGateway; outbox: Outb
   admin.use(createStatsRouter());
   admin.use(createProductsRouter());
   admin.use(createPdpAdminRouter());
+  admin.use(createBundlesAdminRouter());
   admin.use(createMerchandisingAdminRouter());
   admin.use(createAdminOrdersRouter(deps));
   admin.use(createSafetyAdminRouter(deps));

@@ -1,5 +1,6 @@
-import { and, asc, eq, gt, inArray, isNull } from 'drizzle-orm';
+import { and, asc, eq, gt, inArray, isNull, sql } from 'drizzle-orm';
 
+import { stockQuantity, stockReserved } from '../../db/available.ts';
 import { db, type Tx } from '../../db/client.ts';
 import {
   cartItems,
@@ -92,6 +93,8 @@ export type LineRow = {
   currency: string;
   weightGrams: number;
   isTrial: boolean;
+  // A kit: priced as a fixed price (no sale/member price, no order discounts or codes).
+  isBundle: boolean;
   variantStatus: 'draft' | 'active' | 'archived';
   productId: string;
   productName: string;
@@ -117,13 +120,14 @@ export async function listLines(tx: Tx, cartId: string): Promise<LineRow[]> {
         currency: productVariants.currency,
         weightGrams: productVariants.weightGrams,
         isTrial: productVariants.isTrial,
+        isBundle: sql<boolean>`exists (select 1 from bundle_items where bundle_variant_id = ${productVariants.id})`,
         variantStatus: productVariants.status,
         productId: products.id,
         productName: products.name,
         productSlug: products.slug,
         productStatus: products.status,
-        stock: inventory.quantity,
-        reserved: inventory.reserved,
+        stock: stockQuantity(productVariants.id),
+        reserved: stockReserved(productVariants.id),
       })
       .from(cartItems)
       .innerJoin(productVariants, eq(productVariants.id, cartItems.variantId))
@@ -222,8 +226,8 @@ export async function findPurchasable(
 ): Promise<{ available: number; priceCents: number; isTrial: boolean } | undefined> {
   const [row] = await tx
     .select({
-      stock: inventory.quantity,
-      reserved: inventory.reserved,
+      stock: stockQuantity(productVariants.id),
+      reserved: stockReserved(productVariants.id),
       priceCents: productVariants.priceCents,
       isTrial: productVariants.isTrial,
     })

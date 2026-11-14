@@ -10,16 +10,20 @@ interface HeldLine {
   quantity: number;
 }
 
-const heldIds = (lines: HeldLine[]): string[] =>
-  lines.flatMap((l) => (l.variantId === null ? [] : [l.variantId]));
-
 // Gives reserved units back to the shelf. Locks first (ordered, see `lockInventory`) so that a
 // release can never deadlock with a checkout placing another order.
 export async function releaseReservations(tx: Tx, lines: HeldLine[]): Promise<void> {
-  await repo.lockInventory(tx, heldIds(lines));
-  for (const line of lines) {
-    if (line.variantId !== null) await repo.releaseStock(tx, line.variantId, line.quantity);
-  }
+  const held = await repo.expandBundles(
+    tx,
+    lines.flatMap((l) =>
+      l.variantId === null ? [] : [{ variantId: l.variantId, quantity: l.quantity }],
+    ),
+  );
+  await repo.lockInventory(
+    tx,
+    held.map((l) => l.variantId),
+  );
+  for (const line of held) await repo.releaseStock(tx, line.variantId, line.quantity);
 }
 
 // Cancels an order that is still waiting for payment and returns its stock. It is the single

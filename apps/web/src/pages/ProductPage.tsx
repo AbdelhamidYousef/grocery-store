@@ -19,6 +19,7 @@ import { AddToCart } from '../features/catalog/AddToCart';
 import { formatFacetValue } from '../features/catalog/filters';
 import { Gallery } from '../features/catalog/Gallery';
 import { BoughtTogether } from '../features/catalog/pdp/BoughtTogether';
+import { BundlePanel, KitsBlock } from '../features/catalog/pdp/BundlePanel';
 import { DeliveryEstimate } from '../features/catalog/pdp/DeliveryEstimate';
 import { faqJsonLd } from '../features/catalog/pdp/FaqAccordion';
 import { ProductTabs } from '../features/catalog/pdp/ProductTabs';
@@ -218,6 +219,10 @@ function ProductView({ product }: { product: ProductDetail }) {
 
             {product.sizeGuide && <SizeGuideButton guide={product.sizeGuide} variant={variant} />}
 
+            {product.bundle && (
+              <BundlePanel bundle={product.bundle} currency={product.price.currency} />
+            )}
+
             {variant && (
               <p className="text-sm text-muted" data-testid="variant-sku">
                 SKU {variant.sku} ·{' '}
@@ -269,6 +274,7 @@ function ProductView({ product }: { product: ProductDetail }) {
             </dl>
           }
         />
+        <KitsBlock kits={product.kits} currency={product.price.currency} />
         <BoughtTogether productSlug={product.slug} productName={product.name} variant={variant} />
         <RelatedStrip productSlug={product.slug} />
         <RecentlyViewed excludeId={product.id} />

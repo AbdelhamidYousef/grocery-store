@@ -2,6 +2,7 @@ import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 
 import { db, type Tx } from '../../db/client.ts';
 import {
+  bundleItems,
   inventory,
   orderItems,
   orderStatusHistory,
@@ -31,6 +32,46 @@ export async function findActiveShippingMethod(code: string, run: Db = db) {
 export type OrderRow = typeof orders.$inferSelect;
 export type OrderItemRow = typeof orderItems.$inferSelect;
 export type PaymentRow = typeof payments.$inferSelect;
+
+// ---------- bundles ----------
+
+export interface StockLine {
+  variantId: string;
+  quantity: number;
+}
+
+// A kit holds no stock of its own: selling one reserves, commits, releases and restocks its
+// COMPONENTS. This is the single expansion every stock path goes through (checkout, release,
+// payment, cancel/refund; later pickup and returns reuse it). Lines of the same variant are
+// merged, so a component that is also in the cart on its own is touched once. Kits cannot nest
+// (admin validation), so one level is enough.
+export async function expandBundles(run: Db, lines: StockLine[]): Promise<StockLine[]> {
+  if (lines.length === 0) return [];
+  const parts = await run
+    .select()
+    .from(bundleItems)
+    .where(
+      inArray(
+        bundleItems.bundleVariantId,
+        lines.map((l) => l.variantId),
+      ),
+    );
+  const byBundle = new Map<string, { variantId: string; qty: number }[]>();
+  for (const p of parts) {
+    const list = byBundle.get(p.bundleVariantId) ?? [];
+    list.push({ variantId: p.componentVariantId, qty: p.qty });
+    byBundle.set(p.bundleVariantId, list);
+  }
+  const merged = new Map<string, number>();
+  const add = (variantId: string, quantity: number) =>
+    merged.set(variantId, (merged.get(variantId) ?? 0) + quantity);
+  for (const line of lines) {
+    const components = byBundle.get(line.variantId);
+    if (!components) add(line.variantId, line.quantity);
+    else for (const c of components) add(c.variantId, c.qty * line.quantity);
+  }
+  return [...merged].map(([variantId, quantity]) => ({ variantId, quantity }));
+}
 
 // Takes the row locks on stock in ONE statement, in variant-id order. Two checkouts that touch the
 // same two variants then always queue on the lower id first, so neither can hold B while waiting

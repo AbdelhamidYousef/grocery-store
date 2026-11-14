@@ -4,6 +4,7 @@ import { BADGES, BADGE_SLUGS } from '../badges.ts';
 import { FeedingRowSchema } from '../feeding.ts';
 import { NetUnitSchema } from '../pets.ts';
 
+import { BundleDetailSchema, KitTeaserSchema } from './bundles.ts';
 import { PaginatedSchema, PaginationQuerySchema, DataSchema } from './common.ts';
 import { ConstituentSchema, FaqSchema, SizeGuideSchema, SpecSchema } from './pdp.ts';
 import { MemberOfferSchema, SaleOfferSchema } from './promotions.ts';
@@ -205,6 +206,10 @@ export const ProductDetailSchema = z.object({
   feedingTable: z.array(FeedingRowSchema),
   sizeGuide: SizeGuideSchema.nullable(),
   deliveryNote: z.string().nullable(),
+  // Set on a kit's own page (what is inside, what it saves); null for an ordinary product.
+  bundle: BundleDetailSchema.nullable(),
+  // Kits this product is part of ("Make it a kit"); empty for most products.
+  kits: z.array(KitTeaserSchema),
 });
 export type ProductDetail = z.infer<typeof ProductDetailSchema>;
 export const ProductDetailResponseSchema = DataSchema(ProductDetailSchema);

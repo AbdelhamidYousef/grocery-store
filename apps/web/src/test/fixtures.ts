@@ -202,6 +202,8 @@ export function makeProduct(overrides: Partial<ProductDetail> = {}): ProductDeta
     feedingTable: [],
     sizeGuide: null,
     deliveryNote: null,
+    bundle: null,
+    kits: [],
     ...overrides,
   };
 }

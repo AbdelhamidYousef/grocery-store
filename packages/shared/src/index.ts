@@ -8,6 +8,7 @@ export * from './schemas/index.ts';
 export * from './badges.ts';
 export * from './gift-quiz.ts';
 export * from './quick-chips.ts';
+export * from './bundles.ts';
 export * from './order-status.ts';
 export * from './unit-price.ts';
 export * from './pricing/index.ts';

@@ -5,6 +5,7 @@ export * from './admin-pdp.ts';
 export * from './admin-promotions.ts';
 export * from './admin.ts';
 export * from './auth.ts';
+export * from './bundles.ts';
 export * from './cart.ts';
 export * from './catalog.ts';
 export * from './checkout.ts';

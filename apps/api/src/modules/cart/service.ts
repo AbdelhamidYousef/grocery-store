@@ -125,7 +125,8 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
         productId: line.productId,
         quantity,
         unitPriceCents: line.priceCents,
-        isTrial: line.isTrial,
+        // Trial sizes and kits both price at their own fixed price.
+        isTrial: line.isTrial || line.isBundle,
       });
       weightGrams += line.weightGrams * quantity;
     }

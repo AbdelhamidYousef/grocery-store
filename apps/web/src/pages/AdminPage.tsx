@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { Seo } from '../components/Seo';
 import { AdminLayout } from '../features/admin/AdminLayout';
 import { BrandsAdmin } from '../features/admin/BrandsAdmin';
+import { BundlesAdmin } from '../features/admin/bundles/BundlesAdmin';
 import { CollectionsAdmin } from '../features/admin/CollectionsAdmin';
 import { GuideEdit } from '../features/admin/content/GuideEdit';
 import { GuidesList } from '../features/admin/content/GuidesList';
@@ -45,6 +46,7 @@ export default function AdminPage() {
         <Route path="tags" element={<TagsAdmin />} />
         <Route path="navigation" element={<NavigationAdmin />} />
         <Route path="size-guides" element={<SizeGuidesAdmin />} />
+        <Route path="bundles" element={<BundlesAdmin />} />
         <Route path="guides" element={<GuidesList />} />
         <Route path="guides/new" element={<GuideEdit />} />
         <Route path="guides/:id" element={<GuideEdit />} />

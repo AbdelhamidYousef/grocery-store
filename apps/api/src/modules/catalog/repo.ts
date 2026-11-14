@@ -15,6 +15,7 @@ import {
   type SQL,
 } from 'drizzle-orm';
 
+import { stockQuantity, stockReserved } from '../../db/available.ts';
 import { db } from '../../db/client.ts';
 import {
   brands,
@@ -154,7 +155,7 @@ export function variantSummary() {
         'unit_per',
       ),
       inStock:
-        sql<boolean>`coalesce(bool_or(${inventory.quantity} - ${inventory.reserved} > 0), false)`.as(
+        sql<boolean>`coalesce(bool_or(${stockQuantity(productVariants.id)} - ${stockReserved(productVariants.id)} > 0), false)`.as(
           'in_stock',
         ),
     })
@@ -607,8 +608,8 @@ export async function getProductBySlug(slug: string): Promise<ProductDetailRows 
         isTrial: productVariants.isTrial,
         swatchHex: productVariants.swatchHex,
         // A variant row without an inventory row is treated as zero stock.
-        quantity: sql<number>`coalesce(${inventory.quantity}, 0)`,
-        reserved: sql<number>`coalesce(${inventory.reserved}, 0)`,
+        quantity: sql<number>`coalesce(${stockQuantity(productVariants.id)}, 0)`,
+        reserved: sql<number>`coalesce(${stockReserved(productVariants.id)}, 0)`,
         lowStockThreshold: sql<number>`coalesce(${inventory.lowStockThreshold}, 0)`,
       })
       .from(productVariants)
@@ -799,7 +800,7 @@ export async function listBadgeFacts(): Promise<BadgeFactRow[]> {
         priceCents: productVariants.priceCents,
         compareAtPriceCents: productVariants.compareAtPriceCents,
         isDefault: productVariants.isDefault,
-        availableUnits: sql<number>`coalesce(${inventory.quantity} - ${inventory.reserved}, 0)`,
+        availableUnits: sql<number>`coalesce(${stockQuantity(productVariants.id)} - ${stockReserved(productVariants.id)}, 0)`,
         lowStockThreshold: sql<number>`coalesce(${inventory.lowStockThreshold}, 0)`,
       })
       .from(productVariants)
