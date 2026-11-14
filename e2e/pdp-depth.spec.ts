@@ -1,0 +1,97 @@
+import { expect, test } from '@playwright/test';
+
+// Needs the seeded dev database: Soft Training Bites (feeding table, sizes), the Everyday Webbing
+// Collar (size guide) and the three seeded kits (the Fetch & Tug Play Kit has plenty of stock).
+
+test('food page: tabs by keyboard, feeding calculator and the suggested bag', async ({ page }) => {
+  await page.goto('/products/soft-training-bites');
+  const tabs = page.getByTestId('product-tabs');
+  const description = tabs.getByRole('tab', { name: 'Description' });
+  await description.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(tabs.getByRole('tab', { name: 'Specs' })).toBeFocused();
+  await page.keyboard.press('ArrowRight');
+  await expect(tabs.getByRole('tab', { name: 'Feeding guide' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await expect(page).toHaveURL(/#feeding/);
+  await page.keyboard.press('End');
+  await expect(tabs.getByRole('tab', { name: 'Delivery & returns' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await page.keyboard.press('Home');
+  await expect(description).toHaveAttribute('aria-selected', 'true');
+
+  // The calculator: a typed weight gives a daily amount in words, and the suggested bag size
+  // becomes the selected variant.
+  await tabs.getByRole('tab', { name: 'Feeding guide' }).click();
+  const calc = page.getByTestId('feeding-calculator');
+  await calc.getByTestId('feeding-weight').fill('10');
+  await expect(calc.getByTestId('feeding-daily')).toContainText(
+    /About \d+ g a day, two meals of \d+ g/,
+  );
+  const pick = calc.getByTestId('feeding-pick-month');
+  await expect(pick).toBeVisible();
+  const skuBefore = await page.getByTestId('variant-sku').innerText();
+  await pick.click();
+  await expect(page.getByTestId('variant-sku')).not.toHaveText(skuBefore);
+});
+
+test('size guide opens on a harness-type product, highlights the size and returns focus', async ({
+  page,
+}) => {
+  await page.goto('/products/everyday-webbing-collar');
+  const button = page.getByTestId('size-guide-button');
+  await button.click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByTestId('size-guide')).toBeVisible();
+  await expect(dialog.getByTestId('size-guide-tip')).toContainText('Size up');
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+  await expect(button).toBeFocused();
+});
+
+test('a kit: what is inside, the saving, add to cart; and the kit offer on a part', async ({
+  page,
+}) => {
+  await page.goto('/products/fetch-play-kit');
+  const panel = page.getByTestId('bundle-panel');
+  await expect(panel).toBeVisible();
+  await expect(panel.getByRole('link')).toHaveCount(3);
+  await expect(page.getByTestId('bundle-saving')).toContainText(/Save €\d+\.\d\d vs individually/);
+  await page.getByTestId('add-to-cart').click();
+  await expect(page.getByTestId('cart-count')).toHaveText('1');
+
+  await panel.getByRole('link', { name: /Braided Tug Rope/ }).click();
+  await expect(page).toHaveURL(/\/products\/braided-tug-rope/);
+  const kits = page.getByTestId('kits-block');
+  await expect(kits).toBeVisible();
+  await expect(kits.getByRole('link', { name: 'Fetch & Tug Play Kit' })).toBeVisible();
+});
+
+test('bought together: Add all puts the chosen items in the cart; delivery text; recently viewed', async ({
+  page,
+}) => {
+  await page.goto('/products/braided-tug-rope');
+  const block = page.getByTestId('bought-together');
+  await expect(block).toBeVisible();
+  const count = await block.getByTestId('bought-together-option').count();
+  await block.getByTestId('bought-together-add').click();
+  await expect(page.getByTestId('cart-count')).toHaveText(String(count + 1));
+
+  // The delivery estimate: the sentence and the zone it is stated in.
+  const delivery = page.getByTestId('delivery-estimate');
+  await expect(delivery).toBeVisible();
+  await expect(delivery).toContainText(/arrives \w{3} \d{1,2} \w{3}/);
+  await expect(delivery).toContainText(/Cutoff 15:00 (CET|CEST)/);
+
+  // Recently viewed: visit another product, come back, and the first one is in the strip.
+  await page.goto('/products/bouncy-rubber-ball');
+  await page.reload();
+  const strip = page.getByTestId('recently-viewed');
+  await expect(strip).toBeVisible();
+  await expect(strip.getByRole('link', { name: /Braided Tug Rope/ }).first()).toBeVisible();
+});

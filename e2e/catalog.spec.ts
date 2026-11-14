@@ -37,12 +37,12 @@ test('browse: home, category, filter by material, open a product, change variant
 
   // Change the size: the choice is written to the URL and the price follows the variant.
   const picker = page.getByTestId('variant-picker');
-  const priceBefore = await page.getByTestId('price-current').innerText();
+  const priceBefore = await page.getByTestId('price-current').first().innerText();
   await expect(picker.getByRole('radio', { name: 'Small' })).toBeChecked();
   await picker.locator('label', { hasText: 'Large' }).click();
   await expect(page).toHaveURL(/\?variant=PW-[A-Z0-9-]+-L$/);
   await expect(picker.getByRole('radio', { name: 'Large' })).toBeChecked();
-  await expect(page.getByTestId('price-current')).not.toHaveText(priceBefore);
+  await expect(page.getByTestId('price-current').first()).not.toHaveText(priceBefore);
 
   // A shared link opens the exact variant.
   const url = page.url();
