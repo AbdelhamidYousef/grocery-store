@@ -4,10 +4,11 @@ import type {
   PaymentGateway,
   PaymentIntentInfo,
   RefundInfo,
+  RefundRecord,
   StripeEvent,
 } from '../lib/stripe.ts';
 
-type Method = 'create' | 'update' | 'retrieve' | 'cancel' | 'refund';
+type Method = 'create' | 'update' | 'retrieve' | 'cancel' | 'refund' | 'list_refunds';
 
 // An in-memory PaymentGateway for the order, stock, totals and idempotency tests. It reproduces the
 // one Stripe behaviour those tests lean on (the same idempotency key returns the same intent) and
@@ -23,6 +24,7 @@ export class FakeStripe implements PaymentGateway {
   readonly refunded: string[] = [];
   // One answer per idempotency key: replaying a key returns the first refund and moves no money.
   private refundsByKey = new Map<string, RefundInfo>();
+  private records = new Map<string, RefundRecord[]>();
   private refundedCentsByIntent = new Map<string, number>();
   private failures: Method[] = [];
   private counter = 0;
@@ -40,6 +42,11 @@ export class FakeStripe implements PaymentGateway {
   /** Cents refunded so far on an intent, across every distinct idempotency key. */
   refundedCents(id: string): number {
     return this.refundedCentsByIntent.get(id) ?? 0;
+  }
+
+  /** Stripe forgets idempotency keys after 24 h: after this, a replayed key is a brand new refund. */
+  expireIdempotencyKeys(): void {
+    this.refundsByKey.clear();
   }
 
   callsTo(method: Method) {
@@ -126,6 +133,7 @@ export class FakeStripe implements PaymentGateway {
     id: string,
     idempotencyKey: string,
     amountCents?: number,
+    metadata: Record<string, string> = {},
   ): Promise<RefundInfo> {
     return Promise.resolve().then(() => {
       this.enter('refund', id, idempotencyKey, amountCents);
@@ -143,7 +151,19 @@ export class FakeStripe implements PaymentGateway {
       this.refunded.push(id);
       const info = { id: `re_fake_${this.refunded.length}`, status: 'succeeded' };
       this.refundsByKey.set(idempotencyKey, info);
+      this.records.set(id, [
+        ...(this.records.get(id) ?? []),
+        { ...info, amountCents: amount, metadata },
+      ]);
       return info;
+    });
+  }
+
+  listRefunds(paymentIntentId: string): Promise<RefundRecord[]> {
+    return Promise.resolve().then(() => {
+      this.enter('list_refunds', paymentIntentId);
+      this.require(paymentIntentId);
+      return [...(this.records.get(paymentIntentId) ?? [])].reverse();
     });
   }
 

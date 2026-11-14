@@ -53,6 +53,13 @@ export interface RefundInfo {
   status: string;
 }
 
+// A refund as the provider lists it: enough to recognise one of ours after a crash.
+export interface RefundRecord extends RefundInfo {
+  amountCents: number;
+  /** What we attached when creating it (`return_id` for a return's refund). */
+  metadata: Record<string, string>;
+}
+
 export interface PaymentGateway {
   createPaymentIntent(input: CreatePaymentIntentInput): Promise<PaymentIntentInfo>;
   // Changing the amount of a not-yet-paid intent (the shopper edited their cart before paying).
@@ -64,11 +71,16 @@ export interface PaymentGateway {
   // refund, used by returns). Idempotent per key, and an already-refunded intent is an answer
   // ("done"), not a failure, so a retry after a timeout is always safe. Asking for more than is
   // left to refund is a provider error (502), never silently clamped.
+  // `metadata` is stored on the refund so it can be found again (see listRefunds): Stripe forgets
+  // an idempotency key after 24 h, so the key alone cannot protect a retry made days later.
   refundPaymentIntent(
     id: string,
     idempotencyKey: string,
     amountCents?: number,
+    metadata?: Record<string, string>,
   ): Promise<RefundInfo>;
+  // The refunds of one payment intent, newest first (up to 100: far more than a store's orders).
+  listRefunds(paymentIntentId: string): Promise<RefundRecord[]>;
   /** `rawBody` must be the exact bytes Stripe sent: the signature covers them, not the JSON. */
   constructWebhookEvent(rawBody: Buffer, signature: string | undefined): StripeEvent;
 }
@@ -160,13 +172,28 @@ export function createStripeGateway(options: StripeGatewayOptions): PaymentGatew
         }
       }),
 
-    refundPaymentIntent: (id, idempotencyKey, amountCents) =>
+    listRefunds: (paymentIntentId) =>
+      call(async () => {
+        const list = await stripe.refunds.list({ payment_intent: paymentIntentId, limit: 100 });
+        return list.data.map((r) => ({
+          id: r.id,
+          status: r.status ?? 'pending',
+          amountCents: r.amount,
+          metadata: { ...(r.metadata ?? {}) },
+        }));
+      }),
+
+    refundPaymentIntent: (id, idempotencyKey, amountCents, metadata) =>
       call(async () => {
         try {
           // Stripe's `amount` is in the currency's smallest unit (cents), like ours. Left out, the
           // refund covers whatever is still refundable on the charge.
           const refund = await stripe.refunds.create(
-            { payment_intent: id, ...(amountCents !== undefined && { amount: amountCents }) },
+            {
+              payment_intent: id,
+              ...(amountCents !== undefined && { amount: amountCents }),
+              ...(metadata && { metadata }),
+            },
             { idempotencyKey },
           );
           return { id: refund.id, status: refund.status ?? 'pending' };
@@ -203,6 +230,7 @@ export function createUnconfiguredGateway(): PaymentGateway {
     retrievePaymentIntent: reject,
     cancelPaymentIntent: reject,
     refundPaymentIntent: reject,
+    listRefunds: reject,
     constructWebhookEvent: () => {
       throw error();
     },

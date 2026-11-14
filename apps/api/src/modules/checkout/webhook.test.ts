@@ -39,6 +39,7 @@ function gatewayWithRealSignatures(stripe: FakeStripe): PaymentGateway {
     retrievePaymentIntent: (id) => stripe.retrievePaymentIntent(id),
     cancelPaymentIntent: (id) => stripe.cancelPaymentIntent(id),
     refundPaymentIntent: (id, key) => stripe.refundPaymentIntent(id, key),
+    listRefunds: (id) => stripe.listRefunds(id),
     constructWebhookEvent: (body, sig) => real.constructWebhookEvent(body, sig),
   };
 }

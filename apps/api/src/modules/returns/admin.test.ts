@@ -302,6 +302,28 @@ describe('admin returns: refund safety', () => {
     expect((await orderByNumber(o.number)).status).toBe('delivered');
   });
 
+  it('a retry after the idempotency key expired finds the refund by its return id instead of refunding twice', async () => {
+    const { id, intent } = await receivedReturn();
+    const real = fake.refundPaymentIntent.bind(fake);
+    const spy = vi
+      .spyOn(fake, 'refundPaymentIntent')
+      .mockImplementationOnce(async (...args: Parameters<typeof real>) => {
+        await real(...args);
+        throw new Error('crashed before step 3');
+      });
+    expect((await act(id, 'refund')).status).toBe(500);
+    spy.mockRestore();
+    expect(fake.refundedCents(intent)).toBe(1000);
+    fake.expireIdempotencyKeys(); // a day later
+    expect((await act(id, 'refund')).status).toBe(200);
+    expect(fake.refundedCents(intent)).toBe(1000);
+    const [row] = await db.select().from(returns).where(eq(returns.id, id));
+    const listed = await fake.listRefunds(intent);
+    expect(listed).toHaveLength(1);
+    expect(row).toMatchObject({ status: 'refunded', providerRefundId: listed[0]!.id });
+    expect(events).toHaveLength(1);
+  });
+
   it('freezes the shipping choice once the intent exists', async () => {
     const { id } = await receivedReturn();
     fake.failNext('refund');

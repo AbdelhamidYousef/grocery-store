@@ -187,7 +187,8 @@ export async function receive(
 //   1. INTENT, in a transaction: freeze the amount (lines, plus shipping if ticked) and stamp
 //      `refund_intent_at`. From here the key `return-<id>` always means this exact refund.
 //   2. GATEWAY, outside any transaction (a network call must not hold row locks): refund that
-//      amount with the idempotency key. If we die after this, the money moved but the return still
+//      amount with the idempotency key, after checking the provider's own list for a refund that
+//      already carries this return's id (keys expire after 24 h; the id never does). If we die after this, the money moved but the return still
 //      says `received`.
 //   3. MARK, in a transaction: status `refunded`, the provider's refund id, the event, the email,
 //      and the order itself becomes `refunded` if every paid line is now fully back.
@@ -283,12 +284,22 @@ export async function refund(
     if (!payment?.providerPaymentIntentId) {
       throw conflict(ErrorCode.CONFLICT, 'This order has no payment to refund');
     }
-    const info = await deps.gateway.refundPaymentIntent(
-      payment.providerPaymentIntentId,
-      `return-${ret.id}`,
-      ret.refundCents,
+    // Stripe forgets the idempotency key after 24 h, so a retry made days after a crash between
+    // step 2 and step 3 could refund again. Our refund carries the return's id: look for it first.
+    const already = (await deps.gateway.listRefunds(payment.providerPaymentIntentId)).find(
+      (r) => r.metadata.return_id === ret.id && r.status !== 'failed' && r.status !== 'canceled',
     );
-    providerRefundId = info.id;
+    if (already) {
+      providerRefundId = already.id;
+    } else {
+      const info = await deps.gateway.refundPaymentIntent(
+        payment.providerPaymentIntentId,
+        `return-${ret.id}`,
+        ret.refundCents,
+        { return_id: ret.id },
+      );
+      providerRefundId = info.id;
+    }
   }
 
   // 3. mark

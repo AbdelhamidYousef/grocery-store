@@ -18,7 +18,7 @@ const sdk = vi.hoisted(() => {
   return {
     StripeError,
     paymentIntents: { create: vi.fn(), update: vi.fn(), retrieve: vi.fn(), cancel: vi.fn() },
-    refunds: { create: vi.fn() },
+    refunds: { create: vi.fn(), list: vi.fn() },
   };
 });
 
@@ -150,6 +150,25 @@ describe('refundPaymentIntent', () => {
       { payment_intent: 'pi_1', amount: 450 },
       { idempotencyKey: 'return-1' },
     );
+  });
+
+  it('attaches metadata to the refund so it can be found after the key expires', async () => {
+    sdk.refunds.create.mockResolvedValue({ id: 're_4', status: 'succeeded' });
+    await gateway.refundPaymentIntent('pi_1', 'return-1', 450, { return_id: 'r1' });
+    expect(sdk.refunds.create).toHaveBeenCalledWith(
+      { payment_intent: 'pi_1', amount: 450, metadata: { return_id: 'r1' } },
+      { idempotencyKey: 'return-1' },
+    );
+  });
+
+  it('lists the refunds of an intent with their metadata', async () => {
+    sdk.refunds.list.mockResolvedValue({
+      data: [{ id: 're_9', status: 'succeeded', amount: 450, metadata: { return_id: 'r1' } }],
+    });
+    expect(await gateway.listRefunds('pi_1')).toEqual([
+      { id: 're_9', status: 'succeeded', amountCents: 450, metadata: { return_id: 'r1' } },
+    ]);
+    expect(sdk.refunds.list).toHaveBeenCalledWith({ payment_intent: 'pi_1', limit: 100 });
   });
 
   it('reports pending when Stripe leaves the status out', async () => {
