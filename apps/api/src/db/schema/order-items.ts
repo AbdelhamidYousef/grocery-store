@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { check, index, integer, pgTable, text, uuid } from 'drizzle-orm/pg-core';
+import { check, index, integer, jsonb, pgTable, text, uuid } from 'drizzle-orm/pg-core';
 
 import { createdAt, id, updatedAt } from './columns.ts';
 import { orders } from './orders.ts';
@@ -26,6 +26,10 @@ export const orderItems = pgTable(
     // This line's share of the order-level discounts and credits (largest-remainder split by the
     // pricing engine). The single source for refund amounts (phase 22).
     discountCents: integer('discount_cents').notNull().default(0),
+    // For a kit: the components one kit expanded to AT CHECKOUT ([{variantId, qty}] per kit). Stock
+    // paths (release, commit, restock) read this, never the live `bundle_items`, so editing a kit
+    // later cannot change what an existing order holds. Null for a plain variant.
+    bundleComponents: jsonb('bundle_components').$type<{ variantId: string; qty: number }[]>(),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

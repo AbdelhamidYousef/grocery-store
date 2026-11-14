@@ -121,12 +121,7 @@ async function reserveAndSave(
       tx,
       lines.map((l) => ({ variantId: l.variantId, quantity: l.quantity })),
     );
-    const toRelease = await repo.expandBundles(
-      tx,
-      pendingItems.flatMap((i) =>
-        i.variantId === null ? [] : [{ variantId: i.variantId, quantity: i.quantity }],
-      ),
-    );
+    const toRelease = repo.expandOrderItems(pendingItems);
     const variantIds = [
       ...toHold.map((l) => l.variantId),
       ...toRelease.map((l) => l.variantId),
@@ -210,13 +205,21 @@ async function reserveAndSave(
 
     // Variant-id order again for the writes (locks are already held, but one order everywhere is
     // easier to reason about).
-    const held = await repo.expandBundles(
+    const kitParts = await repo.bundleComponentsOf(
       tx,
-      cart.items.map((i) => ({ variantId: i.variantId, quantity: i.quantity })),
+      cart.items.map((i) => i.variantId),
+    );
+    const held = repo.expandLines(
+      cart.items.map((i) => ({
+        variantId: i.variantId,
+        quantity: i.quantity,
+        components: kitParts.get(i.variantId),
+      })),
     );
     for (const item of held.sort((a, b) => a.variantId.localeCompare(b.variantId))) {
       if (!(await repo.reserveStock(tx, item.variantId, item.quantity))) {
-        // Unreachable while the locks hold; refuses instead of overselling if that ever changes.
+        // The cart check already plans per-component demand across all lines, so this only trips if stock
+        // moved after it; refuse instead of overselling.
         throw conflict(ErrorCode.OUT_OF_STOCK, 'An item just sold out', {
           variantId: item.variantId,
         });
@@ -274,6 +277,7 @@ async function reserveAndSave(
           quantity: i.quantity,
           lineTotalCents: unitPriceCents * i.quantity,
           discountCents: line?.lineDiscountCents ?? 0,
+          bundleComponents: kitParts.get(i.variantId) ?? null,
         };
       }),
       ...(gift

@@ -40,13 +40,7 @@ export async function applyTransition(
 
   const effect = stockEffect(from, to);
   if (effect !== 'none') {
-    const items = await repo.expandBundles(
-      tx,
-      (await repo.listOrderItems(tx, order.id)).flatMap((i) =>
-        // A deleted variant has no inventory row left to adjust.
-        i.variantId === null ? [] : [{ variantId: i.variantId, quantity: i.quantity }],
-      ),
-    );
+    const items = repo.expandOrderItems(await repo.listOrderItems(tx, order.id));
     await repo.lockInventory(
       tx,
       items.map((i) => i.variantId),

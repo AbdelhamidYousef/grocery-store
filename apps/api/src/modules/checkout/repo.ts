@@ -40,37 +40,71 @@ export interface StockLine {
   quantity: number;
 }
 
-// A kit holds no stock of its own: selling one reserves, commits, releases and restocks its
-// COMPONENTS. This is the single expansion every stock path goes through (checkout, release,
-// payment, cancel/refund; later pickup and returns reuse it). Lines of the same variant are
-// merged, so a component that is also in the cart on its own is touched once. Kits cannot nest
-// (admin validation), so one level is enough.
-export async function expandBundles(run: Db, lines: StockLine[]): Promise<StockLine[]> {
-  if (lines.length === 0) return [];
+export interface BundleComponent {
+  variantId: string;
+  qty: number;
+}
+
+// The kits among `variantIds`, with their CURRENT parts. Used at checkout (to snapshot onto the
+// order) and for the live cart; an order that already exists never calls this, it uses its snapshot.
+export async function bundleComponentsOf(
+  run: Db,
+  variantIds: string[],
+): Promise<Map<string, BundleComponent[]>> {
+  const byBundle = new Map<string, BundleComponent[]>();
+  if (variantIds.length === 0) return byBundle;
   const parts = await run
     .select()
     .from(bundleItems)
-    .where(
-      inArray(
-        bundleItems.bundleVariantId,
-        lines.map((l) => l.variantId),
-      ),
-    );
-  const byBundle = new Map<string, { variantId: string; qty: number }[]>();
+    .where(inArray(bundleItems.bundleVariantId, variantIds));
   for (const p of parts) {
     const list = byBundle.get(p.bundleVariantId) ?? [];
     list.push({ variantId: p.componentVariantId, qty: p.qty });
     byBundle.set(p.bundleVariantId, list);
   }
+  return byBundle;
+}
+
+// A kit holds no stock of its own: selling one reserves, commits, releases and restocks its
+// COMPONENTS. This is the single expansion every stock path goes through (checkout, release,
+// payment, cancel/refund; later pickup and returns reuse it). Lines of the same variant are
+// merged, so a component that is also in the cart on its own is touched once. Kits cannot nest
+// (admin validation), so one level is enough.
+// `components` decides what a kit is made of: the live parts for a cart (see `bundleComponentsOf`)
+// or, for a line of an existing order, the snapshot taken at checkout (`bundleComponents`).
+export function expandLines(
+  lines: (StockLine & { components?: BundleComponent[] | null })[],
+): StockLine[] {
   const merged = new Map<string, number>();
   const add = (variantId: string, quantity: number) =>
     merged.set(variantId, (merged.get(variantId) ?? 0) + quantity);
   for (const line of lines) {
-    const components = byBundle.get(line.variantId);
-    if (!components) add(line.variantId, line.quantity);
-    else for (const c of components) add(c.variantId, c.qty * line.quantity);
+    if (!line.components) add(line.variantId, line.quantity);
+    else for (const c of line.components) add(c.variantId, c.qty * line.quantity);
   }
   return [...merged].map(([variantId, quantity]) => ({ variantId, quantity }));
+}
+
+// Live expansion (cart lines about to be reserved).
+export async function expandBundles(run: Db, lines: StockLine[]): Promise<StockLine[]> {
+  const byBundle = await bundleComponentsOf(
+    run,
+    lines.map((l) => l.variantId),
+  );
+  return expandLines(lines.map((l) => ({ ...l, components: byBundle.get(l.variantId) })));
+}
+
+// Stock lines an existing order holds, from its snapshot. A deleted variant has no inventory row.
+export function expandOrderItems(
+  items: Pick<OrderItemRow, 'variantId' | 'quantity' | 'bundleComponents'>[],
+): StockLine[] {
+  return expandLines(
+    items.flatMap((i) =>
+      i.variantId === null
+        ? []
+        : [{ variantId: i.variantId, quantity: i.quantity, components: i.bundleComponents }],
+    ),
+  );
 }
 
 // Takes the row locks on stock in ONE statement, in variant-id order. Two checkouts that touch the

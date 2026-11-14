@@ -252,3 +252,70 @@ describe('kits in the cart and checkout', () => {
     expect(await db.select().from(bundleItems)).toHaveLength(2);
   });
 });
+
+describe('editing a kit after an order was placed', () => {
+  const checkout = (shopper: Shopper) =>
+    shopper.call('post', '/checkout', {
+      email: 'ada@pawsome.test',
+      shippingAddress: {
+        fullName: 'Ada Lovelace',
+        line1: '1 Bone Street',
+        city: 'Riga',
+        postalCode: 'LV-1010',
+        country: 'LV',
+      },
+      shippingMethodCode: 'standard',
+    });
+
+  // Orders a kit (2 ropes + 1 ball), then the admin swaps the parts for 1 rope + 2 balls AND adds
+  // a brand-new component the order never held.
+  async function orderThenEditKit() {
+    const { res, rope, ball } = await makeKit();
+    const kit = data<Bundle>(res);
+    const extra = await createProduct({ name: 'Bone', variants: [{ priceCents: 300, stock: 0 }] });
+    const shopper = makeShopper(app);
+    await shopper.addToCart(kit.variantId, 1);
+    expect((await checkout(shopper)).status).toBe(200);
+    const edit = await admin.call('patch', `/admin/bundles/${kit.variantId}`, {
+      priceCents: 1900,
+      components: [
+        { variantId: rope.variants[0]!.id, qty: 1 },
+        { variantId: ball.variants[0]!.id, qty: 2 },
+        { variantId: extra.variants[0]!.id, qty: 1 },
+      ],
+    });
+    expect(edit.status).toBe(200);
+    const [order] = await db.select().from(orders);
+    const transition = (to: 'paid' | 'cancelled' | 'refunded') =>
+      db.transaction(async (tx) => {
+        const locked = await checkoutRepo.lockOrder(tx, order!.id);
+        await applyTransition(tx, locked!, to, { actor: 'test', fromProvider: true });
+      });
+    return { rope, ball, extra, transition };
+  }
+
+  it('releases what the order held, not what the kit is now', async () => {
+    const { rope, ball, extra, transition } = await orderThenEditKit();
+    await transition('cancelled');
+    expect(await stockOf(rope.variants[0]!.id)).toEqual({ quantity: 10, reserved: 0 });
+    expect(await stockOf(ball.variants[0]!.id)).toEqual({ quantity: 10, reserved: 0 });
+    expect(await stockOf(extra.variants[0]!.id)).toEqual({ quantity: 0, reserved: 0 });
+  });
+
+  it('commits the original components when the payment arrives', async () => {
+    const { rope, ball, extra, transition } = await orderThenEditKit();
+    await transition('paid');
+    expect(await stockOf(rope.variants[0]!.id)).toEqual({ quantity: 8, reserved: 0 });
+    expect(await stockOf(ball.variants[0]!.id)).toEqual({ quantity: 9, reserved: 0 });
+    expect(await stockOf(extra.variants[0]!.id)).toEqual({ quantity: 0, reserved: 0 });
+  });
+
+  it('restocks the original components on a refund', async () => {
+    const { rope, ball, extra, transition } = await orderThenEditKit();
+    await transition('paid');
+    await transition('refunded');
+    expect(await stockOf(rope.variants[0]!.id)).toEqual({ quantity: 10, reserved: 0 });
+    expect(await stockOf(ball.variants[0]!.id)).toEqual({ quantity: 10, reserved: 0 });
+    expect(await stockOf(extra.variants[0]!.id)).toEqual({ quantity: 0, reserved: 0 });
+  });
+});

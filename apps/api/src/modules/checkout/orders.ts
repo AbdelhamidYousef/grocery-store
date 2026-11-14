@@ -3,22 +3,13 @@ import { applyTransition } from '../orders/transition.ts';
 
 import * as repo from './repo.ts';
 
-// Lines that hold stock. `variantId` is null only when a variant was deleted after the order was
-// placed, and a deleted variant has no inventory row left to give back.
-interface HeldLine {
-  variantId: string | null;
-  quantity: number;
-}
-
-// Gives reserved units back to the shelf. Locks first (ordered, see `lockInventory`) so that a
+// Gives reserved units back (from each line's checkout snapshot) to the shelf. Locks first (ordered, see `lockInventory`) so that a
 // release can never deadlock with a checkout placing another order.
-export async function releaseReservations(tx: Tx, lines: HeldLine[]): Promise<void> {
-  const held = await repo.expandBundles(
-    tx,
-    lines.flatMap((l) =>
-      l.variantId === null ? [] : [{ variantId: l.variantId, quantity: l.quantity }],
-    ),
-  );
+export async function releaseReservations(
+  tx: Tx,
+  lines: Pick<repo.OrderItemRow, 'variantId' | 'quantity' | 'bundleComponents'>[],
+): Promise<void> {
+  const held = repo.expandOrderItems(lines);
   await repo.lockInventory(
     tx,
     held.map((l) => l.variantId),
