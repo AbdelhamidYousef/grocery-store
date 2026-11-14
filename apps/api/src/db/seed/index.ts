@@ -149,6 +149,7 @@ export async function runSeed(now = new Date()) {
           return {
             brandId: brandId.get(p.brand ?? HOUSE_BRAND) ?? null,
             isEco: p.eco ?? false,
+            requiresVetApproval: p.vetApproval ?? false,
             isBestsellerOverride: p.bestseller ?? false,
             // Spread over the past year so the derived "New" badge shows on a handful of
             // products, not all of them. Not in the conflict set: a re-seed keeps the dates.
@@ -179,6 +180,7 @@ export async function runSeed(now = new Date()) {
           attributes: excluded('attributes'),
           brandId: excluded('brand_id'),
           isEco: excluded('is_eco'),
+          requiresVetApproval: excluded('requires_vet_approval'),
           isBestsellerOverride: excluded('is_bestseller_override'),
         },
       })

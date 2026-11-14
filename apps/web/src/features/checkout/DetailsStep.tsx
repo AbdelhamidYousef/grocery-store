@@ -8,7 +8,14 @@ import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { TEST_IDS } from '../../lib/test-ids';
 
-import { DetailsSchema, SHIPPING_COUNTRIES, type Details, type DetailsInput } from './details';
+import {
+  DetailsSchema,
+  DetailsWithVetSchema,
+  SHIPPING_COUNTRIES,
+  type Details,
+  type DetailsInput,
+} from './details';
+import { VetDetailsForm } from './VetDetailsForm';
 
 // Step 1. Validation is the API's own schema, so "what the form accepts" and "what the server
 // accepts" cannot drift; the server stays the judge (it re-validates and prices everything).
@@ -16,12 +23,15 @@ import { DetailsSchema, SHIPPING_COUNTRIES, type Details, type DetailsInput } fr
 export function DetailsStep({
   defaults,
   signedIn,
+  requiresVet = false,
   saveAddress,
   onSaveAddressChange,
   onSubmit,
 }: {
   defaults: DetailsInput;
   signedIn: boolean;
+  /** The cart holds an item that needs a vet's approval: the vet's details become required. */
+  requiresVet?: boolean;
   saveAddress: boolean;
   onSaveAddressChange: (value: boolean) => void;
   onSubmit: (details: Details) => void;
@@ -31,8 +41,14 @@ export function DetailsStep({
     handleSubmit,
     formState: { errors },
   } = useForm<DetailsInput, unknown, Details>({
-    resolver: zodResolver(DetailsSchema),
-    defaultValues: defaults,
+    resolver: zodResolver(requiresVet ? DetailsWithVetSchema : DetailsSchema),
+    // The vet fields exist only when the cart needs a vet; blank inputs, never an invalid object.
+    defaultValues: requiresVet
+      ? {
+          ...defaults,
+          vetDetails: defaults.vetDetails ?? { vetName: '', clinic: '', vetEmail: '' },
+        }
+      : defaults,
   });
   const a = errors.shippingAddress;
 
@@ -119,6 +135,7 @@ export function DetailsStep({
         error={a?.phone?.message}
         {...register('shippingAddress.phone')}
       />
+      {requiresVet && <VetDetailsForm register={register} errors={errors.vetDetails} />}
       {signedIn && (
         <Checkbox
           label="Save this address to my account"

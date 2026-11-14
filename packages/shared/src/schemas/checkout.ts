@@ -9,6 +9,7 @@ import { CountrySchema } from './shipping.ts';
 export const OrderStatusSchema = z.enum([
   'pending_payment',
   'paid',
+  'awaiting_vet_approval',
   'processing',
   'shipped',
   'delivered',
@@ -46,6 +47,15 @@ export type CheckoutAddress = z.output<typeof CheckoutAddressSchema>;
 
 // Deliberately has no prices, totals or cart id: the server prices the caller's own cart. A client
 // that sent an amount would only be offering to be lied to.
+// A cart with a vet-approval item needs the vet's details; required text, validated like every form
+// field. Shown only to admins and in the mail copy; nothing is ever sent to a real vet (demo).
+export const VetDetailsSchema = z.object({
+  vetName: z.string().trim().min(2, "Enter the vet's name").max(120),
+  clinic: z.string().trim().min(2, 'Enter the clinic').max(160),
+  vetEmail: z.string().trim().max(254).pipe(z.email('Enter a valid email address')),
+});
+export type VetDetails = z.infer<typeof VetDetailsSchema>;
+
 export const CheckoutRequestSchema = z.object({
   email: z.string().trim().max(254).pipe(z.email()),
   shippingAddress: CheckoutAddressSchema,
@@ -59,6 +69,8 @@ export const CheckoutRequestSchema = z.object({
   // Round the total up to the next whole euro for the shelter (a separate line, demo: no money
   // moves to a real charity).
   roundUpDonation: z.boolean().optional(),
+  // Required (422) when the cart holds an item that needs a vet's approval; ignored otherwise.
+  vetDetails: VetDetailsSchema.optional(),
 });
 export type CheckoutRequestInput = z.input<typeof CheckoutRequestSchema>;
 export type CheckoutRequest = z.output<typeof CheckoutRequestSchema>;

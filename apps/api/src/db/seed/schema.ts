@@ -47,6 +47,7 @@ export const SeedProductSchema = z.object({
   tags: z.array(slug).max(4).optional(),
   collections: z.array(slug).max(4).optional(),
   eco: z.boolean().optional(),
+  vetApproval: z.boolean().optional(),
   bestseller: z.boolean().optional(),
   isNew: z.boolean().optional(),
   netUnit: NetUnitSchema.optional(),

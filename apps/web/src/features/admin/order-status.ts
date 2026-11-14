@@ -5,6 +5,7 @@ import type { BadgeTone } from '../../components/ui/Badge';
 export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   pending_payment: 'Pending payment',
   paid: 'Paid',
+  awaiting_vet_approval: 'Waiting for vet approval',
   processing: 'Processing',
   shipped: 'Shipped',
   delivered: 'Delivered',
@@ -15,6 +16,7 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
 export const ORDER_STATUS_TONE: Record<OrderStatus, BadgeTone> = {
   pending_payment: 'neutral',
   paid: 'primary',
+  awaiting_vet_approval: 'pet',
   processing: 'primary',
   shipped: 'success',
   delivered: 'success',
@@ -26,6 +28,7 @@ export const ORDER_STATUS_TONE: Record<OrderStatus, BadgeTone> = {
 export const TRANSITION_LABEL: Record<OrderStatus, string> = {
   pending_payment: 'Back to pending payment',
   paid: 'Mark paid',
+  awaiting_vet_approval: 'Hold for vet approval',
   processing: 'Start processing',
   shipped: 'Mark shipped',
   delivered: 'Mark delivered',

@@ -1,4 +1,10 @@
-import { CheckoutRequestSchema, SUPPORTED_COUNTRIES, type Address, type User } from '@store/shared';
+import {
+  CheckoutRequestSchema,
+  SUPPORTED_COUNTRIES,
+  VetDetailsSchema,
+  type Address,
+  type User,
+} from '@store/shared';
 import { z } from 'zod';
 
 import { countryName } from '../../lib/countries';
@@ -6,7 +12,13 @@ import { countryName } from '../../lib/countries';
 // Step 1 is "who and where": the contact email and the shipping address, validated with the very
 // schemas the API uses (a rule changed there changes here). Billing is "same as shipping" and
 // notes are not offered yet, so the request stays small.
-export const DetailsSchema = CheckoutRequestSchema.pick({ email: true, shippingAddress: true });
+export const DetailsSchema = CheckoutRequestSchema.pick({
+  email: true,
+  shippingAddress: true,
+  vetDetails: true,
+});
+// The same form when the cart holds an item that needs a vet's approval: the vet becomes required.
+export const DetailsWithVetSchema = DetailsSchema.extend({ vetDetails: VetDetailsSchema });
 export type DetailsInput = z.input<typeof DetailsSchema>;
 export type Details = z.output<typeof DetailsSchema>;
 
@@ -49,5 +61,6 @@ export function toInput(details: Details): DetailsInput {
       region: a.region ?? '',
       phone: a.phone ?? '',
     },
+    ...(details.vetDetails && { vetDetails: details.vetDetails }),
   };
 }

@@ -54,6 +54,7 @@ describe('admin shell', () => {
       'Products',
       'Orders',
       'Returns',
+      'Vet approvals',
       'Reviews',
       'Gallery',
       'Brands',

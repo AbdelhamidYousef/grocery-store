@@ -225,6 +225,13 @@
       "when": 1794643342116,
       "tag": "0031_return_refund_intent",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1794643343581,
+      "tag": "0032_vet_approval",
+      "breakpoints": true
     }
   ]
 }

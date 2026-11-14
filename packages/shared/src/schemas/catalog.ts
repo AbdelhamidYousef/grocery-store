@@ -214,6 +214,8 @@ export const ProductDetailSchema = z.object({
   // Kits this product is part of ("Make it a kit"); empty for most products.
   kits: z.array(KitTeaserSchema),
   rating: RatingSummarySchema,
+  // Demo gate: the order waits for a (simulated) vet's approval after payment.
+  requiresVetApproval: z.boolean(),
 });
 export type ProductDetail = z.infer<typeof ProductDetailSchema>;
 export const ProductDetailResponseSchema = DataSchema(ProductDetailSchema);

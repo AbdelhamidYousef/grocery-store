@@ -68,6 +68,9 @@ export const products = pgTable(
     // card never runs AVG() over reviews). Average = rating_sum / rating_count.
     ratingCount: integer('rating_count').notNull().default(0),
     ratingSum: integer('rating_sum').notNull().default(0),
+    // Demo "vet approval" gate (phase 22): after payment the order waits in
+    // `awaiting_vet_approval` until an admin decides. Fictional wording, no real medicine.
+    requiresVetApproval: boolean('requires_vet_approval').notNull().default(false),
     attributes: jsonb('attributes').$type<ProductAttributes>().notNull().default({}),
     // Computed by Postgres on every write, so it can never drift from name/description and the
     // app never has to remember to maintain it. Name and description are both NOT NULL, so plain

@@ -20,6 +20,7 @@ import { users } from './users.ts';
 export const orderStatus = pgEnum('order_status', [
   'pending_payment',
   'paid',
+  'awaiting_vet_approval',
   'processing',
   'shipped',
   'delivered',

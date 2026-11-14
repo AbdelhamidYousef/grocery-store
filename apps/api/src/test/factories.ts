@@ -90,6 +90,7 @@ export async function createProduct(
     attributes?: ProductAttributes;
     brandId?: string;
     isEco?: boolean;
+    requiresVetApproval?: boolean;
     isBestsellerOverride?: boolean;
     badgeNewUntil?: Date;
     createdAt?: Date;
@@ -117,6 +118,9 @@ export async function createProduct(
         attributes: input.attributes ?? {},
         ...(input.brandId && { brandId: input.brandId }),
         ...(input.isEco !== undefined && { isEco: input.isEco }),
+        ...(input.requiresVetApproval !== undefined && {
+          requiresVetApproval: input.requiresVetApproval,
+        }),
         ...(input.isBestsellerOverride !== undefined && {
           isBestsellerOverride: input.isBestsellerOverride,
         }),

@@ -283,6 +283,7 @@ export const catProducts: ProductSeed[] = [
     ],
     brand: 'moonbeam-mews',
     tags: ['dental'],
+    vetApproval: true,
   },
   {
     slug: 'calm-chews',
@@ -305,6 +306,7 @@ export const catProducts: ProductSeed[] = [
     brand: 'moonbeam-mews',
     tags: ['calming'],
     bestseller: true,
+    vetApproval: true,
   },
   {
     slug: 'omega-coat-paste',

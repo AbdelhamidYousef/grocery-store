@@ -84,6 +84,8 @@ export const CartSchema = z.object({
   warnings: z.array(CartWarningSchema),
   // Promotions applied by the pricing engine (phase 18).
   pricing: CartPricingSchema,
+  // True when a line the shopper can buy needs a vet's approval: checkout then asks for the vet.
+  requiresVetApproval: z.boolean(),
 });
 export type Cart = z.infer<typeof CartSchema>;
 

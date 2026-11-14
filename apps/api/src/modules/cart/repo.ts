@@ -100,6 +100,7 @@ export type LineRow = {
   productName: string;
   productSlug: string;
   productStatus: 'draft' | 'active' | 'archived';
+  requiresVetApproval: boolean;
   stock: number | null;
   reserved: number | null;
 };
@@ -126,6 +127,7 @@ export async function listLines(tx: Tx, cartId: string): Promise<LineRow[]> {
         productName: products.name,
         productSlug: products.slug,
         productStatus: products.status,
+        requiresVetApproval: products.requiresVetApproval,
         stock: stockQuantity(productVariants.id),
         reserved: stockReserved(productVariants.id),
       })

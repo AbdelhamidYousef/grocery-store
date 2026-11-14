@@ -17,14 +17,16 @@ export function createReturnsRouter(deps: { outbox: Outbox; returns: ReturnsConf
   const router = ExpressRouter();
 
   // Owner only: every handler scopes to `req.user.id`, never to an id from the request.
-  router.use('/orders', requireUser);
+  // Per route, not `router.use('/orders')`: that prefix would also guard the public
+  // POST /orders/track of another module.
+  const owner = requireUser;
   const userId = (req: { user: { id: string } | null }): string => {
     if (!req.user) throw new Error('requireUser let an anonymous request through');
     return req.user.id;
   };
 
   const byNumber = { params: OrderNumberParamsSchema };
-  router.get('/orders/:number/returns', validate(byNumber), async (req, res) => {
+  router.get('/orders/:number/returns', owner, validate(byNumber), async (req, res) => {
     const { params } = valid(req, byNumber);
     respond(res, OrderReturnsResponseSchema, {
       data: await service.listForOrder(userId(req), params.number, deps.returns),
@@ -32,7 +34,7 @@ export function createReturnsRouter(deps: { outbox: Outbox; returns: ReturnsConf
   });
 
   const create = { params: OrderNumberParamsSchema, body: ReturnRequestBodySchema };
-  router.post('/orders/:number/returns', validate(create), async (req, res) => {
+  router.post('/orders/:number/returns', owner, validate(create), async (req, res) => {
     const { params, body } = valid(req, create);
     const created = await service.requestReturn(userId(req), params.number, body, deps.returns);
     deps.outbox.kick();

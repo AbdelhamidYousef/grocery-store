@@ -9,6 +9,7 @@ const LINKS = [
   { to: '/admin/products', label: 'Products', end: false },
   { to: '/admin/orders', label: 'Orders', end: false },
   { to: '/admin/returns', label: 'Returns', end: false },
+  { to: '/admin/vet-approvals', label: 'Vet approvals', end: false },
   { to: '/admin/reviews', label: 'Reviews', end: false },
   { to: '/admin/gallery', label: 'Gallery', end: false },
   { to: '/admin/brands', label: 'Brands', end: false },

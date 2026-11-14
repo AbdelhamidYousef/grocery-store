@@ -218,6 +218,9 @@ export const TEST_IDS = {
 
   pageAdmin: 'page-admin',
   adminNav: 'admin-nav',
+  vetDetailsForm: 'vet-details-form',
+  vetBanner: 'vet-banner',
+  adminVetRow: 'admin-vet-row',
   returnsSection: 'returns-section',
   returnRequestForm: 'return-request-form',
   returnCard: 'return-card',

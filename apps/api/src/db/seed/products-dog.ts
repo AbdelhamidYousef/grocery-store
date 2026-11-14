@@ -317,6 +317,7 @@ export const dogProducts: ProductSeed[] = [
     ],
     brand: 'burrow-and-biscuit',
     tags: ['dental'],
+    vetApproval: true,
   },
   {
     slug: 'light-lean-bites',
@@ -359,6 +360,7 @@ export const dogProducts: ProductSeed[] = [
     ],
     brand: 'burrow-and-biscuit',
     tags: ['sensitive-tummy'],
+    vetApproval: true,
   },
   {
     slug: 'collapsible-travel-bowl',

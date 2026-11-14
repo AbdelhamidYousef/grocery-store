@@ -4,7 +4,13 @@ import { db } from '../../../db/client.ts';
 import { inventory, orders, productVariants, products } from '../../../db/schema/index.ts';
 
 // Orders that stand as revenue: paid and not (yet) undone.
-const REVENUE_STATUSES = ['paid', 'processing', 'shipped', 'delivered'] as const;
+const REVENUE_STATUSES = [
+  'paid',
+  'awaiting_vet_approval',
+  'processing',
+  'shipped',
+  'delivered',
+] as const;
 
 export async function countOrdersPlacedSince(since: Date): Promise<number> {
   const [row] = await db

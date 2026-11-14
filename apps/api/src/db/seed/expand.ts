@@ -45,6 +45,8 @@ export type ProductSeed = {
   // Slugs of manual/seasonal collections the product belongs to (order = order in the file).
   collections?: string[];
   eco?: boolean;
+  // Demo gate (phase 22): the order waits for a simulated vet's approval after payment.
+  vetApproval?: boolean;
   // Editorial "Bestseller" override (the badge is otherwise derived from sales).
   bestseller?: boolean;
   // Created within the last month, so the derived "New" badge shows on a few products.

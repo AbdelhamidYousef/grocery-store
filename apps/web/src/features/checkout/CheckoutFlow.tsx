@@ -109,6 +109,8 @@ export function CheckoutFlow({
         shippingMethodCode: quote.code,
         ...(user && points > 0 && { pointsToRedeem: points }),
         ...(roundUp && { roundUpDonation: true }),
+        // Only sent when the cart needs it; the server decides again from the cart it prices.
+        ...(cart.requiresVetApproval && details.vetDetails && { vetDetails: details.vetDetails }),
       },
       {
         onSuccess: (order) => {
@@ -158,6 +160,11 @@ export function CheckoutFlow({
                 <p className="line-clamp-2 break-all">
                   {a.fullName}, {a.line1}, {a.postalCode} {a.city}, {a.country}
                 </p>
+                {cart.requiresVetApproval && details.vetDetails && (
+                  <p className="line-clamp-1 break-all">
+                    Vet: {details.vetDetails.vetName}, {details.vetDetails.clinic}
+                  </p>
+                )}
               </>
             )
           }
@@ -165,6 +172,7 @@ export function CheckoutFlow({
           <DetailsStep
             defaults={details ? toInput(details) : detailsDefaults(user, addresses)}
             signedIn={user !== null}
+            requiresVet={cart.requiresVetApproval}
             saveAddress={saveAddress}
             onSaveAddressChange={setSaveAddress}
             onSubmit={(values) => {

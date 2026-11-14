@@ -533,6 +533,7 @@ export interface ProductDetailRows {
     createdAt: Date;
     ratingCount: number;
     ratingSum: number;
+    requiresVetApproval: boolean;
   };
   brand: { slug: string; name: string } | null;
   tags: { slug: string; name: string }[];
@@ -580,6 +581,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetailRows 
         createdAt: products.createdAt,
         ratingCount: products.ratingCount,
         ratingSum: products.ratingSum,
+        requiresVetApproval: products.requiresVetApproval,
       },
       kind: products.kind,
       deliveryNote: products.deliveryNote,
