@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
 import { makeCard } from '../../test/fixtures';
+import { TestProviders } from '../../test/render';
 
 import { ProductCard } from './ProductCard';
 
@@ -14,6 +15,7 @@ const renderCard = (card = makeCard()) =>
         <ProductCard product={card} />
       </ul>
     </MemoryRouter>,
+    { wrapper: TestProviders },
   );
 
 const swatch = (color: string, extra: Partial<{ url: string }> = {}) => ({
@@ -77,7 +79,8 @@ describe('ProductCard: colour swatches', () => {
     renderCard(makeCard({ swatches: [swatch('red'), swatch('blue')] }));
     const link = screen.getByTestId('product-card');
     expect(within(link).queryByRole('button')).not.toBeInTheDocument();
-    expect(screen.getAllByRole('button')).toHaveLength(2);
+    // two colour dots and the wishlist heart
+    expect(screen.getAllByRole('button')).toHaveLength(3);
   });
 
   it('previews a colour photo on hover and focus, and keeps it on click', async () => {

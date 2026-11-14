@@ -204,6 +204,13 @@
       "when": 1794636881158,
       "tag": "0028_pet_messages",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1794636882537,
+      "tag": "0029_wishlists",
+      "breakpoints": true
     }
   ]
 }

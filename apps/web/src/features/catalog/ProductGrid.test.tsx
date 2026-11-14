@@ -4,10 +4,12 @@ import { describe, expect, it, vi } from 'vitest';
 
 import * as tracking from '../../lib/track';
 import { makeCard } from '../../test/fixtures';
+import { TestProviders } from '../../test/render';
 
 import { ProductGrid } from './ProductGrid';
 
-const renderGrid = (ui: React.ReactElement) => render(<MemoryRouter>{ui}</MemoryRouter>);
+const renderGrid = (ui: React.ReactElement) =>
+  render(<MemoryRouter>{ui}</MemoryRouter>, { wrapper: TestProviders });
 
 describe('ProductGrid', () => {
   it('renders each product as one link with name, price range and a sized image', () => {

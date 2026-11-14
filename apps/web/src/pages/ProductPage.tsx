@@ -35,6 +35,7 @@ import { RatingStars } from '../features/reviews/RatingStars';
 import { ReviewsSection } from '../features/reviews/ReviewsSection';
 import { EarnPoints } from '../features/loyalty/EarnPoints';
 import { SafetyNoticeBox } from '../features/safety/SafetyNoticeBox';
+import { WishlistHeart } from '../features/wishlist/WishlistHeart';
 import { accentForPetAttribute, petBySlug } from '../lib/pets';
 import { recordRecentlyViewed } from '../lib/recently-viewed';
 import { TEST_IDS } from '../lib/test-ids';
@@ -154,6 +155,12 @@ function ProductView({ product }: { product: ProductDetail }) {
                   {product.rating.count === 1 ? '' : 's'})
                 </a>
               )}
+              <div className="flex items-start justify-between gap-3">
+                <h1 className="break-words font-display text-3xl font-bold sm:text-4xl">
+                  {product.name}
+                </h1>
+                <WishlistHeart productId={product.id} productName={product.name} />
+              </div>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 {!product.inStock && (
                   <Badge tone="neutral" className="border-ink bg-surface text-ink">

@@ -39,6 +39,14 @@ export const CartIcon = (p: IconProps) => (
     <circle cx="17" cy="19" r="1.3" />
   </Svg>
 );
+export const HeartIcon = ({ filled = false, ...p }: IconProps & { filled?: boolean }) => (
+  <Svg {...p}>
+    <path
+      d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"
+      fill={filled ? 'currentColor' : 'none'}
+    />
+  </Svg>
+);
 export const UserIcon = (p: IconProps) => (
   <Svg {...p}>
     <circle cx="12" cy="8" r="4" />

@@ -12,6 +12,12 @@
 export const TEST_IDS = {
   pageHome: 'page-home',
   earnPoints: 'earn-points',
+  wishlistHeart: 'wishlist-heart',
+  wishlistRow: 'wishlist-row',
+  wishlistShare: 'wishlist-share',
+  wishlistShareLink: 'wishlist-share-link',
+  pageWishlist: 'page-wishlist',
+  pageSharedWishlist: 'page-shared-wishlist',
   stockAlertForm: 'stock-alert-form',
   stockAlertDone: 'stock-alert-done',
   stockAlertCancelled: 'stock-alert-cancelled',

@@ -3,8 +3,10 @@ import { Router as ExpressRouter, type Request, type Response, type Router } fro
 
 import {
   clearCartCookie,
+  clearWishlistCookie,
   clearSessionCookie,
   readGuestCartId,
+  readGuestWishlistId,
   readSessionCookie,
   setSessionCookie,
 } from '../../lib/cookies.ts';
@@ -13,6 +15,7 @@ import { requireUser } from '../../middleware/auth.ts';
 import { createAuthRateLimiter, type RateLimitOptions } from '../../middleware/rate-limit.ts';
 import { mergeGuestCart } from '../cart/service.ts';
 import { attachOnRegister } from '../loyalty/referrals-service.ts';
+import { mergeGuestWishlist } from '../wishlist/service.ts';
 
 import * as service from './service.ts';
 
@@ -36,11 +39,25 @@ async function attachReferral(
 
 const meta = (req: Request) => ({ ip: req.ip, userAgent: req.get('user-agent') });
 
+// The guest wishlist follows the same rule as the cart: merged into the account's list, never
+// failing the login.
+async function mergeWishlistOnLogin(userId: string, req: Request, res: Response): Promise<void> {
+  const guestId = readGuestWishlistId(req);
+  if (!guestId) return;
+  try {
+    await mergeGuestWishlist(guestId, userId);
+    clearWishlistCookie(res);
+  } catch (err) {
+    req.log.error({ err }, 'guest wishlist merge failed');
+  }
+}
+
 // Runs after a successful login or registration, once the session cookie is set: the guest cart
 // (if the browser carries a valid signed cookie) is merged into the account's cart. A merge
 // failure must not fail the login, since the session already exists; the cookie is then kept so
 // the next login retries, and the error is logged.
 async function onLogin(userId: string, req: Request, res: Response): Promise<void> {
+  await mergeWishlistOnLogin(userId, req, res);
   const guestCartId = readGuestCartId(req);
   if (!guestCartId) return;
   try {

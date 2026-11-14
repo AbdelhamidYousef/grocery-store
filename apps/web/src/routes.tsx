@@ -31,7 +31,9 @@ import RegisterPage from './pages/RegisterPage';
 import RouteErrorPage from './pages/RouteErrorPage';
 import RouteFallback from './pages/RouteFallback';
 import SearchPage from './pages/SearchPage';
+import SharedWishlistPage from './pages/SharedWishlistPage';
 import TrackOrderPage from './pages/TrackOrderPage';
+import WishlistPage from './pages/WishlistPage';
 import WithdrawPage from './pages/WithdrawPage';
 
 // Every route lives here, in one file (the plan's SSR guard-rail: a prerender step can read this
@@ -60,6 +62,8 @@ export const routes: RouteObject[] = [
           { path: 'collections/:slug', element: <CollectionPage /> },
           { path: 'search', element: <SearchPage /> },
           { path: 'charity', element: <CharityPage /> },
+          { path: 'wishlist', element: <WishlistPage /> },
+          { path: 'w/:token', element: <SharedWishlistPage /> },
           { path: 'newsletter', element: <NewsletterPage /> },
           { path: 'newsletter/confirm', element: <NewsletterConfirmPage /> },
           { path: 'newsletter/unsubscribe', element: <NewsletterUnsubscribePage /> },

@@ -23,6 +23,7 @@ export type AnalyticsEvent =
   | { name: 'contact_sent'; topic: string }
   | { name: 'newsletter_subscribe'; pets: number }
   | { name: 'stock_alert_created' }
+  | { name: 'wishlist_add'; productId: string }
   | { name: 'view_guide'; slug: string; category: string }
   | { name: 'add_to_cart'; item: TrackItem; quantity: number }
   | { name: 'remove_from_cart'; item: TrackItem; quantity: number }

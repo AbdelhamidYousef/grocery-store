@@ -29,3 +29,4 @@ export * from './reviews.ts';
 export * from './loyalty.ts';
 export * from './newsletter.ts';
 export * from './stock-alerts.ts';
+export * from './wishlist.ts';

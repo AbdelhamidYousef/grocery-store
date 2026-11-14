@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { MegaMenu } from '../../features/navigation/MegaMenu';
 import { PetSwitcher } from '../../features/pets/PetSwitcher';
 import { TEST_IDS } from '../../lib/test-ids';
-import { CartIcon, MenuIcon, PawIcon } from '../icons';
+import { CartIcon, HeartIcon, MenuIcon, PawIcon } from '../icons';
 
 import { AccountMenu } from './AccountMenu';
 import { Container } from './Container';
@@ -73,6 +73,14 @@ export function Header({
           <div className="hidden lg:block">
             <PetSwitcher />
           </div>
+          <Link
+            to="/wishlist"
+            aria-label="Wishlist"
+            data-testid="wishlist-link"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-control hover:bg-pet-soft"
+          >
+            <HeartIcon />
+          </Link>
           <AccountMenu />
           {onOpenCart ? (
             <button

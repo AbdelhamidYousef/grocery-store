@@ -86,3 +86,25 @@ export function readLastOrder(req: Request): string | null {
   const value = (req.signedCookies as Record<string, unknown> | undefined)?.[LAST_ORDER_COOKIE];
   return typeof value === 'string' && value.length > 0 ? value : null;
 }
+
+// ---------- guest wishlist ----------
+
+export const WISHLIST_COOKIE = 'wishlist_id';
+
+// Same approach as the guest cart: a signed uuid, so it cannot be edited to name someone else's list.
+export function setWishlistCookie(res: Response, wishlistId: string): void {
+  res.cookie(WISHLIST_COOKIE, wishlistId, {
+    ...baseOptions(res),
+    signed: true,
+    maxAge: CART_MAX_AGE_MS,
+  });
+}
+
+export function clearWishlistCookie(res: Response): void {
+  res.clearCookie(WISHLIST_COOKIE, baseOptions(res));
+}
+
+export function readGuestWishlistId(req: Request): string | null {
+  const value = (req.signedCookies as Record<string, unknown> | undefined)?.[WISHLIST_COOKIE];
+  return typeof value === 'string' && UUID.test(value) ? value : null;
+}

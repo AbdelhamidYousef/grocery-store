@@ -30,6 +30,8 @@ export const server = setupServer(
       { status: 401 },
     ),
   ),
+  // The hearts on product cards read the wishlist: an empty list unless a test says otherwise.
+  http.get(`${API}/wishlist`, () => HttpResponse.json({ data: { items: [], shareToken: null } })),
   // The footer's charity line: a shelter with nothing given yet.
   http.get(`${API}/charity/total`, () =>
     HttpResponse.json({

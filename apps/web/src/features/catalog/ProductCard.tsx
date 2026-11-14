@@ -13,6 +13,7 @@ import { accentForPetAttribute } from '../../lib/pets';
 import { TEST_IDS } from '../../lib/test-ids';
 import { formatRating } from '../reviews/format';
 import { RatingStars } from '../reviews/RatingStars';
+import { WishlistHeart } from '../wishlist/WishlistHeart';
 
 interface ProductCardProps {
   product: ProductCardData;
@@ -49,7 +50,7 @@ export function ProductCard({
 
   return (
     <li data-pet={accentForPetAttribute(product.attributes.pet)} className="min-w-0">
-      <div className="group flex h-full flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card transition-transform hover:-translate-y-0.5">
+      <div className="group relative flex h-full flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card transition-transform hover:-translate-y-0.5">
         <Link
           to={`/products/${product.slug}`}
           data-testid={TEST_IDS.productCard}
@@ -173,6 +174,12 @@ export function ProductCard({
             )}
           </div>
         )}
+        {/* Last in the DOM (after the link and the colour dots), pinned top right by CSS. */}
+        <WishlistHeart
+          productId={product.id}
+          productName={product.name}
+          className="absolute right-2 top-2 z-10"
+        />
       </div>
       {footer}
     </li>

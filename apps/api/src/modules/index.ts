@@ -36,6 +36,7 @@ import { createSearchRouter } from './search/router.ts';
 import { createStockAlertsRouter } from './stock-alerts/router.ts';
 import { createTrackingRouter } from './tracking/router.ts';
 import { registerTrialSubscribers } from './trials/service.ts';
+import { createWishlistRouter } from './wishlist/router.ts';
 import { createWithdrawalsRouter } from './withdrawals/router.ts';
 
 // Every feature module is `router.ts` (http only) -> `service.ts` (rules, transactions) ->
@@ -105,6 +106,7 @@ export function createModulesRouter(opts: {
   router.use(createLoyaltyRouter());
   router.use(createNewsletterRouter(opts));
   router.use(createStockAlertsRouter(opts));
+  router.use(createWishlistRouter());
   router.use(cartRouter);
   router.use(createTrackingRouter(opts));
   router.use(createWithdrawalsRouter(opts));
