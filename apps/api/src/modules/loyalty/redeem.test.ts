@@ -193,6 +193,22 @@ describe('reversal', () => {
     expect(await balanceOf(c.user.id)).toBe(0);
   });
 
+  it('returns the redeemed points first, so the earned points can then be taken back from them', async () => {
+    const c = await customerCart(); // 20.00
+    await give(c.user.id, 500);
+    const order = await orderByNumber(numberOf(await checkout(c.shopper, { pointsToRedeem: 500 })));
+    await simulate(app, order.number).expect(200);
+    const earned = (await balanceOf(c.user.id)) - 0;
+    expect(earned).toBeGreaterThan(0);
+    // the customer spends everything they earned elsewhere: balance 0
+    await db
+      .insert(pointsLedger)
+      .values({ userId: c.user.id, delta: -earned, kind: 'adjust', refKey: 'spent-elsewhere' });
+    await simulate(app, order.number, 'charge.refunded').expect(200);
+    // +500 back first, then the earned points come off that: 500 - earned
+    expect(await balanceOf(c.user.id)).toBe(500 - earned);
+  });
+
   it('a partial refund reverses in proportion, once per refund id', async () => {
     const c = await customerCart(); // 20.00 -> 20 points
     const order = await orderByNumber(numberOf(await checkout(c.shopper)));

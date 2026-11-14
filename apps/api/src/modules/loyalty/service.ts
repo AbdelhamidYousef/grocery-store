@@ -141,29 +141,7 @@ async function reverseOrder(
   if (!order?.userId) return;
   const p = await repo.pointsOfOrder(tx, orderId);
 
-  const earnedLeft = p.earned - p.clawedBack;
-  if (earnedLeft > 0) {
-    const want = portion.full
-      ? earnedLeft
-      : Math.min(
-          earnedLeft,
-          Math.floor((p.earned * portion.refundedCents) / Math.max(1, order.totalCents)),
-        );
-    await repo.lockUser(tx, order.userId);
-    const { balance } = await repo.standing(tx, order.userId);
-    const take = Math.min(want, Math.max(0, balance));
-    if (take > 0) {
-      await repo.insertEntry(tx, {
-        userId: order.userId,
-        delta: -take,
-        kind: 'reversal',
-        orderId,
-        refKey: `reverse:${tag}`,
-        reason: 'Points taken back: order cancelled or refunded',
-      });
-    }
-  }
-
+  await repo.lockUser(tx, order.userId);
   const redeemedLeft = p.redeemed - p.givenBack;
   if (redeemedLeft > 0) {
     const back = portion.full
@@ -182,6 +160,29 @@ async function reverseOrder(
         orderId,
         refKey: `giveback:${tag}`,
         reason: 'Points returned: order cancelled or refunded',
+      });
+    }
+  }
+
+  // Then take the earned points back, clamped to the balance AFTER the give-back.
+  const earnedLeft = p.earned - p.clawedBack;
+  if (earnedLeft > 0) {
+    const want = portion.full
+      ? earnedLeft
+      : Math.min(
+          earnedLeft,
+          Math.floor((p.earned * portion.refundedCents) / Math.max(1, order.totalCents)),
+        );
+    const { balance } = await repo.standing(tx, order.userId);
+    const take = Math.min(want, Math.max(0, balance));
+    if (take > 0) {
+      await repo.insertEntry(tx, {
+        userId: order.userId,
+        delta: -take,
+        kind: 'reversal',
+        orderId,
+        refKey: `reverse:${tag}`,
+        reason: 'Points taken back: order cancelled or refunded',
       });
     }
   }
