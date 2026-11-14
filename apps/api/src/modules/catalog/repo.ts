@@ -581,7 +581,8 @@ export async function getProductBySlug(slug: string): Promise<ProductDetailRows 
         createdAt: products.createdAt,
         ratingCount: products.ratingCount,
         ratingSum: products.ratingSum,
-        requiresVetApproval: products.requiresVetApproval,
+        // Flagged itself, or a kit with a flagged component (the cart decides the same way).
+        requiresVetApproval: sql<boolean>`(${products.requiresVetApproval} or exists (select 1 from product_variants bv join bundle_items bi on bi.bundle_variant_id = bv.id join product_variants cv on cv.id = bi.component_variant_id join products cp on cp.id = cv.product_id where bv.product_id = ${products.id} and cp.requires_vet_approval))`,
       },
       kind: products.kind,
       deliveryNote: products.deliveryNote,

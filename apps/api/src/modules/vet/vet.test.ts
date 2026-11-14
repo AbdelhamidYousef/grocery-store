@@ -2,7 +2,14 @@ import { eq } from 'drizzle-orm';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { db } from '../../db/client.ts';
-import { emailOutbox, orderStatusHistory, orderVetDetails } from '../../db/schema/index.ts';
+import {
+  charities,
+  donations,
+  emailOutbox,
+  orderStatusHistory,
+  orderVetDetails,
+  pointsLedger,
+} from '../../db/schema/index.ts';
 import { makeTestApp } from '../../test/app.ts';
 import { createProduct, createShippingMethods } from '../../test/factories.ts';
 import { bodyOf, errorOf } from '../../test/http.ts';
@@ -106,6 +113,98 @@ describe('checkout with a vet-approval item', () => {
     expect(bodyOf<{ data: { requiresVetApproval: boolean } }>(res).data.requiresVetApproval).toBe(
       true,
     );
+  });
+});
+
+describe('vet details with points and the round-up', () => {
+  it('places, prices and holds one order that uses all three', async () => {
+    await db
+      .insert(charities)
+      .values({ slug: 'whisker-hollow-rescue', name: 'Whisker Hollow Rescue', description: 'x' });
+    const buyer = await signedIn(app);
+    await db
+      .insert(pointsLedger)
+      .values({ userId: buyer.user.id, delta: 300, kind: 'bonus', refKey: 'seed:vet' });
+    await flaggedCart(buyer); // 15.00
+    const res = await checkout(buyer, {
+      vetDetails: TEST_VET,
+      pointsToRedeem: 300,
+      roundUpDonation: true,
+    });
+    expect(res.status).toBe(200);
+    const number = bodyOf<{ data: { orderNumber: string } }>(res).data.orderNumber;
+    const order = await orderByNumber(number);
+    expect(order.discountCents).toBe(300);
+    expect(order.donationCents).toBeGreaterThan(0);
+    expect(order.totalCents % 100).toBe(0);
+    expect(order.totalCents).toBe(
+      order.subtotalCents + order.shippingCents + order.donationCents - order.discountCents,
+    );
+    expect((await db.select().from(orderVetDetails))[0]).toMatchObject({ orderId: order.id });
+
+    await simulate(app, number).expect(200);
+    expect((await orderByNumber(number)).status).toBe('awaiting_vet_approval');
+    const ledger = await db.select().from(pointsLedger).where(eq(pointsLedger.orderId, order.id));
+    expect(ledger.map((r) => r.kind).sort()).toEqual(['earn', 'redeem']);
+    const [gift] = await db.select().from(donations).where(eq(donations.orderId, order.id));
+    expect(gift).toMatchObject({ source: 'round_up', cents: order.donationCents });
+  });
+});
+
+describe('a kit with a vet-approval component', () => {
+  // A kit (not flagged itself) made of a flagged product and an ordinary one, via the admin API.
+  async function flaggedKit() {
+    const admin = (await signedIn(app, 'admin', 'boss@pawsome.test')).shopper;
+    const calm = await createProduct({
+      requiresVetApproval: true,
+      variants: [{ priceCents: 1500, stock: 10 }],
+    });
+    const ball = await createProduct({ variants: [{ priceCents: 500, stock: 10 }] });
+    const res = await admin.call('post', '/admin/bundles', {
+      name: 'Calm Kit',
+      slug: 'calm-kit',
+      description: 'A calming chew and a ball.',
+      priceCents: 1800,
+      components: [
+        { variantId: calm.variants[0]!.id, qty: 1 },
+        { variantId: ball.variants[0]!.id, qty: 1 },
+      ],
+    });
+    expect(res.status).toBe(201);
+    return { kitVariantId: bodyOf<{ data: { variantId: string } }>(res).data.variantId, calm };
+  }
+
+  it('needs vet details at checkout and is held after payment', async () => {
+    const { kitVariantId, calm } = await flaggedKit();
+    const buyer = await signedIn(app);
+    await buyer.shopper.addToCart(kitVariantId, 1);
+    const cart = bodyOf<{ data: { requiresVetApproval: boolean } }>(
+      await buyer.shopper.call('get', '/cart'),
+    );
+    expect(cart.data.requiresVetApproval).toBe(true);
+    expect((await checkout(buyer)).status).toBe(422);
+    expect(await stockOf(calm.variants[0]!.id)).toEqual({ quantity: 10, reserved: 0 });
+
+    const placed = await checkout(buyer, { vetDetails: TEST_VET });
+    expect(placed.status).toBe(200);
+    const number = bodyOf<{ data: { orderNumber: string } }>(placed).data.orderNumber;
+    await simulate(app, number).expect(200);
+    expect((await orderByNumber(number)).status).toBe('awaiting_vet_approval');
+  });
+
+  it('shows the need on the kit page, and an ordinary kit needs nothing', async () => {
+    await flaggedKit();
+    const res = await signedIn(app).then((b) => b.shopper.call('get', '/products/calm-kit'));
+    expect(bodyOf<{ data: { requiresVetApproval: boolean } }>(res).data.requiresVetApproval).toBe(
+      true,
+    );
+    const plain = await createProduct({ variants: [{ priceCents: 700, stock: 10 }] });
+    const buyer = await signedIn(app);
+    await buyer.shopper.addToCart(plain.variants[0]!.id, 1);
+    const cart = bodyOf<{ data: { requiresVetApproval: boolean } }>(
+      await buyer.shopper.call('get', '/cart'),
+    );
+    expect(cart.data.requiresVetApproval).toBe(false);
   });
 });
 

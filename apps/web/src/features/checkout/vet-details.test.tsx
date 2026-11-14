@@ -3,9 +3,16 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { makeCart, makeCartItem, makeProduct, makeQuote } from '../../test/fixtures';
+import {
+  makeCart,
+  makeCartItem,
+  makeCartPricing,
+  makePoints,
+  makeProduct,
+  makeQuote,
+} from '../../test/fixtures';
 import { renderApp } from '../../test/render';
-import { API, server } from '../../test/server';
+import { API, server, signedInAs } from '../../test/server';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -98,6 +105,59 @@ describe('vet details at checkout', () => {
       }),
     );
   });
+});
+
+describe('vet details with points and the round-up', () => {
+  it('sends all three together in one order', async () => {
+    vi.stubEnv('VITE_STRIPE_PUBLISHABLE_KEY', 'pk_test_x');
+    let body: Record<string, unknown> = {};
+    server.use(
+      http.get(`${API}/cart`, () =>
+        HttpResponse.json({
+          data: {
+            ...makeCart([item], [], true),
+            pricing: makeCartPricing({ merchandiseCents: 1099, totalEstimateCents: 1099 }),
+          },
+        }),
+      ),
+      signedInAs(),
+      http.get(`${API}/account/addresses`, () => HttpResponse.json({ data: [] })),
+      http.get(`${API}/me/points`, () => HttpResponse.json({ data: makePoints({ balance: 500 }) })),
+      http.get(`${API}/checkout/shipping-methods`, () =>
+        HttpResponse.json({ data: [makeQuote()] }),
+      ),
+      http.post(`${API}/checkout`, async ({ request }) => {
+        body = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json({}, { status: 500 });
+      }),
+    );
+    renderApp('/checkout');
+    const user = userEvent.setup();
+    // Signed in: no email field, and the address may come prefilled from the account.
+    await user.type(await screen.findByLabelText("Vet's name"), 'Dr Rosa Marsh');
+    for (const [label, value] of [
+      ['Full name', 'Sam Rivers'],
+      ['Address line 1', '1 Bone Street'],
+      ['Postal code', '10115'],
+      ['City', 'Berlin'],
+    ] as const) {
+      await user.clear(screen.getByLabelText(label));
+      await user.type(screen.getByLabelText(label), value);
+    }
+    await user.type(screen.getByLabelText('Clinic'), 'Pawside Vet Clinic');
+    await user.type(screen.getByLabelText("Vet's email"), 'rosa@pawside-vet.test');
+    await user.click(screen.getByTestId('checkout-continue-shipping'));
+    await user.type(await screen.findByLabelText('Use loyalty points'), '200');
+    await user.click(screen.getByLabelText(/Round my total up/));
+    await user.click(screen.getByTestId('checkout-continue-payment'));
+    await waitFor(() =>
+      expect(body).toMatchObject({
+        pointsToRedeem: 200,
+        roundUpDonation: true,
+        vetDetails: { vetName: 'Dr Rosa Marsh', clinic: 'Pawside Vet Clinic' },
+      }),
+    );
+  }, 15_000);
 });
 
 describe('vet banner on the product page', () => {
