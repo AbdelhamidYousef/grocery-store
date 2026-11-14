@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 
 import { expect, test, type Browser, type Page } from '@playwright/test';
 
-import { ADMIN, api, register, uniqueEmail } from './helpers';
+import { ADMIN, api, register, restock, uniqueEmail } from './helpers';
 
 // Phase 19 (loyalty and retention), end to end, on the simulated gateway (NODE_ENV=test API with
 // /test/webhooks/simulate):
@@ -54,6 +54,16 @@ async function mailText(to: string, subject: RegExp): Promise<string> {
     .toBe(true);
   return text;
 }
+
+// Every run buys these; without a restock the dev database runs dry after a few runs.
+test.beforeAll(async ({ browser, baseURL }) => {
+  await restock(browser, baseURL, [
+    'feather-wand-teaser',
+    'crinkle-mouse-trio',
+    'catnip-banana-kicker',
+    'window-perch-cushion',
+  ]);
+});
 
 async function addToCart(page: Page, slug: string): Promise<void> {
   await page.goto(`/products/${slug}`);

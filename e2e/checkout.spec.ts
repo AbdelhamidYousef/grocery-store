@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { register, uniqueEmail } from './helpers';
+import { register, restock, uniqueEmail } from './helpers';
 
 // Two ways to pay, one UI:
 //
@@ -74,6 +74,10 @@ function callApi<T>(
 // Well stocked in the seed (stock far above what a run uses). The file runs serially so two
 // checkouts never compete for the same variant's stock mid-assertion.
 test.describe.configure({ mode: 'serial' });
+
+test.beforeAll(async ({ browser, baseURL }) => {
+  await restock(browser, baseURL, [PRODUCT, 'braided-tug-rope']);
+});
 const PRODUCT = 'bouncy-rubber-ball';
 
 async function addToCart(page: Page, slug = PRODUCT): Promise<void> {

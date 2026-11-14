@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, type Browser, type Page } from '@playwright/test';
 
 // Shared by the e2e specs. Every run registers a fresh account, so tests never depend on each
 // other or on leftovers from an earlier run.
@@ -60,3 +60,39 @@ export async function api<T = unknown>(
 }
 
 export const ADMIN = { email: 'admin@pawsome.test', password: 'Pawsome-demo-1!' };
+
+// A run that buys seeded products uses up their stock, and the dev database keeps it between runs:
+// after enough runs the add-to-cart button says "Sold out" and the spec times out. A spec that buys
+// a seeded product therefore restocks it first, as the demo admin in a context of its own (the
+// test's own browser session stays a guest). Safe to run in parallel: it only ever raises stock.
+export async function restock(
+  browser: Browser,
+  baseURL: string | undefined,
+  slugs: string[],
+  quantity = 50,
+): Promise<void> {
+  const context = await browser.newContext(baseURL ? { baseURL } : {});
+  try {
+    const page = await context.newPage();
+    await page.goto('/');
+    const login = await api(page, 'POST', '/auth/login', ADMIN);
+    expect(login.status, 'admin login for restock').toBe(200);
+    for (const slug of slugs) {
+      const product = await api<{ data: { variants: { id: string }[] } }>(
+        page,
+        'GET',
+        `/products/${slug}`,
+      );
+      expect(product.status, `${slug} exists`).toBe(200);
+      for (const variant of product.body.data.variants) {
+        const res = await api(page, 'PATCH', `/admin/inventory/${variant.id}`, {
+          quantity,
+          reason: 'correction',
+        });
+        expect(res.status, JSON.stringify(res.body)).toBe(200);
+      }
+    }
+  } finally {
+    await context.close();
+  }
+}
