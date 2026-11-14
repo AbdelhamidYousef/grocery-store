@@ -7,12 +7,8 @@ import {
 } from '@store/shared';
 import { Router as ExpressRouter, type Router } from 'express';
 
-import {
-  removePhotos,
-  savePhoto,
-  parseGalleryUpload,
-  type UploadConfig,
-} from '../../lib/uploads.ts';
+import { removeUnreferencedPhotos } from '../../lib/upload-refs.ts';
+import { savePhoto, parseGalleryUpload, type UploadConfig } from '../../lib/uploads.ts';
 import { respond, valid, validate } from '../../lib/validate.ts';
 import { setAudit } from '../admin/audit.ts';
 
@@ -47,7 +43,10 @@ export function createGalleryAdminRouter(deps: { uploads: UploadConfig }): Route
   router.patch('/gallery/:id', validate(update), async (req, res) => {
     const { params, body } = valid(req, update);
     setAudit(res, 'gallery.update', params.id);
-    respond(res, AdminGalleryResponseSchema, { data: await service.updatePhoto(params.id, body) });
+    const { photo, replacedPath } = await service.updatePhoto(params.id, body);
+    // The old file is orphaned by a path change (unless another row still shows it).
+    if (replacedPath) await removeUnreferencedPhotos(deps.uploads, [replacedPath]);
+    respond(res, AdminGalleryResponseSchema, { data: photo });
   });
 
   const byId = { params: IdParamsSchema };
@@ -55,7 +54,7 @@ export function createGalleryAdminRouter(deps: { uploads: UploadConfig }): Route
     const { params } = valid(req, byId);
     setAudit(res, 'gallery.delete', params.id);
     const path = await service.removePhoto(params.id);
-    await removePhotos(deps.uploads, [path]);
+    await removeUnreferencedPhotos(deps.uploads, [path]);
     res.status(204).end();
   });
 

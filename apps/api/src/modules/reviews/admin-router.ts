@@ -8,7 +8,8 @@ import {
 } from '@store/shared';
 import { Router as ExpressRouter, type Router } from 'express';
 
-import { removePhotos, type UploadConfig } from '../../lib/uploads.ts';
+import { removeUnreferencedPhotos } from '../../lib/upload-refs.ts';
+import type { UploadConfig } from '../../lib/uploads.ts';
 import { respond, valid, validate } from '../../lib/validate.ts';
 import { setAudit } from '../admin/audit.ts';
 import type { Outbox } from '../mail/outbox.ts';
@@ -44,7 +45,7 @@ export function createReviewsAdminRouter(deps: { outbox: Outbox; uploads: Upload
   router.post('/reviews/:id/reject', validate(reject), async (req, res) => {
     const { params, body } = valid(req, reject);
     setAudit(res, 'review.reject', params.id);
-    await rejectReview(params.id, body.reason);
+    await rejectReview(params.id, body.reason, deps.uploads);
     await reply(res, params.id);
   });
 
@@ -52,7 +53,7 @@ export function createReviewsAdminRouter(deps: { outbox: Outbox; uploads: Upload
     const { params } = valid(req, byId);
     setAudit(res, 'review.delete', params.id);
     const paths = await deleteReview(params.id);
-    await removePhotos(deps.uploads, paths);
+    await removeUnreferencedPhotos(deps.uploads, paths);
     res.status(204).end();
   });
 

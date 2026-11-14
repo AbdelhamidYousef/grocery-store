@@ -107,14 +107,17 @@ export async function updatePhoto(id: string, input: z.output<typeof GalleryUpda
   const { productIds, ...fields } = input;
   const unique = productIds ? [...new Set(productIds)] : undefined;
   if (unique) await assertProducts(unique);
-  const row = await db.transaction(async (tx) => {
+  const out = await db.transaction(async (tx) => {
+    const before = await repo.findPhotoIn(tx, id);
     const updated = await repo.updatePhoto(tx, id, fields);
     if (!updated) return undefined;
     if (unique) await repo.replaceLinks(tx, id, unique);
-    return updated;
+    return { updated, oldPath: before?.path };
   });
-  if (!row) throw notFound('Gallery photo not found');
-  return (await withLinks([row]))[0]!;
+  if (!out) throw notFound('Gallery photo not found');
+  // `replacedPath` is the file the entry no longer shows, so the caller can remove it.
+  const replacedPath = out.oldPath && out.oldPath !== out.updated.path ? out.oldPath : undefined;
+  return { photo: (await withLinks([out.updated]))[0]!, replacedPath };
 }
 
 export async function removePhoto(id: string): Promise<string> {

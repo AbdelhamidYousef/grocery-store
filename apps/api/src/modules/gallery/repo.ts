@@ -39,6 +39,11 @@ export async function findPhoto(id: string) {
   return row;
 }
 
+export async function findPhotoIn(tx: Tx, id: string) {
+  const [row] = await tx.select().from(galleryPhotos).where(eq(galleryPhotos.id, id));
+  return row;
+}
+
 export async function linksFor(photoIds: string[]) {
   if (photoIds.length === 0) return [];
   return db
