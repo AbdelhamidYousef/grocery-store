@@ -217,7 +217,9 @@ export async function seedSales(tx: Tx, opts: { passwordHash: string; now: Date 
       .select()
       .from(orderItems)
       .where(eq(orderItems.orderId, order.id))
-      .orderBy(orderItems.createdAt, orderItems.id);
+      // By SKU, a stable order: the lines of one order share a created_at (one INSERT) and their ids are
+      // random, so ordering by those picked a different line (and refund amount) on every seed run.
+      .orderBy(orderItems.sku);
     if (!line) continue;
     const refundCents = line.unitPriceCents; // one unit
     const [ret] = await tx
