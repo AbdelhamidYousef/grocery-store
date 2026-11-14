@@ -1,7 +1,5 @@
 import {
-  OrderStatusSchema,
   averageTenths,
-  isPaidOrLater,
   type AdminReview,
   type AdminReviewListResponseSchema,
   type AdminReviewQuerySchema,
@@ -19,7 +17,10 @@ import { removePhotos, savePhoto, type UploadConfig } from '../../lib/uploads.ts
 import * as repo from './repo.ts';
 import { extractTopics, type Topic } from './topics.ts';
 
-const PAID_STATUSES = OrderStatusSchema.options.filter(isPaidOrLater);
+// An explicit allow-list, NOT the shared `isPaidOrLater`: that one also counts `refunded`, and a
+// refunded buyer did not keep the product, so the "Verified buyer" badge must not follow them.
+// A status added later does not verify anyone until it is listed here on purpose.
+const VERIFIED_STATUSES: repo.PaidStatus[] = ['paid', 'processing', 'shipped', 'delivered'];
 
 export type CreateReviewResult = { id: string; status: 'pending'; verifiedBuyer: boolean };
 
@@ -35,7 +36,7 @@ export async function createReview(
   const product = await repo.findActiveProduct(slug);
   if (!product) throw notFound('Product not found');
 
-  const orderId = await repo.findPaidOrderId(userId, product.id, PAID_STATUSES);
+  const orderId = await repo.findPaidOrderId(userId, product.id, VERIFIED_STATUSES);
 
   const files = upload?.files ?? [];
   if (files.length > 0 && !upload?.config.enabled) {

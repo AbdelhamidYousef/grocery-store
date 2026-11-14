@@ -3,7 +3,7 @@ import request from 'supertest';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { db } from '../../db/client.ts';
-import { reviewPhotos, reviewVotes, reviews } from '../../db/schema/index.ts';
+import { orders, reviewPhotos, reviewVotes, reviews } from '../../db/schema/index.ts';
 import { makeTestApp } from '../../test/app.ts';
 import {
   createProduct,
@@ -71,6 +71,17 @@ describe('submitting a review', () => {
     expect(bodyOf<Created>(res).data.verifiedBuyer).toBe(true);
     const [row] = await db.select().from(reviews);
     expect(row?.orderId).not.toBeNull();
+  });
+
+  it('does not verify on a refunded order', async () => {
+    const { product, variants } = await createProduct();
+    const { shopper } = await signedIn(app);
+    const { number } = await placeOrder(app, { variantId: variants[0]!.id, shopper });
+    await simulate(app, number);
+    await db.update(orders).set({ status: 'refunded' }).where(eq(orders.number, number));
+    const res = await shopper.call('post', `/products/${product.slug}/reviews`, review);
+    expect(res.status).toBe(201);
+    expect(bodyOf<Created>(res).data.verifiedBuyer).toBe(false);
   });
 
   it('does not verify on an order that is still waiting for payment', async () => {

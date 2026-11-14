@@ -24,9 +24,8 @@ export async function findActiveProduct(slug: string) {
   return row;
 }
 
-// The newest order of this user that contains any variant of the product and whose status is
-// "paid or later". The statuses come from the shared `isPaidOrLater`, so a status added later is
-// classified in one place.
+// The newest order of this user that contains any variant of the product and whose status is in
+// the given list (the service passes paid, processing, shipped, delivered: never refunded).
 export async function findPaidOrderId(
   userId: string,
   productId: string,
@@ -296,6 +295,10 @@ export async function photoPathsOf(tx: Tx, reviewId: string): Promise<string[]> 
     .from(reviewPhotos)
     .where(eq(reviewPhotos.reviewId, reviewId));
   return rows.map((r) => r.path);
+}
+
+export async function deletePhotoRows(tx: Tx, reviewId: string) {
+  await tx.delete(reviewPhotos).where(eq(reviewPhotos.reviewId, reviewId));
 }
 
 export async function deleteReviewRow(tx: Tx, id: string) {
