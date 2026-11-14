@@ -1,3 +1,73 @@
-import type { Dictionary } from '../types';
+import type { returns as enNs } from '../en/returns';
+import type { Entry } from '../types';
 
-export const returns: Dictionary = {};
+export const returns: Record<keyof typeof enNs, Entry> = {
+  'returns.title': 'Rücksendungen',
+  'returns.returnItems': 'Artikel zurücksenden',
+  'returns.sent': 'Rücksendeanfrage gesendet. Wir informieren Sie per E-Mail.',
+  'returns.returnUntil': 'Sie können Artikel bis zum {date} zurücksenden.',
+  'returns.windowClosed': 'Die Rücksendefrist von {days} Tagen ist abgelaufen',
+  'returns.asked': 'Angefragt am {date} · {reason}',
+  'returns.whyDeclined': 'Grund der Ablehnung:',
+  'returns.refunded': '{amount} erstattet',
+  'returns.refundedSimulated': '{amount} erstattet (Demo: simuliert, es wurde kein Geld bewegt)',
+  'returns.noRefund': 'Für diese Anfrage gibt es keine Erstattung.',
+  'returns.expectedRefund': 'Voraussichtliche Erstattung {amount}',
+  'returns.progress': 'Stand der Rücksendung',
+  'returns.stepAt': '{label} · {date}',
+  'returns.lineItem': '{quantity} × {product} ({variant})',
+  'returns.step.sent': 'Anfrage gesendet',
+  'returns.status.requested': 'Rücksendung angefragt',
+  'returns.status.approved': 'Rücksendung genehmigt',
+  'returns.status.rejected': 'Rücksendung abgelehnt',
+  'returns.status.received': 'Rücksendung eingegangen',
+  'returns.status.refunded': 'Erstattet',
+  'returns.reason.wrong_size': 'Falsche Größe',
+  'returns.reason.damaged': 'Beschädigt angekommen',
+  'returns.reason.not_as_described': 'Nicht wie beschrieben',
+  'returns.reason.changed_mind': 'Meinung geändert',
+  'returns.reason.other': 'Etwas anderes',
+  'returns.form.chooseOne': 'Wählen Sie mindestens einen Artikel zur Rücksendung',
+  'returns.form.whichItems': 'Welche Artikel gehen zurück?',
+  'returns.form.itemLabel': '{product} ({variant})',
+  'returns.form.quantityOf': 'Menge von {product}',
+  'returns.form.why': 'Warum senden Sie den Artikel zurück?',
+  'returns.form.note': 'Gibt es etwas, das wir wissen sollten? (optional)',
+  'returns.form.preview': 'Sie erhalten etwa {amount} zurück (ohne Versandkosten).',
+  'returns.form.previewEmpty': 'Wählen Sie einen Artikel, um Ihre Erstattung zu sehen.',
+  'returns.form.send': 'Rücksendeanfrage senden',
+  'returns.form.cancel': 'Abbrechen',
+  'returns.withdraw.fieldError':
+    'Geben Sie Ihre Bestellnummer und die E-Mail-Adresse der Bestellung ein.',
+  'returns.withdraw.notFound':
+    'Wir konnten keine Bestellung mit dieser Nummer und E-Mail-Adresse finden. Prüfen Sie beides und versuchen Sie es erneut.',
+  'returns.withdraw.tooMany':
+    'Zu viele Versuche von dieser Verbindung. Bitte warten Sie und versuchen Sie es erneut.',
+  'returns.withdraw.failed':
+    'Wir konnten Ihren Widerruf gerade nicht senden. Bitte versuchen Sie es gleich noch einmal.',
+  'returns.withdraw.doneSeo': 'Widerruf erhalten',
+  'returns.withdraw.doneTitle': 'Wir haben Ihren Widerruf erhalten',
+  'returns.withdraw.doneOrder': 'Bestellung {number}, eingegangen am {date}.',
+  'returns.withdraw.doneReference':
+    'Ihre Referenz lautet {reference}. Wir haben Ihnen eine Bestätigung per E-Mail geschickt: Bewahren Sie sie als Nachweis auf.',
+  'returns.withdraw.backToShop': 'Zurück zum Shop',
+  'returns.withdraw.title': 'Vertrag widerrufen',
+  'returns.withdraw.seoDescription': 'Eine Bestellung innerhalb von 14 Tagen widerrufen.',
+  'returns.withdraw.intro':
+    'In der EU können Sie eine Bestellung innerhalb von 14 Tagen nach Erhalt ohne Angabe von Gründen widerrufen. Füllen Sie das Formular aus, und wir bestätigen per E-Mail. Siehe auch unsere',
+  'returns.withdraw.returnsLink': 'Seite zu Rücksendungen',
+  'returns.withdraw.orderNumber': 'Bestellnummer',
+  'returns.withdraw.email': 'E-Mail-Adresse der Bestellung',
+  'returns.withdraw.items': 'Artikel (optional)',
+  'returns.withdraw.itemsHint': 'Leer lassen, um die gesamte Bestellung zu widerrufen.',
+  'returns.withdraw.reason': 'Grund (optional)',
+  'msg.returns.notDelivered': 'Nur eine gelieferte Bestellung kann zurückgesendet werden',
+  'msg.returns.alreadyInReturn': 'Alle Artikel dieser Bestellung sind bereits in einer Rücksendung',
+  'msg.returns.noPaidItems': 'Diese Bestellung enthält keine bezahlten Artikel zur Rücksendung',
+  'msg.returns.cannotReturn': 'Diese Bestellung kann nicht zurückgesendet werden',
+  'msg.returns.notPartOfOrder': 'Dieser Artikel gehört nicht zu dieser Bestellung',
+  'msg.returns.listOnce': 'Führen Sie jeden Artikel nur einmal auf, mit seiner Menge',
+  'msg.returns.orderNotFound': 'Bestellung nicht gefunden',
+  'msg.returns.notCompleted':
+    'Diese Bestellung wurde nicht abgeschlossen, daher gibt es nichts zu widerrufen.',
+};

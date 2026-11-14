@@ -1,3 +1,32 @@
-import type { Dictionary } from '../types';
+import type { search as enNs } from '../en/search';
+import type { Entry } from '../types';
 
-export const search: Dictionary = {};
+export const search: Record<keyof typeof enNs, Entry> = {
+  'search.label': 'Produkte suchen',
+  'search.placeholder': 'Spielzeug, Betten, Leckerlis suchen ...',
+  'search.submit': 'Suchen',
+  'search.cancel': 'Abbrechen',
+  'search.suggestions': 'Suchvorschläge',
+  'search.clearRecent': 'Letzte Suchen löschen',
+  'search.group.products': 'Produkte',
+  'search.group.categories': 'Kategorien',
+  'search.group.brands': 'Marken',
+  'search.group.recent': 'Letzte Suchen',
+  'search.from': 'ab {price}',
+  'search.inParent': 'in {name}',
+  'search.count.products': { one: '{count} Produkt', other: '{count} Produkte' },
+  'search.count.categories': { one: '{count} Kategorie', other: '{count} Kategorien' },
+  'search.count.brands': { one: '{count} Marke', other: '{count} Marken' },
+  'search.recentCount': { one: '{count} letzte Suche', other: '{count} letzte Suchen' },
+  'search.noSuggestionsShort': 'Keine Vorschläge',
+  'search.noSuggestions':
+    'Keine Vorschläge. Drücken Sie die Eingabetaste, um nach „{query}“ zu suchen.',
+  'search.unavailable':
+    'Vorschläge sind nicht verfügbar. Drücken Sie die Eingabetaste, um zu suchen.',
+  'search.searching': 'Suche läuft',
+  'search.searchingDots': 'Suche läuft ...',
+  'search.page.title': 'Suche',
+  'search.page.titleFor': 'Suche: {query}',
+  'search.page.resultsFor': 'Ergebnisse für „{query}“',
+  'search.page.prompt': 'Geben Sie oben im Suchfeld ein, wonach Sie suchen.',
+};

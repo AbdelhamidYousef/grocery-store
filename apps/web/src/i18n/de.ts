@@ -11,9 +11,10 @@ import { returns } from './de/returns';
 import { reviews } from './de/reviews';
 import { search } from './de/search';
 import { shell } from './de/shell';
-import type { Dictionary } from './types';
+import type { en } from './en';
+import type { Entry } from './types';
 
-export const de: Dictionary = {
+export const de: Record<keyof typeof en, Entry> = {
   ...shell,
   ...search,
   ...catalog,
