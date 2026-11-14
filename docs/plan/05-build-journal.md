@@ -941,3 +941,8 @@ Learn: derive what can drift (kit stock), store what is a decision (kit price), 
 3. A pet's birthday mail must go out once a year even if the job runs twice or crashes halfway: which row and which transaction guarantee that, and how are 29 February birthdays handled?
 
 - 2026-11-14 · merge of 17 and 19: the job runner now schedules `sweepOrphanUploads` daily as `sweep-orphan-uploads`, closing the phase 17 follow-up. The product page heading combines the wishlist heart (19) and the rating link (17).
+
+### 24.1 / 24.2 — WebMCP decision and tool registry
+- 24.1: read the W3C WebML CG draft and Chrome's preview notes; the API moved from `navigator.modelContext` to `document.modelContext.registerTool(tool, { signal })`. Recorded in the decisions log with the flag (`chrome://flags/#enable-webmcp-testing`, Chrome 146+).
+- 24.2: `features/agent/tools.ts` holds five tools (catalogue search, product, add to cart, get cart, update lines) as wrappers over `api/cart.ts` and `api/catalog.ts`; results are compact JSON, errors are `{ error: { code, message } }`.
+- Learn / explain: thin wrappers mean no new business rules, so an agent cannot do what a shopper cannot; validating with the same Zod schema that later becomes the JSON Schema keeps the contract in one place; there is deliberately no checkout tool, the human pays.
