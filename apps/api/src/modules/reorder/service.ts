@@ -18,7 +18,14 @@ import * as cart from '../cart/service.ts';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // "Paid or later", the same statuses the rest of loyalty uses.
-const PAID = ['paid', 'processing', 'shipped', 'delivered', 'refunded'] as const;
+const PAID = [
+  'paid',
+  'awaiting_vet_approval',
+  'processing',
+  'shipped',
+  'delivered',
+  'refunded',
+] as const;
 const availableOf = sql<number>`coalesce(${stockQuantity(productVariants.id)} - ${stockReserved(productVariants.id)}, 0)`;
 
 // Distinct variants from this customer's paid orders, newest first, each with today's price and

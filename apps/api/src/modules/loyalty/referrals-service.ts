@@ -34,8 +34,15 @@ import { mintPersonalCode } from './codes.ts';
 
 type Run = typeof db | Tx;
 
-// "Paid or later": the statuses that mean money was taken.
-const PAID_STATUSES = ['paid', 'processing', 'shipped', 'delivered', 'refunded'] as const;
+// "Paid or later": the statuses that mean money was taken (a vet-held order is paid).
+const PAID_STATUSES = [
+  'paid',
+  'awaiting_vet_approval',
+  'processing',
+  'shipped',
+  'delivered',
+  'refunded',
+] as const;
 const YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
 const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -265,7 +272,7 @@ async function voidFor(tx: Tx, orderId: string): Promise<void> {
           // Skip only a code already spent on an order that was PAID: a redemption held by an
           // unpaid pending_payment order is released by the sweeper later, and a code left
           // active would revive.
-          sql`not exists (select 1 from ${discountRedemptions} join ${orders} on ${orders.id} = ${discountRedemptions.orderId} where ${discountRedemptions.codeId} = ${discountCodes.id} and ${discountRedemptions.releasedAt} is null and ${orders.status} in ('paid', 'processing', 'shipped', 'delivered'))`,
+          sql`not exists (select 1 from ${discountRedemptions} join ${orders} on ${orders.id} = ${discountRedemptions.orderId} where ${discountRedemptions.codeId} = ${discountCodes.id} and ${discountRedemptions.releasedAt} is null and ${orders.status} in ('paid', 'awaiting_vet_approval', 'processing', 'shipped', 'delivered'))`,
         ),
       );
   }
