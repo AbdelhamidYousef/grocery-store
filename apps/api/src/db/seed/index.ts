@@ -426,6 +426,7 @@ export async function runSeed(now = new Date()) {
           baseCents: excluded('base_cents'),
           perKgCents: excluded('per_kg_cents'),
           freeOverCents: excluded('free_over_cents'),
+          byCurrency: excluded('by_currency'),
           etaDaysMin: excluded('eta_days_min'),
           etaDaysMax: excluded('eta_days_max'),
           isActive: excluded('is_active'),
@@ -442,6 +443,8 @@ export async function runSeed(now = new Date()) {
           kind: excluded('kind'),
           value: excluded('value'),
           minSpendCents: excluded('min_spend_cents'),
+          valueByCurrency: excluded('value_by_currency'),
+          minSpendByCurrency: excluded('min_spend_by_currency'),
           excludeSaleItems: excluded('exclude_sale_items'),
           firstOrderOnly: excluded('first_order_only'),
           perCustomerMax: excluded('per_customer_max'),
@@ -454,7 +457,11 @@ export async function runSeed(now = new Date()) {
       .values(bulkTierSeeds)
       .onConflictDoUpdate({
         target: bulkTiers.minCents,
-        set: { percent: excluded('percent'), active: sql`true` },
+        set: {
+          percent: excluded('percent'),
+          minByCurrency: excluded('min_by_currency'),
+          active: sql`true`,
+        },
       });
     // Gift rules have no natural key and at most one may be active: switch the others off first.
     const giftVariantId = variantId.get(giftRuleSeed.variantSku);
@@ -471,12 +478,18 @@ export async function runSeed(now = new Date()) {
     if (gift) {
       await tx
         .update(giftRules)
-        .set({ thresholdCents: giftRuleSeed.thresholdCents, active: true })
+        .set({
+          thresholdCents: giftRuleSeed.thresholdCents,
+          thresholdByCurrency: giftRuleSeed.thresholdByCurrency,
+          active: true,
+        })
         .where(eq(giftRules.id, gift.id));
     } else {
-      await tx
-        .insert(giftRules)
-        .values({ thresholdCents: giftRuleSeed.thresholdCents, variantId: giftVariantId });
+      await tx.insert(giftRules).values({
+        thresholdCents: giftRuleSeed.thresholdCents,
+        thresholdByCurrency: giftRuleSeed.thresholdByCurrency,
+        variantId: giftVariantId,
+      });
     }
 
     // ---- users: the password hash is reset too, so the printed credentials are always true ----

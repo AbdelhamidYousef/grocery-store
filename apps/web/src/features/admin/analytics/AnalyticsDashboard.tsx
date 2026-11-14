@@ -1,4 +1,4 @@
-import { formatMoney, type AdminAnalytics } from '@store/shared';
+import { formatMoney, STORES, type AdminAnalytics } from '@store/shared';
 import { useSearchParams } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 
@@ -78,11 +78,28 @@ function ProductTable({
 // Sales, products, stock and returns for a chosen period. The period is a preset in the URL
 // (`?days=7|30|90`); every figure comes from the API in integer cents, and this page only
 // formats them. CSV downloads are plain links to the streamed export.
+const REPORT_CURRENCIES = [...new Set(STORES.map((s) => s.currency))];
+
 export function AnalyticsDashboard() {
   const [search, setSearch] = useSearchParams();
   const days = parsePreset(search.get('days'));
   const { from, to } = rangeFor(days);
-  const { data, isPending, isError, refetch } = useAdminAnalytics(from, to, intervalFor(days));
+  // Revenue is one currency at a time (no rate is applied): the admin picks which.
+  const currency = REPORT_CURRENCIES.find((c) => c === search.get('currency')) ?? 'EUR';
+  const { data, isPending, isError, refetch } = useAdminAnalytics(
+    from,
+    to,
+    intervalFor(days),
+    currency,
+  );
+  const patch = (next: { days?: number; currency?: string }) => {
+    const params: Record<string, string> = {};
+    const d = next.days ?? days;
+    const c = next.currency ?? currency;
+    if (d !== 30) params.days = String(d);
+    if (c !== 'EUR') params.currency = c;
+    setSearch(params, { replace: true });
+  };
 
   return (
     <section aria-labelledby="analytics-heading" className="flex flex-col gap-6">
@@ -96,13 +113,28 @@ export function AnalyticsDashboard() {
             key={n}
             variant={days === n ? 'primary' : 'secondary'}
             aria-pressed={days === n}
-            onClick={() => setSearch(n === 30 ? {} : { days: String(n) }, { replace: true })}
+            onClick={() => patch({ days: n })}
           >
             Last {n} days
           </Button>
         ))}
         <span className="text-sm text-muted">
           {from} to {to}
+        </span>
+      </div>
+      <div role="group" aria-label="Currency" className="flex flex-wrap items-center gap-2">
+        {REPORT_CURRENCIES.map((c) => (
+          <Button
+            key={c}
+            variant={currency === c ? 'primary' : 'secondary'}
+            aria-pressed={currency === c}
+            onClick={() => patch({ currency: c })}
+          >
+            {c}
+          </Button>
+        ))}
+        <span className="text-sm text-muted">
+          Orders in one currency at a time, never added up.
         </span>
       </div>
 
@@ -230,7 +262,7 @@ export function AnalyticsDashboard() {
               ).map(([report, label]) => (
                 <a
                   key={report}
-                  href={analyticsCsvUrl(report, from, to)}
+                  href={analyticsCsvUrl(report, from, to, currency)}
                   download
                   className="inline-flex min-h-11 items-center rounded-control border-2 border-line px-4 font-display font-semibold hover:bg-pet-soft"
                 >

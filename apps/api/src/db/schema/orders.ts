@@ -63,6 +63,10 @@ export const orders = pgTable(
     email: citext('email').notNull(),
     status: orderStatus('status').notNull().default('pending_payment'),
     currency: char('currency', { length: 3 }).notNull().default('EUR'),
+    // The store view the order was placed in and its Intl locale (phase 21): snapshots, so emails
+    // and documents stay in the language of the purchase even if the store config changes later.
+    storeView: text('store_view').notNull().default('eu-en'),
+    locale: text('locale').notNull().default('en-IE'),
     subtotalCents: integer('subtotal_cents').notNull(),
     shippingCents: integer('shipping_cents').notNull(),
     discountCents: integer('discount_cents').notNull().default(0),

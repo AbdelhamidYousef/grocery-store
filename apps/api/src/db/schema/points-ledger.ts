@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { check, index, integer, pgEnum, pgTable, text, uuid } from 'drizzle-orm/pg-core';
+import { char, check, index, integer, pgEnum, pgTable, text, uuid } from 'drizzle-orm/pg-core';
 
 import { createdAt, id } from './columns.ts';
 import { orders } from './orders.ts';
@@ -31,6 +31,10 @@ export const pointsLedger = pgTable(
     // SET NULL, like discount codes: history survives an order being removed.
     orderId: uuid('order_id').references(() => orders.id, { onDelete: 'set null' }),
     refKey: text('ref_key').notNull().unique(),
+    // The currency of the order the points came from or were spent on (null for adjustments and
+    // donations without an order). Points are one balance; this only records what they were worth
+    // when earned or spent (1 point = 1 minor unit of that currency).
+    currency: char('currency', { length: 3 }),
     // Mandatory for `adjust` (who changed it and why); optional context for the others.
     reason: text('reason'),
     createdAt: createdAt(),

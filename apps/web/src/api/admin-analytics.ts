@@ -11,9 +11,10 @@ export async function fetchAdminAnalytics(
   from: string,
   to: string,
   interval: AnalyticsInterval,
+  currency: string,
   signal?: AbortSignal,
 ): Promise<AdminAnalytics> {
-  const qs = new URLSearchParams({ from, to, interval });
+  const qs = new URLSearchParams({ from, to, interval, currency });
   return (
     await apiFetch(`/admin/analytics?${qs.toString()}`, {
       schema: AdminAnalyticsResponseSchema,
@@ -24,7 +25,12 @@ export async function fetchAdminAnalytics(
 
 // A plain link the browser downloads (the session cookie goes along): the server streams the file
 // and names it, so nothing is built in memory here.
-export function analyticsCsvUrl(report: AnalyticsReport, from: string, to: string): string {
-  const qs = new URLSearchParams({ report, from, to });
+export function analyticsCsvUrl(
+  report: AnalyticsReport,
+  from: string,
+  to: string,
+  currency = 'EUR',
+): string {
+  const qs = new URLSearchParams({ report, from, to, currency });
   return `${API_BASE}/api/v1/admin/analytics/export.csv?${qs.toString()}`;
 }

@@ -253,6 +253,13 @@
       "when": 1794654410320,
       "tag": "0035_variant_prices",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1794655863009,
+      "tag": "0036_store_currency",
+      "breakpoints": true
     }
   ]
 }

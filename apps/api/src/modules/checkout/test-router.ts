@@ -32,6 +32,8 @@ const SimulateSchema = z.object({
     .default('payment_intent.succeeded'),
   // Lets a test provoke the amount-mismatch path; defaults to the order total.
   amountReceivedCents: z.number().int().min(0).optional(),
+  // Lets a test provoke the currency-mismatch path; defaults to the payment's own currency.
+  currency: z.string().length(3).optional(),
   // Lets a test show a specific decline message.
   errorMessage: z.string().optional(),
 });
@@ -75,7 +77,7 @@ export function createTestRouter(deps: {
     const intentId = payment.providerPaymentIntentId;
     let amount = payment.amountCents;
     let amountReceived = body.amountReceivedCents ?? payment.amountCents;
-    let currency = payment.currency.toLowerCase();
+    let currency = (body.currency ?? payment.currency).toLowerCase();
     if (deps.realStripe) {
       // A made-up amount would defeat the point of asking Stripe, so it is refused, not ignored.
       if (body.amountReceivedCents !== undefined) {

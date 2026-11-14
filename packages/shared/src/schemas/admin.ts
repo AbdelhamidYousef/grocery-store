@@ -17,6 +17,15 @@ export const AdminStatsSchema = z.object({
   lowStockCount: z.number().int().min(0),
 });
 export type AdminStats = z.infer<typeof AdminStatsSchema>;
+// `revenue30dCents` is in this currency (never summed across currencies; EUR by default).
+export const AdminStatsQuerySchema = z.object({
+  currency: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .pipe(z.string().regex(/^[A-Z]{3}$/))
+    .default('EUR'),
+});
 
 export const AdminStatsResponseSchema = DataSchema(AdminStatsSchema);
 

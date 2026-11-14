@@ -85,13 +85,23 @@ async function usageProblem(
   return null;
 }
 
-function toEngineCode(code: repo.CodeRow): PricingCode {
+// The code with its amounts in one currency, or undefined when it has none there (a fixed code with
+// no value in the currency, or a minimum spend that exists in EUR but not in this currency): such a
+// code does not exist in that store.
+function toEngineCode(code: repo.CodeRow, currency: string): PricingCode | undefined {
+  const value =
+    code.kind === 'fixed' ? repo.amountIn(code.value, code.valueByCurrency, currency) : code.value;
+  const minSpend =
+    code.minSpendCents === 0 && currency !== 'EUR'
+      ? 0
+      : repo.amountIn(code.minSpendCents, code.minSpendByCurrency, currency);
+  if (value === undefined || minSpend === undefined) return undefined;
   return {
     id: code.id,
     code: code.code,
     kind: code.kind,
-    value: code.value,
-    minSpendCents: code.minSpendCents,
+    value,
+    minSpendCents: minSpend,
     excludeSaleItems: code.excludeSaleItems,
     firstOrderOnly: code.firstOrderOnly,
     startsAt: code.startsAt ?? undefined,
@@ -126,8 +136,8 @@ export async function price(tx: Tx, req: PricingRequest): Promise<PricingResult>
   );
   const key = req.userId || req.email ? customerKey(req.userId, req.email ?? '') : null;
   // One after the other: queries on one transaction share a connection anyway.
-  const tiers = await repo.activeTiers(tx);
-  const gift = await repo.activeGift(tx);
+  const tiers = await repo.activeTiers(tx, req.currency);
+  const gift = await repo.activeGift(tx, req.currency);
   const codeRow = req.code ? await repo.findCode(tx, req.code) : undefined;
 
   const serviceNotices: { key: ServiceNotice; refId?: string }[] = [];
@@ -142,6 +152,7 @@ export async function price(tx: Tx, req: PricingRequest): Promise<PricingResult>
       if (req.lockCode) await repo.lockCode(tx, codeRow.id);
       const problem = await usageProblem(tx, codeRow, key, req.exceptOrderId);
       if (problem) serviceNotices.push({ key: problem, refId: codeRow.id });
+      else if (!toEngineCode(codeRow, req.currency)) serviceNotices.push({ key: 'code_unknown' });
       else code = codeRow;
     }
   }
@@ -167,7 +178,7 @@ export async function price(tx: Tx, req: PricingRequest): Promise<PricingResult>
       };
     }),
     customer: { isMember: req.userId !== null, orderCount },
-    code: code ? toEngineCode(code) : undefined,
+    code: code ? toEngineCode(code, req.currency) : undefined,
     tiers,
     giftRule: gift
       ? {

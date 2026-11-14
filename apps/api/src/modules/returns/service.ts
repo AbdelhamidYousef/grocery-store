@@ -119,6 +119,7 @@ export async function requestReturn(
       tx,
       {
         orderId: order.id,
+        currency: order.currency,
         userId,
         reason: body.reason,
         note: body.note,

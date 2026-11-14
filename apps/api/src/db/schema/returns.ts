@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import {
+  char,
   boolean,
   check,
   index,
@@ -53,6 +54,8 @@ export const returns = pgTable(
     // order-level discounts allocated to the line). At refund time it also holds the shipping if
     // the admin ticked it. Integer cents.
     refundCents: integer('refund_cents').notNull(),
+    // The order's currency, copied: `refund_cents` is in it and is never summed across currencies.
+    currency: char('currency', { length: 3 }).notNull().default('EUR'),
     refundShipping: boolean('refund_shipping').notNull().default(false),
     // Written BEFORE the gateway is called (the "intent"): from then on the amount and the
     // shipping choice are frozen, because the retry key `return-<id>` must always mean the same

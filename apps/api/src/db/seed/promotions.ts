@@ -1,4 +1,5 @@
-// Demo promotions. Every amount is integer cents (EUR). The pricing engine decides how they
+// Demo promotions. Every amount is integer minor units: the plain fields are EUR, the `...ByCurrency`
+// ones are hand-set GBP amounts (nothing is converted). The pricing engine decides how they
 // combine; these rows only describe the rules.
 
 export const discountCodeSeeds = [
@@ -7,6 +8,7 @@ export const discountCodeSeeds = [
     kind: 'percent' as const,
     value: 10,
     minSpendCents: 3000,
+    minSpendByCurrency: { GBP: 2500 },
     excludeSaleItems: true,
   },
   {
@@ -14,7 +16,9 @@ export const discountCodeSeeds = [
     code: 'WELCOME5',
     kind: 'fixed' as const,
     value: 500,
+    valueByCurrency: { GBP: 400 },
     minSpendCents: 2000,
+    minSpendByCurrency: { GBP: 1700 },
     firstOrderOnly: true,
     perCustomerMax: 1,
   },
@@ -23,17 +27,22 @@ export const discountCodeSeeds = [
     kind: 'free_shipping' as const,
     value: 0,
     minSpendCents: 2500,
+    minSpendByCurrency: { GBP: 2100 },
   },
 ];
 
 // Spend more, save more: the engine applies a tier OR a code, whichever saves more.
 export const bulkTierSeeds = [
-  { minCents: 7500, percent: 5 },
-  { minCents: 10000, percent: 10 },
+  { minCents: 7500, minByCurrency: { GBP: 6500 }, percent: 5 },
+  { minCents: 10000, minByCurrency: { GBP: 8500 }, percent: 10 },
 ];
 
 // A free bag of biscuits once the basket reaches EUR 40 (after discounts).
-export const giftRuleSeed = { thresholdCents: 4000, variantSku: 'PW-DOG-BISC-PEANUT-200G' };
+export const giftRuleSeed = {
+  thresholdCents: 4000,
+  thresholdByCurrency: { GBP: 3400 },
+  variantSku: 'PW-DOG-BISC-PEANUT-200G',
+};
 
 // Member prices (step 18.7): about 10% below the regular price, rounded to whole cents with
 // integer maths only. The seed gives them to a handful of ordinary variants (never a trial size).

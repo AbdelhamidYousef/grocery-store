@@ -10,6 +10,7 @@ import { Select } from '../../components/ui/Select';
 import { useT } from '../../i18n';
 import { useFormat } from '../../i18n/format';
 import { TEST_IDS } from '../../lib/test-ids';
+import { useStore } from '../stores/StoreContext';
 
 import {
   DetailsSchema,
@@ -41,7 +42,11 @@ export function DetailsStep({
 }) {
   const { t } = useT();
   const { locale } = useFormat();
-  const countries = useMemo(() => shippingCountries(locale), [locale]);
+  const { shipCountries } = useStore();
+  const countries = useMemo(
+    () => shippingCountries(locale, shipCountries),
+    [locale, shipCountries],
+  );
   const {
     register,
     handleSubmit,

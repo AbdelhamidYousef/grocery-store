@@ -20,7 +20,11 @@ const rangeError = (message: string) =>
 // `to` defaults to today in the shop's calendar, `from` to 29 days before it (a 30-day window).
 // A real calendar date is required ("2026-02-31" parses as a string but is not a day), the range
 // may not run backwards, and at most 366 days are allowed so one request cannot scan the history.
-export async function resolveRange(input: { from?: string | undefined; to?: string | undefined }) {
+export async function resolveRange(input: {
+  from?: string | undefined;
+  to?: string | undefined;
+  currency?: string | undefined;
+}) {
   const to = input.to ?? (await repo.todayInStore());
   const from = input.from ?? addDays(to, -29);
   for (const d of [from, to]) {
@@ -30,24 +34,24 @@ export async function resolveRange(input: { from?: string | undefined; to?: stri
   if (dayNumber(to) - dayNumber(from) + 1 > ANALYTICS_MAX_DAYS) {
     throw rangeError(`Choose at most ${ANALYTICS_MAX_DAYS} days`);
   }
-  return { from, to };
+  return { from, to, currency: input.currency ?? 'EUR' };
 }
 
 export async function getAnalytics(query: {
   from?: string | undefined;
   to?: string | undefined;
+  currency?: string | undefined;
   interval: AnalyticsInterval;
   lowStock: number;
 }): Promise<AdminAnalytics> {
   const range = await resolveRange(query);
-  const [series, totals, byUnits, byRevenue, low, returns, currency] = await Promise.all([
+  const [series, totals, byUnits, byRevenue, low, returns] = await Promise.all([
     repo.revenueSeries(range, query.interval),
     repo.totals(range),
     repo.topProducts(range, 'units', 10),
     repo.topProducts(range, 'revenue', 10),
     repo.lowStock(query.lowStock, 50),
     repo.returnsRate(range),
-    repo.currency(),
   ]);
   const product = (r: (typeof byUnits)[number]) => ({
     productId: r.product_id,
@@ -56,8 +60,8 @@ export async function getAnalytics(query: {
     revenueCents: r.revenue_cents,
   });
   return {
-    range: { ...range, interval: query.interval, timeZone: STORE_TIME_ZONE },
-    currency,
+    range: { from: range.from, to: range.to, interval: query.interval, timeZone: STORE_TIME_ZONE },
+    currency: range.currency,
     revenue: {
       totalCents: totals.revenue,
       series: series.map((s) => ({

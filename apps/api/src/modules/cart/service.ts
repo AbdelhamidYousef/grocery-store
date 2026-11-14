@@ -14,14 +14,12 @@ import { db, type Tx } from '../../db/client.ts';
 import { AppError, conflict, notFound } from '../../lib/errors.ts';
 import { bundleComponentsOf, listActiveShippingMethods } from '../checkout/repo.ts';
 import { estimateRule, priceBeforeThreshold } from '../checkout/shipping.ts';
+import { currentStore } from '../i18n/context.ts';
 import * as promotions from '../promotions/service.ts';
 import { customerKey, isRedeemed, trialLimit } from '../trials/service.ts';
 
 import { getOrCreateUserCart, guestExpiry, userExpiry } from './identity.ts';
 import * as repo from './repo.ts';
-
-// Store currency fallback for an empty cart (every variant defaults to it too).
-const DEFAULT_CURRENCY = 'EUR';
 
 // Picks the picture for a line: the variant's own image first (the red one, if it is red), then a
 // general product image, then whatever the product has. `images` arrives sorted by sort_order.
@@ -91,11 +89,22 @@ async function demandOfOthers(
 // clamped and an archived variant stays gone, and the warning is shown once (in the response that
 // caused the repair), not forever.
 export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
+  // The cart is priced in the store view of THIS request, so a shopper who switches store sees the
+  // same lines re-priced (a line with no price in the new currency drops out with a warning). The
+  // store the cart was last shown in is remembered on the row, nothing more.
+  const store = currentStore();
+  const currency = store.currency;
   // Flash sales activate lazily on read (before the cart lock, so the sale rows are never locked
   // while holding it).
   await promotions.syncFlashSales(tx);
   const cartRow = await repo.lockCart(tx, cartId);
-  const lines = await repo.listLines(tx, cartId);
+  // A currency switch re-prices every line, which is not a "the price moved" surprise: the
+  // remembered prices are replaced quietly below.
+  const switched = cartRow !== undefined && cartRow.currency !== currency;
+  if (cartRow && (cartRow.storeView !== store.code || cartRow.currency !== currency)) {
+    await repo.setStore(tx, cartId, store.code, currency);
+  }
+  const lines = await repo.listLines(tx, cartId, currency);
   const images = await repo.listImages(tx, [...new Set(lines.map((l) => l.productId))]);
 
   const plan = await planStock(
@@ -149,7 +158,7 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
     // Warn once when the catalog price moved since the shopper last saw it, then remember the new
     // price so the next read is calm. A null memory (line predates the column) is filled quietly.
     if (line.lastSeenPriceCents !== line.priceCents) {
-      if (line.lastSeenPriceCents !== null) {
+      if (line.lastSeenPriceCents !== null && !switched) {
         warnings.push({
           code: 'PRICE_CHANGED',
           ...base,
@@ -200,8 +209,7 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
 
   await repo.deleteItems(tx, removeIds);
 
-  const currency = lines[0]?.currency ?? DEFAULT_CURRENCY;
-  const rule = estimateRule(await listActiveShippingMethods(tx));
+  const rule = estimateRule(await listActiveShippingMethods(tx, currency));
   const { pricing } = await promotions.price(tx, {
     currency,
     lines: pricingLines,
@@ -230,7 +238,7 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
 export function emptyCart(): Cart {
   return {
     items: [],
-    currency: DEFAULT_CURRENCY,
+    currency: currentStore().currency,
     subtotalCents: 0,
     itemCount: 0,
     weightGrams: 0,

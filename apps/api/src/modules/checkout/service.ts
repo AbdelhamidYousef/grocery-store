@@ -21,6 +21,7 @@ import type { PaymentGateway } from '../../lib/stripe.ts';
 import type { AuthUser } from '../auth/sessions.ts';
 import * as cartRepo from '../cart/repo.ts';
 import { getCart, loadCart } from '../cart/service.ts';
+import { currentStore } from '../i18n/context.ts';
 import * as loyalty from '../loyalty/service.ts';
 import { toOrderDto, totalsOf } from '../orders/view.ts';
 import * as promotionsRepo from '../promotions/repo.ts';
@@ -35,6 +36,7 @@ import { priceBeforeThreshold, quote } from './shipping.ts';
 // Prices every active method for the caller's current cart. Weight and subtotal come from the
 // re-priced cart (never from the client), and sold-out lines are already excluded from both.
 export async function getShippingQuotes(cartId: string, country: string): Promise<ShippingQuote[]> {
+  assertShipsTo(country, 'country');
   const [cart, methods] = await Promise.all([getCart(cartId), repo.listActiveShippingMethods()]);
   return quote(methods, {
     country,
@@ -43,6 +45,14 @@ export async function getShippingQuotes(cartId: string, country: string): Promis
     subtotalCents: cart.pricing.merchandiseCents,
     currency: cart.currency,
   });
+}
+
+// The store view only ships to its own countries (the rate card and the VAT promise are per store).
+// The address form offers only those, so this is the server's half of the rule.
+function assertShipsTo(country: string, field: string): void {
+  if (!currentStore().shipCountries.includes(country.toUpperCase())) {
+    throw fieldError(field, 'We do not ship to this country from this store');
+  }
 }
 
 // Transit ranges of the active methods, fastest first, for the delivery estimate on product pages.
@@ -164,7 +174,9 @@ async function reserveAndSave(
       cart.items,
     );
 
-    const method = await repo.findActiveShippingMethod(input.shippingMethodCode, tx);
+    assertShipsTo(input.shippingAddress.country, 'shippingAddress.country');
+    // The rate card of the cart's currency: a method with no rate in it is not offered here.
+    const method = await repo.findActiveShippingMethod(input.shippingMethodCode, tx, cart.currency);
     if (!method) throw fieldError('shippingMethodCode', 'Unknown shipping method');
 
     // An item that needs a vet's approval: the details are required, decided by the cart the
@@ -277,6 +289,9 @@ async function reserveAndSave(
       // A signed-in user's order carries their account email, not whatever the form held.
       email,
       currency: cart.currency,
+      // Snapshots of where and in which language the order was placed (emails follow them).
+      storeView: currentStore().code,
+      locale: currentStore().locale,
       subtotalCents,
       discountCents,
       donationCents,
@@ -390,6 +405,11 @@ async function reserveAndSave(
   });
 }
 
+// One intent per order AND currency: a retry gets the same intent back, while a store switch (a new
+// currency) is a different intent. EUR keeps the original key so older orders retry unchanged.
+const intentKey = (order: repo.OrderRow) =>
+  order.currency === 'EUR' ? `order:${order.id}` : `order:${order.id}:${order.currency}`;
+
 // Phase 2. Returns the client secret the browser needs to confirm the payment.
 async function attachPaymentIntent(
   gateway: PaymentGateway,
@@ -410,12 +430,13 @@ async function attachPaymentIntent(
         orderId: order.id,
         orderNumber: order.number,
         email: order.email,
-        idempotencyKey: `order:${order.id}`,
+        idempotencyKey: intentKey(order),
       });
       if (!intent.clientSecret) throw paymentProvider('Stripe returned no client secret');
       await repo.updatePayment(db, payment.id, {
         providerPaymentIntentId: intent.id,
         amountCents: order.totalCents,
+        currency: order.currency,
       });
       return intent.clientSecret;
     }
@@ -423,6 +444,29 @@ async function attachPaymentIntent(
     let intent = await gateway.retrievePaymentIntent(payment.providerPaymentIntentId);
     if (intent.status === 'succeeded' || intent.status === 'processing') {
       throw conflict(ErrorCode.CONFLICT, 'A payment for this cart is already in progress');
+    }
+    // The shopper switched store (currency) after the intent was made: an intent's currency can
+    // never change, so it is cancelled and a new one made in the order's currency.
+    if (
+      intent.status !== 'canceled' &&
+      intent.currency.toLowerCase() !== order.currency.toLowerCase()
+    ) {
+      await gateway.cancelPaymentIntent(intent.id);
+      const fresh = await gateway.createPaymentIntent({
+        amountCents: order.totalCents,
+        currency: order.currency,
+        orderId: order.id,
+        orderNumber: order.number,
+        email: order.email,
+        idempotencyKey: intentKey(order),
+      });
+      if (!fresh.clientSecret) throw paymentProvider('Stripe returned no client secret');
+      await repo.updatePayment(db, payment.id, {
+        providerPaymentIntentId: fresh.id,
+        amountCents: order.totalCents,
+        currency: order.currency,
+      });
+      return fresh.clientSecret;
     }
     if (intent.status === 'canceled') {
       throw conflict(ErrorCode.CONFLICT, 'This payment was cancelled; reload and try again');

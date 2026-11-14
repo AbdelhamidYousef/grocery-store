@@ -14,13 +14,15 @@ export interface Shopper {
 // A browser for tests: it keeps every cookie the API sets (cart_id, last_order, ...) and sends them
 // back, drops the ones the API clears, and attaches the Origin header the CSRF check demands on
 // writes. Pass a session token to act as a signed-in user.
-export function makeShopper(app: Express, sid?: string): Shopper {
+// `store` is the store view the browser is on (`uk-en`): sent as X-Store-View on every call.
+export function makeShopper(app: Express, sid?: string, store?: string): Shopper {
   const jar = new Map<string, string>();
   if (sid) jar.set('sid', sid);
 
   const call = async (method: Method, path: string, body?: object) => {
     const req = request(app)[method](`/api/v1${path}`);
     if (method !== 'get') req.set('Origin', TEST_ORIGIN);
+    if (store) req.set('X-Store-View', store);
     if (jar.size)
       req.set(
         'Cookie',

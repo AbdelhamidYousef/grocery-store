@@ -20,11 +20,17 @@ export async function countOrdersPlacedSince(since: Date): Promise<number> {
   return row?.n ?? 0;
 }
 
-export async function revenueSince(since: Date): Promise<number> {
+export async function revenueSince(since: Date, currency: string): Promise<number> {
   const [row] = await db
     .select({ total: sum(orders.totalCents) })
     .from(orders)
-    .where(and(gte(orders.placedAt, since), inArray(orders.status, [...REVENUE_STATUSES])));
+    .where(
+      and(
+        gte(orders.placedAt, since),
+        eq(orders.currency, currency),
+        inArray(orders.status, [...REVENUE_STATUSES]),
+      ),
+    );
   // `sum` comes back as a string (bigint-safe) or null for no rows.
   return Number(row?.total ?? 0);
 }
@@ -45,9 +51,4 @@ export async function countLowStock(): Promise<number> {
       ),
     );
   return row?.n ?? 0;
-}
-
-export async function shopCurrency(): Promise<string> {
-  const [row] = await db.select({ currency: orders.currency }).from(orders).limit(1);
-  return row?.currency ?? 'EUR';
 }

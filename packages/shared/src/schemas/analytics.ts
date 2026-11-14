@@ -13,7 +13,17 @@ export type AnalyticsInterval = z.infer<typeof AnalyticsIntervalSchema>;
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use a date like 2026-11-30');
 
+// Money is reported one currency at a time and never summed across: a EUR order and a GBP order
+// are different amounts, and no rate is applied (phase 21). EUR unless the admin picks another.
+export const ReportCurrencySchema = z
+  .string()
+  .trim()
+  .toUpperCase()
+  .pipe(z.string().regex(/^[A-Z]{3}$/, 'Use a currency code like EUR'))
+  .default('EUR');
+
 export const AdminAnalyticsQuerySchema = z.object({
+  currency: ReportCurrencySchema,
   from: isoDate.optional(),
   to: isoDate.optional(),
   interval: AnalyticsIntervalSchema.default('day'),

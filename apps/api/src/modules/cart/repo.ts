@@ -84,6 +84,16 @@ export async function lockCart(tx: Tx, cartId: string): Promise<CartRow | undefi
   return row;
 }
 
+// Remembers the store view and currency the cart was last priced in.
+export async function setStore(
+  tx: Tx,
+  cartId: string,
+  storeView: string,
+  currency: string,
+): Promise<void> {
+  await tx.update(carts).set({ storeView, currency }).where(eq(carts.id, cartId));
+}
+
 export type LineRow = {
   itemId: string;
   quantity: number;

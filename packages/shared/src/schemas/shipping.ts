@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 import { DataSchema } from './common.ts';
 
-// The shop ships inside Europe only. A short allow-list (instead of "any ISO code") keeps the
+// The shop ships inside Europe and to the UK only (each store view ships to its own subset, see
+// `STORES[].shipCountries`). A short allow-list (instead of "any ISO code") keeps the
 // address form a dropdown and means we never quote or accept an order we cannot deliver.
 export const SUPPORTED_COUNTRIES = [
   'AT',
@@ -13,6 +14,7 @@ export const SUPPORTED_COUNTRIES = [
   'ES',
   'FI',
   'FR',
+  'GB',
   'IE',
   'IT',
   'LT',

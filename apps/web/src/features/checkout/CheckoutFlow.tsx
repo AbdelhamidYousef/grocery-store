@@ -12,6 +12,7 @@ import { track } from '../../lib/track';
 import { useCreateAddress } from '../account/queries';
 import { formErrorMessage } from '../auth/form-errors';
 import { PointsRedeem } from '../loyalty/PointsRedeem';
+import { useStore } from '../stores/StoreContext';
 
 import { CheckoutSummary } from './CheckoutSummary';
 import type { Details } from './details';
@@ -72,6 +73,7 @@ export function CheckoutFlow({
 }) {
   const i18n = useT();
   const { t } = i18n;
+  const { shipCountries } = useStore();
   const [step, setStep] = useState<Step>(1);
   const [details, setDetails] = useState<Details | null>(null);
   const [shippingCode, setShippingCode] = useState<string | null>(null);
@@ -180,7 +182,7 @@ export function CheckoutFlow({
           }
         >
           <DetailsStep
-            defaults={details ? toInput(details) : detailsDefaults(user, addresses)}
+            defaults={details ? toInput(details) : detailsDefaults(user, addresses, shipCountries)}
             signedIn={user !== null}
             requiresVet={cart.requiresVetApproval}
             saveAddress={saveAddress}

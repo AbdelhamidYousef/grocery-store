@@ -11,20 +11,40 @@ import {
   shippingMethods,
   webhookEvents,
 } from '../../db/schema/index.ts';
+import { currentStore } from '../i18n/context.ts';
 
 type Db = typeof db | Tx;
 
-// `is_active` lets a method be retired without deleting it (old orders snapshot its name and code).
-export async function listActiveShippingMethods(run: Db = db) {
-  return run.select().from(shippingMethods).where(eq(shippingMethods.isActive, true));
+type MethodRow = typeof shippingMethods.$inferSelect;
+
+// The method with its rate card for one currency: EUR reads the base columns, any other currency
+// reads `by_currency`. A method with no rate for the currency is not offered there (undefined):
+// shipping is never converted either.
+function inCurrency(row: MethodRow, currency: string): MethodRow | undefined {
+  if (currency === 'EUR') return row;
+  const rate = row.byCurrency[currency];
+  return rate ? { ...row, ...rate } : undefined;
 }
 
-export async function findActiveShippingMethod(code: string, run: Db = db) {
+// `is_active` lets a method be retired without deleting it (old orders snapshot its name and code).
+export async function listActiveShippingMethods(
+  run: Db = db,
+  currency: string = currentStore().currency,
+) {
+  const rows = await run.select().from(shippingMethods).where(eq(shippingMethods.isActive, true));
+  return rows.flatMap((row) => inCurrency(row, currency) ?? []);
+}
+
+export async function findActiveShippingMethod(
+  code: string,
+  run: Db = db,
+  currency: string = currentStore().currency,
+) {
   const [row] = await run
     .select()
     .from(shippingMethods)
     .where(and(eq(shippingMethods.code, code), eq(shippingMethods.isActive, true)));
-  return row;
+  return row && inCurrency(row, currency);
 }
 
 // ---------- orders, payments, stock ----------

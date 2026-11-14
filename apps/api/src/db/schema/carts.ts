@@ -1,5 +1,14 @@
 import { sql } from 'drizzle-orm';
-import { index, pgEnum, pgTable, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import {
+  char,
+  index,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core';
 
 import { citext, createdAt, id, updatedAt } from './columns.ts';
 import { users } from './users.ts';
@@ -19,6 +28,11 @@ export const carts = pgTable(
     // The discount code the shopper applied (phase 18). Text, looked up on every pricing: a code
     // archived or edited since is re-checked, never trusted from when it was applied.
     discountCode: citext('discount_code'),
+    // The store view the cart was last priced in, and its currency (phase 21). The cart is
+    // re-priced from the store of each request, so these follow the shopper when they switch
+    // store; they are what the cart was last shown in, never an input to a price.
+    storeView: text('store_view').notNull().default('eu-en'),
+    currency: char('currency', { length: 3 }).notNull().default('EUR'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

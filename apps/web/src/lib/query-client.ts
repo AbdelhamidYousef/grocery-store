@@ -112,8 +112,8 @@ export const keys = {
     gallery: ['admin', 'gallery'] as const,
     vetAll: ['admin', 'vet-approvals'] as const,
     vet: (decision: string, page: number) => ['admin', 'vet-approvals', decision, page] as const,
-    analytics: (from: string, to: string, interval: string) =>
-      ['admin', 'analytics', from, to, interval] as const,
+    analytics: (from: string, to: string, interval: string, currency = 'EUR') =>
+      ['admin', 'analytics', from, to, interval, currency] as const,
     returns: ['admin', 'returns'] as const,
     returnList: (status: string, page: number) =>
       ['admin', 'returns', 'list', status, page] as const,

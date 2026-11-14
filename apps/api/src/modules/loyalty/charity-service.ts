@@ -1,12 +1,13 @@
 import { randomUUID } from 'node:crypto';
 
 import type { CharityTotal } from '@store/shared';
-import { asc, eq, sql } from 'drizzle-orm';
+import { and, asc, eq, sql } from 'drizzle-orm';
 
 import { db, type Tx } from '../../db/client.ts';
 import { charities, donations } from '../../db/schema/index.ts';
 import { conflict, notFound } from '../../lib/errors.ts';
 import * as checkoutRepo from '../checkout/repo.ts';
+import { currentStore } from '../i18n/context.ts';
 import {
   onOrderCancelled,
   onOrderPaid,
@@ -44,7 +45,10 @@ export async function getTotal(): Promise<CharityTotal> {
       count: sql<number>`count(*) filter (where ${donations.cents} > 0)::int`,
     })
     .from(donations)
-    .where(eq(donations.charityId, charity.id));
+    // One total per currency, never summed across: the store's own currency.
+    .where(
+      and(eq(donations.charityId, charity.id), eq(donations.currency, currentStore().currency)),
+    );
   return {
     charity: { slug: charity.slug, name: charity.name, description: charity.description },
     totalCents: Math.max(0, row?.total ?? 0),
@@ -75,6 +79,7 @@ export async function donatePoints(userId: string, points: number) {
       charityId: charity.id,
       userId,
       cents: points,
+      currency: currentStore().currency,
       source: 'points',
       refKey: `points:${key}`,
     });
@@ -98,6 +103,7 @@ async function recordRoundUp(tx: Tx, { orderId }: OrderPaidEvent): Promise<void>
       userId: order.userId,
       orderId,
       cents: order.donationCents,
+      currency: order.currency,
       source: 'round_up',
       refKey: `roundup:${orderId}`,
     })
@@ -121,6 +127,7 @@ async function reverseRoundUp(tx: Tx, orderId: string): Promise<void> {
       userId: original.userId,
       orderId,
       cents: -original.cents,
+      currency: original.currency,
       source: 'reversal',
       refKey: `unround:${orderId}`,
     })

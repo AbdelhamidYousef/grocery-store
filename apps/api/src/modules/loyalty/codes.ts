@@ -1,5 +1,6 @@
 import { randomInt } from 'node:crypto';
 
+import { STORES } from '@store/shared';
 import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 
 import type { db, Tx } from '../../db/client.ts';
@@ -34,6 +35,14 @@ export interface PersonalCodeSpec {
 // A personal code is a phase 18 `discount_codes` row that only its owner can use, once, until it
 // expires: the engine and checkout enforce all three (owner in `promotions.price`, `max_uses` 1 in
 // the usage counter, the window in the engine). Loyalty adds no discount path of its own.
+// Rewards, referrals and welcome codes are worth the SAME number of minor units in every currency
+// the shop sells in (1 point = 1 minor unit of whichever currency it is spent in, EUR 5.00 off is
+// GBP 5.00 off), so the by-currency maps are the base figures repeated. A different exchange would
+// be a decision about money; this keeps the rule one line long and visible (decisions log 21.9).
+const OTHER_CURRENCIES = [...new Set(STORES.map((s) => s.currency))].filter((c) => c !== 'EUR');
+const sameIn = (cents: number): Record<string, number> =>
+  Object.fromEntries(OTHER_CURRENCIES.map((c) => [c, cents]));
+
 export async function mintPersonalCode(run: Run, spec: PersonalCodeSpec) {
   const now = spec.now ?? new Date();
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -48,6 +57,8 @@ export async function mintPersonalCode(run: Run, spec: PersonalCodeSpec) {
         value: spec.kind === 'free_shipping' ? 0 : spec.valueCents,
         firstOrderOnly: spec.firstOrderOnly ?? false,
         minSpendCents: spec.minSpendCents ?? 0,
+        valueByCurrency: spec.kind === 'fixed' ? sameIn(spec.valueCents) : {},
+        minSpendByCurrency: spec.minSpendCents ? sameIn(spec.minSpendCents) : {},
         maxUses: 1,
         ownerUserId: spec.userId ?? null,
         startsAt: now,

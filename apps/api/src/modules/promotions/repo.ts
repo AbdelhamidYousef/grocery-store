@@ -18,6 +18,7 @@ import {
   products,
 } from '../../db/schema/index.ts';
 import { currentStore } from '../i18n/context.ts';
+import { priceIn } from '../i18n/prices.ts';
 
 type Run = typeof db | Tx;
 
@@ -36,27 +37,44 @@ export async function lockCode(tx: Tx, id: string): Promise<CodeRow | undefined>
   return row;
 }
 
-export async function activeTiers(run: Run) {
-  return run
-    .select({ id: bulkTiers.id, minCents: bulkTiers.minCents, percent: bulkTiers.percent })
+// A threshold in a currency: EUR is the base column, any other currency its `by_currency` entry.
+// undefined means the rule has no amount there and so does not apply (nothing is converted).
+export function amountIn(
+  eurCents: number,
+  byCurrency: Record<string, number>,
+  currency: string,
+): number | undefined {
+  return currency === 'EUR' ? eurCents : byCurrency[currency];
+}
+
+export async function activeTiers(run: Run, currency: string = currentStore().currency) {
+  const rows = await run
+    .select()
     .from(bulkTiers)
     .where(eq(bulkTiers.active, true))
     .orderBy(asc(bulkTiers.minCents));
+  return rows
+    .flatMap((t) => {
+      const minCents = amountIn(t.minCents, t.minByCurrency, currency);
+      return minCents === undefined ? [] : [{ id: t.id, minCents, percent: t.percent }];
+    })
+    .sort((a, b) => a.minCents - b.minCents);
 }
 
 // The active gift rule with what the cart needs to show the gift, and whether one can be given:
 // the variant and product must be on sale and at least one unit free to reserve.
-export async function activeGift(run: Run) {
+export async function activeGift(run: Run, currency: string = currentStore().currency) {
   const [row] = await run
     .select({
       id: giftRules.id,
       thresholdCents: giftRules.thresholdCents,
+      thresholdByCurrency: giftRules.thresholdByCurrency,
       variantId: giftRules.variantId,
       productId: products.id,
       productName: products.name,
       variantName: productVariants.name,
       sku: productVariants.sku,
-      priceCents: productVariants.priceCents,
+      priceCents: sql<number>`coalesce(${priceIn(currency)}, 0)`,
       variantStatus: productVariants.status,
       productStatus: products.status,
       stock: inventory.quantity,
@@ -69,6 +87,9 @@ export async function activeGift(run: Run) {
     .where(eq(giftRules.active, true))
     .limit(1);
   if (!row) return undefined;
+  // No threshold in this currency: no gift rule here.
+  const thresholdCents = amountIn(row.thresholdCents, row.thresholdByCurrency, currency);
+  if (thresholdCents === undefined) return undefined;
   const [image] = await run
     .select({ url: productImages.url })
     .from(productImages)
@@ -79,7 +100,7 @@ export async function activeGift(run: Run) {
     row.variantStatus === 'active' &&
     row.productStatus === 'active' &&
     (row.stock ?? 0) - (row.reserved ?? 0) > 0;
-  return { ...row, available, imageUrl: image?.url ?? null };
+  return { ...row, thresholdCents, available, imageUrl: image?.url ?? null };
 }
 
 // Live (not released) redemptions of a code, in total and for one customer.

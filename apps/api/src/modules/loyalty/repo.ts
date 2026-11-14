@@ -37,7 +37,15 @@ export interface LedgerInsert {
 export async function insertEntry(run: Run, row: LedgerInsert): Promise<boolean> {
   const inserted = await run
     .insert(pointsLedger)
-    .values({ ...row, orderId: row.orderId ?? null, reason: row.reason ?? null })
+    .values({
+      ...row,
+      orderId: row.orderId ?? null,
+      reason: row.reason ?? null,
+      // Points tied to an order carry that order's currency (what 1 point was worth then).
+      currency: row.orderId
+        ? sql<string>`(select o.currency from orders o where o.id = ${row.orderId})`
+        : null,
+    })
     .onConflictDoNothing({ target: pointsLedger.refKey })
     .returning({ id: pointsLedger.id });
   return inserted.length > 0;

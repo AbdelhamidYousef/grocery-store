@@ -25,17 +25,26 @@ export type Details = z.output<typeof DetailsSchema>;
 // The checkout only ships to this list (the API refuses the rest), unlike the account address form
 // which offers more countries.
 // Names and their order follow the store's locale; the codes stay the values.
-export const shippingCountries = (locale: string) =>
-  SUPPORTED_COUNTRIES.map((code) => ({
-    code,
-    name: countryName(code, locale),
-  })).sort((a, b) => a.name.localeCompare(b.name, locale));
-
-const isSupported = (code: string) => (SUPPORTED_COUNTRIES as readonly string[]).includes(code);
+export const shippingCountries = (
+  locale: string,
+  allowed: readonly string[] = SUPPORTED_COUNTRIES,
+) =>
+  SUPPORTED_COUNTRIES.filter((code) => allowed.includes(code))
+    .map((code) => ({
+      code,
+      name: countryName(code, locale),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, locale));
 
 // Pre-fills the form for a signed-in shopper from their account and default shipping address.
-// A saved address in a country we do not ship to is not offered (the shopper picks one).
-export function detailsDefaults(user: User | null, addresses: Address[] | undefined): DetailsInput {
+// A saved address in a country this store does not ship to is not offered (the shopper picks one).
+const isSupported = (code: string) => (SUPPORTED_COUNTRIES as readonly string[]).includes(code);
+
+export function detailsDefaults(
+  user: User | null,
+  addresses: Address[] | undefined,
+  allowed: readonly string[] = SUPPORTED_COUNTRIES,
+): DetailsInput {
   const saved = addresses?.find((a) => a.isDefaultShipping) ?? addresses?.[0];
   return {
     email: user?.email ?? '',
@@ -46,7 +55,12 @@ export function detailsDefaults(user: User | null, addresses: Address[] | undefi
       city: saved?.city ?? '',
       region: saved?.region ?? '',
       postalCode: saved?.postalCode ?? '',
-      country: saved && isSupported(saved.country) ? saved.country : 'DE',
+      country:
+        saved && allowed.includes(saved.country) && isSupported(saved.country)
+          ? saved.country
+          : allowed.includes('DE')
+            ? 'DE'
+            : (allowed.find(isSupported) ?? 'DE'),
       phone: saved?.phone ?? '',
     },
   };

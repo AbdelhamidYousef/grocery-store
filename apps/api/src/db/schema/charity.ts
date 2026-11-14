@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import {
+  char,
   boolean,
   check,
   index,
@@ -40,6 +41,9 @@ export const donations = pgTable(
     userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
     orderId: uuid('order_id').references(() => orders.id, { onDelete: 'set null' }),
     cents: integer('cents').notNull(),
+    // `cents` is in this currency (the order's, or the donor's store for a points donation); the
+    // charity total is reported per currency, never summed across.
+    currency: char('currency', { length: 3 }).notNull().default('EUR'),
     source: donationSource('source').notNull(),
     // Idempotency key: `roundup:<orderId>`, `unround:<orderId>`, `points:<uuid>`.
     refKey: text('ref_key').notNull(),

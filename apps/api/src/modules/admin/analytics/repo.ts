@@ -13,12 +13,14 @@ const paidList = sql`(${sql.join(
 // All dates are the shop's calendar days. `placed_at` is converted to local time once, and the
 // range is half-open: [from 00:00, day after `to` 00:00).
 const placedLocal = sql`(o.placed_at at time zone ${STORE_TIME_ZONE})`;
-const inRange = (from: string, to: string) =>
-  sql`${placedLocal} >= ${from}::date and ${placedLocal} < (${to}::date + 1)`;
+// Only orders of the report's currency: figures of different currencies are never added together.
+const inRange = (r: Range) =>
+  sql`o.currency = ${r.currency} and ${placedLocal} >= ${r.from}::date and ${placedLocal} < (${r.to}::date + 1)`;
 
 export interface Range {
   from: string;
   to: string;
+  currency: string;
 }
 
 export async function todayInStore(): Promise<string> {
@@ -26,11 +28,6 @@ export async function todayInStore(): Promise<string> {
     sql`select ((now() at time zone ${STORE_TIME_ZONE})::date)::text as d`,
   );
   return rows[0]?.d ?? new Date().toISOString().slice(0, 10);
-}
-
-export async function currency(): Promise<string> {
-  const rows = await db.execute<{ c: string }>(sql`select currency as c from orders limit 1`);
-  return rows[0]?.c ?? 'EUR';
 }
 
 // Net revenue of one order: what was charged, minus the round-up donation (it belongs to the
@@ -55,7 +52,7 @@ export async function revenueSeries(range: Range, interval: 'day' | 'week' | 'mo
     left join orders o
       on date_trunc(${interval}, ${placedLocal}) = b.bucket
       and o.status in ${paidList}
-      and ${inRange(range.from, range.to)}
+      and ${inRange(range)}
     group by b.bucket
     order by b.bucket
   `);
@@ -70,7 +67,7 @@ export async function totals(range: Range) {
       case when count(*) = 0 then 0
         else (2 * sum(${NET_REVENUE}) + count(*)) / (2 * count(*)) end::bigint as aov
     from orders o
-    where o.status in ${paidList} and ${inRange(range.from, range.to)}
+    where o.status in ${paidList} and ${inRange(range)}
   `);
   const r = rows[0];
   return { orders: r?.orders ?? 0, revenue: Number(r?.revenue ?? 0), aov: Number(r?.aov ?? 0) };
@@ -102,7 +99,7 @@ export async function topProducts(range: Range, by: 'units' | 'revenue', limit: 
       where rt.status = 'refunded'
       group by ri.order_item_id
     ) r on r.order_item_id = oi.id
-    where o.status in ${paidList} and o.status <> 'refunded' and ${inRange(range.from, range.to)}
+    where o.status in ${paidList} and o.status <> 'refunded' and ${inRange(range)}
     group by p.id, coalesce(p.name, oi.product_name)
     having sum(oi.quantity - coalesce(r.qty, 0)) > 0
     order by ${order}, name
@@ -138,7 +135,7 @@ export async function returnsRate(range: Range) {
     with delivered as (
       select coalesce(sum(oi.quantity), 0) as units
       from order_items oi join orders o on o.id = oi.order_id
-      where ${inRange(range.from, range.to)}
+      where ${inRange(range)}
         and exists (select 1 from order_status_history h
                     where h.order_id = o.id and h.to_status = 'delivered')
     ), returned as (
@@ -146,7 +143,7 @@ export async function returnsRate(range: Range) {
       from return_items ri
       join returns rt on rt.id = ri.return_id
       join orders o on o.id = rt.order_id
-      where rt.status in ('received', 'refunded') and ${inRange(range.from, range.to)}
+      where rt.status in ('received', 'refunded') and ${inRange(range)}
     )
     select returned.units::bigint as returned, delivered.units::bigint as delivered,
       case when delivered.units = 0 then 0
@@ -180,7 +177,7 @@ export async function orderRows(range: Range, limit: number, offset: number) {
       o.total_cents, o.donation_cents, o.refunded_cents,
       ${NET_REVENUE}::int as net_cents
     from orders o
-    where o.status in ${paidList} and ${inRange(range.from, range.to)}
+    where o.status in ${paidList} and ${inRange(range)}
     order by o.placed_at, o.id
     limit ${limit} offset ${offset}
   `);

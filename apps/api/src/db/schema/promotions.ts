@@ -4,6 +4,7 @@ import {
   check,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -33,6 +34,17 @@ export const discountCodes = pgTable(
     // percent: whole percent 1..100. fixed: cents. free_shipping: 0.
     value: integer('value').notNull().default(0),
     minSpendCents: integer('min_spend_cents').notNull().default(0),
+    // Amounts in currencies other than EUR (the columns above are EUR): `{"GBP": 500}`. A fixed
+    // code with no entry for a currency does not exist there; neither does a code whose EUR
+    // minimum spend is above 0 but has no entry. Nothing is converted.
+    valueByCurrency: jsonb('value_by_currency')
+      .$type<Record<string, number>>()
+      .notNull()
+      .default({}),
+    minSpendByCurrency: jsonb('min_spend_by_currency')
+      .$type<Record<string, number>>()
+      .notNull()
+      .default({}),
     startsAt: timestamp('starts_at', { withTimezone: true }),
     endsAt: timestamp('ends_at', { withTimezone: true }),
     // null = unlimited
@@ -101,6 +113,8 @@ export const bulkTiers = pgTable(
     id: id(),
     // Two tiers on the same threshold would be ambiguous.
     minCents: integer('min_cents').notNull().unique(),
+    // Thresholds in other currencies; a tier with no entry for a currency does not apply there.
+    minByCurrency: jsonb('min_by_currency').$type<Record<string, number>>().notNull().default({}),
     percent: integer('percent').notNull(),
     active: boolean('active').notNull().default(true),
     createdAt: createdAt(),
@@ -117,6 +131,11 @@ export const giftRules = pgTable(
   {
     id: id(),
     thresholdCents: integer('threshold_cents').notNull(),
+    // Thresholds in other currencies; no entry for a currency means no gift there.
+    thresholdByCurrency: jsonb('threshold_by_currency')
+      .$type<Record<string, number>>()
+      .notNull()
+      .default({}),
     // RESTRICT: the gift product cannot be deleted while a rule points at it.
     variantId: uuid('variant_id')
       .notNull()
