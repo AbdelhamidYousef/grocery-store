@@ -37,6 +37,8 @@ import { RatingStars } from '../features/reviews/RatingStars';
 import { ReviewsSection } from '../features/reviews/ReviewsSection';
 import { SafetyNoticeBox } from '../features/safety/SafetyNoticeBox';
 import { WishlistHeart } from '../features/wishlist/WishlistHeart';
+import { useT, type StringKey } from '../i18n';
+import { useFormat } from '../i18n/format';
 import { accentForPetAttribute, petBySlug } from '../lib/pets';
 import { recordRecentlyViewed } from '../lib/recently-viewed';
 import { TEST_IDS } from '../lib/test-ids';
@@ -44,15 +46,16 @@ import { track } from '../lib/track';
 
 import NotFoundPage from './NotFoundPage';
 
-const ATTRIBUTE_LABELS: [keyof ProductDetail['attributes'], string][] = [
-  ['pet', 'Pet'],
-  ['material', 'Material'],
-  ['ageStage', 'Age stage'],
-  ['size', 'Size'],
-  ['brand', 'Brand'],
+const ATTRIBUTE_LABELS: [keyof ProductDetail['attributes'], StringKey][] = [
+  ['pet', 'pdp.page.attr.pet'],
+  ['material', 'pdp.page.attr.material'],
+  ['ageStage', 'pdp.page.attr.ageStage'],
+  ['size', 'pdp.page.attr.size'],
+  ['brand', 'pdp.page.attr.brand'],
 ];
 
 export default function ProductPage() {
+  const { t } = useT();
   const { slug } = useParams();
   const { data: product, error, isPending, refetch } = useProduct(slug);
 
@@ -60,10 +63,10 @@ export default function ProductPage() {
   if (error) {
     return (
       <Container className="py-12 text-center" data-testid={TEST_IDS.pageProduct}>
-        <Seo title="Something went wrong" noindex />
-        <h1 className="text-3xl font-bold">We could not load this product</h1>
+        <Seo title={t('pdp.page.loadError.seoTitle')} noindex />
+        <h1 className="text-3xl font-bold">{t('pdp.page.loadError.title')}</h1>
         <Button className="mt-4" onClick={() => void refetch()}>
-          Try again
+          {t('pdp.page.loadError.retry')}
         </Button>
       </Container>
     );
@@ -73,6 +76,10 @@ export default function ProductPage() {
 }
 
 function ProductView({ product }: { product: ProductDetail }) {
+  const { t, tn } = useT();
+  const fmt = useFormat();
+  const ratingText = (tenths: number) =>
+    fmt.number(tenths / 10, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   // The chosen variant lives in the URL (`?variant=<sku>`), so a link is precise: it opens the
   // exact colour and size that was shared. No parameter means the default variant.
   const [params] = useSearchParams();
@@ -114,13 +121,13 @@ function ProductView({ product }: { product: ProductDetail }) {
   const pet = petBySlug(product.breadcrumb[0]?.slug);
   const accent = pet?.accent ?? accentForPetAttribute(product.attributes.pet);
   const crumbs: Crumb[] = [
-    { label: 'Home', to: '/' },
+    { label: t('pdp.page.home'), to: '/' },
     ...product.breadcrumb.map((b) => ({ label: b.name, to: `/c/${b.slug}` })),
     { label: product.name },
   ];
   const attributes = ATTRIBUTE_LABELS.flatMap(([key, label]) => {
     const value = product.attributes[key];
-    return value ? [{ label, value: formatFacetValue(key, value) }] : [];
+    return value ? [{ label: t(label), value: formatFacetValue(key, value) }] : [];
   });
 
   return (
@@ -155,14 +162,14 @@ function ProductView({ product }: { product: ProductDetail }) {
                   className="mt-2 flex w-fit items-center gap-2 text-sm font-semibold underline"
                 >
                   <RatingStars tenths={product.rating.averageTenths} />
-                  {formatRating(product.rating.averageTenths)} ({product.rating.count} review
-                  {product.rating.count === 1 ? '' : 's'})
+                  {ratingText(product.rating.averageTenths)} (
+                  {tn('pdp.page.reviewCount', product.rating.count)})
                 </a>
               )}
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 {!product.inStock && (
                   <Badge tone="neutral" className="border-ink bg-surface text-ink">
-                    Sold out
+                    {t('pdp.page.soldOut')}
                   </Badge>
                 )}
                 <ProductBadges badges={product.badges} />
@@ -219,11 +226,10 @@ function ProductView({ product }: { product: ProductDetail }) {
                 {variant.isTrial && (
                   <div className="mt-1 flex flex-col gap-1">
                     <Badge tone="pet" data-testid={TEST_IDS.trialPill} className="w-fit">
-                      Trial size
+                      {t('pdp.page.trialSize')}
                     </Badge>
                     <p data-testid={TEST_IDS.trialNote} className="text-sm text-muted">
-                      A sample to try before you commit: one per customer. The full size has no
-                      limit.
+                      {t('pdp.page.trialNote')}
                     </p>
                   </div>
                 )}
@@ -259,13 +265,13 @@ function ProductView({ product }: { product: ProductDetail }) {
 
             {variant && (
               <p className="text-sm text-muted" data-testid="variant-sku">
-                SKU {variant.sku} ·{' '}
+                {t('pdp.page.sku', { sku: variant.sku })} ·{' '}
                 <span
                   className={
                     variant.available ? 'font-semibold text-success' : 'font-semibold text-danger'
                   }
                 >
-                  {variant.available ? 'In stock' : 'Sold out'}
+                  {variant.available ? t('pdp.page.inStock') : t('pdp.page.soldOut')}
                 </span>
               </p>
             )}
@@ -299,9 +305,9 @@ function ProductView({ product }: { product: ProductDetail }) {
               ))}
               {product.tags.length > 0 && (
                 <div className="contents">
-                  <dt className="font-semibold text-pet-strong">Good for</dt>
+                  <dt className="font-semibold text-pet-strong">{t('pdp.page.attr.goodFor')}</dt>
                   <dd className="min-w-0 break-words">
-                    {product.tags.map((t) => t.name).join(', ')}
+                    {product.tags.map((tag) => tag.name).join(', ')}
                   </dd>
                 </div>
               )}
@@ -311,8 +317,8 @@ function ProductView({ product }: { product: ProductDetail }) {
         <ReviewsSection product={product} />
         <ShoppableGallery
           productId={product.id}
-          heading="Customers with this product"
-          intro="Photos from real Pawsome pets. Tap one to shop what is in it."
+          heading={t('pdp.page.gallery.heading')}
+          intro={t('pdp.page.gallery.intro')}
         />
         <KitsBlock kits={product.kits} currency={product.price.currency} />
         <BoughtTogether productSlug={product.slug} productName={product.name} variant={variant} />
@@ -350,10 +356,11 @@ function jsonLdFor(
 }
 
 function ProductSkeleton() {
+  const { t } = useT();
   return (
     <Container className="py-6" data-testid={TEST_IDS.pageProduct} aria-busy="true">
       <p className="sr-only" role="status">
-        Loading product
+        {t('pdp.page.loading')}
       </p>
       <Skeleton className="h-5 w-64" />
       <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-12">

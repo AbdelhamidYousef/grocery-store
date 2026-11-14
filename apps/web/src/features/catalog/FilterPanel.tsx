@@ -2,6 +2,7 @@ import type { Facets, ProductListQuery } from '@store/shared';
 import { useState } from 'react';
 
 import { Checkbox } from '../../components/ui/Checkbox';
+import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { TEST_IDS } from '../../lib/test-ids';
 
@@ -28,10 +29,11 @@ export function FilterPanel({
   update,
   testId = TEST_IDS.filters,
 }: FilterPanelProps) {
+  const { t } = useT();
   return (
     <div className="flex flex-col gap-6" data-testid={testId}>
       <Checkbox
-        label="In stock only"
+        label={t('catalog.filters.inStockOnly')}
         // A switch is the right role for an on/off setting that applies at once.
         role="switch"
         checked={query.inStock === true}
@@ -54,7 +56,7 @@ export function FilterPanel({
       {(facets.brand.length >= 2 || (query.brand?.length ?? 0) > 0) && (
         <FacetGroup
           facetKey="brand"
-          label="Brand"
+          label={t('catalog.filters.brand')}
           testId={TEST_IDS.filterBrand}
           values={facets.brand}
           selected={query.brand ?? []}
@@ -64,7 +66,7 @@ export function FilterPanel({
       {(facets.tag.length >= 1 || (query.tag?.length ?? 0) > 0) && (
         <FacetGroup
           facetKey="tag"
-          label="Shop by health need"
+          label={t('catalog.filters.health')}
           testId={TEST_IDS.filterHealth}
           values={facets.tag}
           selected={query.tag ?? []}
@@ -94,7 +96,7 @@ export function FilterPanel({
 
 function FacetGroup({
   facetKey,
-  label = facetLabel(facetKey),
+  label,
   testId = TEST_IDS.filterGroup,
   values,
   selected,
@@ -107,7 +109,9 @@ function FacetGroup({
   selected: string[];
   onChange: (next: string[]) => void;
 }) {
+  const { t } = useT();
   const [expanded, setExpanded] = useState(false);
+  const title = label ?? facetLabel(facetKey, t);
   const shown = expanded
     ? values
     : values.filter((v, i) => i < VISIBLE_VALUES || selected.includes(v.value));
@@ -117,7 +121,7 @@ function FacetGroup({
     // fieldset + legend: a screen reader announces "Material, group" before each option, so the
     // checkbox labels can be just the value.
     <fieldset data-testid={testId} className="min-w-0">
-      <legend className="mb-1 font-display text-lg font-bold">{label}</legend>
+      <legend className="mb-1 font-display text-lg font-bold">{title}</legend>
       {/* Expanded, a 38-value list would be ~1700px of checkboxes and push every other group out
           of reach, so it scrolls inside its own box (the checkboxes inside are focusable, so it
           is keyboard-scrollable too). */}
@@ -125,7 +129,10 @@ function FacetGroup({
         {shown.map(({ value, count, label: valueLabel }) => (
           <Checkbox
             key={value}
-            label={`${valueLabel ?? formatFacetValue(facetKey, value)} (${count})`}
+            label={t('catalog.filters.option', {
+              label: valueLabel ?? formatFacetValue(facetKey, value, t),
+              count,
+            })}
             checked={selected.includes(value)}
             data-testid={TEST_IDS.filterOption}
             onChange={(e) =>
@@ -143,7 +150,9 @@ function FacetGroup({
           onClick={() => setExpanded((e) => !e)}
           className="mt-1 min-h-11 rounded-control font-semibold text-primary-strong underline underline-offset-2"
         >
-          {expanded ? `Show fewer ${label.toLowerCase()} options` : `Show ${hidden} more`}
+          {expanded
+            ? t('catalog.filters.showFewer', { label: title.toLowerCase() })
+            : t('catalog.filters.showMore', { count: hidden })}
         </button>
       )}
     </fieldset>

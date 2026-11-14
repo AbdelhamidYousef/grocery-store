@@ -4,13 +4,14 @@ import { ApiError } from '../../api/client';
 import { Seo } from '../../components/Seo';
 import { Button } from '../../components/ui/Button';
 import { Skeleton } from '../../components/ui/Skeleton';
-import { formatDate } from '../../lib/format';
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { TEST_IDS } from '../../lib/test-ids';
 import { OrderAddress, OrderSummary } from '../checkout/OrderSummary';
 import { ReorderButton } from '../reorder/ReorderButton';
 import { ReturnsSection } from '../returns/ReturnsSection';
 
-import { TIMELINE_LABEL } from './order-status';
+import { TIMELINE_KEY } from './order-status';
 import { OrderStatusBadge } from './OrderStatusBadge';
 import { useOrder } from './queries';
 
@@ -18,11 +19,13 @@ import { useOrder } from './queries';
 // is the same component the confirmation page uses, so the two read identically.
 export function OrderDetail() {
   const { number = '' } = useParams();
+  const { t } = useT();
+  const fmt = useFormat();
   const { data: order, isPending, error, refetch } = useOrder(number);
 
   const back = (
     <Link to="/account/orders" className="font-semibold text-primary-strong underline">
-      Back to orders
+      {t('account.order.back')}
     </Link>
   );
 
@@ -30,7 +33,7 @@ export function OrderDetail() {
     return (
       <section aria-busy="true" data-testid={TEST_IDS.pageOrderDetail} data-state="loading">
         <p className="sr-only" role="status">
-          Loading your order
+          {t('account.order.loading')}
         </p>
         <Skeleton className="h-10 w-2/3" />
         <Skeleton className="mt-4 h-48 w-full" />
@@ -41,19 +44,17 @@ export function OrderDetail() {
     const missing = error instanceof ApiError && error.status === 404;
     return (
       <section data-testid={TEST_IDS.pageOrderDetail} data-state={missing ? 'not-found' : 'error'}>
-        <Seo title="Order" noindex />
+        <Seo title={t('account.order.seoTitle')} noindex />
         <h2 className="font-display text-2xl font-bold">
-          {missing ? "We can't find that order" : 'We could not load this order'}
+          {missing ? t('account.order.notFoundTitle') : t('account.order.loadErrorTitle')}
         </h2>
         <p className="mt-2 text-muted">
-          {missing
-            ? 'It may belong to a different account, or the number may be mistyped.'
-            : 'Please try again in a moment.'}
+          {missing ? t('account.order.notFoundBody') : t('account.order.loadErrorBody')}
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-4">
           {!missing && (
             <Button variant="secondary" onClick={() => void refetch()}>
-              Try again
+              {t('account.order.tryAgain')}
             </Button>
           )}
           {back}
@@ -68,17 +69,17 @@ export function OrderDetail() {
       data-state="ready"
       aria-labelledby="order-heading"
     >
-      <Seo title={`Order ${order.number}`} noindex />
+      <Seo title={t('account.order.title', { number: order.number })} noindex />
       <p>{back}</p>
       <h2
         id="order-heading"
         className="mt-3 flex flex-wrap items-center gap-3 font-display text-2xl font-bold"
       >
-        <span className="break-all">Order {order.number}</span>
+        <span className="break-all">{t('account.order.title', { number: order.number })}</span>
         <OrderStatusBadge status={order.status} />
       </h2>
       <p className="mt-1 text-muted">
-        Placed {formatDate(order.placedAt ?? order.createdAt, true)}
+        {t('account.order.placed', { date: fmt.date(order.placedAt ?? order.createdAt, true) })}
       </p>
       <p className="mt-1">
         <Link
@@ -86,7 +87,7 @@ export function OrderDetail() {
           className="font-semibold text-primary-strong underline"
           data-testid="withdraw-link"
         >
-          Withdraw from contract
+          {t('account.order.withdraw')}
         </Link>
       </p>
 
@@ -96,7 +97,7 @@ export function OrderDetail() {
 
       {order.timeline.length > 0 && (
         <ol
-          aria-label="Order progress"
+          aria-label={t('account.order.progress')}
           data-testid={TEST_IDS.orderTimeline}
           className="mt-6 flex flex-col gap-0 border-l-2 border-line pl-5"
         >
@@ -115,8 +116,8 @@ export function OrderDetail() {
                     : 'absolute -left-[1.6rem] top-1.5 h-2.5 w-2.5 rounded-full bg-ink'
                 }
               />
-              <p className="font-semibold">{TIMELINE_LABEL[step.status]}</p>
-              <p className="text-sm text-muted">{formatDate(step.at, true)}</p>
+              <p className="font-semibold">{t(TIMELINE_KEY[step.status])}</p>
+              <p className="text-sm text-muted">{fmt.date(step.at, true)}</p>
             </li>
           ))}
         </ol>
@@ -124,7 +125,7 @@ export function OrderDetail() {
 
       <div className="mt-8 grid grid-cols-1 items-start gap-8 xl:grid-cols-[minmax(0,1fr)_16rem]">
         <div className="min-w-0">
-          <h3 className="font-display text-xl font-bold">Items</h3>
+          <h3 className="font-display text-xl font-bold">{t('account.order.items')}</h3>
           <div className="mt-3">
             <OrderSummary items={order.items} totals={order.totals} />
           </div>
@@ -136,13 +137,13 @@ export function OrderDetail() {
           />
         </div>
         <div className="flex min-w-0 flex-col gap-5">
-          <OrderAddress title="Shipping to" address={order.shippingAddress} />
+          <OrderAddress title={t('account.order.shippingTo')} address={order.shippingAddress} />
           <div>
-            <h3 className="font-display text-lg font-bold">Shipping method</h3>
+            <h3 className="font-display text-lg font-bold">{t('account.order.shippingMethod')}</h3>
             <p className="mt-1 break-words">{order.shippingMethod.name}</p>
           </div>
           <div>
-            <h3 className="font-display text-lg font-bold">Contact</h3>
+            <h3 className="font-display text-lg font-bold">{t('account.order.contact')}</h3>
             <p className="mt-1 break-all">{order.email}</p>
           </div>
         </div>

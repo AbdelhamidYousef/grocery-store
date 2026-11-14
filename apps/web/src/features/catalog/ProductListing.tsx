@@ -8,6 +8,7 @@ import { Dialog } from '../../components/ui/Dialog';
 import { Select } from '../../components/ui/Select';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { UnitPriceNote } from '../../components/ui/UnitPrice';
+import { useT, type StringKey } from '../../i18n';
 import { PETS } from '../../lib/pets';
 import { TEST_IDS } from '../../lib/test-ids';
 import { ActivePetNote } from '../pets/ActivePetNote';
@@ -51,6 +52,7 @@ export function ProductListing({
   brand,
   petScope,
 }: ProductListingProps) {
+  const { t, tn } = useT();
   const { query, search, update, clear } = useProductListParams();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { waiting: waitingForPet } = usePetDefaults(petScope);
@@ -87,10 +89,10 @@ export function ProductListing({
   if (isError) {
     return (
       <div role="alert" className="rounded-card bg-danger-soft p-6 text-danger">
-        <p className="font-bold">We could not load the products.</p>
-        <p className="mt-1">Check your connection and try again.</p>
+        <p className="font-bold">{t('catalog.list.loadError')}</p>
+        <p className="mt-1">{t('catalog.list.loadErrorHint')}</p>
         <Button className="mt-4" onClick={() => void refetch()}>
-          Try again
+          {t('catalog.list.tryAgain')}
         </Button>
       </div>
     );
@@ -100,7 +102,7 @@ export function ProductListing({
     return (
       <div className="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8" aria-busy="true">
         <p className="sr-only" role="status">
-          Loading products
+          {t('catalog.list.loading')}
         </p>
         <div className="mb-4 hidden flex-col gap-3 lg:flex" aria-hidden="true">
           <Skeleton className="h-6 w-32" />
@@ -131,14 +133,14 @@ export function ProductListing({
 
   return (
     <div className="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8">
-      <aside aria-label="Filters" className="hidden lg:block">
+      <aside aria-label={t('catalog.list.filters')} className="hidden lg:block">
         {/* Deliberately NOT sticky and NOT a scroll box. The sidebar used to be
             `sticky max-h-[100vh-10rem] overflow-y-auto`; on a 1280x800 laptop that box ended
             between the "Age stage" heading and its checkboxes, so the heading looked like an
             empty group and the options sat behind an invisible inner scroll. Now the page scrolls
             the whole sidebar (the long material list already scrolls in its own small box). */}
         <div className="pr-2">
-          <h2 className="mb-4 font-display text-xl font-bold">Filters</h2>
+          <h2 className="mb-4 font-display text-xl font-bold">{t('catalog.list.filters')}</h2>
           <FilterPanel facets={facets} query={query} currency={currency} update={update} />
         </div>
       </aside>
@@ -153,10 +155,10 @@ export function ProductListing({
             className="text-sm font-semibold text-muted"
           >
             {meta.total === 0
-              ? 'No products'
+              ? t('catalog.list.none')
               : meta.total <= meta.limit
-                ? `${meta.total} ${meta.total === 1 ? 'product' : 'products'}`
-                : `Showing ${first}-${last} of ${meta.total} products`}
+                ? tn('catalog.productCount', meta.total)
+                : tn('catalog.list.showing', meta.total, { first, last })}
           </p>
           <div className="flex items-end gap-3">
             <Button
@@ -166,10 +168,12 @@ export function ProductListing({
               onClick={() => setDrawerOpen(true)}
               className="lg:hidden"
             >
-              Filters{activeCount > 0 ? ` (${activeCount})` : ''}
+              {activeCount > 0
+                ? t('catalog.list.filtersCount', { count: activeCount })
+                : t('catalog.list.filters')}
             </Button>
             <Select
-              label="Sort by"
+              label={t('catalog.list.sortBy')}
               data-testid={TEST_IDS.sortSelect}
               value={query.sort ?? defaultSort(hasSearch)}
               onChange={(e) => {
@@ -181,7 +185,7 @@ export function ProductListing({
             >
               {sortOptions(hasSearch).map((s) => (
                 <option key={s} value={s}>
-                  {SORT_LABELS[s]}
+                  {t(SORT_LABELS[s])}
                 </option>
               ))}
             </Select>
@@ -213,7 +217,7 @@ export function ProductListing({
         ) : (
           <div aria-busy={isFetching} className={isFetching ? 'opacity-60 transition-opacity' : ''}>
             {/* h1 -> h3 (the cards) skipped a level whenever the Filters sidebar is hidden. */}
-            <h2 className="sr-only">Products</h2>
+            <h2 className="sr-only">{t('catalog.list.products')}</h2>
             <ProductGrid products={data.data} listId={listId} eagerCount={4} />
             {data.data.some((p) => p.unitPrice) && <UnitPriceNote className="mt-4" />}
             <Pagination page={meta.page} totalPages={meta.totalPages} hrefFor={hrefFor} />
@@ -224,7 +228,7 @@ export function ProductListing({
       <Dialog
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        title="Filters"
+        title={t('catalog.list.filters')}
         placement="left"
       >
         <FilterPanel
@@ -235,7 +239,7 @@ export function ProductListing({
           testId="filters-drawer"
         />
         <Button onClick={() => setDrawerOpen(false)} className="sticky bottom-0">
-          Show {meta.total} {meta.total === 1 ? 'product' : 'products'}
+          {tn('catalog.list.showProducts', meta.total)}
         </Button>
       </Dialog>
     </div>
@@ -250,7 +254,17 @@ interface EmptyStateProps {
   firstPageHref: string;
 }
 
+const PET_NAMES: Record<string, StringKey> = {
+  dogs: 'catalog.petTile.dogs',
+  cats: 'catalog.petTile.cats',
+  birds: 'catalog.petTile.birds',
+  fish: 'catalog.petTile.fish',
+  'small-pets': 'catalog.petTile.smallPets',
+  reptiles: 'catalog.petTile.reptiles',
+};
+
 function EmptyState({ q, filtered, pageOutOfRange, onClear, firstPageHref }: EmptyStateProps) {
+  const { t } = useT();
   return (
     <div
       data-testid={TEST_IDS.emptyState}
@@ -258,28 +272,30 @@ function EmptyState({ q, filtered, pageOutOfRange, onClear, firstPageHref }: Emp
     >
       {pageOutOfRange ? (
         <>
-          <h2 className="text-xl font-bold">That page does not exist</h2>
-          <p className="text-muted">There are fewer pages of results than that.</p>
+          <h2 className="text-xl font-bold">{t('catalog.empty.pageMissing')}</h2>
+          <p className="text-muted">{t('catalog.empty.pageMissingHint')}</p>
           <Link
             to={firstPageHref}
             className="inline-flex min-h-11 items-center rounded-control bg-primary px-5 font-display font-semibold text-surface hover:bg-primary-hover"
           >
-            Go to the first page
+            {t('catalog.empty.firstPage')}
           </Link>
         </>
       ) : (
         <>
-          <h2 className="text-xl font-bold">{q ? `No results for "${q}"` : 'No products match'}</h2>
+          <h2 className="text-xl font-bold">
+            {q ? t('catalog.empty.noResults', { q }) : t('catalog.empty.noMatch')}
+          </h2>
           <p className="max-w-prose text-muted">
             {filtered
-              ? 'Try removing a filter to see more.'
+              ? t('catalog.empty.removeFilter')
               : q
-                ? 'Try fewer or different words. Search matches whole words, so check the spelling.'
-                : 'There is nothing here yet. Have a look at another pet while we restock.'}
+                ? t('catalog.empty.tryWords')
+                : t('catalog.empty.nothingYet')}
           </p>
           {filtered && (
             <Button data-testid={TEST_IDS.clearFilters} onClick={onClear}>
-              Clear filters
+              {t('catalog.empty.clearFilters')}
             </Button>
           )}
           {!filtered && (
@@ -290,7 +306,7 @@ function EmptyState({ q, filtered, pageOutOfRange, onClear, firstPageHref }: Emp
                     to={`/c/${pet.slug}`}
                     className="inline-flex min-h-11 items-center rounded-full bg-pet-soft px-4 font-display font-semibold text-pet-strong"
                   >
-                    {pet.name}
+                    {PET_NAMES[pet.slug] ? t(PET_NAMES[pet.slug] as StringKey) : pet.name}
                   </Link>
                 </li>
               ))}

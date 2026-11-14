@@ -1,16 +1,11 @@
-import {
-  RETURN_REASON_LABELS,
-  RETURN_STATUS_LABELS,
-  formatMoney,
-  type CustomerReturn,
-  type OrderItem,
-} from '@store/shared';
+import type { CustomerReturn, OrderItem } from '@store/shared';
 import { useState } from 'react';
 
 import { Badge, type BadgeTone } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { useToast } from '../../components/ui/Toast';
-import { formatDate } from '../../lib/format';
+import { useT, type TFunction } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { TEST_IDS } from '../../lib/test-ids';
 
 import { useOrderReturns } from './queries';
@@ -25,12 +20,12 @@ const TONE: Record<CustomerReturn['status'], BadgeTone> = {
 };
 
 // Steps of one return, as they happened. A rejected return ends at "declined"; the others walk on.
-function steps(r: CustomerReturn): { label: string; at: string }[] {
-  const out = [{ label: 'Request sent', at: r.createdAt }];
-  if (r.status === 'rejected') out.push({ label: RETURN_STATUS_LABELS.rejected, at: r.createdAt });
-  if (r.approvedAt) out.push({ label: RETURN_STATUS_LABELS.approved, at: r.approvedAt });
-  if (r.receivedAt) out.push({ label: RETURN_STATUS_LABELS.received, at: r.receivedAt });
-  if (r.refundedAt) out.push({ label: RETURN_STATUS_LABELS.refunded, at: r.refundedAt });
+function steps(r: CustomerReturn, t: TFunction): { label: string; at: string }[] {
+  const out = [{ label: t('returns.step.sent'), at: r.createdAt }];
+  if (r.status === 'rejected') out.push({ label: t('returns.status.rejected'), at: r.createdAt });
+  if (r.approvedAt) out.push({ label: t('returns.status.approved'), at: r.approvedAt });
+  if (r.receivedAt) out.push({ label: t('returns.status.received'), at: r.receivedAt });
+  if (r.refundedAt) out.push({ label: t('returns.status.refunded'), at: r.refundedAt });
   return out;
 }
 
@@ -47,10 +42,17 @@ export function ReturnsSection({
   items: OrderItem[];
   status: string;
 }) {
+  // The API's "why not" is English text; the window one carries a number, so it is matched here.
+  const reasonText = (reason: string) => {
+    const closed = /^The (\d+)-day return window has closed$/.exec(reason);
+    return closed ? t('returns.windowClosed', { days: closed[1] ?? '' }) : tm(reason);
+  };
   const relevant = status === 'delivered' || status === 'refunded';
   const { data, isPending, isError } = useOrderReturns(orderNumber, relevant);
   const [open, setOpen] = useState(false);
   const toast = useToast();
+  const { t, tm } = useT();
+  const fmt = useFormat();
   if (!relevant) return null;
   if (isPending && !isError) return null;
   if (isError || !data) return null;
@@ -65,7 +67,7 @@ export function ReturnsSection({
       className="mt-8 flex flex-col gap-4"
     >
       <h3 id="returns-heading" className="font-display text-xl font-bold">
-        Returns
+        {t('returns.title')}
       </h3>
 
       {open && eligibility.eligible ? (
@@ -77,21 +79,21 @@ export function ReturnsSection({
           onCancel={() => setOpen(false)}
           onDone={() => {
             setOpen(false);
-            toast.show('Return request sent. We will email you.', 'success');
+            toast.show(t('returns.sent'), 'success');
           }}
         />
       ) : eligibility.eligible ? (
         <div className="flex flex-wrap items-center gap-3">
-          <Button onClick={() => setOpen(true)}>Return items</Button>
+          <Button onClick={() => setOpen(true)}>{t('returns.returnItems')}</Button>
           {eligibility.deadline && (
             <p className="text-sm text-muted">
-              You can return items until {formatDate(eligibility.deadline)}.
+              {t('returns.returnUntil', { date: fmt.date(eligibility.deadline) })}
             </p>
           )}
         </div>
       ) : (
         <p className="text-muted" data-testid="return-ineligible">
-          {eligibility.reason}
+          {eligibility.reason && reasonText(eligibility.reason)}
         </p>
       )}
 
@@ -103,38 +105,47 @@ export function ReturnsSection({
           className="flex flex-col gap-2 rounded-card border border-line p-4"
         >
           <div className="flex flex-wrap items-center gap-3">
-            <Badge tone={TONE[r.status]}>{RETURN_STATUS_LABELS[r.status]}</Badge>
+            <Badge tone={TONE[r.status]}>{t(`returns.status.${r.status}`)}</Badge>
             <span className="text-sm text-muted">
-              Asked {formatDate(r.createdAt)} · {RETURN_REASON_LABELS[r.reason]}
+              {t('returns.asked', {
+                date: fmt.date(r.createdAt),
+                reason: t(`returns.reason.${r.reason}`),
+              })}
             </span>
           </div>
           <ul className="list-inside list-disc">
             {r.items.map((i) => (
               <li key={i.id} className="break-words">
-                {i.quantity} × {i.productName} ({i.variantName})
+                {t('returns.lineItem', {
+                  quantity: i.quantity,
+                  product: i.productName,
+                  variant: i.variantName,
+                })}
               </li>
             ))}
           </ul>
           {r.rejectReason && (
             <p>
-              <strong>Why we declined:</strong> {r.rejectReason}
+              <strong>{t('returns.whyDeclined')}</strong> {r.rejectReason}
             </p>
           )}
           <p>
             {r.status === 'refunded'
-              ? `Refunded ${formatMoney(r.refundCents, currency)}${r.simulated ? ' (demo: simulated, no money moved)' : ''}`
+              ? t(r.simulated ? 'returns.refundedSimulated' : 'returns.refunded', {
+                  amount: fmt.money(r.refundCents, currency),
+                })
               : r.status === 'rejected'
-                ? 'No refund for this request.'
-                : `Expected refund ${formatMoney(r.refundCents, currency)}`}
+                ? t('returns.noRefund')
+                : t('returns.expectedRefund', { amount: fmt.money(r.refundCents, currency) })}
           </p>
           <ol
-            aria-label="Return progress"
+            aria-label={t('returns.progress')}
             data-testid={TEST_IDS.returnTimeline}
             className="flex flex-col gap-1 border-l-2 border-line pl-4 text-sm"
           >
-            {steps(r).map((s) => (
+            {steps(r, t).map((s) => (
               <li key={s.label}>
-                <strong>{s.label}</strong> · {formatDate(s.at, true)}
+                <strong>{s.label}</strong> · {fmt.date(s.at, true)}
               </li>
             ))}
           </ol>

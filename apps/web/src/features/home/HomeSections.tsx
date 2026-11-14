@@ -2,6 +2,8 @@ import type { Testimonial } from '@store/shared';
 import { Link } from 'react-router-dom';
 
 import { Skeleton } from '../../components/ui/Skeleton';
+import { useT, type StringKey } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { GuideCard } from '../guides/GuideCard';
 import { useGuides } from '../guides/queries';
 
@@ -16,25 +18,26 @@ export function HeroSkeleton() {
 
 // Static promises the shop already keeps (free delivery from the seeded standard method, the
 // happy-tail promise); each is a short line so the bar stays one tidy row.
-const TRUST = [
-  { title: 'Free delivery', text: 'On orders over 49 euros' },
-  { title: 'Happy-tail promise', text: 'Not a hit? We make it right' },
-  { title: 'Pet-safe picks', text: 'Honest materials and ingredients' },
-  { title: 'Secure checkout', text: 'Pay by card, safely' },
-] as const;
+const TRUST: readonly { title: StringKey; text: StringKey }[] = [
+  { title: 'shell.home.trust.deliveryTitle', text: 'shell.home.trust.deliveryText' },
+  { title: 'shell.home.trust.promiseTitle', text: 'shell.home.trust.promiseText' },
+  { title: 'shell.home.trust.safeTitle', text: 'shell.home.trust.safeText' },
+  { title: 'shell.home.trust.checkoutTitle', text: 'shell.home.trust.checkoutText' },
+];
 
 export function TrustBar() {
+  const { t } = useT();
   return (
     <section
-      aria-label="Why shop with us"
+      aria-label={t('shell.home.trust.label')}
       data-testid="trust-bar"
       className="border-b border-line bg-surface"
     >
       <ul className="mx-auto grid max-w-7xl grid-cols-2 gap-x-4 gap-y-3 px-4 py-4 sm:px-6 lg:grid-cols-4 lg:px-8">
-        {TRUST.map((t) => (
-          <li key={t.title} className="min-w-0">
-            <p className="font-display font-bold">{t.title}</p>
-            <p className="text-sm text-muted">{t.text}</p>
+        {TRUST.map((item) => (
+          <li key={item.title} className="min-w-0">
+            <p className="font-display font-bold">{t(item.title)}</p>
+            <p className="text-sm text-muted">{t(item.text)}</p>
           </li>
         ))}
       </ul>
@@ -47,11 +50,12 @@ export function PromoTile({
 }: {
   tile: { text: string | null; linkLabel: string | null; linkHref: string | null };
 }) {
+  const { t } = useT();
   const { text, linkLabel, linkHref } = tile;
   if (!text) return null;
   return (
     <section
-      aria-label="Offer"
+      aria-label={t('shell.home.offer')}
       data-testid="promo-tile"
       className="flex flex-wrap items-center justify-between gap-3 rounded-card bg-primary-soft p-5"
     >
@@ -71,19 +75,20 @@ export function PromoTile({
 const GUIDES_SHOWN = 3;
 
 export function GuidesTeaser() {
+  const { t } = useT();
   const { data, isPending, isError } = useGuides({ limit: GUIDES_SHOWN });
   if (isError || (data && data.data.length === 0)) return null;
   return (
     <section aria-labelledby="home-guides-heading" data-testid="guides-teaser">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-2">
         <h2 id="home-guides-heading" className="text-2xl font-bold sm:text-3xl">
-          Pet care guides
+          {t('shell.home.guides.title')}
         </h2>
         <Link
           to="/guides"
           className="min-h-11 rounded-control font-semibold text-primary-strong underline underline-offset-2"
         >
-          All guides
+          {t('shell.home.guides.all')}
         </Link>
       </div>
       {isPending ? (
@@ -112,31 +117,40 @@ function Stars({ rating }: { rating: number }) {
   );
 }
 
-function TestimonialCard({ t }: { t: Testimonial }) {
+function TestimonialCard({ t: item }: { t: Testimonial }) {
+  const { t } = useT();
   return (
     <li className="flex min-w-0 flex-col gap-2 rounded-card border border-line bg-surface p-5">
-      <Stars rating={t.rating} />
-      <span className="sr-only">{t.rating} out of 5 stars</span>
-      <blockquote className="text-ink">&ldquo;{t.quote}&rdquo;</blockquote>
+      <Stars rating={item.rating} />
+      <span className="sr-only">{t('shell.home.stars', { rating: item.rating })}</span>
+      <blockquote className="text-ink">{t('shell.home.quote', { quote: item.quote })}</blockquote>
       <p className="mt-auto text-sm text-muted">
-        <span className="font-semibold text-ink">{t.name}</span>, with {t.pet}
+        <span className="font-semibold text-ink">{item.name}</span>
+        {t('shell.home.withPet', { pet: item.pet })}
       </p>
     </li>
   );
 }
 
 export function Testimonials() {
+  const { t, tn } = useT();
+  const format = useFormat();
   const { data, isPending, isError } = useTestimonials();
   if (isError || (data && data.data.length === 0)) return null;
   return (
     <section aria-labelledby="home-testimonials-heading" data-testid="testimonials">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
         <h2 id="home-testimonials-heading" className="text-2xl font-bold sm:text-3xl">
-          Happy tails
+          {t('shell.home.happyTails')}
         </h2>
         <p className="min-h-6 text-muted" data-testid="rating-summary">
           {data?.meta.average != null &&
-            `${data.meta.average.toFixed(1)} out of 5, from ${data.meta.count} happy customers`}
+            tn('shell.home.ratingSummary', data.meta.count, {
+              average: format.number(data.meta.average, {
+                minimumFractionDigits: 1,
+                maximumFractionDigits: 1,
+              }),
+            })}
         </p>
       </div>
       {isPending ? (
@@ -147,8 +161,8 @@ export function Testimonials() {
         </div>
       ) : (
         <ul className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {data.data.slice(0, 3).map((t) => (
-            <TestimonialCard key={t.id} t={t} />
+          {data.data.slice(0, 3).map((item) => (
+            <TestimonialCard key={item.id} t={item} />
           ))}
         </ul>
       )}

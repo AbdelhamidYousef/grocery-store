@@ -1,4 +1,5 @@
 import type { WebCart } from '../../api/cart';
+import { useT } from '../../i18n';
 
 import { CartLine } from './CartLine';
 import { CartNotices, useBannerNotices } from './CartNotices';
@@ -15,12 +16,13 @@ export function CartContents({
   compact?: boolean;
   onNavigate?: () => void;
 }) {
+  const { t } = useT();
   const actions = useCartActions();
   const { inlineFor, banner, dismiss } = useBannerNotices(cart);
   return (
     <>
       <CartNotices notices={banner} currency={cart.currency} onDismiss={dismiss} />
-      <ul aria-label="Items in your cart" className="flex flex-col">
+      <ul aria-label={t('cart.items.aria')} className="flex flex-col">
         {cart.items.map((item) => (
           <CartLine
             key={item.id}

@@ -1,7 +1,9 @@
-import { formatMoney, type MemberOffer, type SaleOffer } from '@store/shared';
+import { type MemberOffer, type SaleOffer } from '@store/shared';
 import { Link } from 'react-router-dom';
 
 import { useIsSignedIn } from '../../features/auth/AuthProvider';
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { cn } from '../../lib/cn';
 import { loginUrl } from '../../lib/safe-next';
 import { TEST_IDS } from '../../lib/test-ids';
@@ -24,19 +26,23 @@ interface MemberPriceProps {
 }
 
 export function MemberPrice({ member, regularCents, currency, from, className }: MemberPriceProps) {
-  const fmt = (value: number) => formatMoney(value, currency);
+  const { t } = useT();
+  const format = useFormat();
+  const fmt = (value: number) => format.money(value, currency);
   return (
     <span className={cn('flex flex-col', className)} data-testid="price">
       <span className="inline-flex flex-wrap items-baseline gap-x-2">
         <span className="font-display font-bold" data-testid={TEST_IDS.memberPrice}>
-          Member price {from && 'from '}
-          {fmt(member.priceCents)}
+          {t(from ? 'shell.price.memberFrom' : 'shell.price.member', {
+            price: fmt(member.priceCents),
+          })}
         </span>
       </span>
       {regularCents !== undefined && regularCents > member.priceCents && (
         <span className="text-xs font-normal text-muted">
-          Regular price {from && 'from '}
-          {fmt(regularCents)}
+          {t(from ? 'shell.price.regularFrom' : 'shell.price.regular', {
+            price: fmt(regularCents),
+          })}
         </span>
       )}
     </span>
@@ -54,6 +60,7 @@ export function MemberTeaser({
   returnTo: string;
   className?: string;
 }) {
+  const { t } = useT();
   const signedIn = useIsSignedIn();
   if (!show || signedIn) return null;
   return (
@@ -62,7 +69,7 @@ export function MemberTeaser({
       data-testid={TEST_IDS.memberTeaser}
       className={cn('text-sm font-semibold text-primary-strong underline', className)}
     >
-      Member price: log in to see
+      {t('shell.price.memberTeaser')}
     </Link>
   );
 }

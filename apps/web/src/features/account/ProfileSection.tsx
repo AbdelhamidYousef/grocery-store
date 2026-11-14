@@ -7,6 +7,7 @@ import { Seo } from '../../components/Seo';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { useToast } from '../../components/ui/Toast';
+import { useT } from '../../i18n';
 import { FormAlert } from '../auth/AuthCard';
 import { useAuth } from '../auth/AuthProvider';
 import { applyFieldErrors, formErrorMessage } from '../auth/form-errors';
@@ -16,6 +17,7 @@ import { useUpdateProfile } from './queries';
 export function ProfileSection() {
   const { user } = useAuth();
   const toast = useToast();
+  const { t, tm } = useT();
   const update = useUpdateProfile();
   const [formError, setFormError] = useState<string | null>(null);
   const {
@@ -35,11 +37,11 @@ export function ProfileSection() {
       onSuccess: (saved) => {
         // The trimmed values the server stored become the new baseline (clears "dirty").
         reset({ firstName: saved.firstName, lastName: saved.lastName });
-        toast.show('Profile saved', 'success');
+        toast.show(t('account.profile.saved'), 'success');
       },
       onError: (error) => {
         if (!applyFieldErrors(error, setError, ['firstName', 'lastName'])) {
-          setFormError(formErrorMessage(error));
+          setFormError(formErrorMessage(error, t, tm));
         }
       },
     });
@@ -47,9 +49,9 @@ export function ProfileSection() {
 
   return (
     <section aria-labelledby="profile-heading" data-testid="account-profile">
-      <Seo title="My account" noindex />
+      <Seo title={t('account.title')} noindex />
       <h2 id="profile-heading" className="font-display text-2xl font-bold">
-        Profile
+        {t('account.profile.heading')}
       </h2>
       <form
         onSubmit={(e) => void submit(e)}
@@ -58,21 +60,21 @@ export function ProfileSection() {
       >
         <FormAlert message={formError} />
         <Input
-          label="Email"
+          label={t('auth.email')}
           value={user?.email ?? ''}
           readOnly
-          hint="Your email is your sign-in name and cannot be changed here."
+          hint={t('account.profile.emailHint')}
           autoComplete="email"
         />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input
-            label="First name"
+            label={t('auth.firstName')}
             autoComplete="given-name"
             error={errors.firstName?.message}
             {...register('firstName')}
           />
           <Input
-            label="Last name"
+            label={t('auth.lastName')}
             autoComplete="family-name"
             error={errors.lastName?.message}
             {...register('lastName')}
@@ -85,7 +87,7 @@ export function ProfileSection() {
           className="self-start"
           data-testid="profile-save"
         >
-          Save changes
+          {t('account.profile.save')}
         </Button>
       </form>
     </section>

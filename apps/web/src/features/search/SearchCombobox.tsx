@@ -12,6 +12,8 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { fetchSuggestions } from '../../api/search';
 import { SearchIcon } from '../../components/icons';
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { cn } from '../../lib/cn';
 
 import {
@@ -50,6 +52,8 @@ interface SearchComboboxProps {
 //    suggestions arrived ("5 products, 2 brands");
 //  - on a phone the focused box becomes a full-screen overlay (same component, same markup).
 export function SearchCombobox({ idPrefix, onSearch }: SearchComboboxProps) {
+  const { t, tn } = useT();
+  const format = useFormat();
   const { pathname } = useLocation();
   const [params] = useSearchParams();
   const navigate = useNavigate();
@@ -91,16 +95,22 @@ export function SearchCombobox({ idPrefix, onSearch }: SearchComboboxProps) {
   const settled = typed && term === trimmed;
   let groups: OptionGroup[] = [];
   let status = '';
+  // What the message line under the box says when there is no list: searching, nothing found, or
+  // the suggestions request failed.
+  let message: 'searching' | 'none' | 'unavailable' | null = null;
   if (!typed) {
-    groups = recentGroup(recents);
-    status = groups.length > 0 ? `${recents.length} recent searches` : '';
+    groups = recentGroup(recents, t);
+    status = groups.length > 0 ? tn('search.recentCount', recents.length) : '';
   } else if (settled && suggest.data) {
-    groups = groupSuggestions(suggest.data);
-    status = announce(suggest.data);
+    groups = groupSuggestions(suggest.data, t, format.money);
+    status = announce(suggest.data, tn) || t('search.noSuggestionsShort');
+    message = groups.length === 0 ? 'none' : null;
   } else if (settled && suggest.isError) {
-    status = 'Suggestions are unavailable. Press Enter to search.';
+    status = t('search.unavailable');
+    message = 'unavailable';
   } else {
-    status = 'Searching';
+    status = t('search.searching');
+    message = 'searching';
   }
   const options: SuggestionOption[] = groups.flatMap((g) => g.options);
   const listOpen = open && options.length > 0;
@@ -202,7 +212,7 @@ export function SearchCombobox({ idPrefix, onSearch }: SearchComboboxProps) {
       <form role="search" onSubmit={submit} className="relative flex w-full items-center gap-2">
         <div className="relative min-w-0 flex-1">
           <label htmlFor={inputId} className="sr-only">
-            Search products
+            {t('search.label')}
           </label>
           <input
             ref={input}
@@ -225,7 +235,7 @@ export function SearchCombobox({ idPrefix, onSearch }: SearchComboboxProps) {
               if (window.matchMedia?.(MOBILE_QUERY).matches) setOverlay(true);
             }}
             onKeyDown={onKeyDown}
-            placeholder="Search toys, beds, treats..."
+            placeholder={t('search.placeholder')}
             autoComplete="off"
             autoCapitalize="off"
             spellCheck={false}
@@ -235,7 +245,7 @@ export function SearchCombobox({ idPrefix, onSearch }: SearchComboboxProps) {
           />
           <button
             type="submit"
-            aria-label="Search"
+            aria-label={t('search.submit')}
             data-testid="search-submit"
             className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-primary text-surface hover:bg-primary-hover"
           >
@@ -252,7 +262,7 @@ export function SearchCombobox({ idPrefix, onSearch }: SearchComboboxProps) {
             }}
             className="min-h-11 shrink-0 rounded-control px-2 font-display font-semibold text-primary-strong"
           >
-            Cancel
+            {t('search.cancel')}
           </button>
         )}
       </form>
@@ -273,7 +283,7 @@ export function SearchCombobox({ idPrefix, onSearch }: SearchComboboxProps) {
           )}
         >
           {listOpen && (
-            <div id={listId} role="listbox" aria-label="Search suggestions">
+            <div id={listId} role="listbox" aria-label={t('search.suggestions')}>
               {groups.map((group, groupIndex) => (
                 <div key={group.id} role="group" aria-labelledby={`${listId}-${group.id}`}>
                   <div
@@ -342,10 +352,10 @@ export function SearchCombobox({ idPrefix, onSearch }: SearchComboboxProps) {
           )}
           {showMessage && (
             <p className="px-3 py-2 text-sm text-muted" data-testid="search-message">
-              {status === 'Searching'
-                ? 'Searching...'
-                : status === 'No suggestions'
-                  ? `No suggestions. Press Enter to search for "${trimmed}".`
+              {message === 'searching'
+                ? t('search.searchingDots')
+                : message === 'none'
+                  ? t('search.noSuggestions', { query: trimmed })
                   : status}
             </p>
           )}
@@ -359,7 +369,7 @@ export function SearchCombobox({ idPrefix, onSearch }: SearchComboboxProps) {
               }}
               className="mt-1 min-h-11 w-full rounded-control px-3 text-left text-sm font-semibold text-primary-strong underline underline-offset-2"
             >
-              Clear recent searches
+              {t('search.clearRecent')}
             </button>
           )}
         </div>

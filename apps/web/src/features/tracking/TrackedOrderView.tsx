@@ -1,15 +1,26 @@
 import type { TrackedOrder } from '@store/shared';
+import { useMemo } from 'react';
 
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { TEST_IDS } from '../../lib/test-ids';
 
-const WHEN = new Intl.DateTimeFormat('en-GB', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-  timeZone: 'UTC',
-});
-const formatWhen = (iso: string) => `${WHEN.format(new Date(iso))} UTC`;
-
 export function TrackedOrderView({ order }: { order: TrackedOrder }) {
+  const { t } = useT();
+  const { locale } = useFormat();
+  // Times are shown in UTC (the page says so) in the store view's language.
+  const when = useMemo(
+    () =>
+      new Intl.DateTimeFormat(locale, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+        timeZone: 'UTC',
+      }),
+    [locale],
+  );
+  const formatWhen = (iso: string) =>
+    t('account.tracking.when', { date: when.format(new Date(iso)) });
+
   return (
     <section
       aria-labelledby="tracked-heading"
@@ -17,21 +28,23 @@ export function TrackedOrderView({ order }: { order: TrackedOrder }) {
       data-testid={TEST_IDS.trackResult}
     >
       <h2 id="tracked-heading" className="font-display text-2xl font-bold">
-        <span className="break-all">Order {order.orderNumber}</span>
+        <span className="break-all">{t('account.order.title', { number: order.orderNumber })}</span>
       </h2>
       <p className="mt-1 text-lg">
-        Status: <strong data-testid={TEST_IDS.trackStatus}>{order.statusLabel}</strong>
+        {t('account.tracking.status')}{' '}
+        <strong data-testid={TEST_IDS.trackStatus}>
+          {t(`account.tracking.state.${order.status}`)}
+        </strong>
       </p>
       {order.tracking && (
         <p className="mt-1 text-muted">
-          {order.tracking.carrier} tracking number:{' '}
+          {t('account.tracking.carrier', { carrier: order.tracking.carrier })}{' '}
           <span className="font-semibold text-ink">{order.tracking.trackingNumber}</span>
         </p>
       )}
-
-      <h3 className="mt-6 font-display text-xl font-bold">Progress</h3>
+      <h3 className="mt-6 font-display text-xl font-bold">{t('account.tracking.progress')}</h3>
       <ol
-        aria-label="Order progress"
+        aria-label={t('account.tracking.progressLabel')}
         data-testid={TEST_IDS.trackTimeline}
         className="mt-3 flex flex-col border-l-2 border-line pl-5"
       >
@@ -50,13 +63,12 @@ export function TrackedOrderView({ order }: { order: TrackedOrder }) {
                   : 'absolute -left-[1.6rem] top-1.5 h-2.5 w-2.5 rounded-full bg-ink'
               }
             />
-            <p className="font-semibold">{step.label}</p>
+            <p className="font-semibold">{t(`account.tracking.state.${step.status}`)}</p>
             <p className="text-sm text-muted">{formatWhen(step.at)}</p>
           </li>
         ))}
       </ol>
-
-      <h3 className="mt-6 font-display text-xl font-bold">In this order</h3>
+      <h3 className="mt-6 font-display text-xl font-bold">{t('account.tracking.inOrder')}</h3>
       <ul className="mt-3 divide-y divide-line">
         {order.items.map((item, i) => (
           <li key={i} className="flex flex-wrap justify-between gap-x-4 py-2">

@@ -1,6 +1,8 @@
 import { formatMoney } from '@store/shared';
 import { useRef, useState } from 'react';
 
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { TEST_IDS } from '../../lib/test-ids';
 
 // Whole euros: a step of 100 cents keeps the handles on prices a shopper can say out loud.
@@ -23,6 +25,8 @@ interface PriceSliderProps {
 // one), so "min above max" cannot exist, and the URL changes only when the shopper lets go, not
 // on every tick of a drag.
 export function PriceSlider({ bounds, minPrice, maxPrice, currency, onCommit }: PriceSliderProps) {
+  const { t } = useT();
+  const { locale } = useFormat();
   const lo = Math.floor(bounds.min / STEP) * STEP;
   const hi = Math.max(Math.ceil(bounds.max / STEP) * STEP, lo + STEP);
   const clamp = (v: number) => Math.min(hi, Math.max(lo, v));
@@ -64,7 +68,7 @@ export function PriceSlider({ bounds, minPrice, maxPrice, currency, onCommit }: 
   };
 
   const pct = (v: number) => ((v - lo) / (hi - lo)) * 100;
-  const money = (v: number) => formatMoney(v, currency);
+  const money = (v: number) => formatMoney(v, currency, locale);
   const common = {
     min: lo,
     max: hi,
@@ -76,9 +80,9 @@ export function PriceSlider({ bounds, minPrice, maxPrice, currency, onCommit }: 
 
   return (
     <fieldset className="min-w-0" data-testid="filter-price">
-      <legend className="mb-1 font-display text-lg font-bold">Price</legend>
+      <legend className="mb-1 font-display text-lg font-bold">{t('catalog.price.title')}</legend>
       <p className="text-sm font-semibold" data-testid="price-range-text">
-        {money(current.min)} to {money(current.max)}
+        {t('catalog.price.range', { min: money(current.min), max: money(current.max) })}
       </p>
       <div className="dual-range mx-3" data-testid={TEST_IDS.priceSlider}>
         {/* The visible track, with the chosen span in the brand colour. */}
@@ -93,7 +97,7 @@ export function PriceSlider({ bounds, minPrice, maxPrice, currency, onCommit }: 
         />
         <input
           type="range"
-          aria-label="Minimum price"
+          aria-label={t('catalog.price.min')}
           aria-valuetext={money(current.min)}
           value={current.min}
           onChange={(e) => move('min', e.target.value)}
@@ -104,7 +108,7 @@ export function PriceSlider({ bounds, minPrice, maxPrice, currency, onCommit }: 
         />
         <input
           type="range"
-          aria-label="Maximum price"
+          aria-label={t('catalog.price.max')}
           aria-valuetext={money(current.max)}
           value={current.max}
           onChange={(e) => move('max', e.target.value)}

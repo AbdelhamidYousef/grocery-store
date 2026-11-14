@@ -6,13 +6,16 @@ import {
   parseGiftAnswers,
   type GiftAnswers,
 } from '@store/shared';
-import { formatMoney } from '@store/shared';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Container } from '../../components/layout/Container';
 import { Seo } from '../../components/Seo';
 import { Button } from '../../components/ui/Button';
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
+
+import { OPTION_KEYS, QUESTION_KEYS } from './labels';
 
 // The quiz is a form with one question per step, and ALL its state is the URL: answers are
 // `?pet=dog&age=adult...` and `step` says which question is on screen. A reload, the Back button
@@ -20,6 +23,8 @@ import { Button } from '../../components/ui/Button';
 // starts at the first question that has no valid answer.
 export function GiftWizard() {
   const [search] = useSearchParams();
+  const { t } = useT();
+  const fmt = useFormat();
   const navigate = useNavigate();
   const { complete, partial } = parseGiftAnswers(search);
   const answered = GIFT_KEYS.filter((k) => partial[k] !== undefined).length;
@@ -51,12 +56,12 @@ export function GiftWizard() {
   const next = (event: FormEvent) => {
     event.preventDefault();
     if (current === '') {
-      setError('Pick one to continue.');
+      setError(t('pets.gift.pickOne'));
       return;
     }
     const merged: Partial<GiftAnswers> = { ...(complete ?? partial) };
     const parsed = GiftAnswersSchema.shape[question.key].safeParse(current);
-    if (!parsed.success) return setError('Pick one to continue.');
+    if (!parsed.success) return setError(t('pets.gift.pickOne'));
     (merged as Record<string, unknown>)[question.key] = parsed.data;
     setError(null);
     setPicked(null);
@@ -70,19 +75,24 @@ export function GiftWizard() {
     }
   };
 
+  const optionLabel = (option: { value: string; label: string }) => {
+    const key = OPTION_KEYS[`${question.key}.${option.value}`];
+    return key ? t(key) : option.label;
+  };
+
   const back = new URLSearchParams(giftSearch(complete ?? partial));
   back.set('step', String(index));
 
   return (
     <Container className="py-8" data-testid="page-gift-finder">
       <Seo
-        title="Gift finder"
-        description="Answer four quick questions and we will suggest gifts for the pet in your life."
+        title={t('pets.gift.seoTitle')}
+        description={t('pets.gift.seoDescription')}
         canonical="/gift-finder"
       />
       <div className="mx-auto max-w-xl">
         <p className="font-display text-sm font-bold text-muted" data-testid="gift-progress">
-          Question {index + 1} of {GIFT_KEYS.length}
+          {t('pets.gift.progress', { current: index + 1, total: GIFT_KEYS.length })}
         </p>
         <div aria-hidden="true" className="mt-1 h-2 overflow-hidden rounded-full bg-line">
           <div
@@ -99,10 +109,16 @@ export function GiftWizard() {
                 className="font-display text-3xl font-bold focus:outline-none"
                 data-testid="gift-question"
               >
-                {question.title}
+                {t(QUESTION_KEYS[question.key].title)}
               </h1>
             </legend>
-            {question.hint && <p className="mb-2 text-muted">{question.hint}</p>}
+            {question.hint && (
+              <p className="mb-2 text-muted">
+                {QUESTION_KEYS[question.key].hint
+                  ? t(QUESTION_KEYS[question.key].hint!)
+                  : question.hint}
+              </p>
+            )}
             <div className="mt-3 flex flex-col gap-2">
               {question.options.map((option) => {
                 const id = `gift-${question.key}-${option.value}`;
@@ -126,8 +142,8 @@ export function GiftWizard() {
                     />
                     <span>
                       {question.key === 'budget' && option.value !== '0'
-                        ? `Up to ${formatMoney(Number(option.value), 'EUR')}`
-                        : option.label}
+                        ? t('pets.gift.upTo', { amount: fmt.money(Number(option.value), 'EUR') })
+                        : optionLabel(option)}
                     </span>
                   </label>
                 );
@@ -150,13 +166,13 @@ export function GiftWizard() {
                 to={`/gift-finder?${back.toString()}`}
                 className="inline-flex min-h-11 items-center rounded-control px-3 font-semibold text-primary-strong underline"
               >
-                Back
+                {t('pets.gift.back')}
               </Link>
             ) : (
               <span />
             )}
             <Button type="submit" data-testid="gift-next">
-              {index === GIFT_KEYS.length - 1 ? 'Show my gift ideas' : 'Next'}
+              {index === GIFT_KEYS.length - 1 ? t('pets.gift.show') : t('pets.gift.next')}
             </Button>
           </div>
         </form>

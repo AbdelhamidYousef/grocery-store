@@ -1,5 +1,6 @@
 import type { ProductListQuery, QuickChip } from '@store/shared';
 
+import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { TEST_IDS } from '../../lib/test-ids';
 
@@ -18,6 +19,7 @@ export function QuickChips({
   query: ProductListQuery;
   update: (patch: ListPatch) => void;
 }) {
+  const { t } = useT();
   if (chips.length === 0) return null;
 
   const selectedOf = (chip: QuickChip): string[] =>
@@ -33,7 +35,7 @@ export function QuickChips({
 
   return (
     <ul
-      aria-label="Quick filters"
+      aria-label={t('catalog.quickFilters')}
       data-testid={TEST_IDS.quickChips}
       className="mb-3 flex flex-wrap gap-2"
     >

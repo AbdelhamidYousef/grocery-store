@@ -3,6 +3,8 @@ import { useId, useState, type FormEvent } from 'react';
 import type { WebCart } from '../../api/cart';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { TEST_IDS } from '../../lib/test-ids';
 
 import { noticeSentence } from './promo-text';
@@ -12,6 +14,8 @@ import { useCartCode } from './queries';
 // about the code (below minimum, beaten by the bulk tier ...) stay under the chip, because a code
 // can be kept while doing nothing for now.
 export function CartCode({ cart }: { cart: WebCart }) {
+  const { t } = useT();
+  const fmt = useFormat();
   const { pricing, currency } = cart;
   const code = useCartCode();
   const [value, setValue] = useState('');
@@ -27,7 +31,7 @@ export function CartCode({ cart }: { cart: WebCart }) {
   };
 
   const sentences = pricing.notices.flatMap((n) => {
-    const text = noticeSentence(n, pricing, currency);
+    const text = noticeSentence(n, pricing, (cents) => fmt.money(cents, currency), t);
     return text ? [{ key: `${n.key}:${n.refId ?? ''}`, text }] : [];
   });
 
@@ -46,9 +50,9 @@ export function CartCode({ cart }: { cart: WebCart }) {
             size="md"
             disabled={code.removing}
             onClick={() => code.remove()}
-            aria-label={`Remove code ${pricing.code}`}
+            aria-label={t('cart.code.removeAria', { code: pricing.code })}
           >
-            Remove
+            {t('cart.code.remove')}
           </Button>
         </div>
       ) : (
@@ -61,7 +65,7 @@ export function CartCode({ cart }: { cart: WebCart }) {
           {/* The wrapper is always mounted so the error, which appears later, is announced. */}
           <div className="min-w-0 flex-1" aria-live="polite">
             <Input
-              label="Discount code"
+              label={t('cart.code.label')}
               value={value}
               onChange={(e) => setValue(e.target.value)}
               autoComplete="off"
@@ -72,7 +76,7 @@ export function CartCode({ cart }: { cart: WebCart }) {
           </div>
           {/* mt-7 lines the button up with the input, below the label. */}
           <Button type="submit" className="mt-7" loading={code.pending}>
-            Apply
+            {t('cart.code.apply')}
           </Button>
         </form>
       )}

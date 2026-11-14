@@ -9,20 +9,22 @@ import { Container } from '../components/layout/Container';
 import { Seo } from '../components/Seo';
 import { Spinner } from '../components/ui/Spinner';
 import { NewsletterForm } from '../features/newsletter/NewsletterForm';
+import { useT, type StringKey } from '../i18n';
 import { TEST_IDS } from '../lib/test-ids';
 
 export function NewsletterPage() {
+  const { t } = useT();
   return (
     <Container className="py-10" data-testid={TEST_IDS.pageNewsletter}>
       <Seo
-        title="Newsletter"
-        description="Pet tips and offers from Pawsome."
+        title={t('loyalty.newsletter.seoTitle')}
+        description={t('loyalty.newsletter.seoDescription')}
         canonical="/newsletter"
       />
-      <h1 className="font-display text-3xl font-bold sm:text-4xl">Join the pack</h1>
-      <p className="mb-5 mt-2 max-w-prose text-muted">
-        Subscribe and get 10% off your first order once you confirm your address.
-      </p>
+      <h1 className="font-display text-3xl font-bold sm:text-4xl">
+        {t('loyalty.newsletter.pageTitle')}
+      </h1>
+      <p className="mb-5 mt-2 max-w-prose text-muted">{t('loyalty.newsletter.pageText')}</p>
       <NewsletterForm />
     </Container>
   );
@@ -37,11 +39,12 @@ function TokenPage({
   done,
   testId,
 }: {
-  title: string;
+  title: StringKey;
   run: (token: string) => Promise<unknown>;
-  done: (data: unknown) => string;
+  done: (data: unknown) => StringKey;
   testId: string;
 }) {
+  const { t } = useT();
   const [params] = useSearchParams();
   const token = params.get('token') ?? '';
   const mutation = useMutation({ mutationFn: run });
@@ -55,21 +58,23 @@ function TokenPage({
   const expired = mutation.error instanceof ApiError && mutation.error.status === 410;
   return (
     <Container className="max-w-xl py-10" data-testid={testId}>
-      <Seo title={title} noindex />
-      <h1 className="font-display text-3xl font-bold">{title}</h1>
+      <Seo title={t(title)} noindex />
+      <h1 className="font-display text-3xl font-bold">{t(title)}</h1>
       <div className="mt-4" aria-live="polite">
-        {!token && <p>This link is incomplete. Please open it again from the email.</p>}
-        {token && mutation.isPending && <Spinner label="Working on it" />}
+        {!token && <p>{t('loyalty.newsletter.token.incomplete')}</p>}
+        {token && mutation.isPending && <Spinner label={t('loyalty.newsletter.token.working')} />}
         {mutation.isSuccess && (
           <p className="rounded-control border-2 border-success bg-success-soft p-4 font-semibold">
-            {done(mutation.data)}
+            {t(done(mutation.data))}
           </p>
         )}
         {mutation.isError && (
           <p role="alert" className="font-semibold text-danger">
-            {expired ? 'This link has expired.' : 'This link is not valid any more.'}{' '}
+            {expired
+              ? t('loyalty.newsletter.token.expired')
+              : t('loyalty.newsletter.token.invalid')}{' '}
             <Link to="/newsletter" className="underline">
-              Sign up again
+              {t('loyalty.newsletter.token.signUpAgain')}
             </Link>
           </p>
         )}
@@ -81,13 +86,13 @@ function TokenPage({
 export function NewsletterConfirmPage() {
   return (
     <TokenPage
-      title="Confirm your subscription"
+      title="loyalty.newsletter.confirm.title"
       testId={TEST_IDS.newsletterConfirmed}
       run={confirmNewsletter}
       done={(s) =>
         s === 'already_confirmed'
-          ? 'You are already subscribed. Your welcome code is in the email we sent.'
-          : 'You are subscribed! We just emailed you your 10% welcome code.'
+          ? 'loyalty.newsletter.confirm.already'
+          : 'loyalty.newsletter.confirm.done'
       }
     />
   );
@@ -96,10 +101,10 @@ export function NewsletterConfirmPage() {
 export function NewsletterUnsubscribePage() {
   return (
     <TokenPage
-      title="Unsubscribe"
+      title="loyalty.newsletter.unsubscribe.title"
       testId={TEST_IDS.newsletterUnsubscribed}
       run={unsubscribeNewsletter}
-      done={() => 'You are unsubscribed. We will not send you more news.'}
+      done={() => 'loyalty.newsletter.unsubscribe.done'}
     />
   );
 }
@@ -107,10 +112,10 @@ export function NewsletterUnsubscribePage() {
 export function StockAlertCancelPage() {
   return (
     <TokenPage
-      title="Stock alert"
+      title="loyalty.stockAlerts.cancel.title"
       testId={TEST_IDS.stockAlertCancelled}
       run={cancelStockAlert}
-      done={() => 'Done: we will not email you about that item.'}
+      done={() => 'loyalty.stockAlerts.cancel.done'}
     />
   );
 }

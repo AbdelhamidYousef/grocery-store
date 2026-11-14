@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 
+import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { TEST_IDS } from '../../lib/test-ids';
 
@@ -31,9 +32,9 @@ export function QuantityStepper({
   subject,
   deferred = false,
 }: QuantityStepperProps) {
+  const { t } = useT();
   const id = useId();
   const [draft, setDraft] = useState<string | null>(null);
-  const of = subject ? ` of ${subject}` : '';
   const clamp = (n: number) =>
     Math.min(max, Math.max(min, Number.isFinite(n) ? Math.trunc(n) : min));
   const button =
@@ -51,12 +52,14 @@ export function QuantityStepper({
   return (
     <div className="flex flex-col gap-1.5" data-testid={TEST_IDS.quantity}>
       <label htmlFor={id} className={cn('text-sm font-semibold', subject && 'sr-only')}>
-        Quantity{of}
+        {subject ? t('catalog.quantity.labelOf', { subject }) : t('catalog.quantity.label')}
       </label>
       <div className="flex items-center gap-2">
         <button
           type="button"
-          aria-label={`Decrease quantity${of}`}
+          aria-label={
+            subject ? t('catalog.quantity.decreaseOf', { subject }) : t('catalog.quantity.decrease')
+          }
           disabled={disabled || value <= min}
           onClick={() => onChange(clamp(value - 1))}
           className={button}
@@ -89,7 +92,9 @@ export function QuantityStepper({
         />
         <button
           type="button"
-          aria-label={`Increase quantity${of}`}
+          aria-label={
+            subject ? t('catalog.quantity.increaseOf', { subject }) : t('catalog.quantity.increase')
+          }
           disabled={disabled || value >= max}
           onClick={() => onChange(clamp(value + 1))}
           className={button}

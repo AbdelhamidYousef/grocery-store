@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
 import { Container } from '../../components/layout/Container';
 import { Seo } from '../../components/Seo';
+import { useT } from '../../i18n';
 import { loginUrl } from '../../lib/safe-next';
 import RouteFallback from '../../pages/RouteFallback';
 
@@ -23,6 +24,7 @@ export function RequireAuth() {
 
 export function RequireAdmin() {
   const { status, user } = useAuth();
+  const { t } = useT();
   const location = useLocation();
   if (status === 'loading') return <RouteFallback />;
   if (status === 'anonymous') {
@@ -31,9 +33,9 @@ export function RequireAdmin() {
   if (user?.role !== 'admin') {
     return (
       <Container className="py-12 text-center" data-testid="page-forbidden">
-        <Seo title="Not allowed" noindex />
-        <h1 className="text-3xl font-bold">You do not have access to this page</h1>
-        <p className="mt-3 text-muted">This area is for shop admins only.</p>
+        <Seo title={t('auth.forbidden.seoTitle')} noindex />
+        <h1 className="text-3xl font-bold">{t('auth.forbidden.title')}</h1>
+        <p className="mt-3 text-muted">{t('auth.forbidden.body')}</p>
       </Container>
     );
   }

@@ -1,6 +1,7 @@
 import type { ProductListQuery } from '@store/shared';
 
 import { Button } from '../../components/ui/Button';
+import { useT } from '../../i18n';
 import type { ListPatch } from '../catalog/list-params';
 
 import { useActivePet } from './ActivePetProvider';
@@ -15,20 +16,23 @@ export function ActivePetNote({
   update: (patch: ListPatch) => void;
 }) {
   const { activePet } = useActivePet();
+  const { t } = useT();
   if (!activePet || !query.attr.pet?.includes(activePet.species)) return null;
   return (
     <p
       data-testid="active-pet-note"
       className="mb-3 flex flex-wrap items-center gap-x-3 text-sm font-semibold"
     >
-      <span className="min-w-0 break-words">Showing what suits {activePet.name}.</span>
+      <span className="min-w-0 break-words">
+        {t('pets.note.showing', { name: activePet.name })}
+      </span>
       <Button
         size="sm"
         variant="ghost"
         onClick={() => update({ attr: { pet: [], ageStage: [] } })}
         data-testid="active-pet-clear"
       >
-        Show all pets
+        {t('pets.note.showAll')}
       </Button>
     </p>
   );

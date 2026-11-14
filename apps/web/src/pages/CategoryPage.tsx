@@ -9,12 +9,14 @@ import { Spinner } from '../components/ui/Spinner';
 import { hasActiveFilters, useProductListParams } from '../features/catalog/list-params';
 import { ProductListing } from '../features/catalog/ProductListing';
 import { useCategories, useCategory } from '../features/catalog/queries';
+import { useT } from '../i18n';
 import { petAttributeForAccent, petBySlug } from '../lib/pets';
 import { TEST_IDS } from '../lib/test-ids';
 
 import NotFoundPage from './NotFoundPage';
 
 export default function CategoryPage() {
+  const { t } = useT();
   const { slug } = useParams();
   const { data: category, error, isPending, refetch } = useCategory(slug);
   const { data: tree } = useCategories();
@@ -24,10 +26,10 @@ export default function CategoryPage() {
   if (error) {
     return (
       <Container className="py-12 text-center" data-testid={TEST_IDS.pageCategory}>
-        <Seo title="Something went wrong" noindex />
-        <h1 className="text-3xl font-bold">We could not load this category</h1>
+        <Seo title={t('catalog.page.error')} noindex />
+        <h1 className="text-3xl font-bold">{t('catalog.category.loadError')}</h1>
         <Button className="mt-4" onClick={() => void refetch()}>
-          Try again
+          {t('catalog.page.tryAgain')}
         </Button>
       </Container>
     );
@@ -38,7 +40,7 @@ export default function CategoryPage() {
         className="flex min-h-[70vh] justify-center py-16"
         data-testid={TEST_IDS.pageCategory}
       >
-        <Spinner label="Loading category" className="h-8 w-8 text-primary-strong" />
+        <Spinner label={t('catalog.category.loading')} className="h-8 w-8 text-primary-strong" />
       </Container>
     );
   }
@@ -47,7 +49,7 @@ export default function CategoryPage() {
   const parent = category.parentId ? tree?.find((n) => n.id === category.parentId) : undefined;
   const pet = petBySlug(parent?.slug ?? category.slug);
   const crumbs: Crumb[] = [
-    { label: 'Home', to: '/' },
+    { label: t('catalog.page.home'), to: '/' },
     ...(parent ? [{ label: parent.name, to: `/c/${parent.slug}` }] : []),
     { label: category.name },
   ];
@@ -73,7 +75,10 @@ export default function CategoryPage() {
             <p className="mt-2 max-w-prose text-ink">{category.description}</p>
           )}
           {category.children.length > 0 && (
-            <ul className="mt-4 flex flex-wrap gap-2" aria-label="Subcategories">
+            <ul
+              className="mt-4 flex flex-wrap gap-2"
+              aria-label={t('catalog.category.subcategories')}
+            >
               {category.children.map((child) => (
                 <li key={child.id}>
                   <Link

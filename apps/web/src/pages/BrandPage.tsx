@@ -10,12 +10,14 @@ import { Spinner } from '../components/ui/Spinner';
 import { hasActiveFilters, useProductListParams } from '../features/catalog/list-params';
 import { ProductListing } from '../features/catalog/ProductListing';
 import { useBrand } from '../features/merchandising/queries';
+import { useT } from '../i18n';
 import { TEST_IDS } from '../lib/test-ids';
 import { track } from '../lib/track';
 
 import NotFoundPage from './NotFoundPage';
 
 export default function BrandPage() {
+  const { t } = useT();
   const { slug } = useParams();
   const { data: brand, error, isPending, refetch } = useBrand(slug);
   const { query } = useProductListParams();
@@ -28,10 +30,10 @@ export default function BrandPage() {
   if (error) {
     return (
       <Container className="py-12 text-center" data-testid={TEST_IDS.pageBrand}>
-        <Seo title="Something went wrong" noindex />
-        <h1 className="text-3xl font-bold">We could not load this brand</h1>
+        <Seo title={t('catalog.page.error')} noindex />
+        <h1 className="text-3xl font-bold">{t('catalog.brand.loadError')}</h1>
         <Button className="mt-4" onClick={() => void refetch()}>
-          Try again
+          {t('catalog.page.tryAgain')}
         </Button>
       </Container>
     );
@@ -42,7 +44,7 @@ export default function BrandPage() {
         className="flex min-h-[70vh] justify-center py-16"
         data-testid={TEST_IDS.pageBrand}
       >
-        <Spinner label="Loading brand" className="h-8 w-8 text-primary-strong" />
+        <Spinner label={t('catalog.brand.loading')} className="h-8 w-8 text-primary-strong" />
       </Container>
     );
   }
@@ -58,8 +60,8 @@ export default function BrandPage() {
       />
       <Breadcrumbs
         items={[
-          { label: 'Home', to: '/' },
-          { label: 'Brands', to: '/brands' },
+          { label: t('catalog.page.home'), to: '/' },
+          { label: t('catalog.page.brands'), to: '/brands' },
           { label: brand.name },
         ]}
       />

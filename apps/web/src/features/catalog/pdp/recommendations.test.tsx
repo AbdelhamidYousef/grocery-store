@@ -131,7 +131,7 @@ describe('Frequently bought together', () => {
     const block = await screen.findByTestId('bought-together');
     expect(block).toHaveTextContent('(not available)');
     expect(within(block).getByTestId('bought-together-total')).toHaveTextContent('€5.00');
-    expect(within(block).getByTestId('bought-together-add')).toHaveTextContent('Add all (1 items)');
+    expect(within(block).getByTestId('bought-together-add')).toHaveTextContent('Add all (1 item)');
   });
 });
 

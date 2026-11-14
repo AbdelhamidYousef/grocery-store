@@ -1,9 +1,11 @@
+import { formatMoney } from '@store/shared';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { WebCart } from '../../api/cart';
+import { lookupFor, type TFunction } from '../../i18n';
 import * as tracking from '../../lib/track';
 import { makeCart, makeCartItem, makeCartPricing } from '../../test/fixtures';
 import { renderApp } from '../../test/render';
@@ -267,14 +269,17 @@ describe('notice sentences', () => {
       'Your credit was capped so you still pay at least 0.50 (the card minimum).',
     ],
   ];
+  const lookup = lookupFor('en-IE');
+  const t: TFunction = (key, params) => lookup.t(key, params);
+  const money = (cents: number) => formatMoney(cents, 'EUR', 'en-IE');
   it.each(cases)('maps %s to a sentence', (key, cents, sentence) => {
-    expect(noticeSentence({ key, ...(cents !== undefined && { cents }) }, pricing, 'EUR')).toBe(
+    expect(noticeSentence({ key, ...(cents !== undefined && { cents }) }, pricing, money, t)).toBe(
       sentence,
     );
   });
 
   it('skips a key this build does not know', () => {
-    expect(noticeSentence({ key: 'something_new' }, pricing, 'EUR')).toBeNull();
+    expect(noticeSentence({ key: 'something_new' }, pricing, money, t)).toBeNull();
   });
 });
 

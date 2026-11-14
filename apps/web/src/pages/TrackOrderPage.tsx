@@ -11,24 +11,21 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { FormAlert } from '../features/auth/AuthCard';
 import { TrackedOrderView } from '../features/tracking/TrackedOrderView';
+import { useT, type TFunction } from '../i18n';
 import { TEST_IDS } from '../lib/test-ids';
 import { track } from '../lib/track';
 
 // Same words for "wrong email" and "no such order": the server gives one answer, the page gives one
 // message, so nothing here helps someone guess which order numbers exist.
-const NOT_FOUND =
-  'We could not find an order with that number and email. Check both and try again.';
-
-function messageFor(error: unknown): string {
-  if (error instanceof ApiError && error.status === 404) return NOT_FOUND;
-  if (error instanceof ApiError && error.status === 429) {
-    return 'Too many tries from this connection. Please wait a while and try again.';
-  }
-  return 'We could not look that up right now. Please try again in a moment.';
+function messageFor(error: unknown, t: TFunction): string {
+  if (error instanceof ApiError && error.status === 404) return t('account.tracking.notFound');
+  if (error instanceof ApiError && error.status === 429) return t('account.tracking.tooMany');
+  return t('account.tracking.failed');
 }
 
 export default function TrackOrderPage() {
   const [params] = useSearchParams();
+  const { t } = useT();
   // The confirmation email links here with the number filled in; the email is never in a URL.
   const [orderNumber, setOrderNumber] = useState(params.get('number') ?? '');
   const [email, setEmail] = useState('');
@@ -48,7 +45,7 @@ export default function TrackOrderPage() {
     e.preventDefault();
     const parsed = TrackOrderBodySchema.safeParse({ orderNumber, email });
     if (!parsed.success) {
-      setFieldError('Enter your order number and the email you ordered with.');
+      setFieldError(t('account.tracking.fieldError'));
       return;
     }
     setFieldError(null);
@@ -57,16 +54,19 @@ export default function TrackOrderPage() {
 
   return (
     <Container className="py-8" data-testid={TEST_IDS.pageTrackOrder}>
-      <Seo title="Track your order" description="See where your Pawsome order is." noindex />
-      <h1 className="font-display text-3xl font-bold sm:text-4xl">Track your order</h1>
-      <p className="mt-2 max-w-prose text-muted">
-        Enter the order number from your confirmation email and the email address you used. You do
-        not need an account.
-      </p>
+      <Seo
+        title={t('account.tracking.seoTitle')}
+        description={t('account.tracking.seoDescription')}
+        noindex
+      />
+      <h1 className="font-display text-3xl font-bold sm:text-4xl">
+        {t('account.tracking.seoTitle')}
+      </h1>
+      <p className="mt-2 max-w-prose text-muted">{t('account.tracking.intro')}</p>
       <form onSubmit={submit} noValidate className="mt-5 flex max-w-md flex-col gap-4">
-        <FormAlert message={fieldError ?? (lookup.error ? messageFor(lookup.error) : null)} />
+        <FormAlert message={fieldError ?? (lookup.error ? messageFor(lookup.error, t) : null)} />
         <Input
-          label="Order number"
+          label={t('account.tracking.orderNumber')}
           placeholder="PW-2026-000123"
           autoComplete="off"
           value={orderNumber}
@@ -74,7 +74,7 @@ export default function TrackOrderPage() {
           data-testid={TEST_IDS.trackOrderNumber}
         />
         <Input
-          label="Email"
+          label={t('account.tracking.email')}
           type="email"
           autoComplete="email"
           inputMode="email"
@@ -83,7 +83,7 @@ export default function TrackOrderPage() {
           data-testid={TEST_IDS.trackEmail}
         />
         <Button type="submit" loading={lookup.isPending} data-testid={TEST_IDS.trackSubmit}>
-          Track order
+          {t('account.tracking.submit')}
         </Button>
       </form>
       {result && <TrackedOrderView order={result} />}

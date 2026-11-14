@@ -4,61 +4,54 @@ import { Container } from '../components/layout/Container';
 import { Seo } from '../components/Seo';
 import { TOOL_EXAMPLES } from '../features/agent/examples';
 import { AGENT_TOOLS } from '../features/agent/tools';
+import { useT, type StringKey } from '../i18n';
 import { TEST_IDS } from '../lib/test-ids';
 
 const json = (value: unknown) => JSON.stringify(value, null, 2);
 
-const NOT_EXPOSED = [
-  'Checkout and payment: an agent fills the cart, a person reviews and pays.',
-  'Placing or cancelling orders, and reading order history.',
-  'Account, address, saved card, loyalty and wishlist data.',
-  'Anything the signed-in shopper could not already do by clicking.',
+const NOT_EXPOSED: StringKey[] = [
+  'content.dev.notExposed.checkout',
+  'content.dev.notExposed.orders',
+  'content.dev.notExposed.account',
+  'content.dev.notExposed.clicking',
 ];
 
 // The tool list, schemas and examples all come from the registry the browser registers, so this
 // page cannot drift from what an agent actually sees.
 export default function DevelopersPage() {
+  const { t } = useT();
   return (
     <Container className="max-w-3xl py-10" data-testid={TEST_IDS.pageDevelopers}>
       <Seo
-        title="For developers: agent tools"
-        description="Pawsome offers structured WebMCP tools so browser AI agents can search the demo catalogue and fill a cart. Experimental, test data only."
+        title={t('content.dev.seoTitle')}
+        description={t('content.dev.seoDescription')}
         canonical="/developers"
       />
-      <h1 className="font-display text-3xl font-bold sm:text-4xl">Shop with an AI agent</h1>
+      <h1 className="font-display text-3xl font-bold sm:text-4xl">{t('content.dev.title')}</h1>
       <p
         role="note"
         className="mt-3 rounded-control border-2 border-line bg-pet-soft p-3 font-semibold"
       >
-        This is a demo store on test data, and WebMCP is an experimental browser feature. Nothing
-        here is a stable public API.
+        {t('content.dev.note')}
       </p>
 
-      <h2 className="mt-8 font-display text-2xl font-bold">What is WebMCP?</h2>
-      <p className="mt-2 max-w-prose">
-        WebMCP is a draft from the W3C Web Machine Learning Community Group. A page registers tools
-        with the browser, and an AI agent built into the browser calls them with JSON arguments
-        instead of scraping the screen. The tools run in your tab, with your own session and cart,
-        through the same API the site itself uses, so an agent can never do more than you can. In a
-        browser without WebMCP this page, and the whole store, behave exactly as usual.
-      </p>
+      <h2 className="mt-8 font-display text-2xl font-bold">{t('content.dev.whatTitle')}</h2>
+      <p className="mt-2 max-w-prose">{t('content.dev.whatText')}</p>
 
-      <h2 className="mt-8 font-display text-2xl font-bold">How to try it</h2>
+      <h2 className="mt-8 font-display text-2xl font-bold">{t('content.dev.tryTitle')}</h2>
       <ol className="mt-2 max-w-prose list-decimal space-y-1 pl-6">
-        <li>Use Chrome 146 or newer (Canary at the time of writing).</li>
+        <li>{t('content.dev.try1')}</li>
         <li>
-          Open <code>chrome://flags/#enable-webmcp-testing</code>, set it to Enabled and relaunch.
+          {t('content.dev.try2Before')} <code>chrome://flags/#enable-webmcp-testing</code>
+          {t('content.dev.try2After')}
         </li>
-        <li>
-          Open this store and ask the browser&apos;s agent to find a toy and add it to the cart.
-        </li>
+        <li>{t('content.dev.try3')}</li>
       </ol>
-      <p className="mt-2 max-w-prose text-muted">
-        The flag name and the API are still changing; this was last checked in November 2026.
-        Browser-agent testing is manual: the automated tests use a stand-in for the browser API.
-      </p>
+      <p className="mt-2 max-w-prose text-muted">{t('content.dev.tryNote')}</p>
 
-      <h2 className="mt-8 font-display text-2xl font-bold">The {AGENT_TOOLS.length} tools</h2>
+      <h2 className="mt-8 font-display text-2xl font-bold">
+        {t('content.dev.toolsTitle', { count: AGENT_TOOLS.length })}
+      </h2>
       <ul className="mt-4 space-y-6">
         {AGENT_TOOLS.map((tool) => {
           const example = TOOL_EXAMPLES[tool.name];
@@ -74,12 +67,12 @@ export default function DevelopersPage() {
               <p className="mt-1">
                 {tool.description}{' '}
                 <span className="text-muted">
-                  {tool.readOnly ? '(reads only)' : '(changes the cart)'}
+                  {tool.readOnly ? t('content.dev.readsOnly') : t('content.dev.changesCart')}
                 </span>
               </p>
               <details className="mt-3">
                 <summary className="min-h-11 cursor-pointer py-2 font-semibold">
-                  Input schema
+                  {t('content.dev.schema')}
                 </summary>
                 <pre className="overflow-x-auto rounded-control bg-pet-soft p-3 text-sm">
                   {json(z.toJSONSchema(tool.inputSchema, { io: 'input' }))}
@@ -87,11 +80,11 @@ export default function DevelopersPage() {
               </details>
               {example && (
                 <>
-                  <p className="mt-3 font-semibold">Example call</p>
+                  <p className="mt-3 font-semibold">{t('content.dev.exampleCall')}</p>
                   <pre className="overflow-x-auto rounded-control bg-pet-soft p-3 text-sm">
                     {json(example.input)}
                   </pre>
-                  <p className="mt-3 font-semibold">Example result</p>
+                  <p className="mt-3 font-semibold">{t('content.dev.exampleResult')}</p>
                   <pre className="overflow-x-auto rounded-control bg-pet-soft p-3 text-sm">
                     {json(example.output)}
                   </pre>
@@ -102,16 +95,16 @@ export default function DevelopersPage() {
         })}
       </ul>
       <p className="mt-4 max-w-prose">
-        Errors come back as <code>{'{ "error": { "code", "message" } }'}</code> using the
-        store&apos;s own codes, such as <code>OUT_OF_STOCK</code>, <code>CART_CHANGED</code>,{' '}
-        <code>TRIAL_LIMIT</code> and <code>RATE_LIMITED</code>. Calls are limited to 30 a minute,
-        and every cart change an agent makes shows a notice on screen.
+        {t('content.dev.errorsLead')} <code>{'{ "error": { "code", "message" } }'}</code>{' '}
+        {t('content.dev.errorsMid')} <code>OUT_OF_STOCK</code>, <code>CART_CHANGED</code>,{' '}
+        <code>TRIAL_LIMIT</code> {t('content.dev.errorsAnd')} <code>RATE_LIMITED</code>
+        {t('content.dev.errorsRest')}
       </p>
 
-      <h2 className="mt-8 font-display text-2xl font-bold">What is deliberately not exposed</h2>
+      <h2 className="mt-8 font-display text-2xl font-bold">{t('content.dev.notExposedTitle')}</h2>
       <ul className="mt-2 max-w-prose list-disc space-y-1 pl-6">
         {NOT_EXPOSED.map((line) => (
-          <li key={line}>{line}</li>
+          <li key={line}>{t(line)}</li>
         ))}
       </ul>
     </Container>

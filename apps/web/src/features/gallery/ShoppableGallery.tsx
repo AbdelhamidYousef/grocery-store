@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Dialog } from '../../components/ui/Dialog';
 import { Price } from '../../components/ui/Price';
+import { useT } from '../../i18n';
 import { TEST_IDS } from '../../lib/test-ids';
 import { track } from '../../lib/track';
 import { useAddToCartAction } from '../cart/queries';
@@ -17,14 +18,15 @@ import { useGallery } from '../reviews/queries';
 // no published photos: an empty gallery must not leave a heading with nothing under it.
 export function ShoppableGallery({
   productId,
-  heading = '#RealPawsomePets',
-  intro = 'Real customers, real pets. Tap a photo to shop what they use.',
+  heading,
+  intro,
 }: {
   /** Only photos that feature this product (the product page); everything otherwise. */
   productId?: string;
   heading?: string;
   intro?: string;
 }) {
+  const { t } = useT();
   const { data } = useGallery(productId);
   const [openId, setOpenId] = useState<string | null>(null);
   if (!data || data.length === 0) return null;
@@ -36,9 +38,9 @@ export function ShoppableGallery({
         id={`gallery-heading-${productId ?? 'home'}`}
         className="font-display text-2xl font-bold sm:text-3xl"
       >
-        {heading}
+        {heading ?? t('shell.gallery.heading')}
       </h2>
-      <p className="mt-1 text-muted">{intro}</p>
+      <p className="mt-1 text-muted">{intro ?? t('shell.gallery.intro')}</p>
       <ul
         data-testid={TEST_IDS.galleryGrid}
         className="mt-4 columns-2 gap-3 md:columns-3 lg:columns-4"
@@ -48,7 +50,9 @@ export function ShoppableGallery({
             <button
               type="button"
               data-testid={TEST_IDS.galleryItem}
-              aria-label={`Open photo: ${photo.caption || photo.petName || 'customer photo'}`}
+              aria-label={t('shell.gallery.open', {
+                name: photo.caption || photo.petName || t('shell.gallery.customerPhotoLower'),
+              })}
               onClick={() => {
                 track({ name: 'gallery_open', photoId: photo.id });
                 setOpenId(photo.id);
@@ -73,7 +77,7 @@ export function ShoppableGallery({
       <Dialog
         open={open !== null}
         onClose={() => setOpenId(null)}
-        title={open?.caption || open?.petName || 'Customer photo'}
+        title={open?.caption || open?.petName || t('shell.gallery.customerPhoto')}
       >
         {open && <GalleryModalBody photo={open} />}
       </Dialog>
@@ -82,19 +86,27 @@ export function ShoppableGallery({
 }
 
 function GalleryModalBody({ photo }: { photo: GalleryPhoto }) {
+  const { t } = useT();
   return (
     <div data-testid={TEST_IDS.galleryModal} className="grid gap-4 p-4 md:grid-cols-2">
       <img
         src={photo.path}
-        alt={photo.caption || `${photo.petName || 'A customer'}'s pet`}
+        alt={
+          photo.caption ||
+          t('shell.gallery.petOf', { name: photo.petName || t('shell.gallery.aCustomer') })
+        }
         className="max-h-[70vh] w-full rounded-card object-contain"
       />
       <div className="flex min-w-0 flex-col gap-3">
         {photo.caption && <p className="break-words text-lg">{photo.caption}</p>}
-        {photo.petName && <p className="text-sm text-muted">Pictured: {photo.petName}</p>}
+        {photo.petName && (
+          <p className="text-sm text-muted">
+            {t('shell.gallery.pictured', { name: photo.petName })}
+          </p>
+        )}
         {photo.products.length > 0 ? (
           <>
-            <h3 className="font-display text-lg font-bold">Shop this photo</h3>
+            <h3 className="font-display text-lg font-bold">{t('shell.gallery.shop')}</h3>
             <ul className="flex flex-col gap-3">
               {photo.products.map((p) => (
                 <GalleryProductRow key={p.id} product={p} />
@@ -102,7 +114,7 @@ function GalleryModalBody({ photo }: { photo: GalleryPhoto }) {
             </ul>
           </>
         ) : (
-          <p className="text-sm text-muted">No products are linked to this photo.</p>
+          <p className="text-sm text-muted">{t('shell.gallery.noProducts')}</p>
         )}
       </div>
     </div>
@@ -110,6 +122,7 @@ function GalleryModalBody({ photo }: { photo: GalleryPhoto }) {
 }
 
 function GalleryProductRow({ product }: { product: GalleryProduct }) {
+  const { t } = useT();
   const cart = useAddToCartAction(product);
   return (
     <li
@@ -137,7 +150,7 @@ function GalleryProductRow({ product }: { product: GalleryProduct }) {
         <Button
           size="sm"
           loading={cart.pending}
-          aria-label={`Add ${product.name} to cart`}
+          aria-label={t('shell.gallery.addAria', { name: product.name })}
           onClick={() =>
             cart.add(
               { id: product.variantId!, sku: product.variantId!, priceCents: product.priceCents },
@@ -145,10 +158,10 @@ function GalleryProductRow({ product }: { product: GalleryProduct }) {
             )
           }
         >
-          Add to cart
+          {t('shell.gallery.add')}
         </Button>
       ) : (
-        <span className="text-sm font-semibold text-danger">Sold out</span>
+        <span className="text-sm font-semibold text-danger">{t('shell.gallery.soldOut')}</span>
       )}
     </li>
   );

@@ -16,6 +16,7 @@ import {
 } from '../../api/cart';
 import { bulkAddCartItems, bulkFailures } from '../../api/recommendations';
 import { useToast } from '../../components/ui/Toast';
+import { useT, type TFunction } from '../../i18n';
 import { keys } from '../../lib/query-client';
 import { track } from '../../lib/track';
 import { formErrorMessage } from '../auth/form-errors';
@@ -80,18 +81,19 @@ export function useCart() {
 }
 
 // ---------- writing ----------
-export function cartErrorMessage(error: unknown): string {
+export function cartErrorMessage(
+  error: unknown,
+  { t, tm }: { t: TFunction; tm: (message: string) => string },
+): string {
   const stock = outOfStockDetails(error);
   if (stock) {
-    if (stock.maxQty === 0) return 'Sorry, this item has just sold out.';
-    if (stock.inCart >= stock.maxQty) {
-      return `You already have all ${stock.maxQty} we can offer in your cart.`;
-    }
+    if (stock.maxQty === 0) return t('cart.error.soldOut');
+    if (stock.inCart >= stock.maxQty) return t('cart.error.haveAll', { max: stock.maxQty });
     return stock.inCart === 0
-      ? `Only ${stock.maxQty} available.`
-      : `Only ${stock.maxQty} available, and you have ${stock.inCart} in your cart.`;
+      ? t('cart.error.only', { max: stock.maxQty })
+      : t('cart.error.onlyWithCart', { max: stock.maxQty, inCart: stock.inCart });
   }
-  return formErrorMessage(error);
+  return formErrorMessage(error, t, tm);
 }
 
 // All cart writes share one scope id, so TanStack Query runs them one after another instead of in
@@ -137,6 +139,7 @@ function useLineMutation<V>(
 
 export function useCartActions() {
   const toast = useToast();
+  const i18n = useT();
   const update = useLineMutation(
     ({ id, quantity }: { id: string; quantity: number }) => updateCartItem(id, { quantity }),
     (cart, { id, quantity }) => withLineQuantity(cart, id, quantity),
@@ -149,7 +152,7 @@ export function useCartActions() {
     setQuantity: (item: WebCartItem, quantity: number) =>
       update.mutate(
         { id: item.id, quantity },
-        { onError: (error) => toast.show(cartErrorMessage(error), 'error') },
+        { onError: (error) => toast.show(cartErrorMessage(error, i18n), 'error') },
       ),
     remove: (item: WebCartItem) =>
       remove.mutate(
@@ -166,9 +169,9 @@ export function useCartActions() {
               },
               quantity: item.quantity,
             });
-            toast.show(`Removed ${item.productName} from your cart`);
+            toast.show(i18n.t('cart.toast.removed', { name: item.productName }));
           },
-          onError: (error) => toast.show(cartErrorMessage(error), 'error'),
+          onError: (error) => toast.show(cartErrorMessage(error, i18n), 'error'),
         },
       ),
   };
@@ -179,6 +182,7 @@ export function useCartActions() {
 export function useAddToCartAction(product: { id: string; name: string }) {
   const add = useAddCartItem();
   const toast = useToast();
+  const i18n = useT();
   const navigate = useNavigate();
   return {
     pending: add.isPending,
@@ -197,12 +201,12 @@ export function useAddToCartAction(product: { id: string; name: string }) {
               },
               quantity,
             });
-            toast.show(`Added ${quantity} x ${product.name} to your cart`, 'success', {
-              label: 'View cart',
+            toast.show(i18n.t('cart.toast.added', { quantity, name: product.name }), 'success', {
+              label: i18n.t('cart.toast.viewCart'),
               onAction: () => void navigate('/cart'),
             });
           },
-          onError: (error) => toast.show(cartErrorMessage(error), 'error'),
+          onError: (error) => toast.show(cartErrorMessage(error, i18n), 'error'),
         },
       ),
   };
@@ -214,6 +218,7 @@ export function useAddToCartAction(product: { id: string; name: string }) {
 export function useBulkAdd() {
   const queryClient = useQueryClient();
   const toast = useToast();
+  const i18n = useT();
   const navigate = useNavigate();
   const add = useMutation({
     scope: CART_SCOPE,
@@ -243,14 +248,14 @@ export function useBulkAdd() {
             quantity: l.quantity,
           });
         }
-        toast.show(`Added ${lines.length} items to your cart`, 'success', {
-          label: 'View cart',
+        toast.show(i18n.tn('cart.toast.addedMany', lines.length), 'success', {
+          label: i18n.t('cart.toast.viewCart'),
           onAction: () => void navigate('/cart'),
         });
         return [];
       } catch (error) {
         const failures = bulkFailures(error);
-        if (failures.length === 0) toast.show(cartErrorMessage(error), 'error');
+        if (failures.length === 0) toast.show(cartErrorMessage(error, i18n), 'error');
         return failures;
       }
     },
@@ -262,6 +267,7 @@ export function useBulkAdd() {
 // its refusal is not a toast: it belongs next to the input, so the hook hands the message back.
 export function useCartCode() {
   const queryClient = useQueryClient();
+  const i18n = useT();
   const apply = useMutation({
     scope: CART_SCOPE,
     mutationFn: applyCartCode,
@@ -281,7 +287,7 @@ export function useCartCode() {
       const parsed = ApplyCodeSchema.safeParse({ code: raw });
       if (!parsed.success) {
         track({ name: 'code_failed', code: raw.trim().slice(0, 40) });
-        return parsed.error.issues[0]?.message ?? 'Enter a valid code';
+        return i18n.tm(parsed.error.issues[0]?.message ?? i18n.t('cart.code.invalid'));
       }
       try {
         await apply.mutateAsync(parsed.data);
@@ -289,7 +295,7 @@ export function useCartCode() {
         return null;
       } catch (error) {
         track({ name: 'code_failed', code: parsed.data.code });
-        return cartErrorMessage(error);
+        return cartErrorMessage(error, i18n);
       }
     },
     remove: () => remove.mutate(undefined),

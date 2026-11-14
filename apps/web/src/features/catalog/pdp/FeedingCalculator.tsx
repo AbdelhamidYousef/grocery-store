@@ -2,7 +2,6 @@ import {
   calculateFeeding,
   costPerDayCents,
   daysPerBag,
-  formatMoney,
   LIFE_STAGES,
   packForDays,
   rowsForStage,
@@ -13,17 +12,21 @@ import {
 import { useId, useState } from 'react';
 
 import { Button } from '../../../components/ui/Button';
+import { useT, type StringKey } from '../../../i18n';
+import { useFormat } from '../../../i18n/format';
 import { cn } from '../../../lib/cn';
 import { TEST_IDS } from '../../../lib/test-ids';
-import { formatGrams, gramsToKg, kgToGrams } from '../../../lib/units';
+import { formatGrams, formatKgNumber, gramsToKg, kgToGrams } from '../../../lib/units';
 
-const STAGE_LABEL: Record<LifeStage, string> = {
-  any: 'All life stages',
-  puppy: 'Puppy or kitten',
-  adult: 'Adult',
-  senior: 'Senior',
+import { STAGE_KEYS } from './FeedingTable';
+
+// The sentence for N meals a day; one key per count so each language words it whole.
+const DAILY_KEYS: Record<number, StringKey> = {
+  1: 'pdp.feeding.daily.1',
+  2: 'pdp.feeding.daily.2',
+  3: 'pdp.feeding.daily.3',
+  4: 'pdp.feeding.daily.4',
 };
-const MEALS = ['one meal', 'two meals', 'three meals', 'four meals'];
 const MONTH_DAYS = 30;
 
 // What the product says about its own age range decides the first life stage shown; the shopper
@@ -70,6 +73,8 @@ export function FeedingCalculator({
   variant: Variant | undefined;
   onPickVariant: (variant: Variant) => void;
 }) {
+  const { t, tn } = useT();
+  const fmt = useFormat();
   const stages = LIFE_STAGES.filter((s) => product.feedingTable.some((r) => r.lifeStage === s));
   const [stage, setStage] = useState<LifeStage>(stageFor(product.attributes.ageStage, stages));
   const rows = rowsForStage(product.feedingTable, stage);
@@ -124,14 +129,14 @@ export function FeedingCalculator({
       className="rounded-card border-2 border-pet bg-pet-soft p-4 sm:p-6"
     >
       <h3 id={`${ids}-heading`} className="font-display text-xl font-bold">
-        How much should I feed?
+        {t('pdp.feeding.heading')}
       </h3>
       <div className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_auto]">
         <div className="flex min-w-0 flex-col gap-4">
           <div className="flex flex-wrap items-end gap-4">
             <div className="flex flex-col gap-1">
               <label htmlFor={`${ids}-weight`} className="font-semibold">
-                Pet weight (kg)
+                {t('pdp.feeding.weightLabel')}
               </label>
               <input
                 id={`${ids}-weight`}
@@ -147,7 +152,7 @@ export function FeedingCalculator({
             {stages.length > 1 && (
               <div className="flex flex-col gap-1">
                 <label htmlFor={`${ids}-stage`} className="font-semibold">
-                  Life stage
+                  {t('pdp.feeding.stageLabel')}
                 </label>
                 <select
                   id={`${ids}-stage`}
@@ -157,7 +162,7 @@ export function FeedingCalculator({
                 >
                   {stages.map((s) => (
                     <option key={s} value={s}>
-                      {STAGE_LABEL[s]}
+                      {t(STAGE_KEYS[s])}
                     </option>
                   ))}
                 </select>
@@ -165,7 +170,7 @@ export function FeedingCalculator({
             )}
             <div className="flex flex-col gap-1">
               <label htmlFor={`${ids}-meals`} className="font-semibold">
-                Meals a day
+                {t('pdp.feeding.mealsLabel')}
               </label>
               <select
                 id={`${ids}-meals`}
@@ -183,7 +188,7 @@ export function FeedingCalculator({
           </div>
           <div className="flex flex-col gap-1">
             <label htmlFor={`${ids}-slider`} className="sr-only">
-              Pet weight slider
+              {t('pdp.feeding.sliderLabel')}
             </label>
             <input
               id={`${ids}-slider`}
@@ -196,34 +201,41 @@ export function FeedingCalculator({
               className="min-h-11 w-full accent-primary"
             />
             <div className="flex justify-between text-sm text-muted" aria-hidden="true">
-              <span>{gramsToKg(minG)} kg</span>
-              <span>{gramsToKg(maxG)} kg</span>
+              <span>{t('pdp.feeding.rangeKg', { value: formatKgNumber(minG, fmt.locale) })}</span>
+              <span>{t('pdp.feeding.rangeKg', { value: formatKgNumber(maxG, fmt.locale) })}</span>
             </div>
           </div>
 
           <output id={`${ids}-result`} data-testid="feeding-result" className="flex flex-col gap-1">
             {weightG === null ? (
-              <span className="font-semibold text-danger">
-                Enter your pet&apos;s weight in kg, for example 7.5.
-              </span>
+              <span className="font-semibold text-danger">{t('pdp.feeding.invalidWeight')}</span>
             ) : result ? (
               <>
                 <span className="text-lg font-bold" data-testid="feeding-daily">
-                  About {formatGrams(result.dailyG)} a day, {MEALS[result.portions - 1]}
-                  {result.portions > 1 ? ` of ${formatGrams(result.gramsPerPortion)}` : ''}
+                  {t(DAILY_KEYS[result.portions] ?? 'pdp.feeding.daily.2', {
+                    daily: formatGrams(result.dailyG, fmt.locale),
+                    portion: formatGrams(result.gramsPerPortion, fmt.locale),
+                  })}
                 </span>
                 {result.clamped && (
                   <span data-testid="feeding-clamp" className="font-semibold text-danger">
                     {result.clamped === 'below'
-                      ? `Our guide starts at ${gramsToKg(result.coversFromG)} kg, so this is the amount for ${gramsToKg(result.coversFromG)} kg. Ask your vet about a pet this light.`
-                      : `Our guide stops at ${gramsToKg(result.coversToG)} kg, so this is the amount for ${gramsToKg(result.coversToG - 1)} kg. Ask your vet about a pet this heavy.`}
+                      ? t('pdp.feeding.clampBelow', {
+                          from: formatKgNumber(result.coversFromG, fmt.locale),
+                        })
+                      : t('pdp.feeding.clampAbove', {
+                          to: formatKgNumber(result.coversToG, fmt.locale),
+                          last: formatKgNumber(result.coversToG - 1, fmt.locale),
+                        })}
                   </span>
                 )}
                 {days !== null && perDay !== null && variant && (
                   <span data-testid="feeding-bag">
                     {days === 0
-                      ? 'This bag is less than a day of food.'
-                      : `This bag lasts about ${days} ${days === 1 ? 'day' : 'days'}, about ${formatMoney(perDay, variant.currency)} a day.`}
+                      ? t('pdp.feeding.bagLessThanDay')
+                      : tn('pdp.feeding.bagLasts', days, {
+                          price: fmt.money(perDay, variant.currency),
+                        })}
                   </span>
                 )}
               </>
@@ -243,21 +255,20 @@ export function FeedingCalculator({
                   data-testid="feeding-pick-month"
                   onClick={() => onPickVariant(monthly.variant)}
                 >
-                  Pick the bag size that lasts a month
+                  {t('pdp.feeding.pickMonth')}
                 </Button>
                 <p className="mt-1 text-sm text-muted">
-                  {monthly.variant.name}: about {daysPerBag(monthly.packG, result.dailyG)} days.
+                  {tn('pdp.feeding.pickMonthNote', daysPerBag(monthly.packG, result.dailyG), {
+                    name: monthly.variant.name,
+                  })}
                 </p>
               </div>
             )}
           {result && lastsAMonth && (
-            <p className="text-sm text-muted">This size already lasts a month or more.</p>
+            <p className="text-sm text-muted">{t('pdp.feeding.alreadyMonth')}</p>
           )}
 
-          <p className="text-sm text-muted">
-            A guide, not veterinary advice. Every pet is different: ask your vet if your pet is
-            unwell, pregnant, very young or very old.
-          </p>
+          <p className="text-sm text-muted">{t('pdp.feeding.disclaimer')}</p>
         </div>
 
         <div

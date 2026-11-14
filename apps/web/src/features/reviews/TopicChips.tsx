@@ -1,3 +1,4 @@
+import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { TEST_IDS } from '../../lib/test-ids';
 
@@ -12,10 +13,11 @@ export function TopicChips({
   active: string | undefined;
   onPick: (topic: string | undefined) => void;
 }) {
+  const { t } = useT();
   if (topics.length === 0) return null;
   return (
     <div>
-      <h3 className="text-sm font-semibold">What people mention</h3>
+      <h3 className="text-sm font-semibold">{t('reviews.topics.heading')}</h3>
       <ul className="mt-2 flex flex-wrap gap-2">
         {topics.map((t) => {
           const pressed = active === t.topic;

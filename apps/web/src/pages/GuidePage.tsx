@@ -12,6 +12,8 @@ import { ProductGrid } from '../features/catalog/ProductGrid';
 import { GuideCard } from '../features/guides/GuideCard';
 import { MarkdownBody } from '../features/guides/MarkdownBody';
 import { useGuide } from '../features/guides/queries';
+import { useT } from '../i18n';
+import { useFormat } from '../i18n/format';
 import { TEST_IDS } from '../lib/test-ids';
 import { track } from '../lib/track';
 
@@ -19,16 +21,17 @@ import NotFoundPage from './NotFoundPage';
 
 export default function GuidePage() {
   const { slug } = useParams();
+  const { t } = useT();
   const { data: guide, error, isPending, refetch } = useGuide(slug);
 
   if (error instanceof ApiError && error.status === 404) return <NotFoundPage what="guide" />;
   if (error) {
     return (
       <Container className="py-12 text-center" data-testid={TEST_IDS.pageGuide}>
-        <Seo title="Something went wrong" noindex />
-        <h1 className="text-3xl font-bold">We could not load this guide</h1>
+        <Seo title={t('content.guides.errorTitle')} noindex />
+        <h1 className="text-3xl font-bold">{t('content.guides.loadError')}</h1>
         <Button className="mt-4" onClick={() => void refetch()}>
-          Try again
+          {t('content.guides.retry')}
         </Button>
       </Container>
     );
@@ -44,9 +47,10 @@ export default function GuidePage() {
   return <GuideView guide={guide} />;
 }
 
-const DATE = new Intl.DateTimeFormat('en-GB', { dateStyle: 'long', timeZone: 'UTC' });
-
 function GuideView({ guide }: { guide: GuideDetail }) {
+  const { t } = useT();
+  const fmt = useFormat();
+  const date = new Intl.DateTimeFormat(fmt.locale, { dateStyle: 'long', timeZone: 'UTC' });
   useEffect(() => {
     track({ name: 'view_guide', slug: guide.slug, category: guide.category.slug });
   }, [guide.slug, guide.category.slug]);
@@ -62,8 +66,8 @@ function GuideView({ guide }: { guide: GuideDetail }) {
       />
       <Breadcrumbs
         items={[
-          { label: 'Home', to: '/' },
-          { label: 'Guides', to: '/guides' },
+          { label: t('content.guides.home'), to: '/' },
+          { label: t('content.guides.guides'), to: '/guides' },
           { label: guide.category.name, to: `/guides?category=${guide.category.slug}` },
           { label: guide.title },
         ]}
@@ -74,7 +78,8 @@ function GuideView({ guide }: { guide: GuideDetail }) {
             {guide.title}
           </h1>
           <p className="mt-2 text-muted">
-            {DATE.format(new Date(guide.publishedAt))} &middot; {guide.readingMinutes} min read
+            {date.format(new Date(guide.publishedAt))} &middot;{' '}
+            {t('content.guides.minRead', { minutes: guide.readingMinutes })}
           </p>
         </header>
         {guide.coverUrl && (
@@ -92,7 +97,7 @@ function GuideView({ guide }: { guide: GuideDetail }) {
       {guide.products.length > 0 && (
         <section className="mt-12" aria-labelledby="guide-products-heading">
           <h2 id="guide-products-heading" className="font-display text-2xl font-bold">
-            Products mentioned in this guide
+            {t('content.guides.products')}
           </h2>
           <div className="mt-4" data-testid={TEST_IDS.guideProducts}>
             <ProductGrid products={guide.products} listId={`guide-${guide.slug}`} />
@@ -103,7 +108,7 @@ function GuideView({ guide }: { guide: GuideDetail }) {
       {guide.related.length > 0 && (
         <section className="mt-12" aria-labelledby="guide-related-heading">
           <h2 id="guide-related-heading" className="font-display text-2xl font-bold">
-            More guides
+            {t('content.guides.more')}
           </h2>
           <ul
             className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
@@ -115,7 +120,7 @@ function GuideView({ guide }: { guide: GuideDetail }) {
           </ul>
           <p className="mt-4">
             <Link to="/guides" className="font-semibold text-primary-strong underline">
-              All guides
+              {t('content.guides.all')}
             </Link>
           </p>
         </section>

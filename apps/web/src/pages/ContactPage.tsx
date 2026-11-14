@@ -1,5 +1,4 @@
 import {
-  CONTACT_TOPIC_LABELS,
   CONTACT_TOPICS,
   ContactBodySchema,
   type ContactReceipt,
@@ -18,19 +17,31 @@ import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { Textarea } from '../components/ui/Textarea';
 import { FormAlert } from '../features/auth/AuthCard';
+import { useT, type StringKey, type TFunction } from '../i18n';
 import { TEST_IDS } from '../lib/test-ids';
 import { track } from '../lib/track';
 
 type Field = 'name' | 'email' | 'topic' | 'message';
 
-function messageFor(error: unknown): string {
+const TOPIC_KEYS: Record<ContactTopic, StringKey> = {
+  order: 'content.contact.topic.order',
+  shipping: 'content.contact.topic.shipping',
+  returns: 'content.contact.topic.returns',
+  product: 'content.contact.topic.product',
+  account: 'content.contact.topic.account',
+  privacy: 'content.contact.topic.privacy',
+  other: 'content.contact.topic.other',
+};
+
+function messageFor(error: unknown, t: TFunction): string {
   if (error instanceof ApiError && error.status === 429) {
-    return 'You have sent several messages already. Please wait a while and try again.';
+    return t('content.contact.tooMany');
   }
-  return 'We could not send your message right now. Please try again in a moment.';
+  return t('content.contact.failed');
 }
 
 export default function ContactPage() {
+  const { t, tm } = useT();
   const [values, setValues] = useState({
     name: '',
     email: '',
@@ -65,7 +76,7 @@ export default function ContactPage() {
       for (const issue of parsed.error.issues) {
         const key = issue.path[0];
         if (key === 'name' || key === 'email' || key === 'topic' || key === 'message') {
-          next[key] ??= key === 'topic' ? 'Choose what your message is about' : issue.message;
+          next[key] ??= key === 'topic' ? t('content.contact.topicRequired') : tm(issue.message);
         }
       }
       setErrors(next);
@@ -84,22 +95,22 @@ export default function ContactPage() {
   if (receipt) {
     return (
       <Container className="py-8" data-testid={TEST_IDS.pageContact}>
-        <Seo title="Message sent" noindex />
+        <Seo title={t('content.contact.sentTitle')} noindex />
         <section
           aria-labelledby="contact-done"
           className="max-w-xl rounded-card border-2 border-success bg-success-soft p-5"
           data-testid={TEST_IDS.contactSuccess}
         >
           <h1 id="contact-done" className="font-display text-2xl font-bold">
-            Thank you, we got your message
+            {t('content.contact.thanks')}
           </h1>
           <p className="mt-2">
-            Your reference is <strong>{receipt.reference}</strong>. We have emailed you a copy and
-            will reply to that address, usually within two working days.
+            {t('content.contact.referenceBefore')} <strong>{receipt.reference}</strong>
+            {t('content.contact.referenceAfter')}
           </p>
           <p className="mt-4">
             <Link to="/help" className="font-semibold text-primary-strong underline">
-              Browse the help centre
+              {t('content.contact.browseHelp')}
             </Link>
           </p>
         </section>
@@ -109,13 +120,12 @@ export default function ContactPage() {
 
   return (
     <Container className="py-8" data-testid={TEST_IDS.pageContact}>
-      <Seo title="Contact us" description="Write to the Pawsome team." />
-      <h1 className="font-display text-3xl font-bold sm:text-4xl">Contact us</h1>
+      <Seo title={t('content.contact.title')} description={t('content.contact.seoDescription')} />
+      <h1 className="font-display text-3xl font-bold sm:text-4xl">{t('content.contact.title')}</h1>
       <p className="mt-2 max-w-prose text-muted">
-        Questions about an order, a product or your data? Write to us and a person will answer. You
-        may find a quick answer in the{' '}
+        {t('content.contact.intro')}{' '}
         <Link to="/help" className="font-semibold text-primary-strong underline">
-          help centre
+          {t('content.contact.helpLink')}
         </Link>
         .
       </p>
@@ -125,10 +135,10 @@ export default function ContactPage() {
         data-testid={TEST_IDS.contactForm}
         className="relative mt-5 flex max-w-xl flex-col gap-4"
       >
-        <FormAlert message={send.error ? messageFor(send.error) : null} />
+        <FormAlert message={send.error ? messageFor(send.error, t) : null} />
         <Input
           ref={nameRef}
-          label="Your name"
+          label={t('content.contact.name')}
           autoComplete="name"
           value={values.name}
           onChange={set('name')}
@@ -136,31 +146,31 @@ export default function ContactPage() {
         />
         <Input
           ref={emailRef}
-          label="Email"
+          label={t('content.contact.email')}
           type="email"
           autoComplete="email"
           inputMode="email"
-          hint="We reply to this address."
+          hint={t('content.contact.emailHint')}
           value={values.email}
           onChange={set('email')}
           error={errors.email}
         />
         <Select
           ref={topicRef}
-          label="What is it about?"
+          label={t('content.contact.topic')}
           value={values.topic}
           onChange={set('topic')}
           error={errors.topic}
         >
-          <option value="">Choose a topic</option>
-          {CONTACT_TOPICS.map((t) => (
-            <option key={t} value={t}>
-              {CONTACT_TOPIC_LABELS[t]}
+          <option value="">{t('content.contact.topicChoose')}</option>
+          {CONTACT_TOPICS.map((topic) => (
+            <option key={topic} value={topic}>
+              {t(TOPIC_KEYS[topic])}
             </option>
           ))}
         </Select>
         <Input
-          label="Order number (optional)"
+          label={t('content.contact.order')}
           placeholder="PW-2026-000123"
           autoComplete="off"
           value={values.orderNumber}
@@ -168,7 +178,7 @@ export default function ContactPage() {
         />
         <Textarea
           ref={messageRef}
-          label="Your message"
+          label={t('content.contact.message')}
           rows={6}
           maxLength={2000}
           value={values.message}
@@ -179,7 +189,7 @@ export default function ContactPage() {
             input fills this one too, and the API then drops the message silently. */}
         <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
           <label>
-            Leave this empty
+            {t('content.contact.honeypot')}
             <input
               type="text"
               name="website"
@@ -192,7 +202,7 @@ export default function ContactPage() {
           </label>
         </div>
         <Button type="submit" loading={send.isPending}>
-          Send message
+          {t('content.contact.send')}
         </Button>
       </form>
     </Container>

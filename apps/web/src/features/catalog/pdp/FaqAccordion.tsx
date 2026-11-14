@@ -1,13 +1,16 @@
 import type { Faq } from '@store/shared';
 
+import { useT } from '../../../i18n';
+
 // Static questions and answers written by the shop. Native <details>/<summary>: keyboard, screen
 // reader and find-in-page behaviour come with the element, with nothing to get wrong.
 export function FaqAccordion({ faqs }: { faqs: readonly Faq[] }) {
+  const { t } = useT();
   if (faqs.length === 0) return null;
   return (
     <section aria-labelledby="faq-heading" data-testid="faq" className="mt-8">
       <h3 id="faq-heading" className="font-display text-xl font-bold">
-        Questions and answers
+        {t('pdp.faq.heading')}
       </h3>
       <div className="mt-3 flex flex-col divide-y divide-line rounded-card border border-line">
         {faqs.map((faq) => (

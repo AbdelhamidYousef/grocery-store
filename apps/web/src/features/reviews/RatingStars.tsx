@@ -1,7 +1,7 @@
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { cn } from '../../lib/cn';
 import { TEST_IDS } from '../../lib/test-ids';
-
-import { formatRating } from './format';
 
 const STAR = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 17.5 6.1 20.7l1.2-6.6L2.5 9.5l6.6-.9z';
 
@@ -28,11 +28,15 @@ export function RatingStars({
   className?: string;
   size?: 'sm' | 'md' | 'lg';
 }) {
+  const { t } = useT();
+  const fmt = useFormat();
   const height = { sm: 'h-4', md: 'h-5', lg: 'h-7' }[size];
   return (
     <span
       role="img"
-      aria-label={`${formatRating(tenths)} out of 5`}
+      aria-label={t('reviews.ratingLabel', {
+        rating: fmt.number(tenths / 10, { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+      })}
       data-testid={TEST_IDS.reviewStars}
       className={cn('relative inline-flex', height, className)}
     >

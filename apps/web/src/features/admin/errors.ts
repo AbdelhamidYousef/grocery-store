@@ -1,4 +1,5 @@
 import { ApiError } from '../../api/client';
+import { lookupFor } from '../../i18n';
 import { formErrorMessage } from '../auth/form-errors';
 
 // The text for a failed admin write. A validation error that could not be put on a single input
@@ -15,5 +16,6 @@ export function adminErrorMessage(error: unknown): string {
     );
     if (lines.length > 0) return lines.join('. ');
   }
-  return formErrorMessage(error);
+  const { t, tm } = lookupFor('en-IE');
+  return formErrorMessage(error, t, tm);
 }

@@ -2,10 +2,11 @@ import { Link } from 'react-router-dom';
 
 import { ChevronDownIcon } from '../../components/icons';
 import { useDisclosure } from '../../components/layout/use-disclosure';
+import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
 
 import { useActivePet } from './ActivePetProvider';
-import { speciesLabel } from './age';
+import { speciesName } from './age';
 
 const itemClass =
   'flex min-h-11 w-full items-center rounded-control px-3 text-left font-semibold hover:bg-pet-soft';
@@ -14,6 +15,7 @@ const itemClass =
 // header pill (a disclosure) and the mobile drawer (always open).
 export function PetChoices({ onPick }: { onPick?: () => void }) {
   const { pets, activePet, setActivePet } = useActivePet();
+  const { t } = useT();
   return (
     <ul className="flex flex-col gap-1">
       {pets.map((pet) => (
@@ -30,7 +32,7 @@ export function PetChoices({ onPick }: { onPick?: () => void }) {
           >
             <span className="min-w-0 flex-1 truncate">{pet.name}</span>
             <span className="ml-2 shrink-0 text-sm font-normal text-muted">
-              {speciesLabel(pet.species)}
+              {speciesName(t, pet.species)}
             </span>
           </button>
         </li>
@@ -47,19 +49,19 @@ export function PetChoices({ onPick }: { onPick?: () => void }) {
             }}
             className={cn(itemClass, 'aria-pressed:bg-pet-soft')}
           >
-            Everyone
+            {t('pets.switcher.everyone')}
           </button>
         </li>
       )}
       <li>
         <Link to="/account/pets?add=1" onClick={onPick} className={itemClass}>
-          Add a pet
+          {t('pets.switcher.add')}
         </Link>
       </li>
       {pets.length > 0 && (
         <li>
           <Link to="/account/pets" onClick={onPick} className={itemClass}>
-            Manage pets
+            {t('pets.switcher.manage')}
           </Link>
         </li>
       )}
@@ -71,12 +73,13 @@ export function PetChoices({ onPick }: { onPick?: () => void }) {
 // the panel holds ordinary buttons and links, and a menu role would promise arrow-key behaviour).
 export function PetSwitcher() {
   const { activePet, pets } = useActivePet();
+  const { t } = useT();
   const { open, setOpen, wrapper, button, panelId } = useDisclosure();
   const label = activePet
-    ? `Shopping for ${activePet.name}`
+    ? t('pets.switcher.shoppingFor', { name: activePet.name })
     : pets.length > 0
-      ? 'Shopping for everyone'
-      : 'Add your pet';
+      ? t('pets.switcher.shoppingForEveryone')
+      : t('pets.switcher.addYours');
 
   return (
     <div ref={wrapper} className="relative" data-testid="pet-switcher">

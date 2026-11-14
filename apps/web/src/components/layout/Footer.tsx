@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
 
-import { LEGAL_PAGES } from '../../features/legal/pages';
 import { CharityTotalNote } from '../../features/loyalty/CharityTotalNote';
+import { petName } from '../../features/navigation/pet-names';
 import { StoreSwitcher } from '../../features/stores/StoreSwitcher';
+import { useT, type StringKey, type TFunction } from '../../i18n';
 import { PETS } from '../../lib/pets';
 import { track } from '../../lib/track';
 import { PawIcon } from '../icons';
@@ -17,70 +18,94 @@ interface FooterLink {
   to: string;
 }
 interface FooterGroup {
+  /** Stable English id: the analytics event keeps it whatever the language. */
+  id: string;
   title: string;
   links: FooterLink[];
 }
 
-const legal = (path: string): FooterLink => {
-  const page = LEGAL_PAGES.find((p) => p.path === path);
-  return { label: page?.title ?? path, to: `/${path}` };
+// Guide topics are listed by name: they come from the seeded Markdown, and a topic with no guides
+// simply shows the guides page's empty state instead of breaking. `slug` is the URL, the label
+// is translated at render.
+const GUIDE_TOPICS = [
+  { slug: 'dogs', key: 'shell.footer.topicDogs' },
+  { slug: 'cats', key: 'shell.footer.topicCats' },
+  { slug: 'birds', key: 'shell.footer.topicBirds' },
+  { slug: 'fish', key: 'shell.footer.topicFish' },
+  { slug: 'small-pets', key: 'shell.footer.topicSmallPets' },
+] as const;
+
+const LEGAL_KEYS: Record<string, StringKey> = {
+  shipping: 'shell.footer.legalShipping',
+  returns: 'shell.footer.legalReturns',
+  about: 'shell.footer.legalAbout',
+  accessibility: 'shell.footer.legalAccessibility',
+  privacy: 'shell.footer.legalPrivacy',
+  terms: 'shell.footer.legalTerms',
+  cookies: 'shell.footer.legalCookies',
 };
 
-// Guide topics are listed by name: they come from the seeded Markdown, and a topic with no guides
-// simply shows the guides page's empty state instead of breaking.
-const GUIDE_TOPICS = ['Dogs', 'Cats', 'Birds', 'Fish', 'Small pets'];
-
-const GROUPS: FooterGroup[] = [
-  {
-    title: 'Shop',
-    links: [
-      ...PETS.map((pet) => ({ label: pet.name, to: `/c/${pet.slug}` })),
-      { label: 'Brands', to: '/brands' },
-      { label: 'Gift finder', to: '/gift-finder' },
-    ],
-  },
-  {
-    title: 'Guides',
-    links: [
-      { label: 'All guides', to: '/guides' },
-      ...GUIDE_TOPICS.map((name) => ({
-        label: name,
-        to: `/guides?category=${name.toLowerCase().replace(/\s+/g, '-')}`,
-      })),
-    ],
-  },
-  {
-    title: 'Help',
-    links: [
-      { label: 'Help centre', to: '/help' },
-      { label: 'Track your order', to: '/track-order' },
-      { label: 'Contact us', to: '/contact' },
-      { label: 'Newsletter', to: '/newsletter' },
-      legal('shipping'),
-      legal('returns'),
-    ],
-  },
-  {
-    title: 'Company',
-    links: [
-      legal('about'),
-      legal('accessibility'),
-      { label: 'For developers', to: '/developers' },
-      { label: 'My account', to: '/account' },
-    ],
-  },
-  {
-    title: 'Legal',
-    links: [
-      legal('privacy'),
-      legal('terms'),
-      legal('cookies'),
-      { label: 'Withdraw from contract', to: '/withdraw' },
-    ],
-  },
-];
+function buildGroups(t: TFunction): FooterGroup[] {
+  const legal = (path: string): FooterLink => ({ label: t(LEGAL_KEYS[path]!), to: `/${path}` });
+  return [
+    {
+      id: 'Shop',
+      title: t('shell.footer.shop'),
+      links: [
+        ...PETS.map((pet) => ({ label: petName(t, pet), to: `/c/${pet.slug}` })),
+        { label: t('shell.footer.brands'), to: '/brands' },
+        { label: t('shell.footer.giftFinder'), to: '/gift-finder' },
+      ],
+    },
+    {
+      id: 'Guides',
+      title: t('shell.footer.guides'),
+      links: [
+        { label: t('shell.footer.allGuides'), to: '/guides' },
+        ...GUIDE_TOPICS.map((topic) => ({
+          label: t(topic.key),
+          to: `/guides?category=${topic.slug}`,
+        })),
+      ],
+    },
+    {
+      id: 'Help',
+      title: t('shell.footer.help'),
+      links: [
+        { label: t('shell.footer.helpCentre'), to: '/help' },
+        { label: t('shell.footer.trackOrder'), to: '/track-order' },
+        { label: t('shell.footer.contact'), to: '/contact' },
+        { label: t('shell.footer.newsletter'), to: '/newsletter' },
+        legal('shipping'),
+        legal('returns'),
+      ],
+    },
+    {
+      id: 'Company',
+      title: t('shell.footer.company'),
+      links: [
+        legal('about'),
+        legal('accessibility'),
+        { label: t('shell.footer.developers'), to: '/developers' },
+        { label: t('shell.account.myAccount'), to: '/account' },
+      ],
+    },
+    {
+      id: 'Legal',
+      title: t('shell.footer.legal'),
+      links: [
+        legal('privacy'),
+        legal('terms'),
+        legal('cookies'),
+        { label: t('shell.footer.withdraw'), to: '/withdraw' },
+      ],
+    },
+  ];
+}
 
 export function Footer() {
+  const { t } = useT();
+  const groups = buildGroups(t);
   return (
     <footer className="mt-16 bg-ink text-surface" data-testid="footer">
       <Container className="grid grid-cols-1 gap-10 py-12 sm:grid-cols-2 lg:grid-cols-6">
@@ -91,23 +116,21 @@ export function Footer() {
             </span>
             Pawsome
           </p>
-          <p className="max-w-xs text-surface">
-            Happy-tail supplies for dogs, cats, birds, fish, reptiles and small pets.
-          </p>
+          <p className="max-w-xs text-surface">{t('shell.footer.tagline')}</p>
           <CharityTotalNote />
           <StoreSwitcher testId="store-switcher-footer" className="max-w-xs" />
         </div>
 
         {/* One click handler per group (events bubble), so a later analytics project sees which
             column people use without a handler on every link. */}
-        {GROUPS.map((group) => (
+        {groups.map((group) => (
           <nav
             key={group.title}
             aria-label={group.title}
             className="flex flex-col"
             onClick={(e) => {
               const link = (e.target as HTMLElement).closest('a');
-              if (link) track({ name: 'footer_link', group: group.title, label: link.textContent });
+              if (link) track({ name: 'footer_link', group: group.id, label: link.textContent });
             }}
           >
             <h2 className="mb-1 text-lg font-bold">{group.title}</h2>
@@ -121,13 +144,8 @@ export function Footer() {
       </Container>
       <div className="border-t border-muted">
         <Container className="flex flex-col gap-2 py-4 text-sm text-surface sm:flex-row sm:justify-between">
-          <p data-testid="payment-note">
-            Payments run in Stripe test mode: no real orders are taken and no card is ever charged.
-          </p>
-          <p>
-            &copy; {new Date().getFullYear()} Pawsome demo store, a fictional company. Not legal
-            advice.
-          </p>
+          <p data-testid="payment-note">{t('shell.footer.paymentNote')}</p>
+          <p>{t('shell.footer.copyright', { year: new Date().getFullYear() })}</p>
         </Container>
       </div>
     </footer>

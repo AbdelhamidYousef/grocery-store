@@ -8,6 +8,7 @@ import { ApiError } from '../../api/client';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { PasswordInput } from '../../components/ui/PasswordInput';
+import { useT } from '../../i18n';
 import { safeNext } from '../../lib/safe-next';
 import { clearReferral } from '../loyalty/referral-cookie';
 
@@ -17,6 +18,7 @@ import { useRegister } from './hooks';
 
 export function RegisterForm({ next }: { next: string | null }) {
   const navigate = useNavigate();
+  const { t, tm } = useT();
   const registerUser = useRegister();
   const [formError, setFormError] = useState<string | null>(null);
   const {
@@ -43,13 +45,13 @@ export function RegisterForm({ next }: { next: string | null }) {
           // The API answers 409 for an email that exists; show it on the email field.
           setError(
             'email',
-            { type: 'server', message: 'An account with this email already exists' },
+            { type: 'server', message: t('msg.auth.emailTaken') },
             { shouldFocus: true },
           );
         } else if (
           !applyFieldErrors(error, setError, ['firstName', 'lastName', 'email', 'password'])
         ) {
-          setFormError(formErrorMessage(error));
+          setFormError(formErrorMessage(error, t, tm));
         }
       },
     });
@@ -60,20 +62,20 @@ export function RegisterForm({ next }: { next: string | null }) {
       <FormAlert message={formError} />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Input
-          label="First name"
+          label={t('auth.firstName')}
           autoComplete="given-name"
           error={errors.firstName?.message}
           {...register('firstName')}
         />
         <Input
-          label="Last name"
+          label={t('auth.lastName')}
           autoComplete="family-name"
           error={errors.lastName?.message}
           {...register('lastName')}
         />
       </div>
       <Input
-        label="Email"
+        label={t('auth.email')}
         type="email"
         autoComplete="email"
         inputMode="email"
@@ -81,9 +83,9 @@ export function RegisterForm({ next }: { next: string | null }) {
         {...register('email')}
       />
       <PasswordInput
-        label="Password"
+        label={t('auth.password')}
         autoComplete="new-password"
-        hint={`At least ${PASSWORD_MIN_LENGTH} characters. A few random words make a strong one.`}
+        hint={t('auth.register.passwordHint', { min: PASSWORD_MIN_LENGTH })}
         error={errors.password?.message}
         {...register('password')}
       />
@@ -93,15 +95,15 @@ export function RegisterForm({ next }: { next: string | null }) {
         loading={registerUser.isPending}
         data-testid="register-submit"
       >
-        Create account
+        {t('auth.createAccount')}
       </Button>
       <p className="text-center">
-        Already have an account?{' '}
+        {t('auth.register.haveAccount')}{' '}
         <Link
           to={next ? `/login?next=${encodeURIComponent(next)}` : '/login'}
           className="font-semibold text-primary-strong underline"
         >
-          Sign in
+          {t('auth.signIn')}
         </Link>
       </p>
     </form>

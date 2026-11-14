@@ -45,10 +45,10 @@ export function countryName(code: string, locale = 'en'): string {
 }
 
 // The offered countries, plus `extra` when an existing address uses one that is not in the list.
-export function countryOptions(extra?: string): { code: string; name: string }[] {
+export function countryOptions(extra?: string, locale = 'en'): { code: string; name: string }[] {
   const codes: string[] = [...COUNTRY_CODES];
   if (extra && !codes.includes(extra)) codes.push(extra);
   return codes
-    .map((code) => ({ code, name: countryName(code) }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .map((code) => ({ code, name: countryName(code, locale) }))
+    .sort((a, b) => a.name.localeCompare(b.name, locale));
 }

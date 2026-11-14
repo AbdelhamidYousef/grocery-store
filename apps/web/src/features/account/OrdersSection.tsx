@@ -1,10 +1,10 @@
-import { formatMoney } from '@store/shared';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { Seo } from '../../components/Seo';
 import { Button } from '../../components/ui/Button';
 import { Skeleton } from '../../components/ui/Skeleton';
-import { formatDate } from '../../lib/format';
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { image600 } from '../../lib/images';
 import { TEST_IDS } from '../../lib/test-ids';
 import { Pagination } from '../catalog/Pagination';
@@ -21,18 +21,20 @@ function pageFrom(params: URLSearchParams): number {
 
 export function OrdersSection() {
   const [params] = useSearchParams();
+  const { t, tn } = useT();
+  const fmt = useFormat();
   const page = pageFrom(params);
   const { data, isPending, error, refetch } = useOrders(page);
   return (
     <section aria-labelledby="orders-heading" data-testid="account-orders">
-      <Seo title="Orders" noindex />
+      <Seo title={t('account.orders.heading')} noindex />
       <h2 id="orders-heading" className="font-display text-2xl font-bold">
-        Orders
+        {t('account.orders.heading')}
       </h2>
       {isPending && !error && (
         <div className="mt-4 flex flex-col gap-3" aria-busy="true">
           <p className="sr-only" role="status">
-            Loading your orders
+            {t('account.orders.loading')}
           </p>
           <Skeleton className="h-24 w-full rounded-card" />
           <Skeleton className="h-24 w-full rounded-card" />
@@ -40,16 +42,16 @@ export function OrdersSection() {
       )}
       {error && !data && (
         <div className="mt-4" role="alert">
-          <p className="font-semibold text-danger">We could not load your orders.</p>
+          <p className="font-semibold text-danger">{t('account.orders.loadError')}</p>
           <Button className="mt-2" variant="secondary" onClick={() => void refetch()}>
-            Try again
+            {t('account.orders.tryAgain')}
           </Button>
         </div>
       )}
       {data && data.data.length === 0 && data.meta.total > 0 && (
         // A page past the end (an old bookmark, a hand-edited URL) is not "no orders at all".
         <div className="mt-4" data-testid={TEST_IDS.emptyState} data-reason="past-the-end">
-          <p className="text-muted">There are no orders on this page.</p>
+          <p className="text-muted">{t('account.orders.pastEnd')}</p>
           <Link
             to={
               data.meta.totalPages > 1
@@ -58,15 +60,15 @@ export function OrdersSection() {
             }
             className="mt-2 inline-block font-semibold text-primary-strong underline"
           >
-            Go to your latest orders
+            {t('account.orders.goLatest')}
           </Link>
         </div>
       )}
       {data && data.data.length === 0 && data.meta.total === 0 && (
         <div className="mt-4" data-testid={TEST_IDS.emptyState}>
-          <p className="text-muted">You have not placed an order yet.</p>
+          <p className="text-muted">{t('account.orders.none')}</p>
           <Link to="/" className="mt-2 inline-block font-semibold text-primary-strong underline">
-            Start shopping
+            {t('account.orders.startShopping')}
           </Link>
         </div>
       )}
@@ -88,8 +90,10 @@ export function OrdersSection() {
                       <OrderStatusBadge status={order.status} />
                     </p>
                     <p className="mt-1 text-sm text-muted">
-                      {formatDate(order.placedAt ?? order.createdAt)} · {order.itemCount}{' '}
-                      {order.itemCount === 1 ? 'item' : 'items'}
+                      {t('account.orders.dateAndItems', {
+                        date: fmt.date(order.placedAt ?? order.createdAt),
+                        items: tn('account.orders.itemCount', order.itemCount),
+                      })}
                     </p>
                   </div>
                   <div className="flex items-center justify-between gap-4 sm:justify-end">
@@ -109,7 +113,7 @@ export function OrdersSection() {
                       </span>
                     )}
                     <span className="font-display text-lg font-bold">
-                      {formatMoney(order.totalCents, order.currency)}
+                      {fmt.money(order.totalCents, order.currency)}
                     </span>
                   </div>
                 </Link>

@@ -10,17 +10,17 @@ import { VisuallyHidden } from './VisuallyHidden';
 describe('Price', () => {
   it('formats integer cents', () => {
     render(<Price cents={1999} />);
-    expect(screen.getByTestId('price-current')).toHaveTextContent('$19.99');
+    expect(screen.getByTestId('price-current')).toHaveTextContent('€19.99');
   });
 
   it('shows a range when variants differ', () => {
     render(<Price cents={1000} maxCents={2550} />);
-    expect(screen.getByTestId('price-current')).toHaveTextContent('$10.00 - $25.50');
+    expect(screen.getByTestId('price-current')).toHaveTextContent('€10.00 - €25.50');
   });
 
   it('strikes through a higher compare-at price and announces it', () => {
     render(<Price cents={1500} compareAtCents={2000} />);
-    expect(screen.getByTestId('price-compare')).toHaveTextContent('Original price $20.00');
+    expect(screen.getByTestId('price-compare')).toHaveTextContent('Original price €20.00');
   });
 
   it('ignores a compare-at price that is not higher', () => {

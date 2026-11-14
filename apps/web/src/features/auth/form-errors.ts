@@ -1,6 +1,7 @@
 import type { FieldValues, Path, UseFormSetError } from 'react-hook-form';
 
 import { ApiError } from '../../api/client';
+import type { TFunction } from '../../i18n';
 
 // The API's 400 VALIDATION_ERROR carries `details: { fieldErrors: { field: [message, ...] } }`
 // (Zod's flatten shape). Copying those messages onto the matching form fields means a rule only
@@ -29,11 +30,16 @@ export function applyFieldErrors<T extends FieldValues>(
 }
 
 // Text for an error that belongs to the whole form (wrong password, rate limit, offline).
-export function formErrorMessage(error: unknown): string {
+// `t` and `tm` come from `useT()`: known codes get their own key, other API text goes through `tm`.
+export function formErrorMessage(
+  error: unknown,
+  t: TFunction,
+  tm: (message: string) => string,
+): string {
   if (error instanceof ApiError) {
-    if (error.code === 'NETWORK') return 'Could not reach the server. Check your connection.';
-    if (error.code === 'RATE_LIMITED') return 'Too many attempts. Please wait a few minutes.';
-    return error.message;
+    if (error.code === 'NETWORK') return t('auth.error.network');
+    if (error.code === 'RATE_LIMITED') return t('auth.error.rateLimited');
+    return tm(error.message);
   }
-  return 'Something went wrong. Please try again.';
+  return t('auth.error.generic');
 }

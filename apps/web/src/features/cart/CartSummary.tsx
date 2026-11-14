@@ -1,9 +1,10 @@
-import { formatMoney } from '@store/shared';
 import { useId } from 'react';
 import { Link } from 'react-router-dom';
 
 import type { WebCart } from '../../api/cart';
 import { buttonClasses, Button } from '../../components/ui/Button';
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { cn } from '../../lib/cn';
 import { freeShippingProgress } from '../../lib/shipping';
 import { TEST_IDS } from '../../lib/test-ids';
@@ -30,6 +31,8 @@ export function CartSummary({
   onNavigate?: () => void;
   className?: string;
 }) {
+  const { t } = useT();
+  const fmt = useFormat();
   const noteId = useId();
   const blocked = cart.items.some((item) => item.available === 0);
   const threshold = useFreeShippingThreshold();
@@ -39,19 +42,19 @@ export function CartSummary({
   const fromEngine = pricing.progress.freeShipping;
   const shipping =
     fromEngine ?? (threshold === null ? null : freeShippingProgress(cart.subtotalCents, threshold));
-  const money = (cents: number) => formatMoney(cents, cart.currency);
+  const money = (cents: number) => fmt.money(cents, cart.currency);
 
   return (
     <div className={cn('flex flex-col gap-3', className)}>
       <div className="flex items-baseline justify-between gap-4">
-        <span className="font-semibold">Subtotal</span>
+        <span className="font-semibold">{t('cart.summary.subtotal')}</span>
         <span className="font-display text-xl font-bold" data-testid={TEST_IDS.cartSubtotal}>
           {money(cart.subtotalCents)}
         </span>
       </div>
 
       {pricing.adjustments.length > 0 && (
-        <ul className="flex flex-col gap-1 text-sm" aria-label="Discounts applied">
+        <ul className="flex flex-col gap-1 text-sm" aria-label={t('cart.summary.discountsApplied')}>
           {pricing.adjustments.map((a) => (
             <li
               key={`${a.type}:${a.refId}`}
@@ -60,7 +63,7 @@ export function CartSummary({
             >
               <span className="min-w-0 break-words">{a.label}</span>
               <span className="shrink-0 font-semibold">
-                {a.scope === 'shipping' ? 'Free delivery' : `-${money(a.cents)}`}
+                {a.scope === 'shipping' ? t('cart.summary.freeDelivery') : `-${money(a.cents)}`}
               </span>
             </li>
           ))}
@@ -81,15 +84,15 @@ export function CartSummary({
           <CartCode cart={cart} />
           <dl className="flex flex-col gap-1 border-t-2 border-line pt-3 text-sm">
             <div className="flex justify-between gap-4">
-              <dt>Shipping (estimate, standard delivery)</dt>
+              <dt>{t('cart.summary.shippingEstimate')}</dt>
               <dd className="font-semibold">
                 {pricing.shippingEstimateCents === 0
-                  ? 'Free'
+                  ? t('cart.summary.free')
                   : money(pricing.shippingEstimateCents)}
               </dd>
             </div>
             <div className="flex items-baseline justify-between gap-4">
-              <dt className="font-bold">Estimated total</dt>
+              <dt className="font-bold">{t('cart.summary.estimatedTotal')}</dt>
               <dd
                 className="font-display text-xl font-bold"
                 data-testid={TEST_IDS.cartTotalEstimate}
@@ -99,7 +102,7 @@ export function CartSummary({
             </div>
           </dl>
           <EarnPoints merchandiseCents={pricing.merchandiseCents} returnTo="/cart" />
-          <p className="text-sm text-muted">Demo store: no tax is charged.</p>
+          <p className="text-sm text-muted">{t('cart.summary.noTax')}</p>
           <DiscountsCombine />
         </>
       )}
@@ -107,10 +110,10 @@ export function CartSummary({
       {blocked ? (
         <>
           <Button size="lg" disabled aria-describedby={noteId} data-testid={TEST_IDS.cartCheckout}>
-            Proceed to checkout
+            {t('cart.summary.checkout')}
           </Button>
           <p id={noteId} className="text-sm font-semibold text-danger">
-            Remove the sold-out items to continue.
+            {t('cart.summary.soldOutBlock')}
           </p>
         </>
       ) : (
@@ -120,7 +123,7 @@ export function CartSummary({
           data-testid={TEST_IDS.cartCheckout}
           className={buttonClasses('primary', 'lg')}
         >
-          Proceed to checkout
+          {t('cart.summary.checkout')}
         </Link>
       )}
     </div>

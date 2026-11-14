@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { fetchSaleBanner } from '../../api/promotions';
 import { CloseIcon } from '../../components/icons';
+import { useT } from '../../i18n';
 import { keys } from '../../lib/query-client';
 import { TEST_IDS } from '../../lib/test-ids';
 
@@ -30,6 +31,7 @@ function useRemaining(targetIso: string, offsetMs: number): number {
 // and one line (a long name is cut with an ellipsis, the countdown never is), so its appearance
 // pushes the page by a known amount once and never changes size while it ticks.
 export function SaleBanner() {
+  const { t } = useT();
   const { data, refetch } = useQuery({
     queryKey: keys.saleBanner,
     queryFn: ({ signal }) => fetchSaleBanner(signal),
@@ -66,16 +68,16 @@ export function SaleBanner() {
   return (
     <div
       role="region"
-      aria-label="Sale"
+      aria-label={t('shell.sale.label')}
       data-testid={TEST_IDS.saleBanner}
       className="flex h-11 items-center justify-center gap-2 border-b-2 border-ink bg-primary-soft px-2 text-sm text-primary-strong"
     >
       <p className="flex min-w-0 items-baseline justify-center font-semibold">
         <span className="truncate font-display font-bold">{sale.name}&nbsp;</span>
         <span className="shrink-0">
-          {sale.status === 'active' ? 'ends in' : 'starts in'}{' '}
+          {sale.status === 'active' ? t('shell.sale.endsIn') : t('shell.sale.startsIn')}{' '}
           <span aria-live="off" data-testid={TEST_IDS.saleBannerCountdown} className="tabular-nums">
-            {formatCountdown(remaining)}
+            {formatCountdown(remaining, t)}
           </span>
         </span>
       </p>
@@ -83,7 +85,7 @@ export function SaleBanner() {
         type="button"
         data-testid={TEST_IDS.saleBannerDismiss}
         onClick={dismiss}
-        aria-label={`Dismiss the ${sale.name} banner`}
+        aria-label={t('shell.sale.dismiss', { name: sale.name })}
         className="-my-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-control hover:bg-primary-soft"
       >
         <CloseIcon className="h-4 w-4" />

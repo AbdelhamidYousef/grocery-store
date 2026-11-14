@@ -1,5 +1,5 @@
-import { formatMoney } from '@store/shared';
-
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { cn } from '../../lib/cn';
 
 import { VisuallyHidden } from './VisuallyHidden';
@@ -15,7 +15,9 @@ interface PriceProps {
 }
 
 export function Price({ cents, maxCents, compareAtCents, currency, className }: PriceProps) {
-  const fmt = (value: number) => formatMoney(value, currency);
+  const { t } = useT();
+  const format = useFormat();
+  const fmt = (value: number) => format.money(value, currency);
   const isRange = maxCents !== undefined && maxCents !== cents;
   const onSale = compareAtCents != null && compareAtCents > cents && !isRange;
   return (
@@ -28,7 +30,7 @@ export function Price({ cents, maxCents, compareAtCents, currency, className }: 
       </span>
       {onSale && (
         <s className="text-sm text-muted" data-testid="price-compare">
-          <VisuallyHidden>Original price </VisuallyHidden>
+          <VisuallyHidden>{t('shell.price.original')} </VisuallyHidden>
           {fmt(compareAtCents)}
         </s>
       )}

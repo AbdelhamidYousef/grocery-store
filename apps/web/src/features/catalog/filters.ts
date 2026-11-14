@@ -1,27 +1,34 @@
 import { FACET_KEYS, formatMoney, type FacetKey, type ProductSort } from '@store/shared';
 
-export const FACET_LABELS: Record<FacetKey, string> = {
-  pet: 'Pet',
-  material: 'Material',
-  ageStage: 'Age stage',
+import { lookupFor, type StringKey, type TFunction } from '../../i18n';
+
+// Helpers that return text take `t` as a parameter; left out, they speak the default English
+// (how the plain unit tests and non-React callers use them).
+const defaultT = lookupFor('en-IE').t;
+
+export const FACET_LABELS: Record<FacetKey, StringKey> = {
+  pet: 'catalog.facet.pet',
+  material: 'catalog.facet.material',
+  ageStage: 'catalog.facet.ageStage',
 };
 
 export const FACET_ORDER: readonly FacetKey[] = FACET_KEYS;
 
-const PET_LABELS: Record<string, string> = {
-  dog: 'Dogs',
-  cat: 'Cats',
-  bird: 'Birds',
-  fish: 'Fish',
-  small: 'Small pets',
-  reptile: 'Reptiles',
+const PET_LABELS: Record<string, StringKey> = {
+  dog: 'catalog.facet.petDog',
+  cat: 'catalog.facet.petCat',
+  bird: 'catalog.facet.petBird',
+  fish: 'catalog.facet.petFish',
+  small: 'catalog.facet.petSmall',
+  reptile: 'catalog.facet.petReptile',
 };
 
 // Facet values are raw data ("small", "all", "baked meat and oat treats"); this makes them
 // readable without hardcoding which values exist.
-export function formatFacetValue(key: string, value: string): string {
-  if (key === 'pet') return PET_LABELS[value] ?? capitalise(value);
-  if (key === 'ageStage' && value === 'all') return 'All ages';
+export function formatFacetValue(key: string, value: string, t: TFunction = defaultT): string {
+  const petKey = PET_LABELS[value];
+  if (key === 'pet') return petKey ? t(petKey) : capitalise(value);
+  if (key === 'ageStage' && value === 'all') return t('catalog.facet.allAges');
   return capitalise(value);
 }
 
@@ -29,17 +36,17 @@ function capitalise(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-export function facetLabel(key: string): string {
-  return key in FACET_LABELS ? FACET_LABELS[key as FacetKey] : capitalise(key);
+export function facetLabel(key: string, t: TFunction = defaultT): string {
+  return key in FACET_LABELS ? t(FACET_LABELS[key as FacetKey]) : capitalise(key);
 }
 
-export const SORT_LABELS: Record<ProductSort, string> = {
-  relevance: 'Best match',
-  newest: 'Newest',
-  price_asc: 'Price: low to high',
-  price_desc: 'Price: high to low',
-  unit_price_asc: 'Lowest unit price',
-  name: 'Name: A to Z',
+export const SORT_LABELS: Record<ProductSort, StringKey> = {
+  relevance: 'catalog.sort.relevance',
+  newest: 'catalog.sort.newest',
+  price_asc: 'catalog.sort.priceAsc',
+  price_desc: 'catalog.sort.priceDesc',
+  unit_price_asc: 'catalog.sort.unitPriceAsc',
+  name: 'catalog.sort.name',
 };
 
 export function sortOptions(hasSearch: boolean): ProductSort[] {
@@ -60,7 +67,7 @@ export function parsePriceInput(text: string): PriceInput {
   const trimmed = text.trim().replace(',', '.');
   if (trimmed === '') return { empty: true };
   const match = /^(\d{1,7})(?:\.(\d{1,2}))?$/.exec(trimmed);
-  if (!match) return { error: 'Enter a price like 12.50' };
+  if (!match) return { error: 'Enter a price like 12.50' }; // shown through tm(): msg.catalog.priceFormat
   const whole = Number(match[1]);
   const fraction = Number((match[2] ?? '').padEnd(2, '0'));
   return { cents: whole * 100 + fraction };
@@ -77,9 +84,12 @@ export function priceChipLabel(
   min: number | undefined,
   max: number | undefined,
   currency: string,
+  t: TFunction = defaultT,
+  locale?: string,
 ): string {
+  const money = (cents: number) => formatMoney(cents, currency, locale);
   if (min !== undefined && max !== undefined)
-    return `Price: ${formatMoney(min, currency)} - ${formatMoney(max, currency)}`;
-  if (min !== undefined) return `Price: from ${formatMoney(min, currency)}`;
-  return `Price: up to ${formatMoney(max ?? 0, currency)}`;
+    return t('catalog.filters.priceRange', { min: money(min), max: money(max) });
+  if (min !== undefined) return t('catalog.filters.priceFrom', { min: money(min) });
+  return t('catalog.filters.priceUpTo', { max: money(max ?? 0) });
 }

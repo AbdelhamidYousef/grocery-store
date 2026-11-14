@@ -1,3 +1,5 @@
+import type { StringKey } from '../../../i18n';
+
 // Three small line drawings for "How to measure": neck, chest and length. Original artwork drawn
 // for this project as inline SVG (see CREDITS.md). Decorative: the caption under each one says the
 // same thing in words, so they are hidden from assistive technology.
@@ -42,7 +44,7 @@ export function MeasureIllustration({ kind }: { kind: 'neck' | 'chest' | 'length
 }
 
 export const MEASURE_FIGURES = [
-  { kind: 'neck', caption: 'Neck' },
-  { kind: 'chest', caption: 'Chest' },
-  { kind: 'length', caption: 'Length' },
-] as const;
+  { kind: 'neck', caption: 'pdp.size.measure.neck' },
+  { kind: 'chest', caption: 'pdp.size.measure.chest' },
+  { kind: 'length', caption: 'pdp.size.measure.length' },
+] as const satisfies readonly { kind: string; caption: StringKey }[];

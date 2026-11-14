@@ -5,17 +5,19 @@ import { AuthCard } from '../features/auth/AuthCard';
 import { useAuth } from '../features/auth/AuthProvider';
 import { LoginForm } from '../features/auth/LoginForm';
 import { SessionExpiredNotice } from '../features/auth/SessionExpiredNotice';
+import { useT } from '../i18n';
 import { safeNext } from '../lib/safe-next';
 
 export default function LoginPage() {
   const [params] = useSearchParams();
   const next = params.get('next');
   const { status } = useAuth();
+  const { t } = useT();
   // Someone who is already signed in has no use for the form.
   if (status === 'authenticated') return <Navigate to={safeNext(next)} replace />;
   return (
-    <AuthCard title="Sign in" testId="page-login">
-      <Seo title="Sign in" noindex />
+    <AuthCard title={t('auth.signIn')} testId="page-login">
+      <Seo title={t('auth.signIn')} noindex />
       <SessionExpiredNotice />
       <LoginForm next={next} />
     </AuthCard>

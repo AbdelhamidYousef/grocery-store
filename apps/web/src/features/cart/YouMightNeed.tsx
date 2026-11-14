@@ -1,7 +1,8 @@
-import { formatMoney } from '@store/shared';
 import { Link } from 'react-router-dom';
 
 import { Button } from '../../components/ui/Button';
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { useRecommendations } from '../catalog/queries';
 
 import { useAddToCartAction, useCart } from './queries';
@@ -12,6 +13,8 @@ const MAX_SHOWN = 2;
 // already in the cart. Items the API can add in one click get an Add button; the rest link to
 // their page. Two rows at most, so the pinned bar of the drawer stays short.
 export function YouMightNeed({ onNavigate }: { onNavigate: () => void }) {
+  const { t } = useT();
+  const fmt = useFormat();
   const { data: cart } = useCart();
   const newest = cart?.items.at(-1);
   const { data } = useRecommendations(newest?.productSlug);
@@ -31,7 +34,7 @@ export function YouMightNeed({ onNavigate }: { onNavigate: () => void }) {
   return (
     <section aria-labelledby="might-need-heading" data-testid="you-might-need">
       <h3 id="might-need-heading" className="font-display text-lg font-bold">
-        You might also need
+        {t('cart.mightNeed.title')}
       </h3>
       <ul className="mt-2 flex flex-col gap-2">
         {shown.map((entry) =>
@@ -46,7 +49,7 @@ export function YouMightNeed({ onNavigate }: { onNavigate: () => void }) {
                   {entry.item.card.name}
                 </Link>
                 <span className="block text-sm text-muted">
-                  {formatMoney(
+                  {fmt.money(
                     entry.item.variant.saleCents ?? entry.item.variant.priceCents,
                     entry.item.variant.currency,
                   )}
@@ -56,7 +59,7 @@ export function YouMightNeed({ onNavigate }: { onNavigate: () => void }) {
                 type="button"
                 variant="secondary"
                 size="sm"
-                aria-label={`Add ${entry.item.card.name}`}
+                aria-label={t('cart.mightNeed.addAria', { name: entry.item.card.name })}
                 onClick={() =>
                   add.add(
                     {
@@ -68,7 +71,7 @@ export function YouMightNeed({ onNavigate }: { onNavigate: () => void }) {
                   )
                 }
               >
-                Add
+                {t('cart.mightNeed.add')}
               </Button>
             </li>
           ) : (

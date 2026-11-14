@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
 
 export type ToastTone = 'info' | 'success' | 'error';
@@ -48,6 +49,7 @@ const toneClasses: Record<ToastTone, string> = {
 const AUTO_DISMISS_MS = 6000;
 
 function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: number) => void }) {
+  const { t } = useT();
   useEffect(() => {
     // Errors stay until dismissed: a message that vanishes before it is read fails WCAG 2.2.1.
     if (toast.tone === 'error') return;
@@ -79,7 +81,7 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: num
       )}
       <button
         type="button"
-        aria-label="Dismiss notification"
+        aria-label={t('shell.toast.dismiss')}
         data-testid="toast-dismiss"
         onClick={() => onDismiss(toast.id)}
         className="-m-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full"
@@ -100,10 +102,11 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: num
 let nextId = 1;
 
 export function ToastProvider({ children }: { children: ReactNode }) {
+  const { t } = useT();
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
   const dismiss = useCallback((id: number) => {
-    setToasts((current) => current.filter((t) => t.id !== id));
+    setToasts((current) => current.filter((item) => item.id !== id));
   }, []);
 
   const show = useCallback((message: string, tone: ToastTone = 'info', action?: ToastAction) => {
@@ -118,22 +121,22 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {/* Both live regions are always in the DOM: screen readers only announce changes inside a
           region that already existed. Polite waits for a pause; errors use role=alert (assertive). */}
       <div
-        aria-label="Notifications"
+        aria-label={t('shell.toast.region')}
         role="region"
         className="pointer-events-none fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-md flex-col gap-2"
       >
         <ul role="status" aria-live="polite" className="flex flex-col gap-2">
           {toasts
-            .filter((t) => t.tone !== 'error')
-            .map((t) => (
-              <ToastCard key={t.id} toast={t} onDismiss={dismiss} />
+            .filter((item) => item.tone !== 'error')
+            .map((item) => (
+              <ToastCard key={item.id} toast={item} onDismiss={dismiss} />
             ))}
         </ul>
         <ul role="alert" className="flex flex-col gap-2">
           {toasts
-            .filter((t) => t.tone === 'error')
-            .map((t) => (
-              <ToastCard key={t.id} toast={t} onDismiss={dismiss} />
+            .filter((item) => item.tone === 'error')
+            .map((item) => (
+              <ToastCard key={item.id} toast={item} onDismiss={dismiss} />
             ))}
         </ul>
       </div>

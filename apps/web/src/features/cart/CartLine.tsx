@@ -1,9 +1,10 @@
-import { formatMoney } from '@store/shared';
 import { Link } from 'react-router-dom';
 
 import type { CartWarning, WebCart, WebCartItem } from '../../api/cart';
 import { Badge } from '../../components/ui/Badge';
 import { SalePrice } from '../../components/ui/SalePrice';
+import { useT, type TFunction } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { cn } from '../../lib/cn';
 import { image600 } from '../../lib/images';
 import { TEST_IDS } from '../../lib/test-ids';
@@ -15,23 +16,25 @@ import { noticeKey } from './queries';
 // build does not know) goes to the banner above the cart.
 export const INLINE_NOTICE_CODES = ['QTY_REDUCED', 'PRICE_CHANGED'];
 
-export function noticeText(w: CartWarning, currency: string): string {
+export function noticeText(w: CartWarning, t: TFunction, money: (cents: number) => string): string {
   switch (w.code) {
     case 'QTY_REDUCED':
-      return w.quantity === undefined
-        ? 'Not enough stock, so we lowered the quantity.'
-        : `Only ${w.quantity} available, so we lowered the quantity${
-            w.previousQuantity === undefined ? '' : ` from ${w.previousQuantity}`
-          }.`;
+      if (w.quantity === undefined) return t('cart.notice.qtyReducedNoDetail');
+      return w.previousQuantity === undefined
+        ? t('cart.notice.qtyReduced', { quantity: w.quantity })
+        : t('cart.notice.qtyReducedFrom', { quantity: w.quantity, previous: w.previousQuantity });
     case 'PRICE_CHANGED':
       return w.previousUnitPriceCents !== undefined && w.unitPriceCents !== undefined
-        ? `The price changed from ${formatMoney(w.previousUnitPriceCents, currency)} to ${formatMoney(w.unitPriceCents, currency)}.`
-        : 'The price of this item changed.';
+        ? t('cart.notice.priceChanged', {
+            from: money(w.previousUnitPriceCents),
+            to: money(w.unitPriceCents),
+          })
+        : t('cart.notice.priceChangedNoDetail');
     case 'VARIANT_UNAVAILABLE':
-      return `${w.productName} (${w.variantName}) is no longer available and was removed from your cart.`;
+      return t('cart.notice.unavailable', { product: w.productName, variant: w.variantName });
     default:
       // A code from a newer API: say something true without pretending to know the details.
-      return `Something changed for ${w.productName} (${w.variantName}).`;
+      return t('cart.notice.changed', { product: w.productName, variant: w.variantName });
   }
 }
 
@@ -60,6 +63,8 @@ export function CartLine({
   onRemove,
   onNavigate,
 }: CartLineProps) {
+  const { t } = useT();
+  const fmt = useFormat();
   const soldOut = item.available === 0;
   // The price a line really pays is the engine's (sale, member or base), not the catalog price on
   // the item; a line the engine did not price (sold out) falls back to the item's own figures.
@@ -114,14 +119,14 @@ export function CartLine({
                 currency={currency}
                 className="[&_[data-testid=sale-price]]:text-base"
               />
-              <span className="sr-only">each</span>
+              <span className="sr-only">{t('cart.line.eachSr')}</span>
             </p>
           ) : (
             <p className="text-sm text-muted">
-              {formatMoney(unitCents, currency)} each
+              {t('cart.line.each', { price: fmt.money(unitCents, currency) })}
               {isMember && (
                 <Badge tone="primary" className="ml-2" data-testid="cart-line-member">
-                  Member price
+                  {t('cart.line.memberPrice')}
                 </Badge>
               )}
             </p>
@@ -131,9 +136,9 @@ export function CartLine({
         {soldOut && (
           <p data-testid={TEST_IDS.cartLineWarning} className="text-sm font-semibold text-danger">
             <Badge tone="danger" className="mr-2">
-              Sold out
+              {t('cart.line.soldOut')}
             </Badge>
-            Not included in your total. Remove it to check out.
+            {t('cart.line.soldOutNote')}
           </p>
         )}
 
@@ -144,13 +149,18 @@ export function CartLine({
             data-testid={TEST_IDS.cartLineWarning}
             className="flex items-start gap-2 rounded-control bg-primary-soft p-2 text-sm font-semibold text-primary-strong"
           >
-            <p className="min-w-0 flex-1 break-words">{noticeText(w, currency)}</p>
+            <p className="min-w-0 flex-1 break-words">
+              {noticeText(w, t, (cents) => fmt.money(cents, currency))}
+            </p>
             <button
               type="button"
               onClick={() => onDismissNotice(noticeKey(w))}
               className="-my-1 min-h-9 shrink-0 rounded-control px-2 underline"
             >
-              OK<span className="sr-only">, dismiss notice about {item.productName}</span>
+              {t('cart.line.ok')}
+              <span className="sr-only">
+                {t('cart.line.okDismiss', { name: item.productName })}
+              </span>
             </button>
           </div>
         ))}
@@ -166,18 +176,18 @@ export function CartLine({
               onChange={(quantity) => onQuantity(item, quantity)}
             />
             {!soldOut && item.quantity >= item.maxQty && (
-              <p className="mt-1 text-xs font-semibold text-muted">Maximum available</p>
+              <p className="mt-1 text-xs font-semibold text-muted">{t('cart.line.maxAvailable')}</p>
             )}
           </div>
           <div className="flex items-center gap-3">
             <button
               type="button"
               data-testid={TEST_IDS.cartLineRemove}
-              aria-label={`Remove ${item.productName}`}
+              aria-label={t('cart.line.removeAria', { name: item.productName })}
               onClick={() => onRemove(item)}
               className="min-h-11 rounded-control px-2 text-sm font-semibold text-danger underline"
             >
-              Remove
+              {t('cart.line.remove')}
             </button>
             <span
               className={cn(
@@ -187,7 +197,7 @@ export function CartLine({
               )}
               data-testid="cart-line-total"
             >
-              {formatMoney(lineTotal, currency)}
+              {fmt.money(lineTotal, currency)}
             </span>
           </div>
         </div>

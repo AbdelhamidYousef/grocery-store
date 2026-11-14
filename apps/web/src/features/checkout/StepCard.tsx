@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 
 import { Button } from '../../components/ui/Button';
+import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { TEST_IDS } from '../../lib/test-ids';
 
@@ -16,6 +17,7 @@ export function StepCard({
   state,
   summary,
   onEdit,
+  editLabel,
   children,
   id,
 }: {
@@ -24,6 +26,8 @@ export function StepCard({
   state: StepState;
   summary?: ReactNode;
   onEdit?: () => void;
+  /** The Edit button's accessible name; defaults to "Edit <title>". */
+  editLabel?: string;
   children: ReactNode;
   id: string;
 }) {
@@ -31,6 +35,7 @@ export function StepCard({
   // keyboard focus onto <body>. Moving focus to the newly active step's heading keeps the place
   // (and makes a screen reader read the step name). Not on first render: the page must not grab
   // focus on load.
+  const { t } = useT();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const previous = useRef(state);
   useEffect(() => {
@@ -81,9 +86,9 @@ export function StepCard({
             size="sm"
             onClick={onEdit}
             data-testid={TEST_IDS.checkoutEdit}
-            aria-label={`Edit ${title.toLowerCase()}`}
+            aria-label={editLabel ?? t('checkout.step.editAria', { title: title.toLowerCase() })}
           >
-            Edit
+            {t('checkout.step.edit')}
           </Button>
         )}
       </div>

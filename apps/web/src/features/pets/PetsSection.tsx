@@ -8,10 +8,11 @@ import { Button } from '../../components/ui/Button';
 import { Dialog } from '../../components/ui/Dialog';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { useToast } from '../../components/ui/Toast';
+import { useT } from '../../i18n';
 import { formErrorMessage } from '../auth/form-errors';
 
 import { useActivePet } from './ActivePetProvider';
-import { describeAge, speciesLabel } from './age';
+import { describeAge, speciesName } from './age';
 import { PetForm } from './PetForm';
 import { usePets } from './queries';
 
@@ -23,6 +24,7 @@ export function PetsSection() {
   const { pets, loading, synced, atLimit, add, update, remove } = usePets();
   const { activePet, setActivePet } = useActivePet();
   const toast = useToast();
+  const { t, tn, tm } = useT();
   const [params, setParams] = useSearchParams();
   // `?add=1` is how the header switcher's "Add a pet" opens the form on arrival.
   const [editing, setEditing] = useState<Editing>(
@@ -45,41 +47,41 @@ export function PetsSection() {
       data-testid="account-pets"
       className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6"
     >
-      <Seo title="My pets" noindex />
+      <Seo title={t('pets.title')} noindex />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 id="pets-heading" className="font-display text-3xl font-bold">
-          My pets
+          {t('pets.title')}
         </h1>
         <Button
           onClick={() => setEditing({ kind: 'new' })}
           disabled={atLimit}
           data-testid="pet-add"
         >
-          Add a pet
+          {t('pets.add')}
         </Button>
       </div>
       <p className="mt-2 max-w-prose text-muted">
-        Tell us who you shop for and the store shows what suits them first.{' '}
+        {t('pets.intro')}{' '}
         {synced ? (
           <Link to="/account" className="font-semibold text-primary-strong underline">
-            Back to my account
+            {t('pets.backToAccount')}
           </Link>
         ) : (
           <>
-            Your pets are saved in this browser.{' '}
+            {t('pets.guestNote')}{' '}
             <Link
               to="/login?next=/account/pets"
               className="font-semibold text-primary-strong underline"
             >
-              Sign in
+              {t('pets.signIn')}
             </Link>{' '}
-            to keep them on every device.
+            {t('pets.signInRest')}
           </>
         )}
       </p>
       {atLimit && (
         <p role="status" data-testid="pets-limit" className="mt-2 font-semibold">
-          You have {MAX_PETS} pets, the most we can keep. Remove one to add another.
+          {t('pets.limit', { max: MAX_PETS })}
         </p>
       )}
 
@@ -89,13 +91,13 @@ export function PetsSection() {
           className="mt-6 rounded-card border border-dashed border-muted p-6 text-muted"
           data-testid="empty-state"
         >
-          No pets yet. Add one and the shop will start with the right food, toys and sizes.
+          {t('pets.empty')}
         </p>
       )}
       {pets.length > 0 && (
         <ul className="mt-6 grid gap-4 md:grid-cols-2" data-testid="pet-list">
           {pets.map((pet) => {
-            const age = describeAge(pet, new Date());
+            const age = describeAge(pet, new Date(), tn);
             const isActive = activePet?.id === pet.id;
             return (
               <li
@@ -105,12 +107,12 @@ export function PetsSection() {
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="min-w-0 break-words font-display text-xl font-bold">{pet.name}</h2>
-                  {isActive && <Badge tone="success">Shopping for</Badge>}
+                  {isActive && <Badge tone="success">{t('pets.shoppingFor')}</Badge>}
                 </div>
                 <p className="text-muted">
-                  {speciesLabel(pet.species)}
+                  {speciesName(t, pet.species)}
                   {age ? `, ${age}` : ''}
-                  {pet.size ? `, size ${pet.size.toUpperCase()}` : ''}
+                  {pet.size ? t('pets.sizeSuffix', { size: pet.size.toUpperCase() }) : ''}
                 </p>
                 <div className="mt-auto flex flex-wrap gap-2">
                   <Button
@@ -119,7 +121,7 @@ export function PetsSection() {
                     aria-pressed={isActive}
                     onClick={() => setActivePet(isActive ? null : pet)}
                   >
-                    {isActive ? 'Stop shopping for' : 'Shop for'}
+                    {isActive ? t('pets.stopShopping') : t('pets.shopFor')}
                     <span className="sr-only"> {pet.name}</span>
                   </Button>
                   <Button
@@ -127,7 +129,8 @@ export function PetsSection() {
                     variant="secondary"
                     onClick={() => setEditing({ kind: 'edit', pet })}
                   >
-                    Edit<span className="sr-only"> {pet.name}</span>
+                    {t('pets.edit')}
+                    <span className="sr-only"> {pet.name}</span>
                   </Button>
                   <Button
                     size="sm"
@@ -135,7 +138,8 @@ export function PetsSection() {
                     className="text-danger"
                     onClick={() => setDeleting(pet)}
                   >
-                    Delete<span className="sr-only"> {pet.name}</span>
+                    {t('pets.delete')}
+                    <span className="sr-only"> {pet.name}</span>
                   </Button>
                 </div>
               </li>
@@ -147,7 +151,7 @@ export function PetsSection() {
       <Dialog
         open={editing !== null}
         onClose={closeForm}
-        title={editing?.kind === 'edit' ? 'Edit pet' : 'Add a pet'}
+        title={editing?.kind === 'edit' ? t('pets.editTitle') : t('pets.add')}
         className="max-h-[calc(100dvh-2rem)] overflow-y-auto"
       >
         {editing && (
@@ -158,12 +162,12 @@ export function PetsSection() {
             onSave={async (input) => {
               if (editing.kind === 'edit') {
                 await update(editing.pet.id, input);
-                toast.show('Pet saved', 'success');
+                toast.show(t('pets.saved'), 'success');
               } else {
                 const created = await add(input);
                 // The first pet is the one you are shopping for; later ones wait to be picked.
                 if (pets.length === 0) setActivePet(created);
-                toast.show(`${created.name} added`, 'success');
+                toast.show(t('pets.added', { name: created.name }), 'success');
               }
               closeForm();
             }}
@@ -171,13 +175,17 @@ export function PetsSection() {
         )}
       </Dialog>
 
-      <Dialog open={deleting !== null} onClose={() => setDeleting(null)} title="Remove this pet?">
+      <Dialog
+        open={deleting !== null}
+        onClose={() => setDeleting(null)}
+        title={t('pets.removeTitle')}
+      >
         {deleting && (
           <>
-            <p className="break-words">{deleting.name} will be removed from your pets.</p>
+            <p className="break-words">{t('pets.removeText', { name: deleting.name })}</p>
             <div className="flex flex-wrap justify-end gap-3">
               <Button variant="secondary" onClick={() => setDeleting(null)}>
-                Keep
+                {t('pets.keep')}
               </Button>
               <Button
                 variant="danger"
@@ -185,14 +193,14 @@ export function PetsSection() {
                 onClick={() =>
                   void remove(deleting.id).then(
                     () => {
-                      toast.show('Pet removed', 'success');
+                      toast.show(t('pets.removed'), 'success');
                       setDeleting(null);
                     },
-                    (e: unknown) => toast.show(formErrorMessage(e), 'error'),
+                    (e: unknown) => toast.show(formErrorMessage(e, t, tm), 'error'),
                   )
                 }
               >
-                Remove
+                {t('pets.remove')}
               </Button>
             </div>
           </>

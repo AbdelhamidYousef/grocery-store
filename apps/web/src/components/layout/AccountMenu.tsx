@@ -3,12 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../../features/auth/AuthProvider';
 import { useLogout } from '../../features/auth/hooks';
+import { useT } from '../../i18n';
 import { ChevronDownIcon, UserIcon } from '../icons';
 
 // A disclosure ("show/hide") menu, not an ARIA `role=menu`: it holds ordinary links, and the
 // menu role would promise arrow-key behaviour we don't implement. The items switch between
 // "Sign in / Create account" and "My account / Sign out" with the auth state.
 export function AccountMenu() {
+  const { t } = useT();
   const { user } = useAuth();
   const logout = useLogout();
   const navigate = useNavigate();
@@ -44,7 +46,7 @@ export function AccountMenu() {
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
-        aria-label="Account"
+        aria-label={t('shell.account.label')}
         data-testid="account-menu-button"
         onClick={() => setOpen((v) => !v)}
         className="flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-control px-2 hover:bg-pet-soft"
@@ -72,14 +74,14 @@ export function AccountMenu() {
                 {user.email}
               </p>
               <Link to="/account" className={itemClass} onClick={() => setOpen(false)}>
-                My account
+                {t('shell.account.myAccount')}
               </Link>
               <Link to="/account/buy-again" className={itemClass} onClick={() => setOpen(false)}>
-                Buy again
+                {t('shell.account.buyAgain')}
               </Link>
               {user.role === 'admin' && (
                 <Link to="/admin" className={itemClass} onClick={() => setOpen(false)}>
-                  Admin
+                  {t('shell.account.admin')}
                 </Link>
               )}
               <button
@@ -96,16 +98,16 @@ export function AccountMenu() {
                   })
                 }
               >
-                Sign out
+                {t('shell.account.signOut')}
               </button>
             </>
           ) : (
             <>
               <Link to="/login" className={itemClass} onClick={() => setOpen(false)}>
-                Sign in
+                {t('shell.account.signIn')}
               </Link>
               <Link to="/register" className={itemClass} onClick={() => setOpen(false)}>
-                Create account
+                {t('shell.account.createAccount')}
               </Link>
             </>
           )}

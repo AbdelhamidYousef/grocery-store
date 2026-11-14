@@ -1,5 +1,6 @@
 import { forwardRef, useId, useState, type InputHTMLAttributes } from 'react';
 
+import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
 
 import { controlClasses, describedBy, Field } from './Field';
@@ -17,6 +18,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
   function PasswordInput({ label, hint, error, className, id: idProp, ...rest }, ref) {
     const generated = useId();
     const id = idProp ?? generated;
+    const { t } = useT();
     const [visible, setVisible] = useState(false);
     return (
       <Field id={id} label={label} hint={hint} error={error}>
@@ -36,7 +38,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             onClick={() => setVisible((v) => !v)}
             className="absolute inset-y-0 right-0 flex min-w-11 items-center rounded-control px-3 text-sm font-semibold text-primary-strong hover:bg-pet-soft"
           >
-            {visible ? 'Hide password' : 'Show password'}
+            {visible ? t('shell.password.hide') : t('shell.password.show')}
           </button>
         </div>
       </Field>

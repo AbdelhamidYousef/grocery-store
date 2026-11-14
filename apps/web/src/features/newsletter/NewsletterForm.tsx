@@ -1,4 +1,4 @@
-import { NEWSLETTER_CONSENT_TEXT, NewsletterSubscribeSchema } from '@store/shared';
+import { NewsletterSubscribeSchema } from '@store/shared';
 import { useMutation } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
 
@@ -7,15 +7,18 @@ import { subscribeNewsletter } from '../../api/newsletter';
 import { Button } from '../../components/ui/Button';
 import { Checkbox } from '../../components/ui/Checkbox';
 import { Input } from '../../components/ui/Input';
+import { useT } from '../../i18n';
 import { PETS } from '../../lib/pets';
 import { TEST_IDS } from '../../lib/test-ids';
 import { track } from '../../lib/track';
+import { petName } from '../navigation/pet-names';
 
 // The attribute value a pet carries (`small`, not the `small-pets` slug).
 const PET_VALUE: Record<string, string> = { 'small-pets': 'small' };
 const petValue = (slug: string): string => PET_VALUE[slug] ?? slug.replace(/s$/, '');
 
 export function NewsletterForm() {
+  const { t, tm } = useT();
   const [email, setEmail] = useState('');
   const [pets, setPets] = useState<string[]>([]);
   const [consent, setConsent] = useState(false);
@@ -32,10 +35,11 @@ export function NewsletterForm() {
     e.preventDefault();
     const parsed = NewsletterSubscribeSchema.safeParse({ email, pets, consent, website });
     if (!parsed.success) {
-      setError(parsed.error.issues.find((i) => i.path[0] === 'email')?.message);
+      const emailIssue = parsed.error.issues.find((i) => i.path[0] === 'email');
+      setError(emailIssue ? tm(emailIssue.message) : undefined);
       setConsentError(
         parsed.error.issues.some((i) => i.path[0] === 'consent')
-          ? 'Please tick the box to subscribe'
+          ? t('loyalty.newsletter.consentRequired')
           : undefined,
       );
       return;
@@ -52,8 +56,7 @@ export function NewsletterForm() {
         data-testid={TEST_IDS.newsletterDone}
         className="rounded-control border-2 border-success bg-success-soft p-4 font-semibold"
       >
-        Almost there! If this address can receive our emails, a confirmation link is on its way.
-        Click it and your welcome code follows.
+        {t('loyalty.newsletter.done')}
       </p>
     );
   }
@@ -68,12 +71,12 @@ export function NewsletterForm() {
       {send.error && (
         <p role="alert" className="font-semibold text-danger">
           {send.error instanceof ApiError && send.error.status === 429
-            ? 'Too many sign-ups from here. Please try again later.'
-            : 'We could not sign you up right now. Please try again in a moment.'}
+            ? t('loyalty.newsletter.tooMany')
+            : t('loyalty.newsletter.failed')}
         </p>
       )}
       <Input
-        label="Email"
+        label={t('loyalty.newsletter.email')}
         type="email"
         autoComplete="email"
         inputMode="email"
@@ -82,14 +85,14 @@ export function NewsletterForm() {
         error={error}
       />
       <fieldset className="flex flex-col">
-        <legend className="font-semibold">Which pets do you have?</legend>
+        <legend className="font-semibold">{t('loyalty.newsletter.pets')}</legend>
         <div className="flex flex-wrap gap-x-5">
           {PETS.map((p) => {
             const value = petValue(p.slug);
             return (
               <Checkbox
                 key={p.slug}
-                label={p.name}
+                label={petName(t, p)}
                 checked={pets.includes(value)}
                 onChange={(e) =>
                   setPets((cur) =>
@@ -102,14 +105,14 @@ export function NewsletterForm() {
         </div>
       </fieldset>
       <Checkbox
-        label={NEWSLETTER_CONSENT_TEXT}
+        label={t('loyalty.newsletter.consent')}
         checked={consent}
         onChange={(e) => setConsent(e.target.checked)}
         error={consentError}
       />
       <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
         <label>
-          Leave this empty
+          {t('loyalty.newsletter.honeypot')}
           <input
             type="text"
             name="website"
@@ -121,7 +124,7 @@ export function NewsletterForm() {
         </label>
       </div>
       <Button type="submit" loading={send.isPending}>
-        Subscribe and get 10% off
+        {t('loyalty.newsletter.submit')}
       </Button>
     </form>
   );

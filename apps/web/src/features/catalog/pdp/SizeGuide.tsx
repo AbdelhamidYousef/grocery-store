@@ -2,6 +2,7 @@ import type { SizeGuide, Variant } from '@store/shared';
 import { useState } from 'react';
 
 import { Dialog } from '../../../components/ui/Dialog';
+import { useT } from '../../../i18n';
 import { TEST_IDS } from '../../../lib/test-ids';
 
 import { MEASURE_FIGURES, MeasureIllustration } from './MeasureIllustrations';
@@ -37,6 +38,7 @@ export function SizeGuideButton({
   guide: SizeGuide;
   variant: Variant | undefined;
 }) {
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -55,7 +57,7 @@ export function SizeGuideButton({
             strokeLinejoin="round"
           />
         </svg>
-        Size guide
+        {t('pdp.size.button')}
       </button>
       <Dialog
         open={open}
@@ -70,6 +72,7 @@ export function SizeGuideButton({
 }
 
 function SizeGuideContent({ guide, variant }: { guide: SizeGuide; variant: Variant | undefined }) {
+  const { t } = useT();
   const selected = rowForVariant(guide, variant);
   const { steps, notes } = parseHowTo(guide.howtoMd);
   return (
@@ -79,7 +82,7 @@ function SizeGuideContent({ guide, variant }: { guide: SizeGuide; variant: Varia
           <thead>
             <tr className="border-b-2 border-line">
               <th scope="col" className="py-2 pr-3">
-                Size
+                {t('pdp.size.sizeColumn')}
               </th>
               {guide.columns.map((c) => (
                 <th key={c} scope="col" className="py-2 pr-3">
@@ -100,7 +103,7 @@ function SizeGuideContent({ guide, variant }: { guide: SizeGuide; variant: Varia
                   <th scope="row" className="py-2 pr-3">
                     {row.label}
                     {isSelected && (
-                      <span className="ml-2 text-sm text-pet-strong">(your size)</span>
+                      <span className="ml-2 text-sm text-pet-strong">{t('pdp.size.yourSize')}</span>
                     )}
                   </th>
                   {guide.columns.map((c, i) => (
@@ -122,13 +125,13 @@ function SizeGuideContent({ guide, variant }: { guide: SizeGuide; variant: Varia
       {(steps.length > 0 || notes.length > 0) && (
         <section aria-labelledby="measure-heading">
           <h3 id="measure-heading" className="font-display text-lg font-bold">
-            How to measure
+            {t('pdp.size.howToMeasure')}
           </h3>
           <ul className="mt-2 flex flex-wrap justify-center gap-4">
             {MEASURE_FIGURES.map((f) => (
               <li key={f.kind} className="flex flex-col items-center text-pet-strong">
                 <MeasureIllustration kind={f.kind} />
-                <span className="text-sm font-semibold text-ink">{f.caption}</span>
+                <span className="text-sm font-semibold text-ink">{t(f.caption)}</span>
               </li>
             ))}
           </ul>

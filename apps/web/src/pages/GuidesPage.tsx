@@ -7,6 +7,7 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { Pagination } from '../features/catalog/Pagination';
 import { GuideCard } from '../features/guides/GuideCard';
 import { useGuideCategories, useGuides } from '../features/guides/queries';
+import { useT } from '../i18n';
 import { cn } from '../lib/cn';
 import { TEST_IDS } from '../lib/test-ids';
 
@@ -19,6 +20,7 @@ const tab =
 // reloaded and walked with Back.
 export default function GuidesPage() {
   const [params] = useSearchParams();
+  const { t } = useT();
   const category = params.get('category') ?? undefined;
   const page = Math.max(1, Number.parseInt(params.get('page') ?? '1', 10) || 1);
   const { data: categories } = useGuideCategories();
@@ -34,18 +36,12 @@ export default function GuidesPage() {
 
   return (
     <Container className="py-8" data-testid={TEST_IDS.pageGuides}>
-      <Seo
-        title="Pet-care guides"
-        description="Short, friendly guides for dog, cat, bird, fish and small pet owners."
-      />
-      <h1 className="font-display text-3xl font-bold sm:text-4xl">Pet-care guides</h1>
-      <p className="mt-2 max-w-prose text-muted">
-        Short, friendly reads for happier pets. Written for a demo store, so treat them as
-        inspiration and ask your vet about anything that worries you.
-      </p>
+      <Seo title={t('content.guides.title')} description={t('content.guides.seoDescription')} />
+      <h1 className="font-display text-3xl font-bold sm:text-4xl">{t('content.guides.title')}</h1>
+      <p className="mt-2 max-w-prose text-muted">{t('content.guides.intro')}</p>
 
       {categories && categories.length > 0 && (
-        <nav aria-label="Guide topics" className="mt-6">
+        <nav aria-label={t('content.guides.topics')} className="mt-6">
           <ul className="flex flex-wrap gap-2">
             <li>
               <Link
@@ -54,7 +50,7 @@ export default function GuidesPage() {
                 aria-current={category ? undefined : 'page'}
                 className={tab}
               >
-                All guides
+                {t('content.guides.all')}
               </Link>
             </li>
             {categories.map((c) => (
@@ -87,17 +83,17 @@ export default function GuidesPage() {
       )}
       {error && !data && (
         <div className="mt-6" role="alert">
-          <p className="font-semibold text-danger">We could not load the guides.</p>
+          <p className="font-semibold text-danger">{t('content.guides.listError')}</p>
           <Button className="mt-2" variant="secondary" onClick={() => void refetch()}>
-            Try again
+            {t('content.guides.retry')}
           </Button>
         </div>
       )}
       {data && data.data.length === 0 && (
         <p className="mt-6 text-muted" data-testid={TEST_IDS.emptyState}>
-          {page > 1 ? `There is no page ${page}.` : 'No guides here yet. Check back soon!'}{' '}
+          {page > 1 ? t('content.guides.noPage', { page }) : t('content.guides.empty')}{' '}
           <Link to="/guides" className="font-semibold text-primary-strong underline">
-            See all guides
+            {t('content.guides.seeAll')}
           </Link>
         </p>
       )}
@@ -105,7 +101,7 @@ export default function GuidesPage() {
         <>
           <ul
             className={cn('mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3')}
-            aria-label="Guides"
+            aria-label={t('content.guides.list')}
           >
             {data.data.map((g) => (
               <GuideCard key={g.slug} guide={g} />

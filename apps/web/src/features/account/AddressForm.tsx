@@ -7,6 +7,7 @@ import { Button } from '../../components/ui/Button';
 import { Checkbox } from '../../components/ui/Checkbox';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
+import { useT } from '../../i18n';
 import { countryOptions } from '../../lib/countries';
 import { TEST_IDS } from '../../lib/test-ids';
 import { FormAlert } from '../auth/AuthCard';
@@ -54,6 +55,7 @@ export function AddressForm({
   onDone: () => void;
   onCancel: () => void;
 }) {
+  const { t, tm } = useT();
   const create = useCreateAddress();
   const update = useUpdateAddress();
   const [formError, setFormError] = useState<string | null>(null);
@@ -79,7 +81,8 @@ export function AddressForm({
     const options = {
       onSuccess: onDone,
       onError: (error: unknown) => {
-        if (!applyFieldErrors(error, setError, FIELDS)) setFormError(formErrorMessage(error));
+        if (!applyFieldErrors(error, setError, FIELDS))
+          setFormError(formErrorMessage(error, t, tm));
       },
     };
     if (address) update.mutate({ id: address.id, input }, options);
@@ -95,51 +98,51 @@ export function AddressForm({
     >
       <FormAlert message={formError} />
       <Input
-        label="Label (optional)"
-        hint="For example Home or Work."
+        label={t('account.addresses.form.label')}
+        hint={t('account.addresses.form.labelHint')}
         error={errors.label?.message}
         {...register('label')}
       />
       <Input
-        label="Full name"
+        label={t('account.addresses.form.fullName')}
         autoComplete="name"
         error={errors.fullName?.message}
         {...register('fullName')}
       />
       <Input
-        label="Address line 1"
+        label={t('account.addresses.form.line1')}
         autoComplete="address-line1"
         error={errors.line1?.message}
         {...register('line1')}
       />
       <Input
-        label="Address line 2 (optional)"
+        label={t('account.addresses.form.line2')}
         autoComplete="address-line2"
         error={errors.line2?.message}
         {...register('line2')}
       />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Input
-          label="Postal code"
+          label={t('account.addresses.form.postalCode')}
           autoComplete="postal-code"
           error={errors.postalCode?.message}
           {...register('postalCode')}
         />
         <Input
-          label="City"
+          label={t('account.addresses.form.city')}
           autoComplete="address-level2"
           error={errors.city?.message}
           {...register('city')}
         />
       </div>
       <Input
-        label="Region (optional)"
+        label={t('account.addresses.form.region')}
         autoComplete="address-level1"
         error={errors.region?.message}
         {...register('region')}
       />
       <Select
-        label="Country"
+        label={t('account.addresses.form.country')}
         autoComplete="country"
         error={errors.country?.message}
         {...register('country')}
@@ -151,7 +154,7 @@ export function AddressForm({
         ))}
       </Select>
       <Input
-        label="Phone (optional)"
+        label={t('account.addresses.form.phone')}
         type="tel"
         autoComplete="tel"
         error={errors.phone?.message}
@@ -159,22 +162,22 @@ export function AddressForm({
       />
       <div>
         <Checkbox
-          label="Use as my default shipping address"
+          label={t('account.addresses.form.defaultShipping')}
           disabled={address?.isDefaultShipping === true}
           {...register('isDefaultShipping')}
         />
         <Checkbox
-          label="Use as my default billing address"
+          label={t('account.addresses.form.defaultBilling')}
           disabled={address?.isDefaultBilling === true}
           {...register('isDefaultBilling')}
         />
       </div>
       <div className="flex flex-wrap justify-end gap-3">
         <Button variant="secondary" onClick={onCancel}>
-          Cancel
+          {t('account.addresses.form.cancel')}
         </Button>
         <Button type="submit" loading={pending} data-testid="address-save">
-          {address ? 'Save address' : 'Add address'}
+          {address ? t('account.addresses.form.save') : t('account.addresses.add')}
         </Button>
       </div>
     </form>

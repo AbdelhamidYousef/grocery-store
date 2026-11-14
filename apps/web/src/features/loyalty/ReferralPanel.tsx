@@ -1,7 +1,8 @@
-import { formatMoney } from '@store/shared';
 import { useState } from 'react';
 
 import { Button } from '../../components/ui/Button';
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { TEST_IDS } from '../../lib/test-ids';
 
 import { useReferral } from './queries';
@@ -10,10 +11,12 @@ import { useReferral } from './queries';
 // limits come from the server, so the copy can never promise a number the rules do not give.
 export function ReferralPanel() {
   const { data } = useReferral();
+  const { t } = useT();
+  const fmt = useFormat();
   const [copied, setCopied] = useState(false);
   if (!data) return null;
   const link = `${window.location.origin}/?ref=${data.code}`;
-  const money = (c: number) => formatMoney(c, 'EUR');
+  const money = (c: number) => fmt.money(c, 'EUR');
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(link);
@@ -30,12 +33,14 @@ export function ReferralPanel() {
       className="mt-8 rounded-card border-2 border-line p-4"
     >
       <h3 id="referral-heading" className="font-display text-xl font-bold">
-        Refer a friend
+        {t('loyalty.referral.title')}
       </h3>
       <p className="mt-1 max-w-prose">
-        Share your link. When a friend makes an account and pays for their first order of{' '}
-        {money(data.minOrderCents)} or more, you both get a {money(data.rewardCents)} code (valid{' '}
-        {data.codeDays} days, for an order of {money(data.minOrderCents)} or more).
+        {t('loyalty.referral.how', {
+          min: money(data.minOrderCents),
+          reward: money(data.rewardCents),
+          days: data.codeDays,
+        })}
       </p>
       <p
         className="mt-3 break-all rounded-control bg-pet-soft px-3 py-2 font-mono text-sm"
@@ -45,15 +50,18 @@ export function ReferralPanel() {
       </p>
       <div className="mt-2 flex flex-wrap items-center gap-3">
         <Button variant="secondary" onClick={() => void copy()}>
-          {copied ? 'Copied' : 'Copy link'}
+          {copied ? t('loyalty.referral.copied') : t('loyalty.referral.copy')}
         </Button>
         <span role="status" className="sr-only">
-          {copied ? 'Link copied' : ''}
+          {copied ? t('loyalty.referral.linkCopied') : ''}
         </span>
         <p className="text-sm text-muted">
-          {data.qualified} rewarded, {data.pending} waiting for a first order
-          {data.rejected > 0 ? `, ${data.rejected} not eligible` : ''}. Up to {data.maxPerYear} a
-          year.
+          {t(data.rejected > 0 ? 'loyalty.referral.statsRejected' : 'loyalty.referral.stats', {
+            qualified: data.qualified,
+            pending: data.pending,
+            rejected: data.rejected,
+            max: data.maxPerYear,
+          })}
         </p>
       </div>
     </section>

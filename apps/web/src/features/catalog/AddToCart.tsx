@@ -2,6 +2,7 @@ import type { Variant } from '@store/shared';
 import { useId, useState } from 'react';
 
 import { Button } from '../../components/ui/Button';
+import { useT } from '../../i18n';
 import { TEST_IDS } from '../../lib/test-ids';
 import { StockAlertForm } from '../stock-alerts/StockAlertForm';
 
@@ -21,6 +22,7 @@ interface AddToCartProps {
 }
 
 export function AddToCart({ variant, onAdd, pending = false }: AddToCartProps) {
+  const { t } = useT();
   const [quantity, setQuantity] = useState(1);
   const noteId = useId();
   const soldOut = !variant.available;
@@ -33,7 +35,7 @@ export function AddToCart({ variant, onAdd, pending = false }: AddToCartProps) {
           data-testid={TEST_IDS.stockHint}
           className="inline-flex w-fit items-center rounded-full bg-danger-soft px-3 py-1 text-sm font-bold text-danger"
         >
-          Only a few left
+          {t('catalog.addToCart.lowStock')}
         </p>
       )}
       <div className="flex flex-wrap items-end gap-4">
@@ -52,13 +54,13 @@ export function AddToCart({ variant, onAdd, pending = false }: AddToCartProps) {
           onClick={() => onAdd?.(quantity)}
           className="min-w-48 flex-1 sm:flex-none"
         >
-          {soldOut ? 'Sold out' : 'Add to cart'}
+          {soldOut ? t('catalog.addToCart.soldOut') : t('catalog.addToCart.add')}
         </Button>
       </div>
       {soldOut && <StockAlertForm variantId={variant.id} />}
       {!soldOut && !wired && (
         <p id={noteId} className="text-sm text-muted">
-          Adding to the cart is not available here.
+          {t('catalog.addToCart.unavailable')}
         </p>
       )}
     </div>

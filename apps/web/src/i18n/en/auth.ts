@@ -1,0 +1,31 @@
+import type { Dictionary } from '../types';
+
+export const auth = {
+  'auth.email': 'Email',
+  'auth.password': 'Password',
+  'auth.firstName': 'First name',
+  'auth.lastName': 'Last name',
+  'auth.signIn': 'Sign in',
+  'auth.createAccount': 'Create account',
+  'auth.login.newHere': 'New here?',
+  'auth.login.createLink': 'Create an account',
+  'auth.register.passwordHint': 'At least {min} characters. A few random words make a strong one.',
+  'auth.register.haveAccount': 'Already have an account?',
+  'auth.expired.message':
+    'Your session expired, so you have been signed out. Your cart is still here.',
+  'auth.expired.signInLink': 'Sign in again',
+  'auth.expired.rest': 'to use your saved details, or just carry on as a guest.',
+  'auth.forbidden.seoTitle': 'Not allowed',
+  'auth.forbidden.title': 'You do not have access to this page',
+  'auth.forbidden.body': 'This area is for shop admins only.',
+  'auth.error.network': 'Could not reach the server. Check your connection.',
+  'auth.error.rateLimited': 'Too many attempts. Please wait a few minutes.',
+  'auth.error.generic': 'Something went wrong. Please try again.',
+  'msg.auth.emailInvalid': 'Enter a valid email address',
+  'msg.auth.required': 'Required',
+  'msg.auth.passwordMin': 'Use at least 10 characters',
+  'msg.auth.passwordMax': 'Use at most 128 characters',
+  'msg.auth.passwordCommon': 'This password is too common',
+  'msg.auth.emailTaken': 'An account with this email already exists',
+  'msg.auth.invalidCredentials': 'Invalid email or password',
+} satisfies Dictionary;

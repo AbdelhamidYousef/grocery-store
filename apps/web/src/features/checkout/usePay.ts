@@ -2,6 +2,8 @@ import { useElements, useStripe } from '@stripe/react-stripe-js';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { useT } from '../../i18n';
+
 // Confirms the payment with Stripe.js. `redirect: 'if_required'` keeps the shopper on the page for
 // plain cards (we navigate ourselves) and only redirects for methods that need it (3-D Secure,
 // bank redirects); Stripe then returns them to `return_url`, the same confirmation page.
@@ -13,6 +15,7 @@ export function usePay(orderNumber: string) {
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate();
+  const { t } = useT();
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,13 +37,13 @@ export function usePay(orderNumber: string) {
         setError(
           shopperFacing && result.error.message
             ? result.error.message
-            : 'Something went wrong while paying. You have not been charged; please try again.',
+            : t('checkout.payment.failed'),
         );
         return;
       }
       void navigate(`/checkout/confirmation/${encodeURIComponent(orderNumber)}`);
     } catch {
-      setError('We could not reach the payment provider. Check your connection and try again.');
+      setError(t('checkout.payment.unreachable'));
     } finally {
       setPaying(false);
     }

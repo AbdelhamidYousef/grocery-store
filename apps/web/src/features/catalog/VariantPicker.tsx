@@ -1,6 +1,7 @@
 import type { Variant } from '@store/shared';
 import { useId } from 'react';
 
+import { useT, type StringKey, type TFunction } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { TEST_IDS } from '../../lib/test-ids';
 
@@ -46,21 +47,22 @@ const SWATCHES: Record<string, string> = {
   clear: '#e0f2fe',
 };
 
-const SIZE_NAMES: Record<string, string> = {
-  XS: 'Extra small',
-  S: 'Small',
-  M: 'Medium',
-  L: 'Large',
-  XL: 'Extra large',
+const SIZE_NAMES: Record<string, StringKey> = {
+  XS: 'catalog.variant.sizeXS',
+  S: 'catalog.variant.sizeS',
+  M: 'catalog.variant.sizeM',
+  L: 'catalog.variant.sizeL',
+  XL: 'catalog.variant.sizeXL',
 };
 
-export function optionKeyLabel(key: string): string {
-  if (key === 'color') return 'Colour';
+export function optionKeyLabel(key: string, t: TFunction): string {
+  if (key === 'color') return t('catalog.variant.colour');
   return key.charAt(0).toUpperCase() + key.slice(1);
 }
 
-export function optionValueLabel(key: string, value: string): string {
-  if (key === 'size') return SIZE_NAMES[value] ?? value;
+export function optionValueLabel(key: string, value: string, t: TFunction): string {
+  const sizeKey = SIZE_NAMES[value];
+  if (key === 'size') return sizeKey ? t(sizeKey) : value;
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
@@ -75,6 +77,7 @@ interface VariantPickerProps {
 // except labels and swatches. Each group is a fieldset of native radios (or a native select), so
 // keyboard use is the platform's: Tab into the group, arrow keys to choose, no custom handlers.
 export function VariantPicker({ optionKeys, variants, selected, onSelect }: VariantPickerProps) {
+  const { t } = useT();
   const prefix = useId();
   if (optionKeys.length === 0) return null;
   const selection = selectionOf(selected, optionKeys);
@@ -95,19 +98,21 @@ export function VariantPicker({ optionKeys, variants, selected, onSelect }: Vari
         const status = (value: string): OptionStatus =>
           optionStatus(variants, selection, key, value);
         const disabled = (value: string) => status(value) !== 'available' && value !== current;
-        const suffix = (value: string) =>
-          status(value) === 'sold-out'
-            ? ' (sold out)'
-            : status(value) === 'unavailable'
-              ? ' (unavailable)'
-              : '';
+        // The value's name, with the reason when its choice is disabled.
+        const named = (value: string) => {
+          const label = optionValueLabel(key, value, t);
+          const state = status(value);
+          if (state === 'sold-out') return t('catalog.variant.soldOut', { label });
+          if (state === 'unavailable') return t('catalog.variant.unavailable', { label });
+          return label;
+        };
 
         if (values.length > MAX_BUTTONS) {
           const id = `${prefix}-${key}`;
           return (
             <div key={key} className="flex flex-col gap-1.5">
               <label htmlFor={id} className="font-display text-lg font-bold">
-                {optionKeyLabel(key)}
+                {optionKeyLabel(key, t)}
               </label>
               <select
                 id={id}
@@ -118,8 +123,7 @@ export function VariantPicker({ optionKeys, variants, selected, onSelect }: Vari
               >
                 {values.map((value) => (
                   <option key={value} value={value} disabled={disabled(value)}>
-                    {optionValueLabel(key, value)}
-                    {suffix(value)}
+                    {named(value)}
                   </option>
                 ))}
               </select>
@@ -131,16 +135,16 @@ export function VariantPicker({ optionKeys, variants, selected, onSelect }: Vari
         return (
           <fieldset key={key} className="min-w-0">
             <legend className="mb-2 font-display text-lg font-bold">
-              {optionKeyLabel(key)}
+              {optionKeyLabel(key, t)}
               {/* Without this the group's name reads "ColourYellow". */}
               <span className="sr-only">: </span>
               <span className="ml-2 font-sans text-base font-normal text-muted">
-                {optionValueLabel(key, current)}
+                {optionValueLabel(key, current, t)}
               </span>
             </legend>
             <div className="flex flex-wrap gap-2">
               {values.map((value) => {
-                const label = optionValueLabel(key, value);
+                const label = optionValueLabel(key, value, t);
                 const off = disabled(value);
                 return (
                   <label
@@ -162,7 +166,7 @@ export function VariantPicker({ optionKeys, variants, selected, onSelect }: Vari
                     {isColor ? (
                       <span
                         aria-hidden="true"
-                        title={`${label}${suffix(value)}`}
+                        title={named(value)}
                         style={{ backgroundColor: SWATCHES[value] ?? '#d4d4d8' }}
                         className={cn(
                           'block h-11 w-11 rounded-full border-2 border-line ring-offset-2 peer-checked:ring-2 peer-checked:ring-ink peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-ink',
@@ -182,10 +186,7 @@ export function VariantPicker({ optionKeys, variants, selected, onSelect }: Vari
                       </span>
                     )}
                     {/* The accessible name, including why a choice is disabled. */}
-                    <span className="sr-only">
-                      {label}
-                      {suffix(value)}
-                    </span>
+                    <span className="sr-only">{named(value)}</span>
                   </label>
                 );
               })}

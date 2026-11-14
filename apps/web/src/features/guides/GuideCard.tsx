@@ -2,10 +2,12 @@ import type { GuideCard as GuideCardData } from '@store/shared';
 import { Link } from 'react-router-dom';
 
 import { Badge } from '../../components/ui/Badge';
+import { useT } from '../../i18n';
 import { TEST_IDS } from '../../lib/test-ids';
 
 // One link per card (a single tap target, one tab stop), like the product card.
 export function GuideCard({ guide }: { guide: GuideCardData }) {
+  const { t } = useT();
   return (
     <li className="min-w-0">
       <Link
@@ -23,7 +25,9 @@ export function GuideCard({ guide }: { guide: GuideCardData }) {
         )}
         <span className="flex flex-wrap items-center gap-2">
           <Badge>{guide.category.name}</Badge>
-          <span className="text-sm text-muted">{guide.readingMinutes} min read</span>
+          <span className="text-sm text-muted">
+            {t('content.guides.minRead', { minutes: guide.readingMinutes })}
+          </span>
         </span>
         <span className="font-display text-xl font-bold leading-snug break-words">
           {guide.title}

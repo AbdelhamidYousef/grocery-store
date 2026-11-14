@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { MegaMenu } from '../../features/navigation/MegaMenu';
 import { PetSwitcher } from '../../features/pets/PetSwitcher';
 import { StoreSwitcher } from '../../features/stores/StoreSwitcher';
+import { useT } from '../../i18n';
 import { TEST_IDS } from '../../lib/test-ids';
 import { CartIcon, HeartIcon, MenuIcon, PawIcon } from '../icons';
 
@@ -22,6 +23,7 @@ export function Header({
   cartCount?: number;
   onOpenCart?: (() => void) | undefined;
 }) {
+  const { t, tn } = useT();
   const [menuOpen, setMenuOpen] = useState(false);
   const cartIcon = (
     <>
@@ -37,14 +39,14 @@ export function Header({
       )}
     </>
   );
-  const cartLabel = `Cart, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`;
+  const cartLabel = tn('shell.header.cartLabel', cartCount);
 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-surface" data-testid="header">
       <Container className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2 lg:flex-nowrap">
         <button
           type="button"
-          aria-label="Open menu"
+          aria-label={t('shell.header.openMenu')}
           aria-expanded={menuOpen}
           data-testid="mobile-nav-button"
           onClick={() => setMenuOpen(true)}
@@ -55,7 +57,7 @@ export function Header({
 
         <Link
           to="/"
-          aria-label="Pawsome home"
+          aria-label={t('shell.header.home')}
           data-testid="logo"
           className="mr-auto flex min-h-11 items-center gap-2 rounded-control font-display text-2xl font-bold text-primary-strong lg:mr-0"
         >
@@ -80,7 +82,7 @@ export function Header({
           </div>
           <Link
             to="/wishlist"
-            aria-label="Wishlist"
+            aria-label={t('shell.header.wishlist')}
             data-testid="wishlist-link"
             className="flex min-h-11 min-w-11 items-center justify-center rounded-control hover:bg-pet-soft"
           >
@@ -111,7 +113,10 @@ export function Header({
         </div>
       </Container>
 
-      <nav aria-label="Shop by pet" className="relative hidden border-t border-line lg:block">
+      <nav
+        aria-label={t('shell.shopByPet')}
+        className="relative hidden border-t border-line lg:block"
+      >
         <Container>
           <MegaMenu />
         </Container>

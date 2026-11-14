@@ -24,10 +24,12 @@ export type Details = z.output<typeof DetailsSchema>;
 
 // The checkout only ships to this list (the API refuses the rest), unlike the account address form
 // which offers more countries.
-export const SHIPPING_COUNTRIES = SUPPORTED_COUNTRIES.map((code) => ({
-  code,
-  name: countryName(code),
-})).sort((a, b) => a.name.localeCompare(b.name));
+// Names and their order follow the store's locale; the codes stay the values.
+export const shippingCountries = (locale: string) =>
+  SUPPORTED_COUNTRIES.map((code) => ({
+    code,
+    name: countryName(code, locale),
+  })).sort((a, b) => a.name.localeCompare(b.name, locale));
 
 const isSupported = (code: string) => (SUPPORTED_COUNTRIES as readonly string[]).includes(code);
 

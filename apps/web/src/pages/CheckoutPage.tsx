@@ -10,10 +10,12 @@ import { useAuth } from '../features/auth/AuthProvider';
 import { SessionExpiredNotice } from '../features/auth/SessionExpiredNotice';
 import { useCart } from '../features/cart/queries';
 import { CheckoutFlow } from '../features/checkout/CheckoutFlow';
+import { useT } from '../i18n';
 import { TEST_IDS } from '../lib/test-ids';
 import { track } from '../lib/track';
 
 export default function CheckoutPage() {
+  const { t } = useT();
   const { data: cart, isPending, error, refetch } = useCart();
   const { user, status } = useAuth();
   const addresses = useAddresses({ enabled: status === 'authenticated' });
@@ -44,11 +46,11 @@ export default function CheckoutPage() {
 
   return (
     <Container className="py-8" data-testid={TEST_IDS.pageCheckout}>
-      <Seo title="Checkout" noindex />
+      <Seo title={t('checkout.title')} noindex />
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="font-display text-3xl font-bold sm:text-4xl">Checkout</h1>
+        <h1 className="font-display text-3xl font-bold sm:text-4xl">{t('checkout.title')}</h1>
         <Link to="/cart" className="font-semibold text-primary-strong underline">
-          Back to cart
+          {t('checkout.backToCart')}
         </Link>
       </div>
       <SessionExpiredNotice signInNext="/checkout" />
@@ -56,7 +58,7 @@ export default function CheckoutPage() {
       {(isPending || (cart && !prefillReady && hasItems && !soldOut)) && (
         <div className="mt-6 flex flex-col gap-4" aria-busy="true">
           <p className="sr-only" role="status">
-            Loading checkout
+            {t('checkout.loading')}
           </p>
           <Skeleton className="h-48 w-full" />
           <Skeleton className="h-20 w-full" />
@@ -65,29 +67,27 @@ export default function CheckoutPage() {
 
       {error && !cart && (
         <div className="mt-6" role="alert">
-          <p className="font-semibold text-danger">We could not load your cart.</p>
+          <p className="font-semibold text-danger">{t('checkout.cartLoadError')}</p>
           <Button className="mt-3" onClick={() => void refetch()}>
-            Try again
+            {t('checkout.tryAgain')}
           </Button>
         </div>
       )}
 
       {cart && !hasItems && (
         <div className="mt-8 flex flex-col items-start gap-4" data-testid={TEST_IDS.cartEmpty}>
-          <p className="text-lg">Your cart is empty, so there is nothing to check out yet.</p>
+          <p className="text-lg">{t('checkout.empty')}</p>
           <Link to="/" className={buttonClasses('primary', 'lg')}>
-            Continue shopping
+            {t('checkout.continueShopping')}
           </Link>
         </div>
       )}
 
       {cart && hasItems && soldOut && (
         <div className="mt-8 flex flex-col items-start gap-4" role="alert">
-          <p className="font-semibold text-danger">
-            An item in your cart has sold out. Remove it to continue.
-          </p>
+          <p className="font-semibold text-danger">{t('checkout.soldOut')}</p>
           <Link to="/cart" className={buttonClasses('primary', 'lg')}>
-            Review your cart
+            {t('checkout.reviewCart')}
           </Link>
         </div>
       )}

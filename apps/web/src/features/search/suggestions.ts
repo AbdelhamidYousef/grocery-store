@@ -1,4 +1,6 @@
-import { formatMoney, SUGGEST_MIN_CHARS, type Suggestions } from '@store/shared';
+import { SUGGEST_MIN_CHARS, type Suggestions } from '@store/shared';
+
+import type { TFunction, TnFunction } from '../../i18n';
 
 export type SuggestionOption =
   | { kind: 'product'; label: string; secondary: string; to: string; image: string | null }
@@ -17,33 +19,37 @@ export const searchUrl = (q: string) => `/search?q=${encodeURIComponent(q)}`;
 export const isSearchable = (q: string) => q.trim().length >= SUGGEST_MIN_CHARS;
 
 /** Suggestions in the order they are shown (and navigated with the arrow keys). */
-export function groupSuggestions(data: Suggestions): OptionGroup[] {
+export function groupSuggestions(
+  data: Suggestions,
+  t: TFunction,
+  money: (cents: number, currency?: string) => string,
+): OptionGroup[] {
   const groups: OptionGroup[] = [
     {
       id: 'products',
-      label: 'Products',
+      label: t('search.group.products'),
       options: data.products.map((p) => ({
         kind: 'product',
         label: p.name,
-        secondary: `from ${formatMoney(p.priceFromCents, p.currency)}`,
+        secondary: t('search.from', { price: money(p.priceFromCents, p.currency) }),
         to: `/products/${p.slug}`,
         image: p.imageUrl,
       })),
     },
     {
       id: 'categories',
-      label: 'Categories',
+      label: t('search.group.categories'),
       options: data.categories.map((c) => ({
         kind: 'category',
         label: c.name,
-        secondary: c.parentName ? `in ${c.parentName}` : '',
+        secondary: c.parentName ? t('search.inParent', { name: c.parentName }) : '',
         to: `/c/${c.slug}`,
         image: null,
       })),
     },
     {
       id: 'brands',
-      label: 'Brands',
+      label: t('search.group.brands'),
       options: data.brands.map((b) => ({
         kind: 'brand',
         label: b.name,
@@ -56,12 +62,12 @@ export function groupSuggestions(data: Suggestions): OptionGroup[] {
   return groups.filter((g) => g.options.length > 0);
 }
 
-export function recentGroup(recents: string[]): OptionGroup[] {
+export function recentGroup(recents: string[], t: TFunction): OptionGroup[] {
   if (recents.length === 0) return [];
   return [
     {
       id: 'recent',
-      label: 'Recent searches',
+      label: t('search.group.recent'),
       options: recents.map((term) => ({
         kind: 'recent',
         label: term,
@@ -73,14 +79,12 @@ export function recentGroup(recents: string[]): OptionGroup[] {
   ];
 }
 
-const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
-
 /** The sentence a screen reader hears when the list changes: "5 products, 2 brands". */
-export function announce(data: Suggestions): string {
+export function announce(data: Suggestions, tn: TnFunction): string {
   const parts = [
-    data.products.length > 0 && plural(data.products.length, 'product', 'products'),
-    data.categories.length > 0 && plural(data.categories.length, 'category', 'categories'),
-    data.brands.length > 0 && plural(data.brands.length, 'brand', 'brands'),
+    data.products.length > 0 && tn('search.count.products', data.products.length),
+    data.categories.length > 0 && tn('search.count.categories', data.categories.length),
+    data.brands.length > 0 && tn('search.count.brands', data.brands.length),
   ].filter(Boolean);
-  return parts.length > 0 ? parts.join(', ') : 'No suggestions';
+  return parts.join(', ');
 }

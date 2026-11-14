@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { Container } from '../../components/layout/Container';
+import { useT } from '../../i18n';
 
 import { useActiveSafetyNotices } from './queries';
 import { SafetyNoticeBox } from './SafetyNoticeBox';
@@ -20,6 +21,7 @@ function readDismissed(): string[] {
 // (sessionStorage), so a recall comes back tomorrow but does not nag on every page view today.
 // The product page box, by contrast, is never dismissible.
 export function SafetyBanner() {
+  const { t } = useT();
   const { data } = useActiveSafetyNotices();
   const [dismissed, setDismissed] = useState<string[]>(readDismissed);
   const visible = (data ?? []).filter((n) => !dismissed.includes(n.id));
@@ -45,10 +47,10 @@ export function SafetyBanner() {
             <button
               type="button"
               onClick={() => dismiss(notice.id)}
-              aria-label={`Dismiss: ${notice.title}`}
+              aria-label={t('shell.safety.dismissAria', { title: notice.title })}
               className="inline-flex min-h-11 shrink-0 items-center rounded-control border-2 border-ink bg-surface px-3 font-display font-semibold hover:bg-pet-soft"
             >
-              Dismiss
+              {t('shell.safety.dismiss')}
             </button>
           }
         />

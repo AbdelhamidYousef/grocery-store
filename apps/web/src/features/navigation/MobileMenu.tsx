@@ -2,10 +2,12 @@ import { useId, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 
 import { ChevronDownIcon, PetGlyph } from '../../components/icons';
+import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { PETS } from '../../lib/pets';
 
 import { MAX_MENU_CATEGORIES } from './MegaMenu';
+import { petName } from './pet-names';
 import { PromoTile } from './PromoTile';
 import { useNavigation } from './queries';
 
@@ -17,6 +19,7 @@ const subLink =
 // The same menu inside the mobile drawer: one accordion level per pet. The drawer itself is a
 // modal <dialog> (focus trap, Escape and scroll lock come from it); every row is 44 px or more.
 export function MobileMenu({ onNavigate }: { onNavigate: () => void }) {
+  const { t } = useT();
   const { data } = useNavigation();
   const [openPet, setOpenPet] = useState<string | null>(null);
   const baseId = useId();
@@ -31,13 +34,13 @@ export function MobileMenu({ onNavigate }: { onNavigate: () => void }) {
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-pet-accent text-ink">
                 <PetGlyph icon={pet.icon} width={22} height={22} />
               </span>
-              {pet.name}
+              {petName(t, pet)}
             </NavLink>
           </li>
         ))}
         <li>
           <NavLink to="/brands" onClick={onNavigate} className={rowClass}>
-            Brands
+            {t('shell.nav.brands')}
           </NavLink>
         </li>
       </ul>
@@ -90,15 +93,20 @@ export function MobileMenu({ onNavigate }: { onNavigate: () => void }) {
                       onClick={onNavigate}
                       className={`${subLink} font-semibold text-primary-strong`}
                     >
-                      {entry.categories.length > MAX_MENU_CATEGORIES
-                        ? `See all ${entry.name}`
-                        : `All ${entry.name}`}
+                      {t(
+                        entry.categories.length > MAX_MENU_CATEGORIES
+                          ? 'shell.nav.seeAll'
+                          : 'shell.nav.all',
+                        { name: entry.name },
+                      )}
                     </Link>
                   </li>
                 </ul>
                 {entry.brands.length > 0 && (
                   <>
-                    <p className="mt-2 px-3 font-display text-sm font-bold text-muted">Brands</p>
+                    <p className="mt-2 px-3 font-display text-sm font-bold text-muted">
+                      {t('shell.nav.brands')}
+                    </p>
                     <ul>
                       {entry.brands.map((b) => (
                         <li key={b.slug}>
@@ -122,7 +130,7 @@ export function MobileMenu({ onNavigate }: { onNavigate: () => void }) {
       })}
       <li>
         <NavLink to="/brands" onClick={onNavigate} className={rowClass}>
-          Brands
+          {t('shell.nav.brands')}
         </NavLink>
       </li>
     </ul>

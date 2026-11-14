@@ -1,4 +1,4 @@
-import { HELP_TOPIC_LABELS, HELP_TOPICS, HelpTopicSchema, type HelpTopic } from '@store/shared';
+import { HELP_TOPICS, HelpTopicSchema, type HelpTopic } from '@store/shared';
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
@@ -9,10 +9,18 @@ import { Input } from '../components/ui/Input';
 import { Skeleton } from '../components/ui/Skeleton';
 import { HelpAccordion } from '../features/help/HelpAccordion';
 import { useHelpSearch } from '../features/help/queries';
+import { useT, type StringKey } from '../i18n';
 import { TEST_IDS } from '../lib/test-ids';
 import { track } from '../lib/track';
 
 const DEBOUNCE_MS = 300;
+
+const TOPIC_KEYS: Record<HelpTopic, StringKey> = {
+  shipping: 'content.help.topic.shipping',
+  returns: 'content.help.topic.returns',
+  payments: 'content.help.topic.payments',
+  accounts: 'content.help.topic.accounts',
+};
 
 const tab =
   'inline-flex min-h-11 items-center rounded-full border-2 border-line px-4 font-display font-semibold hover:bg-pet-soft aria-[current=page]:border-primary aria-[current=page]:bg-primary-soft aria-[current=page]:text-primary-strong';
@@ -22,6 +30,7 @@ const tab =
 // typing does not send a request (or a history entry) per keystroke.
 export default function HelpPage() {
   const [params, setParams] = useSearchParams();
+  const { t, tn } = useT();
   const q = params.get('q') ?? '';
   const parsedTopic = HelpTopicSchema.safeParse(params.get('topic'));
   const topic: HelpTopic | undefined = parsedTopic.success ? parsedTopic.data : undefined;
@@ -67,21 +76,18 @@ export default function HelpPage() {
 
   return (
     <Container className="py-8" data-testid={TEST_IDS.pageHelp}>
-      <Seo
-        title="Help centre"
-        description="Answers about shipping, returns, payments and your account."
-      />
-      <h1 className="font-display text-3xl font-bold sm:text-4xl">Help centre</h1>
-      <p className="mt-2 max-w-prose text-muted">Search, or pick a topic.</p>
+      <Seo title={t('content.help.title')} description={t('content.help.seoDescription')} />
+      <h1 className="font-display text-3xl font-bold sm:text-4xl">{t('content.help.title')}</h1>
+      <p className="mt-2 max-w-prose text-muted">{t('content.help.intro')}</p>
 
       <form
         role="search"
-        aria-label="Search help"
+        aria-label={t('content.help.searchLabel')}
         className="mt-5 max-w-xl"
         onSubmit={(e) => e.preventDefault()}
       >
         <Input
-          label="Search the help centre"
+          label={t('content.help.searchInput')}
           type="search"
           value={text}
           maxLength={100}
@@ -90,7 +96,7 @@ export default function HelpPage() {
         />
       </form>
 
-      <nav aria-label="Help topics" className="mt-4">
+      <nav aria-label={t('content.help.topics')} className="mt-4">
         <ul className="flex flex-wrap gap-2">
           <li>
             <Link
@@ -99,53 +105,53 @@ export default function HelpPage() {
               data-testid={TEST_IDS.helpTopic}
               className={tab}
             >
-              All topics
+              {t('content.help.allTopics')}
             </Link>
           </li>
-          {HELP_TOPICS.map((t) => (
-            <li key={t}>
+          {HELP_TOPICS.map((topicValue) => (
+            <li key={topicValue}>
               <Link
-                to={hrefForTopic(t)}
-                aria-current={topic === t ? 'page' : undefined}
+                to={hrefForTopic(topicValue)}
+                aria-current={topic === topicValue ? 'page' : undefined}
                 data-testid={TEST_IDS.helpTopic}
                 className={tab}
               >
-                {HELP_TOPIC_LABELS[t]}
+                {t(TOPIC_KEYS[topicValue])}
               </Link>
             </li>
           ))}
         </ul>
       </nav>
 
-      <section className="mt-6" aria-live="polite" aria-label="Help articles">
+      <section className="mt-6" aria-live="polite" aria-label={t('content.help.articles')}>
         {isPending && !error && <Skeleton className="h-48 w-full rounded-card" />}
         {error && !data && (
           <div role="alert">
-            <p className="font-semibold text-danger">We could not load the help articles.</p>
+            <p className="font-semibold text-danger">{t('content.help.error')}</p>
             <Button className="mt-2" variant="secondary" onClick={() => void refetch()}>
-              Try again
+              {t('content.help.retry')}
             </Button>
           </div>
         )}
         {data && data.length === 0 && (
           <div data-testid={TEST_IDS.helpNoResults}>
             <p className="font-semibold">
-              {q ? `Nothing found for "${q}".` : 'No articles in this topic yet.'}
+              {q ? t('content.help.nothingFound', { q }) : t('content.help.noArticles')}
             </p>
             <p className="mt-1 text-muted">
-              Try different words, or{' '}
+              {t('content.help.tryDifferent')}{' '}
               <Link to="/help" className="font-semibold text-primary-strong underline">
-                browse every topic
+                {t('content.help.browseAll')}
               </Link>
-              . Still stuck?{' '}
+              {t('content.help.stuck')}{' '}
               <Link
                 to="/contact"
                 className="font-semibold text-primary-strong underline"
                 data-testid={TEST_IDS.helpContact}
               >
-                Contact us
+                {t('content.help.contact')}
               </Link>{' '}
-              and a real person will answer.
+              {t('content.help.contactRest')}
             </p>
           </div>
         )}
@@ -153,7 +159,7 @@ export default function HelpPage() {
           <>
             {q && (
               <p className="mb-2 text-sm text-muted">
-                {data.length} {data.length === 1 ? 'answer' : 'answers'} for &quot;{q}&quot;
+                {tn('content.help.results', data.length, { q })}
               </p>
             )}
             <HelpAccordion hits={data} searching={!!q.trim()} />

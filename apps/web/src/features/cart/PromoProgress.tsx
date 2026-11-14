@@ -1,6 +1,6 @@
-import { formatMoney } from '@store/shared';
-
 import type { WebCart } from '../../api/cart';
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { TEST_IDS } from '../../lib/test-ids';
 
 // A progress bar with its sentence. The sentence is also the bar's accessible value text, so a
@@ -46,18 +46,20 @@ export function GiftProgress({
   pricing: WebCart['pricing'];
   currency: string;
 }) {
+  const { t } = useT();
+  const fmt = useFormat();
   const gift = pricing.progress.gift;
   if (!gift) return null;
   return (
     <Bar
-      label="Progress to a free gift"
+      label={t('cart.progress.giftLabel')}
       testId={TEST_IDS.cartGiftProgress}
       percent={gift.percent}
       reached={gift.reached}
       text={
         gift.reached
-          ? 'You get a free gift!'
-          : `Spend ${formatMoney(gift.remainingCents, currency)} more for a free gift`
+          ? t('cart.progress.giftReached')
+          : t('cart.progress.giftRemaining', { amount: fmt.money(gift.remainingCents, currency) })
       }
     />
   );
@@ -72,16 +74,18 @@ export function FreeShippingProgress({
   remainingCents: number;
   currency: string;
 }) {
+  const { t } = useT();
+  const fmt = useFormat();
   return (
     <Bar
-      label="Progress to free shipping"
+      label={t('cart.progress.shippingLabel')}
       testId={TEST_IDS.cartShippingHint}
       percent={percent}
       reached={remainingCents === 0}
       text={
         remainingCents === 0
-          ? 'You get free standard shipping.'
-          : `Add ${formatMoney(remainingCents, currency)} more for free standard shipping.`
+          ? t('cart.progress.shippingReached')
+          : t('cart.progress.shippingRemaining', { amount: fmt.money(remainingCents, currency) })
       }
     />
   );

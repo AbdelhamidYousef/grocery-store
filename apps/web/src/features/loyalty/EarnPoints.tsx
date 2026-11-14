@@ -1,6 +1,7 @@
 import { pointsForCents } from '@store/shared';
 import { Link } from 'react-router-dom';
 
+import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { loginUrl } from '../../lib/safe-next';
 import { TEST_IDS } from '../../lib/test-ids';
@@ -22,15 +23,16 @@ export function EarnPoints({
   className?: string;
 }) {
   const { user, status } = useAuthOptional();
+  const { t, tn } = useT();
   const { data } = usePoints();
   if (status === 'loading') return null;
   if (!user) {
     return (
       <p className={cn('text-sm text-muted', className)} data-testid={TEST_IDS.earnPoints}>
         <Link to={loginUrl(returnTo)} className="font-semibold text-primary-strong underline">
-          Sign in to earn
+          {t('loyalty.earn.signInLink')}
         </Link>{' '}
-        loyalty points on this order.
+        {t('loyalty.earn.signInRest')}
       </p>
     );
   }
@@ -41,7 +43,7 @@ export function EarnPoints({
       className={cn('text-sm font-semibold text-success', className)}
       data-testid={TEST_IDS.earnPoints}
     >
-      Earn {points} {points === 1 ? 'point' : 'points'}
+      {tn('loyalty.earn.points', points)}
     </p>
   );
 }

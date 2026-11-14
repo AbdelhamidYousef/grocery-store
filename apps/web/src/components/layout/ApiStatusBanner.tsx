@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 
 import { fetchHealth } from '../../api/health';
+import { useT } from '../../i18n';
 import { keys } from '../../lib/query-client';
 import { TEST_IDS } from '../../lib/test-ids';
 
@@ -16,6 +17,7 @@ export const DOWN_POLL_MS = 5_000;
 // does not flash a scary banner. It recovers by itself, and on recovery re-runs the queries that
 // failed in the meantime, so a page that showed "We could not load..." fills in without a click.
 export function ApiStatusBanner() {
+  const { t } = useT();
   const queryClient = useQueryClient();
   const { isError } = useQuery({
     queryKey: keys.health,
@@ -46,8 +48,7 @@ export function ApiStatusBanner() {
       data-testid={TEST_IDS.apiDownBanner}
       className="border-b-2 border-ink bg-danger-soft px-4 py-2 text-center font-semibold text-danger"
     >
-      We cannot reach the shop&apos;s server right now. Your cart is safe. We keep trying, and this
-      message disappears by itself when it is back.
+      {t('shell.apiDown')}
     </div>
   );
 }

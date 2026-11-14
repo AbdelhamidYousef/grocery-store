@@ -2,6 +2,7 @@ import type { ProductDetail, Variant } from '@store/shared';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Tabs, type TabItem } from '../../../components/ui/Tabs';
+import { useT, type StringKey } from '../../../i18n';
 import { TEST_IDS } from '../../../lib/test-ids';
 
 import { DeliveryPanel } from './DeliveryPanel';
@@ -36,11 +37,11 @@ export function tabFromHash(hash: string, available: readonly ProductTabId[]): P
   return available.find((t) => t === id) ?? 'description';
 }
 
-const LABELS: Record<ProductTabId, string> = {
-  description: 'Description',
-  specs: 'Specs',
-  feeding: 'Feeding guide',
-  delivery: 'Delivery & returns',
+const LABELS: Record<ProductTabId, StringKey> = {
+  description: 'pdp.tabs.description',
+  specs: 'pdp.tabs.specs',
+  feeding: 'pdp.tabs.feeding',
+  delivery: 'pdp.tabs.delivery',
 };
 
 export function ProductTabs({
@@ -55,6 +56,7 @@ export function ProductTabs({
   /** Called when the feeding calculator suggests another pack size. */
   onPickVariant: (variant: Variant) => void;
 }) {
+  const { t } = useT();
   const location = useLocation();
   const navigate = useNavigate();
   const available = availableTabs(product, variant);
@@ -86,11 +88,11 @@ export function ProductTabs({
     delivery: <DeliveryPanel note={product.deliveryNote} />,
   };
 
-  const tabs: TabItem[] = available.map((id) => ({ id, label: LABELS[id], panel: panels[id] }));
+  const tabs: TabItem[] = available.map((id) => ({ id, label: t(LABELS[id]), panel: panels[id] }));
   return (
     <div data-testid={TEST_IDS.productTabs} className="mt-10">
       <Tabs
-        label="Product information"
+        label={t('pdp.tabs.label')}
         tabs={tabs}
         selectedId={selected}
         onSelect={(id) =>

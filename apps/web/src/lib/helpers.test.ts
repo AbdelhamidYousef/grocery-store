@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { ApiError } from '../api/client';
 import { applyFieldErrors, formErrorMessage } from '../features/auth/form-errors';
+import { lookupFor, type TFunction } from '../i18n';
 
 import { countryName, countryOptions } from './countries';
 import { formatDate } from './format';
@@ -32,14 +33,17 @@ describe('countries', () => {
 });
 
 describe('formErrorMessage', () => {
+  const t: TFunction = (key, params) => lookupFor('en-IE').t(key, params);
+  const tm = (m: string) => m;
+
   it('speaks plainly about network and rate-limit failures, and passes other API messages', () => {
-    expect(formErrorMessage(new ApiError('NETWORK', 0, 'x'))).toMatch(/Could not reach/);
-    expect(formErrorMessage(new ApiError('RATE_LIMITED', 429, 'x'))).toMatch(/Too many/);
-    expect(formErrorMessage(new ApiError('CONFLICT', 409, 'Taken'))).toBe('Taken');
+    expect(formErrorMessage(new ApiError('NETWORK', 0, 'x'), t, tm)).toMatch(/Could not reach/);
+    expect(formErrorMessage(new ApiError('RATE_LIMITED', 429, 'x'), t, tm)).toMatch(/Too many/);
+    expect(formErrorMessage(new ApiError('CONFLICT', 409, 'Taken'), t, tm)).toBe('Taken');
   });
 
   it('never leaks an unknown error object', () => {
-    expect(formErrorMessage(new Error('stack trace here'))).toBe(
+    expect(formErrorMessage(new Error('stack trace here'), t, tm)).toBe(
       'Something went wrong. Please try again.',
     );
   });

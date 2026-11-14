@@ -1,3 +1,4 @@
+import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
 
 import { VisuallyHidden } from './VisuallyHidden';
@@ -8,7 +9,8 @@ interface SpinnerProps {
   className?: string;
 }
 
-export function Spinner({ label = 'Loading', className }: SpinnerProps) {
+export function Spinner({ label, className }: SpinnerProps) {
+  const { t } = useT();
   const icon = (
     <svg
       className={cn('h-5 w-5 animate-spin', className)}
@@ -21,10 +23,11 @@ export function Spinner({ label = 'Loading', className }: SpinnerProps) {
     </svg>
   );
   if (label === null) return icon;
+  const spoken = label ?? t('shell.loading');
   return (
     <span role="status" className="inline-flex items-center" data-testid="spinner">
       {icon}
-      <VisuallyHidden>{label}</VisuallyHidden>
+      <VisuallyHidden>{spoken}</VisuallyHidden>
     </span>
   );
 }

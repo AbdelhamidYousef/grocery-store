@@ -1,7 +1,5 @@
 import {
-  RETURN_REASON_LABELS,
   ReturnReasonSchema,
-  formatMoney,
   returnLineRefundCents,
   type OrderItem,
   type ReturnEligibility,
@@ -13,6 +11,8 @@ import { Button } from '../../components/ui/Button';
 import { Checkbox } from '../../components/ui/Checkbox';
 import { Select } from '../../components/ui/Select';
 import { Textarea } from '../../components/ui/Textarea';
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { TEST_IDS } from '../../lib/test-ids';
 import { FormAlert } from '../auth/AuthCard';
 import { formErrorMessage } from '../auth/form-errors';
@@ -40,6 +40,8 @@ export function ReturnRequestForm({
   onCancel,
 }: Props) {
   const request = useRequestReturn(orderNumber);
+  const { t, tm } = useT();
+  const fmt = useFormat();
   const offers = items.flatMap((item) => {
     const line = eligibility.lines.find((l) => l.orderItemId === item.id);
     return line && line.returnableQuantity > 0 ? [{ item, left: line.returnableQuantity }] : [];
@@ -70,7 +72,7 @@ export function ReturnRequestForm({
     e.preventDefault();
     setError(null);
     if (picked.length === 0) {
-      setError('Choose at least one item to return');
+      setError(t('returns.form.chooseOne'));
       return;
     }
     request.mutate(
@@ -79,7 +81,7 @@ export function ReturnRequestForm({
         note: note.trim() === '' ? null : note.trim(),
         items: picked.map((o) => ({ orderItemId: o.item.id, quantity: chosen[o.item.id] ?? 0 })),
       },
-      { onSuccess: onDone, onError: (err) => setError(formErrorMessage(err)) },
+      { onSuccess: onDone, onError: (err) => setError(formErrorMessage(err, t, tm)) },
     );
   }
 
@@ -92,24 +94,27 @@ export function ReturnRequestForm({
       className="flex flex-col gap-4 rounded-card border border-line bg-surface p-4"
     >
       <h3 id="return-form-heading" className="font-display text-lg font-bold">
-        Return items
+        {t('returns.returnItems')}
       </h3>
       <fieldset className="flex flex-col gap-2">
-        <legend className="font-semibold">Which items are coming back?</legend>
+        <legend className="font-semibold">{t('returns.form.whichItems')}</legend>
         {offers.map(({ item, left }) => {
           const qty = chosen[item.id] ?? 0;
           return (
             <div key={item.id} className="flex flex-wrap items-center gap-x-4 gap-y-1">
               <div className="min-w-0 flex-1">
                 <Checkbox
-                  label={`${item.productName} (${item.variantName})`}
+                  label={t('returns.form.itemLabel', {
+                    product: item.productName,
+                    variant: item.variantName,
+                  })}
                   checked={qty > 0}
                   onChange={(e) => setChosen({ ...chosen, [item.id]: e.target.checked ? 1 : 0 })}
                 />
               </div>
               {qty > 0 && left > 1 && (
                 <Select
-                  label={`Quantity of ${item.productName}`}
+                  label={t('returns.form.quantityOf', { product: item.productName })}
                   value={qty}
                   onChange={(e) => setChosen({ ...chosen, [item.id]: Number(e.target.value) })}
                   className="w-24"
@@ -126,18 +131,18 @@ export function ReturnRequestForm({
         })}
       </fieldset>
       <Select
-        label="Why are you returning it?"
+        label={t('returns.form.why')}
         value={reason}
         onChange={(e) => setReason(ReturnReasonSchema.parse(e.target.value))}
       >
         {ReturnReasonSchema.options.map((r) => (
           <option key={r} value={r}>
-            {RETURN_REASON_LABELS[r]}
+            {t(`returns.reason.${r}`)}
           </option>
         ))}
       </Select>
       <Textarea
-        label="Anything we should know? (optional)"
+        label={t('returns.form.note')}
         value={note}
         maxLength={500}
         rows={3}
@@ -145,16 +150,16 @@ export function ReturnRequestForm({
       />
       <p aria-live="polite" data-testid="return-preview">
         {picked.length > 0
-          ? `You will get back about ${formatMoney(preview, currency)} (shipping is not included).`
-          : 'Pick an item to see your refund.'}
+          ? t('returns.form.preview', { amount: fmt.money(preview, currency) })
+          : t('returns.form.previewEmpty')}
       </p>
       <FormAlert message={error} />
       <div className="flex flex-wrap gap-2">
         <Button type="submit" loading={request.isPending}>
-          Send return request
+          {t('returns.form.send')}
         </Button>
         <Button type="button" variant="secondary" onClick={onCancel}>
-          Cancel
+          {t('returns.form.cancel')}
         </Button>
       </div>
     </form>

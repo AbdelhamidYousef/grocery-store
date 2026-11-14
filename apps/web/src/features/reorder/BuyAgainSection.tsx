@@ -1,15 +1,18 @@
-import { formatMoney } from '@store/shared';
 import { Link } from 'react-router-dom';
 
 import { Seo } from '../../components/Seo';
 import { Button } from '../../components/ui/Button';
 import { Skeleton } from '../../components/ui/Skeleton';
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { TEST_IDS } from '../../lib/test-ids';
 import { useAddToCartAction } from '../cart/queries';
 
 import { useBuyAgain } from './queries';
 
 function BuyAgainRow({ item }: { item: import('@store/shared').BuyAgainItem }) {
+  const { t, tn } = useT();
+  const fmt = useFormat();
   const cart = useAddToCartAction({ id: item.productId, name: item.name });
   return (
     <li
@@ -39,8 +42,11 @@ function BuyAgainRow({ item }: { item: import('@store/shared').BuyAgainItem }) {
           {item.name}
         </Link>
         <p className="truncate text-sm text-muted">
-          {item.variantName} &middot; {formatMoney(item.priceCents, item.currency)} today
-          {item.timesBought > 1 && <> &middot; bought {item.timesBought} times</>}
+          {t('account.reorder.priceToday', {
+            variant: item.variantName,
+            price: fmt.money(item.priceCents, item.currency),
+          })}
+          {item.timesBought > 1 && <> &middot; {tn('account.reorder.bought', item.timesBought)}</>}
         </p>
         <div className="mt-auto">
           <Button
@@ -51,7 +57,7 @@ function BuyAgainRow({ item }: { item: import('@store/shared').BuyAgainItem }) {
               cart.add({ id: item.variantId, sku: item.slug, priceCents: item.priceCents }, 1)
             }
           >
-            {item.available ? 'Add to cart' : 'Sold out'}
+            {item.available ? t('account.reorder.add') : t('account.reorder.soldOut')}
           </Button>
         </div>
       </div>
@@ -62,20 +68,21 @@ function BuyAgainRow({ item }: { item: import('@store/shared').BuyAgainItem }) {
 // The account block: what this customer has bought before, one tap from the cart.
 export function BuyAgainSection() {
   const { data, isPending, error } = useBuyAgain();
+  const { t } = useT();
   return (
     <section aria-labelledby="buy-again-heading" data-testid={TEST_IDS.pageBuyAgain}>
-      <Seo title="Buy again" noindex />
+      <Seo title={t('account.reorder.heading')} noindex />
       <h2 id="buy-again-heading" className="font-display text-2xl font-bold">
-        Buy again
+        {t('account.reorder.heading')}
       </h2>
-      <p className="mt-1 text-muted">Things you have ordered before, at today&rsquo;s prices.</p>
+      <p className="mt-1 text-muted">{t('account.reorder.intro')}</p>
       {isPending && <Skeleton className="mt-4 h-24 w-full rounded-card" />}
-      {error && <p className="mt-4 text-danger">We could not load your past items just now.</p>}
+      {error && <p className="mt-4 text-danger">{t('account.reorder.loadError')}</p>}
       {data && data.length === 0 && (
         <p className="mt-4">
-          Nothing here yet: items from your paid orders will appear here.{' '}
+          {t('account.reorder.empty')}{' '}
           <Link to="/" className="font-semibold text-primary-strong underline">
-            Start shopping
+            {t('account.reorder.startShopping')}
           </Link>
         </p>
       )}

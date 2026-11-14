@@ -1,4 +1,4 @@
-import { formatMoney, type PersonalCode, type PointKind, type Reward } from '@store/shared';
+import { type PersonalCode, type PointKind, type Reward } from '@store/shared';
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -8,7 +8,8 @@ import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { useToast } from '../../components/ui/Toast';
-import { formatDate } from '../../lib/format';
+import { useT, type StringKey, type TFunction } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { TEST_IDS } from '../../lib/test-ids';
 
 import {
@@ -21,26 +22,27 @@ import {
 } from './queries';
 import { ReferralPanel } from './ReferralPanel';
 
-const KIND_LABEL: Record<PointKind, string> = {
-  earn: 'Earned',
-  redeem: 'Spent',
-  reversal: 'Returned or taken back',
-  bonus: 'Bonus',
-  donate: 'Donated',
-  adjust: 'Adjustment',
+const KIND_LABEL: Record<PointKind, StringKey> = {
+  earn: 'loyalty.rewards.kind.earn',
+  redeem: 'loyalty.rewards.kind.redeem',
+  reversal: 'loyalty.rewards.kind.reversal',
+  bonus: 'loyalty.rewards.kind.bonus',
+  donate: 'loyalty.rewards.kind.donate',
+  adjust: 'loyalty.rewards.kind.adjust',
 };
 
-const codeValue = (c: PersonalCode) =>
+const codeValue = (c: PersonalCode, t: TFunction, fmt: ReturnType<typeof useFormat>) =>
   c.kind === 'free_shipping'
-    ? 'Free delivery'
+    ? t('loyalty.rewards.code.freeDelivery')
     : c.kind === 'fixed'
-      ? `${formatMoney(c.value, 'EUR')} off`
-      : `${c.value}% off`;
+      ? t('loyalty.rewards.code.fixedOff', { amount: fmt.money(c.value, 'EUR') })
+      : t('loyalty.rewards.code.percentOff', { percent: c.value });
 
 // Give points to the (pretend) shelter: 1 point = 1 cent.
 function DonateBox({ balance }: { balance: number }) {
   const donate = useDonatePoints();
   const toast = useToast();
+  const { t, tm } = useT();
   const total = useCharityTotal().data;
   const [text, setText] = useState('');
   const points = Number.parseInt(text, 10);
@@ -50,11 +52,14 @@ function DonateBox({ balance }: { balance: number }) {
     if (!valid) return;
     donate.mutate(points, {
       onSuccess: () => {
-        toast.show(`Thank you! ${points} points went to the shelter.`, 'success');
+        toast.show(t('loyalty.rewards.donate.thanks', { points }), 'success');
         setText('');
       },
       onError: (err) =>
-        toast.show(err instanceof ApiError ? err.message : 'We could not donate that.', 'error'),
+        toast.show(
+          err instanceof ApiError ? tm(err.message) : t('loyalty.rewards.donate.failed'),
+          'error',
+        ),
     });
   };
   return (
@@ -64,15 +69,15 @@ function DonateBox({ balance }: { balance: number }) {
       className="mt-3 flex flex-col gap-2 rounded-card border-2 border-line p-4"
     >
       <p>
-        Give points to{' '}
+        {t('loyalty.rewards.donate.giveTo')}{' '}
         <Link to="/charity" className="font-semibold text-primary-strong underline">
           {total?.charity.name ?? 'Whisker Hollow Rescue'}
         </Link>
-        , a pretend shelter (1 point = 1 cent; demo only, no money moves).
+        {t('loyalty.rewards.donate.aboutShelter')}
       </p>
       <div className="flex flex-wrap items-center gap-2">
         <label htmlFor="donate-points" className="sr-only">
-          Points to donate
+          {t('loyalty.rewards.donate.label')}
         </label>
         <input
           id="donate-points"
@@ -85,7 +90,7 @@ function DonateBox({ balance }: { balance: number }) {
           className="min-h-11 w-32 rounded-control border-2 border-line bg-surface px-3"
         />
         <Button type="submit" variant="secondary" disabled={!valid} loading={donate.isPending}>
-          Donate
+          {t('loyalty.rewards.donate.button')}
         </Button>
       </div>
     </form>
@@ -95,6 +100,7 @@ function DonateBox({ balance }: { balance: number }) {
 function RewardCard({ reward, balance }: { reward: Reward; balance: number }) {
   const redeem = useRedeemReward();
   const toast = useToast();
+  const { t, tm } = useT();
   const short = reward.costPoints - balance;
   return (
     <li
@@ -103,7 +109,7 @@ function RewardCard({ reward, balance }: { reward: Reward; balance: number }) {
     >
       <h4 className="font-display text-lg font-bold">{reward.name}</h4>
       <p className="min-w-0 break-words text-sm text-muted">{reward.description}</p>
-      <p className="font-semibold">{reward.costPoints} points</p>
+      <p className="font-semibold">{t('loyalty.rewards.cost', { points: reward.costPoints })}</p>
       <Button
         className="mt-auto"
         data-testid={TEST_IDS.rewardRedeem}
@@ -111,14 +117,20 @@ function RewardCard({ reward, balance }: { reward: Reward; balance: number }) {
         loading={redeem.isPending}
         onClick={() =>
           redeem.mutate(reward.id, {
-            onSuccess: (r) => toast.show(`Your code is ${r.code.code}`, 'success'),
+            onSuccess: (r) =>
+              toast.show(t('loyalty.rewards.redeem.code', { code: r.code.code }), 'success'),
             onError: (e) =>
-              toast.show(e instanceof ApiError ? e.message : 'We could not redeem that.', 'error'),
+              toast.show(
+                e instanceof ApiError ? tm(e.message) : t('loyalty.rewards.redeem.failed'),
+                'error',
+              ),
           })
         }
       >
-        {short > 0 ? `${short} more points` : 'Redeem'}
-        <span className="sr-only"> for {reward.name}</span>
+        {short > 0
+          ? t('loyalty.rewards.redeem.morePoints', { short })
+          : t('loyalty.rewards.redeem.button')}
+        <span className="sr-only"> {t('loyalty.rewards.redeem.for', { name: reward.name })}</span>
       </Button>
     </li>
   );
@@ -131,20 +143,22 @@ export function RewardsSection() {
   const rewards = useRewards();
   const codes = useMyCodes();
   const data = points.data;
+  const { t } = useT();
+  const fmt = useFormat();
 
   return (
     <section aria-labelledby="rewards-heading" data-testid="account-rewards">
-      <Seo title="Rewards" noindex />
+      <Seo title={t('loyalty.rewards.title')} noindex />
       <h2 id="rewards-heading" className="font-display text-2xl font-bold">
-        Rewards
+        {t('loyalty.rewards.title')}
       </h2>
 
       {points.isPending && !points.error && <Skeleton className="mt-4 h-28 w-full rounded-card" />}
       {points.error && !data && (
         <div className="mt-4" role="alert">
-          <p className="font-semibold text-danger">We could not load your points.</p>
+          <p className="font-semibold text-danger">{t('loyalty.rewards.pointsError')}</p>
           <Button className="mt-2" variant="secondary" onClick={() => void points.refetch()}>
-            Try again
+            {t('loyalty.rewards.retry')}
           </Button>
         </div>
       )}
@@ -152,13 +166,15 @@ export function RewardsSection() {
       {data && (
         <div className="mt-4 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-card bg-pet-soft p-4">
           <div>
-            <p className="text-sm text-muted">Your balance</p>
+            <p className="text-sm text-muted">{t('loyalty.rewards.balance')}</p>
             <p className="font-display text-4xl font-bold" data-testid={TEST_IDS.pointsBalance}>
               {data.balance}
-              <span className="ml-1 text-base font-semibold">points</span>
+              <span className="ml-1 text-base font-semibold">
+                {t('loyalty.rewards.pointsUnit')}
+              </span>
             </p>
             <p className="text-sm text-muted">
-              Worth {formatMoney(Math.max(0, data.balance), 'EUR')} at checkout
+              {t('loyalty.rewards.worth', { amount: fmt.money(Math.max(0, data.balance), 'EUR') })}
             </p>
           </div>
           <div className="min-w-0">
@@ -166,25 +182,32 @@ export function RewardsSection() {
               {data.tier.label}
             </Badge>
             <p className="mt-1 text-sm">
-              You earn {data.tier.ratePercent === 100 ? '1 point' : `${data.tier.ratePercent}%`} per
-              euro spent.
+              {t(
+                data.tier.ratePercent === 100
+                  ? 'loyalty.rewards.earnRateOne'
+                  : 'loyalty.rewards.earnRatePercent',
+                { percent: data.tier.ratePercent },
+              )}
             </p>
             {data.nextTier ? (
               <p className="text-sm text-muted">
-                {data.nextTier.pointsNeeded} more earned points to reach {data.nextTier.label}.
+                {t('loyalty.rewards.nextTier', {
+                  points: data.nextTier.pointsNeeded,
+                  label: data.nextTier.label,
+                })}
               </p>
             ) : (
-              <p className="text-sm text-muted">You are at the top tier. Good dog!</p>
+              <p className="text-sm text-muted">{t('loyalty.rewards.topTier')}</p>
             )}
           </div>
         </div>
       )}
 
-      <h3 className="mt-8 font-display text-xl font-bold">Spend your points</h3>
+      <h3 className="mt-8 font-display text-xl font-bold">{t('loyalty.rewards.spendTitle')}</h3>
       {rewards.isPending && <Skeleton className="mt-3 h-32 w-full rounded-card" />}
-      {rewards.error && <p className="mt-3 text-danger">We could not load the rewards.</p>}
+      {rewards.error && <p className="mt-3 text-danger">{t('loyalty.rewards.rewardsError')}</p>}
       {rewards.data && rewards.data.length === 0 && (
-        <p className="mt-3 text-muted">No rewards are available right now.</p>
+        <p className="mt-3 text-muted">{t('loyalty.rewards.noRewards')}</p>
       )}
       {rewards.data && rewards.data.length > 0 && (
         <ul className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -194,16 +217,14 @@ export function RewardsSection() {
         </ul>
       )}
 
-      <h3 className="mt-8 font-display text-xl font-bold">Or give them away</h3>
+      <h3 className="mt-8 font-display text-xl font-bold">{t('loyalty.rewards.giveAwayTitle')}</h3>
       <DonateBox balance={Math.max(0, data?.balance ?? 0)} />
 
       <ReferralPanel />
 
-      <h3 className="mt-8 font-display text-xl font-bold">Your codes</h3>
+      <h3 className="mt-8 font-display text-xl font-bold">{t('loyalty.rewards.codesTitle')}</h3>
       {codes.data && codes.data.length === 0 && (
-        <p className="mt-3 text-muted">
-          Codes you buy with points appear here. Apply one in your cart.
-        </p>
+        <p className="mt-3 text-muted">{t('loyalty.rewards.codesEmpty')}</p>
       )}
       {codes.data && codes.data.length > 0 && (
         <ul className="mt-3 flex flex-col gap-2">
@@ -215,32 +236,35 @@ export function RewardsSection() {
             >
               <span className="font-mono font-bold">{c.code}</span>
               <span className="min-w-0 break-words text-sm">
-                {codeValue(c)}
-                {c.minSpendCents > 0 && `, min spend ${formatMoney(c.minSpendCents, 'EUR')}`}
+                {codeValue(c, t, fmt)}
+                {c.minSpendCents > 0 &&
+                  t('loyalty.rewards.code.minSpend', { amount: fmt.money(c.minSpendCents, 'EUR') })}
               </span>
               <span className="text-sm text-muted">
-                {c.used ? 'Used' : c.endsAt ? `Valid until ${formatDate(c.endsAt)}` : 'No expiry'}
+                {c.used
+                  ? t('loyalty.rewards.code.used')
+                  : c.endsAt
+                    ? t('loyalty.rewards.code.validUntil', { date: fmt.date(c.endsAt) })
+                    : t('loyalty.rewards.code.noExpiry')}
               </span>
             </li>
           ))}
         </ul>
       )}
 
-      <h3 className="mt-8 font-display text-xl font-bold">Points history</h3>
+      <h3 className="mt-8 font-display text-xl font-bold">{t('loyalty.rewards.historyTitle')}</h3>
       {data && data.entries.length === 0 && (
-        <p className="mt-3 text-muted">
-          No points yet. Every euro you spend on an order earns points.
-        </p>
+        <p className="mt-3 text-muted">{t('loyalty.rewards.historyEmpty')}</p>
       )}
       {data && data.entries.length > 0 && (
         <div className="relative mt-3 overflow-x-auto rounded-card border border-line">
           <table className="w-full text-left text-sm">
-            <caption className="sr-only">Your last 50 points movements</caption>
+            <caption className="sr-only">{t('loyalty.rewards.historyCaption')}</caption>
             <thead className="bg-bg">
               <tr>
-                <th className="p-3">Date</th>
-                <th className="p-3">What</th>
-                <th className="p-3 text-right">Points</th>
+                <th className="p-3">{t('loyalty.rewards.colDate')}</th>
+                <th className="p-3">{t('loyalty.rewards.colWhat')}</th>
+                <th className="p-3 text-right">{t('loyalty.rewards.colPoints')}</th>
               </tr>
             </thead>
             <tbody>
@@ -250,9 +274,9 @@ export function RewardsSection() {
                   className="border-t border-line"
                   data-testid={TEST_IDS.pointsLedgerRow}
                 >
-                  <td className="whitespace-nowrap p-3">{formatDate(e.createdAt)}</td>
+                  <td className="whitespace-nowrap p-3">{fmt.date(e.createdAt)}</td>
                   <td className="min-w-0 break-words p-3">
-                    {KIND_LABEL[e.kind]}
+                    {t(KIND_LABEL[e.kind])}
                     {e.orderNumber ? ` · ${e.orderNumber}` : ''}
                     {e.reason && !e.orderNumber ? ` · ${e.reason}` : ''}
                   </td>

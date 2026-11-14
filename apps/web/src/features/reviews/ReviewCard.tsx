@@ -5,7 +5,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Dialog } from '../../components/ui/Dialog';
-import { formatDate } from '../../lib/format';
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { loginUrl } from '../../lib/safe-next';
 import { TEST_IDS } from '../../lib/test-ids';
 import { useAuth } from '../auth/AuthProvider';
@@ -16,11 +17,13 @@ import { RatingStars } from './RatingStars';
 
 // Text is rendered as text (React escapes it): reviews are stored raw and may contain anything.
 export function ReviewCard({ review }: { review: Review }) {
+  const { t, tn, tm } = useT();
+  const fmt = useFormat();
   const { status } = useAuth();
   const location = useLocation();
   const helpful = useHelpful();
   const [open, setOpen] = useState<string | null>(null);
-  const context = petContextLine(review);
+  const context = petContextLine(review, { t, tn, locale: fmt.locale });
 
   return (
     <li
@@ -34,25 +37,27 @@ export function ReviewCard({ review }: { review: Review }) {
       <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
         <span>{review.authorName}</span>
         <span aria-hidden="true">·</span>
-        <time dateTime={review.createdAt}>{formatDate(review.createdAt)}</time>
+        <time dateTime={review.createdAt}>{fmt.date(review.createdAt)}</time>
         {review.verifiedBuyer && (
           <Badge tone="success" data-testid={TEST_IDS.reviewVerified}>
-            Verified buyer
+            {t('reviews.card.verified')}
           </Badge>
         )}
       </p>
       {context && <p className="text-sm font-semibold text-pet-strong">{context}</p>}
       <p className="whitespace-pre-line break-words">{review.body}</p>
-      <p className="text-sm">{review.wouldRecommend ? 'Would recommend' : 'Would not recommend'}</p>
+      <p className="text-sm">
+        {review.wouldRecommend ? t('reviews.card.recommend') : t('reviews.card.notRecommend')}
+      </p>
 
       {review.photos.length > 0 && (
-        <ul className="flex flex-wrap gap-2" aria-label="Customer photos">
+        <ul className="flex flex-wrap gap-2" aria-label={t('reviews.card.photos')}>
           {review.photos.map((photo, i) => (
             <li key={photo.id}>
               <button
                 type="button"
                 data-testid={TEST_IDS.reviewPhoto}
-                aria-label={`Open photo ${i + 1} of ${review.photos.length}`}
+                aria-label={t('reviews.card.openPhoto', { n: i + 1, total: review.photos.length })}
                 onClick={() => setOpen(photo.path)}
                 className="block h-20 w-20 overflow-hidden rounded-control border border-line"
               >
@@ -67,11 +72,15 @@ export function ReviewCard({ review }: { review: Review }) {
           ))}
         </ul>
       )}
-      <Dialog open={open !== null} onClose={() => setOpen(null)} title="Customer photo">
+      <Dialog
+        open={open !== null}
+        onClose={() => setOpen(null)}
+        title={t('reviews.card.photoTitle')}
+      >
         {open && (
           <img
             src={open}
-            alt={`Photo from ${review.authorName}'s review: ${review.title}`}
+            alt={t('reviews.card.photoAlt', { author: review.authorName, title: review.title })}
             className="max-h-[75vh] w-full object-contain"
           />
         )}
@@ -87,19 +96,21 @@ export function ReviewCard({ review }: { review: Review }) {
             loading={helpful.isPending}
             onClick={() => helpful.mutate(review.id)}
           >
-            {review.votedHelpful ? 'Marked helpful' : 'Helpful'} ({review.helpfulCount})
+            {t(review.votedHelpful ? 'reviews.card.markedHelpful' : 'reviews.card.helpful', {
+              count: review.helpfulCount,
+            })}
           </Button>
         ) : (
           <Link
             to={loginUrl(`${location.pathname}${location.search}#reviews`)}
             className="text-sm font-semibold underline"
           >
-            Sign in to mark helpful ({review.helpfulCount})
+            {t('reviews.card.signInHelpful', { count: review.helpfulCount })}
           </Link>
         )}
         {helpful.isError && (
           <span role="alert" className="text-sm font-semibold text-danger">
-            {helpful.error.message}
+            {tm(helpful.error.message)}
           </span>
         )}
       </div>

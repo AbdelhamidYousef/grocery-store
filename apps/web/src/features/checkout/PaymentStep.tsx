@@ -1,16 +1,19 @@
-import { formatMoney } from '@store/shared';
 import { Elements, PaymentElement } from '@stripe/react-stripe-js';
 import { useEffect, useMemo, useState } from 'react';
 
 import type { PlacedOrder } from '../../api/checkout';
 import { Button } from '../../components/ui/Button';
 import { Spinner } from '../../components/ui/Spinner';
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { getStripe, paymentsConfigured, resetStripe } from '../../lib/stripe';
 import { TEST_IDS } from '../../lib/test-ids';
 
 import { usePay } from './usePay';
 
 function PayForm({ placed, onLoadError }: { placed: PlacedOrder; onLoadError: () => void }) {
+  const { t } = useT();
+  const fmt = useFormat();
   const { pay, paying, error, ready } = usePay(placed.orderNumber);
   return (
     <form
@@ -39,11 +42,11 @@ function PayForm({ placed, onLoadError }: { placed: PlacedOrder; onLoadError: ()
         disabled={!ready}
         data-testid={TEST_IDS.payButton}
       >
-        Pay {formatMoney(placed.totals.totalCents, placed.totals.currency)}
+        {t('checkout.payment.pay', {
+          amount: fmt.money(placed.totals.totalCents, placed.totals.currency),
+        })}
       </Button>
-      <p className="text-center text-sm text-muted">
-        Test mode: use card 4242 4242 4242 4242, any future date and any CVC. No real money moves.
-      </p>
+      <p className="text-center text-sm text-muted">{t('checkout.payment.testMode')}</p>
     </form>
   );
 }
@@ -52,6 +55,7 @@ function PayForm({ placed, onLoadError }: { placed: PlacedOrder; onLoadError: ()
 // the step says so plainly and offers no way to place an order: better an honest dead end than a
 // crash or a button that cannot work.
 export function PaymentStep({ placed }: { placed: PlacedOrder | null }) {
+  const { t } = useT();
   // The payment form comes from js.stripe.com, which a flaky connection or an ad blocker can stop:
   // either Stripe.js never loads (the promise rejects or resolves null) or its iframe reports a
   // load error. Both end in the same honest state with a retry, never a button that stays
@@ -83,20 +87,15 @@ export function PaymentStep({ placed }: { placed: PlacedOrder | null }) {
         data-testid={TEST_IDS.paymentNotConfigured}
         className="rounded-control border-2 border-primary bg-primary-soft p-4"
       >
-        <p className="font-display text-lg font-bold">
-          Payments aren&apos;t configured in this environment
-        </p>
-        <p className="mt-1">
-          This is a demo shop that only runs in Stripe test mode, and this copy has no Stripe key
-          yet, so orders can&apos;t be placed here. Everything before this step works as normal.
-        </p>
+        <p className="font-display text-lg font-bold">{t('checkout.payment.notConfiguredTitle')}</p>
+        <p className="mt-1">{t('checkout.payment.notConfiguredBody')}</p>
       </div>
     );
   }
   if (!placed) {
     return (
       <p role="status" className="flex items-center gap-2">
-        <Spinner label={null} /> Preparing your payment…
+        <Spinner label={null} /> {t('checkout.payment.preparing')}
       </p>
     );
   }
@@ -108,12 +107,9 @@ export function PaymentStep({ placed }: { placed: PlacedOrder | null }) {
         className="rounded-control border-2 border-danger bg-danger-soft p-4"
       >
         <p className="font-display text-lg font-bold text-danger">
-          We could not load the secure payment form
+          {t('checkout.payment.loadFailedTitle')}
         </p>
-        <p className="mt-1">
-          Nothing was charged and your order is saved. Check your connection (an ad or script
-          blocker can also stop Stripe&apos;s form from loading), then try again.
-        </p>
+        <p className="mt-1">{t('checkout.payment.loadFailedBody')}</p>
         <Button
           className="mt-3"
           onClick={() => {
@@ -122,7 +118,7 @@ export function PaymentStep({ placed }: { placed: PlacedOrder | null }) {
             setAttempt((n) => n + 1);
           }}
         >
-          Try again
+          {t('checkout.payment.tryAgain')}
         </Button>
       </div>
     );

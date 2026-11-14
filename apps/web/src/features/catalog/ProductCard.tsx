@@ -8,6 +8,7 @@ import { Price } from '../../components/ui/Price';
 import { ProductBadges } from '../../components/ui/ProductBadges';
 import { SalePrice } from '../../components/ui/SalePrice';
 import { UnitPrice } from '../../components/ui/UnitPrice';
+import { useT } from '../../i18n';
 import { productSrcSet } from '../../lib/images';
 import { accentForPetAttribute } from '../../lib/pets';
 import { TEST_IDS } from '../../lib/test-ids';
@@ -40,6 +41,7 @@ export function ProductCard({
   sizes = '(min-width: 1280px) 25vw, (min-width: 640px) 33vw, 50vw',
   footer,
 }: ProductCardProps) {
+  const { t, tn } = useT();
   const [preview, setPreview] = useState<string | null>(null);
   const [picked, setPicked] = useState<string | null>(null);
   const active = preview ?? picked;
@@ -71,7 +73,7 @@ export function ProductCard({
               />
             ) : (
               <div className="flex h-full items-center justify-center text-pet-strong" aria-hidden>
-                No image
+                {t('catalog.card.noImage')}
               </div>
             )}
             <div className="absolute left-2 top-2 flex flex-col items-start gap-1">
@@ -81,7 +83,7 @@ export function ProductCard({
                   data-testid={TEST_IDS.soldOutBadge}
                   className="border-ink bg-surface text-ink"
                 >
-                  Sold out
+                  {t('catalog.card.soldOut')}
                 </Badge>
               )}
               <ProductBadges badges={product.badges} />
@@ -102,7 +104,7 @@ export function ProductCard({
                 <span aria-hidden="true">
                   {formatRating(product.rating.averageTenths)} ({product.rating.count})
                 </span>
-                <span className="sr-only">{product.rating.count} reviews</span>
+                <span className="sr-only">{tn('catalog.card.reviews', product.rating.count)}</span>
               </p>
             )}
             <div className="mt-auto flex flex-col">
@@ -141,7 +143,7 @@ export function ProductCard({
         {product.swatches.length > 0 && (
           <div
             role="group"
-            aria-label={`Colours of ${product.name}`}
+            aria-label={t('catalog.card.coloursOf', { name: product.name })}
             className="flex flex-wrap items-center gap-1 px-3 pb-3 sm:px-4 sm:pb-4"
             onMouseLeave={() => setPreview(null)}
           >
@@ -169,7 +171,7 @@ export function ProductCard({
             ))}
             {more > 0 && (
               <span data-testid={TEST_IDS.swatchMore} className="text-xs font-semibold text-muted">
-                +{more} {more === 1 ? 'colour' : 'colours'}
+                {tn('catalog.card.moreColours', more)}
               </span>
             )}
           </div>

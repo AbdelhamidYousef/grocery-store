@@ -1,7 +1,9 @@
-import { formatMoney, MIN_CHARGE_CENTS, pointsToCents } from '@store/shared';
+import { MIN_CHARGE_CENTS, pointsToCents } from '@store/shared';
 import { useId, useState } from 'react';
 
 import { Button } from '../../components/ui/Button';
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { TEST_IDS } from '../../lib/test-ids';
 
 import { usePoints } from './queries';
@@ -26,6 +28,8 @@ export function PointsRedeem({
   problem?: string | null;
 }) {
   const id = useId();
+  const { t } = useT();
+  const fmt = useFormat();
   const { data } = usePoints();
   const [text, setText] = useState(value > 0 ? String(value) : '');
   if (!data || data.balance <= 0) return null;
@@ -47,12 +51,15 @@ export function PointsRedeem({
       className="mb-4 rounded-card border-2 border-line bg-pet-soft p-4"
     >
       <label htmlFor={id} className="font-display font-bold">
-        Use loyalty points
+        {t('loyalty.redeem.title')}
       </label>
       <p className="text-sm text-muted">
-        You have {data.balance} points (worth {formatMoney(pointsToCents(data.balance), currency)}).
-        100 points = {formatMoney(100, currency)} off your items. You always pay at least{' '}
-        {formatMoney(MIN_CHARGE_CENTS, currency)} by card.
+        {t('loyalty.redeem.balance', {
+          balance: data.balance,
+          worth: fmt.money(pointsToCents(data.balance), currency),
+        })}{' '}
+        {t('loyalty.redeem.rate', { amount: fmt.money(100, currency) })}{' '}
+        {t('loyalty.redeem.minimum', { amount: fmt.money(MIN_CHARGE_CENTS, currency) })}
       </p>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <input
@@ -68,17 +75,20 @@ export function PointsRedeem({
           className="min-h-11 w-32 rounded-control border-2 border-line bg-surface px-3"
         />
         <Button type="button" variant="secondary" onClick={() => commit(String(max))}>
-          Use max ({max})
+          {t('loyalty.redeem.useMax', { max })}
         </Button>
         {value > 0 && (
           <Button type="button" variant="ghost" onClick={() => commit('')}>
-            Clear
+            {t('loyalty.redeem.clear')}
           </Button>
         )}
       </div>
       {value > 0 && (
         <p className="mt-2 text-sm font-semibold text-success" data-testid={TEST_IDS.pointsApplied}>
-          {value} points = {formatMoney(pointsToCents(value), currency)} off
+          {t('loyalty.redeem.applied', {
+            points: value,
+            amount: fmt.money(pointsToCents(value), currency),
+          })}
         </p>
       )}
       {problem && (

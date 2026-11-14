@@ -5,12 +5,14 @@ import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Select } from '../../components/ui/Select';
 import { Skeleton } from '../../components/ui/Skeleton';
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { loginUrl } from '../../lib/safe-next';
 import { TEST_IDS } from '../../lib/test-ids';
 import { useAuth } from '../auth/AuthProvider';
 import { Pagination } from '../catalog/Pagination';
 
-import { formatRating, viewFromSearch, withView } from './format';
+import { viewFromSearch, withView } from './format';
 import { useReviews } from './queries';
 import { RatingStars } from './RatingStars';
 import { RecommendBadge } from './RecommendBadge';
@@ -23,6 +25,8 @@ import { TopicChips } from './TopicChips';
 // a link to "1-star reviews that mention the zip" can be shared and Back works. `replace`: a
 // filter click is exploring, not navigating. All data comes through `useReviews` (no fetches here).
 export function ReviewsSection({ product }: { product: ProductDetail }) {
+  const { t, tn } = useT();
+  const fmt = useFormat();
   const [params, setParams] = useSearchParams();
   const location = useLocation();
   const { status } = useAuth();
@@ -51,14 +55,14 @@ export function ReviewsSection({ product }: { product: ProductDetail }) {
       className="mt-12 scroll-mt-24"
     >
       <h2 id="reviews-heading" className="font-display text-2xl font-bold">
-        Customer reviews
+        {t('reviews.heading')}
       </h2>
 
       {isError && (
         <div className="mt-4">
-          <p>We could not load the reviews.</p>
+          <p>{t('reviews.loadError')}</p>
           <Button className="mt-2" onClick={() => void refetch()}>
-            Try again
+            {t('reviews.retry')}
           </Button>
         </div>
       )}
@@ -67,19 +71,22 @@ export function ReviewsSection({ product }: { product: ProductDetail }) {
       {data && (
         <>
           {data.summary.rating.count === 0 ? (
-            <p className="mt-3 text-muted">No reviews yet. Be the first to share how it went.</p>
+            <p className="mt-3 text-muted">{t('reviews.none')}</p>
           ) : (
             <div className="mt-4 grid gap-6 md:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
               <div className="flex flex-col gap-2">
                 <p className="flex items-baseline gap-2">
                   <span className="font-display text-5xl font-bold">
-                    {formatRating(data.summary.rating.averageTenths)}
+                    {fmt.number(data.summary.rating.averageTenths / 10, {
+                      minimumFractionDigits: 1,
+                      maximumFractionDigits: 1,
+                    })}
                   </span>
-                  <span className="text-muted">out of 5</span>
+                  <span className="text-muted">{t('reviews.outOf5')}</span>
                 </p>
                 <RatingStars tenths={data.summary.rating.averageTenths} size="lg" />
                 <p className="text-sm text-muted">
-                  {data.summary.rating.count} review{data.summary.rating.count === 1 ? '' : 's'}
+                  {tn('reviews.count', data.summary.rating.count)}
                 </p>
                 <RecommendBadge percent={data.summary.recommendPercent} />
               </div>
@@ -101,13 +108,13 @@ export function ReviewsSection({ product }: { product: ProductDetail }) {
           <div className="mt-6 flex flex-wrap items-end justify-between gap-3">
             <div className="w-full sm:w-56" data-testid={TEST_IDS.reviewSort}>
               <Select
-                label="Sort reviews"
+                label={t('reviews.sort.label')}
                 value={view.sort}
                 onChange={(e) => change({ sort: viewFromSearchSort(e.target.value) })}
               >
-                <option value="helpful">Most helpful</option>
-                <option value="newest">Newest</option>
-                <option value="photos">With photos first</option>
+                <option value="helpful">{t('reviews.sort.helpful')}</option>
+                <option value="newest">{t('reviews.sort.newest')}</option>
+                <option value="photos">{t('reviews.sort.photos')}</option>
               </Select>
             </div>
             {(view.rating !== undefined || view.topic !== undefined) && (
@@ -115,13 +122,13 @@ export function ReviewsSection({ product }: { product: ProductDetail }) {
                 variant="ghost"
                 onClick={() => change({ rating: undefined, topic: undefined })}
               >
-                Clear filters
+                {t('reviews.clearFilters')}
               </Button>
             )}
           </div>
 
           {data.data.length === 0 && data.summary.rating.count > 0 && (
-            <p className="mt-6 text-muted">No reviews match these filters.</p>
+            <p className="mt-6 text-muted">{t('reviews.noMatch')}</p>
           )}
           <ul aria-busy={isPlaceholderData} className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
             {data.data.map((review) => (
@@ -140,7 +147,7 @@ export function ReviewsSection({ product }: { product: ProductDetail }) {
                   uploadsEnabled={data.summary.uploadsEnabled}
                 />
               ) : (
-                <Button onClick={() => setWriting(true)}>Write a review</Button>
+                <Button onClick={() => setWriting(true)}>{t('reviews.write')}</Button>
               )
             ) : (
               <p>
@@ -148,9 +155,9 @@ export function ReviewsSection({ product }: { product: ProductDetail }) {
                   to={loginUrl(`${location.pathname}${location.search}#reviews`)}
                   className="font-semibold underline"
                 >
-                  Sign in
+                  {t('reviews.signIn')}
                 </Link>{' '}
-                to write a review.
+                {t('reviews.signInToWrite')}
               </p>
             )}
           </div>

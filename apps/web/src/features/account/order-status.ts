@@ -1,17 +1,18 @@
 import type { OrderStatus } from '@store/shared';
 
 import type { BadgeTone } from '../../components/ui/Badge';
+import type { StringKey } from '../../i18n';
 
-// Words for the shopper, not the database enum.
-export const STATUS_LABEL: Record<OrderStatus, string> = {
-  pending_payment: 'Awaiting payment',
-  paid: 'Paid',
-  awaiting_vet_approval: 'Waiting for vet approval',
-  processing: 'Being packed',
-  shipped: 'Shipped',
-  delivered: 'Delivered',
-  cancelled: 'Cancelled',
-  refunded: 'Refunded',
+// Words for the shopper, not the database enum: the dictionary keys, translated at render.
+export const STATUS_KEY: Record<OrderStatus, StringKey> = {
+  pending_payment: 'account.status.pending_payment',
+  paid: 'account.status.paid',
+  awaiting_vet_approval: 'account.status.awaiting_vet_approval',
+  processing: 'account.status.processing',
+  shipped: 'account.status.shipped',
+  delivered: 'account.status.delivered',
+  cancelled: 'account.status.cancelled',
+  refunded: 'account.status.refunded',
 };
 
 export const STATUS_TONE: Record<OrderStatus, BadgeTone> = {
@@ -26,13 +27,13 @@ export const STATUS_TONE: Record<OrderStatus, BadgeTone> = {
 };
 
 // A step in the timeline reads as something that happened.
-export const TIMELINE_LABEL: Record<OrderStatus, string> = {
-  pending_payment: 'Order created',
-  paid: 'Payment confirmed',
-  awaiting_vet_approval: 'Waiting for a vet to approve your order',
-  processing: 'We are packing your order',
-  shipped: 'On its way to you',
-  delivered: 'Delivered',
-  cancelled: 'Order cancelled',
-  refunded: 'Payment refunded',
+export const TIMELINE_KEY: Record<OrderStatus, StringKey> = {
+  pending_payment: 'account.timeline.pending_payment',
+  paid: 'account.timeline.paid',
+  awaiting_vet_approval: 'account.timeline.awaiting_vet_approval',
+  processing: 'account.timeline.processing',
+  shipped: 'account.timeline.shipped',
+  delivered: 'account.timeline.delivered',
+  cancelled: 'account.timeline.cancelled',
+  refunded: 'account.timeline.refunded',
 };

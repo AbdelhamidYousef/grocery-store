@@ -13,6 +13,7 @@ import { Button } from '../../components/ui/Button';
 import { Checkbox } from '../../components/ui/Checkbox';
 import { Input } from '../../components/ui/Input';
 import { Textarea } from '../../components/ui/Textarea';
+import { lookupFor, useT, type TFunction } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { TEST_IDS } from '../../lib/test-ids';
 import { FormAlert } from '../auth/AuthCard';
@@ -33,9 +34,14 @@ const FIELDS = [
 const ACCEPT = 'image/jpeg,image/png,image/webp';
 
 // The browser's check is a courtesy (instant feedback); the server re-checks the real bytes.
-export function photoProblem(file: File): string | null {
-  if (!ACCEPT.split(',').includes(file.type)) return `${file.name}: use a JPEG, PNG or WebP image`;
-  if (file.size > MAX_REVIEW_PHOTO_BYTES) return `${file.name}: each photo can be at most 3 MB`;
+// `t` defaults to the English words so the check can be called without a component.
+export function photoProblem(
+  file: File,
+  t: TFunction = (key, params) => lookupFor('en-IE').t(key, params),
+): string | null {
+  if (!ACCEPT.split(',').includes(file.type))
+    return t('reviews.form.photoType', { name: file.name });
+  if (file.size > MAX_REVIEW_PHOTO_BYTES) return t('reviews.form.photoSize', { name: file.name });
   return null;
 }
 
@@ -58,6 +64,7 @@ export function ReviewForm({
   productName: string;
   uploadsEnabled: boolean;
 }) {
+  const { t, tn, tm } = useT();
   const submit = useSubmitReview(slug, productId);
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoError, setPhotoError] = useState<string | null>(null);
@@ -81,13 +88,13 @@ export function ReviewForm({
   function pick(list: FileList | null) {
     const chosen = [...(list ?? [])];
     const merged = [...photos, ...chosen];
-    const problem = chosen.map(photoProblem).find((p) => p !== null);
+    const problem = chosen.map((f) => photoProblem(f, t)).find((p) => p !== null);
     if (problem) {
       setPhotoError(problem);
       return;
     }
     if (merged.length > MAX_REVIEW_PHOTOS) {
-      setPhotoError(`You can attach up to ${MAX_REVIEW_PHOTOS} photos`);
+      setPhotoError(t('reviews.form.photoMax', { max: MAX_REVIEW_PHOTOS }));
       return;
     }
     setPhotoError(null);
@@ -108,7 +115,7 @@ export function ReviewForm({
     try {
       await submit.mutateAsync(form);
     } catch (error) {
-      if (!applyFieldErrors(error, setError, FIELDS)) setFormError(formErrorMessage(error));
+      if (!applyFieldErrors(error, setError, FIELDS)) setFormError(formErrorMessage(error, t, tm));
     }
   });
 
@@ -119,14 +126,10 @@ export function ReviewForm({
         data-testid={TEST_IDS.reviewPending}
         className="rounded-card border border-line bg-success-soft p-4"
       >
-        <p className="font-display text-lg font-bold">
-          Thank you! Your review is waiting for approval.
-        </p>
+        <p className="font-display text-lg font-bold">{t('reviews.form.thanks')}</p>
         <p className="mt-1 text-sm">
-          We check every review before it appears on the page, usually within a couple of days.
-          {submit.data.verifiedBuyer
-            ? ' It will carry a "Verified buyer" tag because you bought this product from us.'
-            : ''}
+          {t('reviews.form.thanksNote')}
+          {submit.data.verifiedBuyer ? ` ${t('reviews.form.thanksVerified')}` : ''}
         </p>
       </div>
     );
@@ -139,11 +142,13 @@ export function ReviewForm({
       data-testid={TEST_IDS.reviewForm}
       className="flex flex-col gap-4 rounded-card border border-line bg-surface p-4"
     >
-      <h3 className="font-display text-xl font-bold">Review {productName}</h3>
+      <h3 className="font-display text-xl font-bold">
+        {t('reviews.form.title', { name: productName })}
+      </h3>
       <FormAlert message={formError} />
 
       <fieldset className="flex flex-col gap-1.5">
-        <legend className="text-sm font-semibold">Your rating</legend>
+        <legend className="text-sm font-semibold">{t('reviews.form.rating')}</legend>
         <div className="flex flex-wrap gap-1">
           {[1, 2, 3, 4, 5].map((n) => (
             <label
@@ -156,7 +161,7 @@ export function ReviewForm({
               <input
                 type="radio"
                 value={n}
-                aria-label={n === 1 ? '1 star' : `${n} stars`}
+                aria-label={tn('reviews.stars', n)}
                 className="sr-only"
                 {...register('rating')}
               />
@@ -168,23 +173,28 @@ export function ReviewForm({
           ))}
         </div>
         {errors.rating && (
-          <p className="text-sm font-semibold text-danger">{errors.rating.message}</p>
+          <p className="text-sm font-semibold text-danger">{tm(errors.rating.message ?? '')}</p>
         )}
       </fieldset>
 
-      <Input label="Title" error={errors.title?.message} maxLength={80} {...register('title')} />
+      <Input
+        label={t('reviews.form.titleLabel')}
+        error={errors.title?.message}
+        maxLength={80}
+        {...register('title')}
+      />
       <Textarea
-        label="Your review"
-        hint="What did you and your pet think? 20 to 2000 characters."
+        label={t('reviews.form.bodyLabel')}
+        hint={t('reviews.form.bodyHint')}
         error={errors.body?.message}
         {...register('body')}
       />
-      <Checkbox label="I would recommend this product" {...register('wouldRecommend')} />
+      <Checkbox label={t('reviews.form.recommend')} {...register('wouldRecommend')} />
 
       <fieldset className="grid gap-4 sm:grid-cols-3">
-        <legend className="mb-1 text-sm font-semibold">About your pet (optional)</legend>
+        <legend className="mb-1 text-sm font-semibold">{t('reviews.form.aboutPet')}</legend>
         <Input
-          label="Pet age (months)"
+          label={t('reviews.form.petAge')}
           type="number"
           inputMode="numeric"
           min={0}
@@ -193,14 +203,14 @@ export function ReviewForm({
           {...register('petAgeMonths')}
         />
         <Input
-          label="Pet weight (kg)"
+          label={t('reviews.form.petWeight')}
           type="text"
           inputMode="decimal"
           error={errors.petWeightG?.message}
           {...register('petWeightG', { setValueAs: kgToGrams })}
         />
         <Input
-          label="Size you bought"
+          label={t('reviews.form.size')}
           maxLength={40}
           error={errors.sizePurchased?.message}
           {...register('sizePurchased')}
@@ -210,7 +220,7 @@ export function ReviewForm({
       {uploadsEnabled ? (
         <div className="flex flex-col gap-2">
           <label htmlFor="review-photos" className="text-sm font-semibold">
-            Photos (optional, up to {MAX_REVIEW_PHOTOS}, 3 MB each)
+            {t('reviews.form.photosLabel', { max: MAX_REVIEW_PHOTOS })}
           </label>
           <input
             id="review-photos"
@@ -230,12 +240,12 @@ export function ReviewForm({
             </p>
           )}
           {photos.length > 0 && (
-            <ul className="flex flex-wrap gap-2" aria-label="Photos to upload">
+            <ul className="flex flex-wrap gap-2" aria-label={t('reviews.form.photosToUpload')}>
               {photos.map((file, i) => (
                 <li key={`${file.name}-${i}`} className="flex flex-col items-center gap-1">
                   <img
                     src={previews[i]}
-                    alt={`Preview of ${file.name}`}
+                    alt={t('reviews.form.photoPreview', { name: file.name })}
                     className="h-20 w-20 rounded-control border border-line object-cover"
                   />
                   <button
@@ -243,7 +253,7 @@ export function ReviewForm({
                     className="text-xs font-semibold underline"
                     onClick={() => setPhotos(photos.filter((_, j) => j !== i))}
                   >
-                    Remove
+                    {t('reviews.form.remove')}
                   </button>
                 </li>
               ))}
@@ -251,15 +261,13 @@ export function ReviewForm({
           )}
         </div>
       ) : (
-        <p className="text-sm text-muted">Photo upload is switched off in this demo.</p>
+        <p className="text-sm text-muted">{t('reviews.form.uploadsOff')}</p>
       )}
 
-      <p className="text-sm text-muted">
-        Reviews are checked before they appear. Please keep personal details out of them.
-      </p>
+      <p className="text-sm text-muted">{t('reviews.form.note')}</p>
       <div>
         <Button type="submit" loading={submit.isPending}>
-          Submit review
+          {t('reviews.form.submit')}
         </Button>
       </div>
     </form>

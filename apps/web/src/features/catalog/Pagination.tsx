@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import { ChevronRightIcon } from '../../components/icons';
+import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { TEST_IDS } from '../../lib/test-ids';
 
@@ -31,9 +32,14 @@ const item =
 // Real links (not buttons): each page has its own URL, so Back works, middle-click works, and it
 // is crawlable.
 export function Pagination({ page, totalPages, hrefFor }: PaginationProps) {
+  const { t } = useT();
   if (totalPages <= 1) return null;
   return (
-    <nav aria-label="Pagination" data-testid={TEST_IDS.pagination} className="mt-8">
+    <nav
+      aria-label={t('catalog.pagination.label')}
+      data-testid={TEST_IDS.pagination}
+      className="mt-8"
+    >
       <ul className="flex flex-wrap items-center justify-center gap-1">
         <li>
           {page > 1 ? (
@@ -42,11 +48,13 @@ export function Pagination({ page, totalPages, hrefFor }: PaginationProps) {
               rel="prev"
               className={cn(item, 'border-2 border-ink hover:bg-pet-soft')}
             >
-              <ChevronRightIcon className="mr-1 rotate-180" width={16} height={16} /> Prev
+              <ChevronRightIcon className="mr-1 rotate-180" width={16} height={16} />{' '}
+              {t('catalog.pagination.prev')}
             </Link>
           ) : (
             <span className={cn(item, 'opacity-40')} aria-hidden="true">
-              <ChevronRightIcon className="mr-1 rotate-180" width={16} height={16} /> Prev
+              <ChevronRightIcon className="mr-1 rotate-180" width={16} height={16} />{' '}
+              {t('catalog.pagination.prev')}
             </span>
           )}
         </li>
@@ -59,7 +67,7 @@ export function Pagination({ page, totalPages, hrefFor }: PaginationProps) {
             <li key={p}>
               <Link
                 to={hrefFor(p)}
-                aria-label={`Page ${p}`}
+                aria-label={t('catalog.pagination.page', { page: p })}
                 aria-current={p === page ? 'page' : undefined}
                 className={cn(item, p === page ? 'bg-ink text-surface' : 'hover:bg-pet-soft')}
               >
@@ -75,11 +83,13 @@ export function Pagination({ page, totalPages, hrefFor }: PaginationProps) {
               rel="next"
               className={cn(item, 'border-2 border-ink hover:bg-pet-soft')}
             >
-              Next <ChevronRightIcon className="ml-1" width={16} height={16} />
+              {t('catalog.pagination.next')}{' '}
+              <ChevronRightIcon className="ml-1" width={16} height={16} />
             </Link>
           ) : (
             <span className={cn(item, 'opacity-40')} aria-hidden="true">
-              Next <ChevronRightIcon className="ml-1" width={16} height={16} />
+              {t('catalog.pagination.next')}{' '}
+              <ChevronRightIcon className="ml-1" width={16} height={16} />
             </span>
           )}
         </li>

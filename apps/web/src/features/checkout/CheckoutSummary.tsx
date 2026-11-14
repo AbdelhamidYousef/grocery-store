@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 import type { WebCart } from '../../api/cart';
 import type { PlacedOrder } from '../../api/checkout';
+import { useT } from '../../i18n';
 import { TEST_IDS } from '../../lib/test-ids';
 
 import { SummaryLines, TotalsList } from './OrderSummary';
@@ -24,6 +25,7 @@ export function CheckoutSummary({
   /** Why the discount code stopped applying, when checkout refused it. */
   codeProblem?: string | null;
 }) {
+  const { t } = useT();
   const lines = cart.items
     .filter((i) => i.available > 0)
     .map((i) => ({
@@ -37,11 +39,11 @@ export function CheckoutSummary({
   const totals = placed?.totals;
   return (
     <aside
-      aria-label="Order summary"
+      aria-label={t('checkout.summary.aria')}
       data-testid={TEST_IDS.checkoutSummary}
       className="flex flex-col gap-4 rounded-card border-2 border-line bg-surface p-4 sm:p-5 lg:sticky lg:top-32"
     >
-      <h2 className="font-display text-xl font-bold">Order summary</h2>
+      <h2 className="font-display text-xl font-bold">{t('checkout.summary.title')}</h2>
       {codeProblem && (
         // The same sentence is already in the step's alert; this one sits by the money with the
         // way out, so it is plain text (one alert is enough).
@@ -54,7 +56,7 @@ export function CheckoutSummary({
             to="/cart"
             className="mt-1 inline-flex min-h-11 items-center font-semibold underline"
           >
-            Back to your cart to change the code
+            {t('checkout.summary.codeBack')}
           </Link>
         </div>
       )}
@@ -63,7 +65,7 @@ export function CheckoutSummary({
         // scrolls inside its own box; it is focusable so a keyboard can scroll it too.
         <div
           role="region"
-          aria-label={`Items in your order (${lines.length}), scrollable`}
+          aria-label={t('checkout.summary.itemsRegion', { count: lines.length })}
           tabIndex={0}
           data-testid="checkout-summary-lines"
           className="max-h-80 overflow-y-auto overscroll-contain pr-2"
@@ -76,21 +78,24 @@ export function CheckoutSummary({
       <TotalsList
         currency={cart.currency}
         rows={[
-          { label: 'Subtotal', cents: totals?.subtotalCents ?? cart.subtotalCents },
           {
-            label: 'Shipping',
+            label: t('checkout.summary.subtotal'),
+            cents: totals?.subtotalCents ?? cart.subtotalCents,
+          },
+          {
+            label: t('checkout.summary.shipping'),
             cents: totals?.shippingCents ?? quote?.priceCents ?? null,
-            fallback: 'Next step',
+            fallback: t('checkout.summary.shippingNext'),
             free: true,
           },
           ...(totals && totals.discountCents > 0
-            ? [{ label: 'Discount', cents: -totals.discountCents }]
+            ? [{ label: t('checkout.summary.discount'), cents: -totals.discountCents }]
             : []),
           ...(totals && totals.donationCents > 0
-            ? [{ label: 'Donation (demo)', cents: totals.donationCents }]
+            ? [{ label: t('checkout.summary.donation'), cents: totals.donationCents }]
             : []),
         ]}
-        total={{ cents: totals?.totalCents ?? null, fallback: 'Confirmed at payment' }}
+        total={{ cents: totals?.totalCents ?? null, fallback: t('checkout.summary.totalPending') }}
       />
     </aside>
   );

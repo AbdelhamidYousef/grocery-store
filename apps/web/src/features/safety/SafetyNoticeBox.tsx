@@ -1,13 +1,14 @@
 import type { SafetyNotice } from '@store/shared';
 import type { ReactNode } from 'react';
 
+import { useT, type StringKey } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { MarkdownBody } from '../guides/MarkdownBody';
 
-const LABEL: Record<SafetyNotice['severity'], string> = {
-  info: 'Notice',
-  warning: 'Safety warning',
-  recall: 'Product recall',
+const LABEL: Record<SafetyNotice['severity'], StringKey> = {
+  info: 'shell.safety.info',
+  warning: 'shell.safety.warning',
+  recall: 'shell.safety.recall',
 };
 
 const TONE: Record<SafetyNotice['severity'], string> = {
@@ -27,9 +28,11 @@ export function SafetyNoticeBox({
   /** Extra control (the homepage banner's dismiss button). */
   action?: ReactNode;
 }) {
+  const { t } = useT();
+  const label = t(LABEL[notice.severity]);
   return (
     <section
-      aria-label={`${LABEL[notice.severity]}: ${notice.title}`}
+      aria-label={t('shell.safety.noticeAria', { label, title: notice.title })}
       {...(notice.severity === 'recall' && { role: 'alert' })}
       data-severity={notice.severity}
       data-testid="safety-notice"
@@ -37,7 +40,8 @@ export function SafetyNoticeBox({
     >
       <div className="flex items-start justify-between gap-3">
         <h2 className="font-display text-lg font-bold">
-          <span className="uppercase tracking-wide">{LABEL[notice.severity]}:</span> {notice.title}
+          <span className="uppercase tracking-wide">{t('shell.safety.labelColon', { label })}</span>{' '}
+          {notice.title}
         </h2>
         {action}
       </div>

@@ -1,5 +1,6 @@
 import type { ProductImage } from '@store/shared';
 
+import { useT } from '../../i18n';
 import { productSrcSet } from '../../lib/images';
 import { TEST_IDS } from '../../lib/test-ids';
 
@@ -16,6 +17,7 @@ interface GalleryProps {
 // to move and select, with no hand-written key handling to get wrong. Choosing a thumbnail swaps
 // the main image, which is exactly what "selecting a radio" means.
 export function Gallery({ images, selectedId, onSelect, soldOut = false }: GalleryProps) {
+  const { t } = useT();
   const selected = images.find((i) => i.id === selectedId) ?? images[0];
 
   if (!selected) {
@@ -24,7 +26,7 @@ export function Gallery({ images, selectedId, onSelect, soldOut = false }: Galle
         className="flex aspect-square items-center justify-center rounded-card bg-pet-soft text-pet-strong"
         data-testid={TEST_IDS.gallery}
       >
-        No image available
+        {t('catalog.gallery.noImage')}
       </div>
     );
   }
@@ -54,7 +56,7 @@ export function Gallery({ images, selectedId, onSelect, soldOut = false }: Galle
 
       {images.length > 1 && (
         <fieldset>
-          <legend className="sr-only">Product images</legend>
+          <legend className="sr-only">{t('catalog.gallery.images')}</legend>
           <div className="flex flex-wrap gap-2">
             {images.map((image, index) => (
               <label key={image.id} className="cursor-pointer">
@@ -67,7 +69,11 @@ export function Gallery({ images, selectedId, onSelect, soldOut = false }: Galle
                   onChange={() => onSelect(image.id)}
                 />
                 <span className="sr-only">
-                  Image {index + 1} of {images.length}: {image.alt}
+                  {t('catalog.gallery.imageOf', {
+                    n: index + 1,
+                    total: images.length,
+                    alt: image.alt,
+                  })}
                 </span>
                 <img
                   src={image.url.replace(/\.webp$/, '-600.webp')}

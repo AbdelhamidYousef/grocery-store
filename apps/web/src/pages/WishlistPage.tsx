@@ -1,4 +1,4 @@
-import { formatMoney, type WishlistItem } from '@store/shared';
+import { type WishlistItem } from '@store/shared';
 import { Link } from 'react-router-dom';
 
 import { Container } from '../components/layout/Container';
@@ -8,6 +8,8 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { useAuth } from '../features/auth/AuthProvider';
 import { useAddToCartAction } from '../features/cart/queries';
 import { useWishlist, useWishlistActions } from '../features/wishlist/queries';
+import { useT } from '../i18n';
+import { useFormat } from '../i18n/format';
 import { TEST_IDS } from '../lib/test-ids';
 
 export function WishlistItemCard({
@@ -18,6 +20,8 @@ export function WishlistItemCard({
   onRemove?: (() => void) | undefined;
 }) {
   const cart = useAddToCartAction({ id: item.productId, name: item.name });
+  const { t } = useT();
+  const fmt = useFormat();
   return (
     <li
       data-testid={TEST_IDS.wishlistRow}
@@ -47,7 +51,7 @@ export function WishlistItemCard({
         </Link>
         {item.variantName && <p className="truncate text-sm text-muted">{item.variantName}</p>}
         {item.priceCents !== null && (
-          <p className="font-semibold">{formatMoney(item.priceCents, item.currency)}</p>
+          <p className="font-semibold">{fmt.money(item.priceCents, item.currency)}</p>
         )}
         <div className="mt-auto flex flex-wrap gap-2">
           <Button
@@ -59,11 +63,11 @@ export function WishlistItemCard({
               cart.add({ id: item.variantId, sku: item.slug, priceCents: item.priceCents ?? 0 }, 1)
             }
           >
-            {item.available ? 'Move to cart' : 'Sold out'}
+            {item.available ? t('loyalty.wishlist.moveToCart') : t('loyalty.wishlist.soldOut')}
           </Button>
           {onRemove && (
             <Button size="sm" variant="ghost" onClick={onRemove}>
-              Remove
+              {t('loyalty.wishlist.remove')}
             </Button>
           )}
         </div>
@@ -76,19 +80,20 @@ export default function WishlistPage() {
   const { data, isPending, error } = useWishlist();
   const { remove, share } = useWishlistActions();
   const { user } = useAuth();
+  const { t } = useT();
   const shareUrl = data?.shareToken ? `${window.location.origin}/w/${data.shareToken}` : null;
 
   return (
     <Container className="py-8" data-testid={TEST_IDS.pageWishlist}>
-      <Seo title="Your wishlist" noindex />
-      <h1 className="font-display text-3xl font-bold sm:text-4xl">Your wishlist</h1>
+      <Seo title={t('loyalty.wishlist.title')} noindex />
+      <h1 className="font-display text-3xl font-bold sm:text-4xl">{t('loyalty.wishlist.title')}</h1>
       {isPending && <Skeleton className="mt-6 h-32 w-full rounded-card" />}
-      {error && <p className="mt-6 text-danger">We could not load your wishlist just now.</p>}
+      {error && <p className="mt-6 text-danger">{t('loyalty.wishlist.error')}</p>}
       {data && data.items.length === 0 && (
         <p className="mt-4 max-w-prose text-muted">
-          Nothing saved yet. Tap the heart on a product to keep it here.{' '}
+          {t('loyalty.wishlist.empty')}{' '}
           <Link to="/" className="font-semibold text-primary-strong underline">
-            Keep browsing
+            {t('loyalty.wishlist.keepBrowsing')}
           </Link>
         </p>
       )}
@@ -105,14 +110,11 @@ export default function WishlistPage() {
             className="mt-8 max-w-xl rounded-card border-2 border-line bg-pet-soft p-4"
           >
             <h2 id="share-heading" className="font-display text-xl font-bold">
-              Share your wishlist
+              {t('loyalty.wishlist.shareTitle')}
             </h2>
             {user ? (
               <>
-                <p className="mt-1 text-sm text-muted">
-                  Anyone with the link can see these items and your first name, nothing else. Turn
-                  it off and the link stops working.
-                </p>
+                <p className="mt-1 text-sm text-muted">{t('loyalty.wishlist.shareText')}</p>
                 {shareUrl ? (
                   <>
                     <p
@@ -127,7 +129,7 @@ export default function WishlistPage() {
                       loading={share.isPending}
                       onClick={() => share.mutate(false)}
                     >
-                      Stop sharing
+                      {t('loyalty.wishlist.stopSharing')}
                     </Button>
                   </>
                 ) : (
@@ -136,16 +138,16 @@ export default function WishlistPage() {
                     loading={share.isPending}
                     onClick={() => share.mutate(true)}
                   >
-                    Create a share link
+                    {t('loyalty.wishlist.createLink')}
                   </Button>
                 )}
               </>
             ) : (
               <p className="mt-1 text-sm">
                 <Link to="/login?next=%2Fwishlist" className="font-semibold underline">
-                  Sign in
+                  {t('loyalty.wishlist.signIn')}
                 </Link>{' '}
-                to share your list. Your saved items come with you.
+                {t('loyalty.wishlist.signInRest')}
               </p>
             )}
           </section>

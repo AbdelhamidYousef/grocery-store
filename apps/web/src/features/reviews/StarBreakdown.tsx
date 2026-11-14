@@ -1,3 +1,4 @@
+import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { TEST_IDS } from '../../lib/test-ids';
 
@@ -13,11 +14,12 @@ export function StarBreakdown({
   active: number | undefined;
   onPick: (rating: number | undefined) => void;
 }) {
+  const { t, tn } = useT();
   const total = breakdown.reduce((a, b) => a + b, 0);
   return (
     <ul
       data-testid={TEST_IDS.reviewBreakdown}
-      aria-label="Reviews by star rating"
+      aria-label={t('reviews.breakdown.label')}
       className="flex flex-col gap-1"
     >
       {[5, 4, 3, 2, 1].map((stars) => {
@@ -30,7 +32,9 @@ export function StarBreakdown({
             <button
               type="button"
               aria-pressed={pressed}
-              aria-label={`${stars} star reviews: ${count}${pressed ? ', filter on' : ''}`}
+              aria-label={tn(pressed ? 'reviews.breakdown.rowOn' : 'reviews.breakdown.row', stars, {
+                n: count,
+              })}
               onClick={() => onPick(pressed ? undefined : stars)}
               className={cn(
                 'flex min-h-9 w-full items-center gap-3 rounded-control px-2 text-sm hover:bg-pet-soft',
@@ -38,7 +42,7 @@ export function StarBreakdown({
               )}
             >
               <span className="w-12 shrink-0 text-left" aria-hidden="true">
-                {stars} star{stars === 1 ? '' : 's'}
+                {tn('reviews.stars', stars)}
               </span>
               <span
                 className="h-2.5 min-w-0 flex-1 overflow-hidden rounded-full bg-line"

@@ -3,8 +3,10 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 
 import { ChevronDownIcon, PetGlyph } from '../../components/icons';
+import { useT } from '../../i18n';
 import { PETS } from '../../lib/pets';
 
+import { petName } from './pet-names';
 import { PromoTile } from './PromoTile';
 import { useNavigation } from './queries';
 
@@ -33,6 +35,7 @@ function iconFor(pet: NavPet['pet']) {
 //  - only one panel is open at a time.
 // While the data loads or if it fails, the bar is plain links to each pet's page.
 export function MegaMenu() {
+  const { t } = useT();
   const { data } = useNavigation();
   const [openPet, setOpenPet] = useState<string | null>(null);
   const bar = useRef<HTMLUListElement>(null);
@@ -74,7 +77,7 @@ export function MegaMenu() {
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pet-accent text-ink">
                   <PetGlyph icon={pet.icon} width={18} height={18} />
                 </span>
-                {pet.name}
+                {petName(t, pet)}
               </NavLink>
             </li>
           ))
@@ -133,8 +136,10 @@ export function MegaMenu() {
                     <div className="mx-auto grid w-full max-w-7xl grid-cols-[1fr_1fr_18rem] gap-8 px-6 py-6">
                       {/* Plain text, not headings: a panel opens above the page's own h1, and a heading
                           level cannot be skipped. The sections are named by aria-label. */}
-                      <section aria-label={`${entry.name} categories`}>
-                        <p className="mb-2 font-display text-lg font-bold">Shop {entry.name}</p>
+                      <section aria-label={t('shell.nav.categoriesOf', { name: entry.name })}>
+                        <p className="mb-2 font-display text-lg font-bold">
+                          {t('shell.nav.shop', { name: entry.name })}
+                        </p>
                         <ul>
                           {shown.map((c) => (
                             <li key={c.slug}>
@@ -155,15 +160,20 @@ export function MegaMenu() {
                               className={`${linkClass} font-semibold text-primary-strong`}
                               data-testid="menu-see-all"
                             >
-                              {entry.categories.length > MAX_MENU_CATEGORIES
-                                ? `See all ${entry.name}`
-                                : `All ${entry.name}`}
+                              {t(
+                                entry.categories.length > MAX_MENU_CATEGORIES
+                                  ? 'shell.nav.seeAll'
+                                  : 'shell.nav.all',
+                                { name: entry.name },
+                              )}
                             </Link>
                           </li>
                         </ul>
                       </section>
-                      <section aria-label={`${entry.name} brands`}>
-                        <p className="mb-2 font-display text-lg font-bold">Brands</p>
+                      <section aria-label={t('shell.nav.brandsOf', { name: entry.name })}>
+                        <p className="mb-2 font-display text-lg font-bold">
+                          {t('shell.nav.brands')}
+                        </p>
                         <ul>
                           {entry.brands.map((b) => (
                             <li key={b.slug}>
@@ -182,7 +192,7 @@ export function MegaMenu() {
                               onClick={() => setOpenPet(null)}
                               className={`${linkClass} font-semibold text-primary-strong`}
                             >
-                              All brands
+                              {t('shell.nav.allBrands')}
                             </Link>
                           </li>
                         </ul>
@@ -200,7 +210,7 @@ export function MegaMenu() {
           })}
       <li>
         <NavLink to="/brands" className={pillClass}>
-          Brands
+          {t('shell.nav.brands')}
         </NavLink>
       </li>
     </ul>

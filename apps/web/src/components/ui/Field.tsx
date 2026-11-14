@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { useT } from '../../i18n';
+
 // Shared label / hint / error frame for Input and Select. The caller passes the generated ids so
 // the control can point `aria-describedby` at the hint and error text.
 interface FieldProps {
@@ -11,6 +13,7 @@ interface FieldProps {
 }
 
 export function Field({ id, label, hint, error, children }: FieldProps) {
+  const { tm } = useT();
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-sm font-semibold">
@@ -24,7 +27,7 @@ export function Field({ id, label, hint, error, children }: FieldProps) {
       )}
       {error && (
         <p id={`${id}-error`} className="text-sm font-semibold text-danger">
-          {error}
+          {tm(error)}
         </p>
       )}
     </div>

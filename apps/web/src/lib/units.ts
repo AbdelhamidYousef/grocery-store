@@ -19,9 +19,14 @@ export function gramsToKg(grams: number): string {
   return fraction === '' ? String(whole) : `${whole}.${fraction}`;
 }
 
-/** Grams for people: 280 -> "280 g", 1500 -> "1.5 kg". */
-export function formatGrams(grams: number): string {
-  return grams >= 1000 ? `${gramsToKg(grams)} kg` : `${grams} g`;
+/** Kilograms as a number in the shopper's locale, no unit: 7500 -> "7.5" (de: "7,5"). */
+export function formatKgNumber(grams: number, locale = 'en'): string {
+  return new Intl.NumberFormat(locale, { maximumFractionDigits: 3 }).format(grams / 1000);
+}
+
+/** Grams for people: 280 -> "280 g", 1500 -> "1.5 kg" (a decimal comma in de). */
+export function formatGrams(grams: number, locale = 'en'): string {
+  return grams >= 1000 ? `${formatKgNumber(grams, locale)} kg` : `${grams} g`;
 }
 
 const KG = /^\d{1,3}(?:[.,]\d{1,3})?$/;

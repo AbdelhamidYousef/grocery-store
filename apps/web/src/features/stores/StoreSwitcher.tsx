@@ -1,6 +1,7 @@
 import { STORES, storeFromCode } from '@store/shared';
 import { useLocation } from 'react-router-dom';
 
+import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { writeStoreCookie } from '../../lib/store-cookie';
 import { swapStorePrefix } from '../../lib/store-entry';
@@ -25,13 +26,14 @@ export function StoreSwitcher({
   /** Test seam: where to go instead of a real page load. */
   onNavigate?: (url: string) => void;
 }) {
+  const { t } = useT();
   const current = useStore();
   // `useLocation` is already relative to the basename, so it is the "rest of the path".
   const location = useLocation();
 
   return (
     <select
-      aria-label="Country and language"
+      aria-label={t('shell.storeSwitcher')}
       data-testid={testId}
       value={current.code}
       onChange={(event) => {

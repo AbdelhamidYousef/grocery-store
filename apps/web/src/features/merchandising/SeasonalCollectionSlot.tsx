@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 
+import { useT } from '../../i18n';
 import { ProductGrid } from '../catalog/ProductGrid';
 import { useProducts } from '../catalog/queries';
 
@@ -17,6 +18,7 @@ export function SeasonalCollectionSlot({ limit = 4 }: { limit?: number }) {
 }
 
 function Seasonal({ slug, limit }: { slug: string; limit: number }) {
+  const { t } = useT();
   const { data: collections } = useCollections();
   const collection = collections?.find((c) => c.slug === slug);
   const { data } = useProducts({ collection: slug, limit });
@@ -39,7 +41,7 @@ function Seasonal({ slug, limit }: { slug: string; limit: number }) {
           to={`/collections/${collection.slug}`}
           className="min-h-11 rounded-control font-semibold text-primary-strong underline underline-offset-2"
         >
-          See the whole collection
+          {t('shell.seasonal.seeAll')}
         </Link>
       </div>
       <ProductGrid products={data.data} listId={`collection-${collection.slug}`} />

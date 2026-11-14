@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 
+import { useT } from '../../i18n';
 import { ChevronRightIcon } from '../icons';
 
 export interface Crumb {
@@ -9,8 +10,9 @@ export interface Crumb {
 }
 
 export function Breadcrumbs({ items }: { items: readonly Crumb[] }) {
+  const { t } = useT();
   return (
-    <nav aria-label="Breadcrumb" data-testid="breadcrumbs">
+    <nav aria-label={t('shell.breadcrumb')} data-testid="breadcrumbs">
       <ol className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-sm text-muted">
         {items.map((item, index) => {
           const isLast = index === items.length - 1;

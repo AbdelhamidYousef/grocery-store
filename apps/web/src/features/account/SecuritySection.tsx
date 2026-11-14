@@ -7,6 +7,7 @@ import { Seo } from '../../components/Seo';
 import { Button } from '../../components/ui/Button';
 import { PasswordInput } from '../../components/ui/PasswordInput';
 import { useToast } from '../../components/ui/Toast';
+import { useT } from '../../i18n';
 import { FormAlert } from '../auth/AuthCard';
 import { applyFieldErrors, formErrorMessage } from '../auth/form-errors';
 
@@ -14,6 +15,7 @@ import { useChangePassword } from './queries';
 
 export function SecuritySection() {
   const toast = useToast();
+  const { t, tm } = useT();
   const change = useChangePassword();
   const [formError, setFormError] = useState<string | null>(null);
   const {
@@ -32,13 +34,13 @@ export function SecuritySection() {
     change.mutate(values, {
       onSuccess: () => {
         reset();
-        toast.show('Password changed. Your other devices were signed out.', 'success');
+        toast.show(t('account.security.changed'), 'success');
       },
       onError: (error) => {
         // A wrong current password arrives as 400 fieldErrors.currentPassword, so it lands on
         // that field instead of looking like an expired session.
         if (!applyFieldErrors(error, setError, ['currentPassword', 'newPassword'])) {
-          setFormError(formErrorMessage(error));
+          setFormError(formErrorMessage(error, t, tm));
         }
       },
     });
@@ -46,13 +48,11 @@ export function SecuritySection() {
 
   return (
     <section aria-labelledby="security-heading" data-testid="account-security">
-      <Seo title="Security" noindex />
+      <Seo title={t('account.security.heading')} noindex />
       <h2 id="security-heading" className="font-display text-2xl font-bold">
-        Security
+        {t('account.security.heading')}
       </h2>
-      <p className="mt-1 text-muted">
-        Changing your password signs you out everywhere else, in case someone else had it.
-      </p>
+      <p className="mt-1 text-muted">{t('account.security.intro')}</p>
       <form
         onSubmit={(e) => void submit(e)}
         noValidate
@@ -60,15 +60,15 @@ export function SecuritySection() {
       >
         <FormAlert message={formError} />
         <PasswordInput
-          label="Current password"
+          label={t('account.security.current')}
           autoComplete="current-password"
           error={errors.currentPassword?.message}
           {...register('currentPassword')}
         />
         <PasswordInput
-          label="New password"
+          label={t('account.security.new')}
           autoComplete="new-password"
-          hint={`At least ${PASSWORD_MIN_LENGTH} characters.`}
+          hint={t('account.security.hint', { min: PASSWORD_MIN_LENGTH })}
           error={errors.newPassword?.message}
           {...register('newPassword')}
         />
@@ -78,7 +78,7 @@ export function SecuritySection() {
           className="self-start"
           data-testid="password-save"
         >
-          Change password
+          {t('account.security.submit')}
         </Button>
       </form>
     </section>

@@ -2,6 +2,7 @@ import type { HeroSlide } from '@store/shared';
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
 import { image600 } from '../../lib/images';
 
@@ -20,6 +21,7 @@ function prefersReducedMotion(): boolean {
 
 // "Starts paused" for people who asked their system for less motion; they can still press play.
 export function HeroCarousel({ slides }: { slides: readonly HeroSlide[] }) {
+  const { t } = useT();
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(() => !prefersReducedMotion());
   const [hovered, setHovered] = useState(false);
@@ -41,7 +43,7 @@ export function HeroCarousel({ slides }: { slides: readonly HeroSlide[] }) {
   return (
     <section
       aria-roledescription="carousel"
-      aria-label="Featured offers"
+      aria-label={t('shell.home.featured')}
       data-testid="hero-carousel"
       data-playing={rotating}
       className={cn('relative overflow-hidden bg-primary-soft', HERO_BOX)}
@@ -59,7 +61,7 @@ export function HeroCarousel({ slides }: { slides: readonly HeroSlide[] }) {
             key={slide.title}
             role="group"
             aria-roledescription="slide"
-            aria-label={`${i + 1} of ${count}`}
+            aria-label={t('shell.home.slideOf', { n: i + 1, count })}
             hidden={i !== index}
             data-testid="hero-slide"
             className="mx-auto grid h-full max-w-7xl [&[hidden]]:hidden grid-rows-[1fr_auto] gap-4 px-4 pb-20 pt-6 sm:px-6 md:grid-cols-2 md:grid-rows-1 md:items-center md:gap-8 md:pb-16 lg:px-8"
@@ -102,7 +104,7 @@ export function HeroCarousel({ slides }: { slides: readonly HeroSlide[] }) {
       <div className="absolute inset-x-0 bottom-3 flex flex-wrap items-center justify-center gap-2 px-4">
         <button type="button" className={btn} onClick={() => go(index - 1)} data-testid="hero-prev">
           <span aria-hidden="true">&lsaquo;</span>
-          <span className="sr-only">Previous slide</span>
+          <span className="sr-only">{t('shell.home.prev')}</span>
         </button>
         <button
           type="button"
@@ -111,12 +113,12 @@ export function HeroCarousel({ slides }: { slides: readonly HeroSlide[] }) {
           aria-pressed={!playing}
           data-testid="hero-toggle"
         >
-          {playing ? 'Pause' : 'Play'}
-          <span className="sr-only"> slide show</span>
+          {playing ? t('shell.home.pause') : t('shell.home.play')}
+          <span className="sr-only"> {t('shell.home.slideShow')}</span>
         </button>
         <button type="button" className={btn} onClick={() => go(index + 1)} data-testid="hero-next">
           <span aria-hidden="true">&rsaquo;</span>
-          <span className="sr-only">Next slide</span>
+          <span className="sr-only">{t('shell.home.next')}</span>
         </button>
         <ul className="flex items-center" data-testid="hero-dots">
           {slides.map((slide, i) => (
@@ -124,7 +126,7 @@ export function HeroCarousel({ slides }: { slides: readonly HeroSlide[] }) {
               <button
                 type="button"
                 onClick={() => go(i)}
-                aria-label={`Go to slide ${i + 1}`}
+                aria-label={t('shell.home.goTo', { n: i + 1 })}
                 aria-current={i === index ? 'true' : undefined}
                 className="group inline-flex h-11 w-9 items-center justify-center"
               >

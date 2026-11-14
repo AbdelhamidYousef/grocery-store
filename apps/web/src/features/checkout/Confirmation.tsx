@@ -7,6 +7,7 @@ import { Container } from '../../components/layout/Container';
 import { Seo } from '../../components/Seo';
 import { buttonClasses, Button } from '../../components/ui/Button';
 import { Spinner } from '../../components/ui/Spinner';
+import { useT, type StringKey } from '../../i18n';
 import { TEST_IDS } from '../../lib/test-ids';
 import { useSlow } from '../../lib/use-slow';
 
@@ -27,38 +28,36 @@ type View = 'pending' | 'paid' | 'timeout' | 'failed' | 'cancelled' | 'not-found
 // (both moves share one transaction), so it counts as paid too.
 const PAID: OrderStatus[] = ['paid', 'awaiting_vet_approval', 'processing', 'shipped', 'delivered'];
 
-const COPY: Record<View, { title: string; body: string }> = {
+const COPY: Record<View, { title: StringKey; body: StringKey }> = {
   pending: {
-    title: 'Confirming your payment…',
-    body: 'This usually takes a few seconds. Please keep this page open.',
+    title: 'checkout.confirmation.pending.title',
+    body: 'checkout.confirmation.pending.body',
   },
-  paid: {
-    title: 'Thank you, your order is paid!',
-    body: 'A confirmation is on its way to your email.',
-  },
+  paid: { title: 'checkout.confirmation.paid.title', body: 'checkout.confirmation.paid.body' },
   timeout: {
-    title: 'We are still confirming your payment',
-    body: 'It is taking longer than usual, which can happen when the payment provider is slow to tell us. Please do not pay again. You do not need to wait here: you will get an email as soon as the payment is confirmed, and you can come back to this page to check.',
+    title: 'checkout.confirmation.timeout.title',
+    body: 'checkout.confirmation.timeout.body',
   },
   failed: {
-    title: 'Your payment did not go through',
-    body: 'You have not been charged. Your cart is still there, so you can try again.',
+    title: 'checkout.confirmation.failed.title',
+    body: 'checkout.confirmation.failed.body',
   },
   cancelled: {
-    title: 'This order was cancelled',
-    body: 'If you paid, the money is on its way back to you.',
+    title: 'checkout.confirmation.cancelled.title',
+    body: 'checkout.confirmation.cancelled.body',
   },
   'not-found': {
-    title: 'We cannot find that order here',
-    body: 'Orders can only be opened from the browser or account that placed them.',
+    title: 'checkout.confirmation.notFound.title',
+    body: 'checkout.confirmation.notFound.body',
   },
   error: {
-    title: 'We could not check your order',
-    body: 'The server did not answer. Your payment is not affected.',
+    title: 'checkout.confirmation.error.title',
+    body: 'checkout.confirmation.error.body',
   },
 };
 
 export function Confirmation({ number }: { number: string }) {
+  const { t } = useT();
   const [params] = useSearchParams();
   // Fixed for this visit so re-renders do not extend the 30 s polling window.
   const [startedAt, setStartedAt] = useState(() => Date.now());
@@ -92,7 +91,7 @@ export function Confirmation({ number }: { number: string }) {
 
   return (
     <Container className="py-8" data-testid={TEST_IDS.pageConfirmation}>
-      <Seo title="Order confirmation" noindex />
+      <Seo title={t('checkout.confirmation.seoTitle')} noindex />
       <div
         className="rounded-card border-2 border-ink bg-surface p-5 shadow-card sm:p-8"
         data-testid={TEST_IDS.confirmationStatus}
@@ -100,7 +99,7 @@ export function Confirmation({ number }: { number: string }) {
         aria-busy={busy}
       >
         <p className="text-sm font-semibold text-muted">
-          Order{' '}
+          {t('checkout.confirmation.order')}{' '}
           <span
             className="break-all font-display text-base text-ink"
             data-testid={TEST_IDS.confirmationOrderNumber}
@@ -111,25 +110,24 @@ export function Confirmation({ number }: { number: string }) {
         <h1 className="mt-2 flex items-center gap-3 font-display text-3xl font-bold sm:text-4xl">
           {busy && <Spinner label={null} className="h-7 w-7 shrink-0" />}
           <span role="status" className="min-w-0 break-words">
-            {copy.title}
+            {t(copy.title)}
           </span>
         </h1>
-        <p className="mt-2 text-lg">{copy.body}</p>
+        <p className="mt-2 text-lg">{t(copy.body)}</p>
 
         {waking && busy && !current && (
           <p
             className="mt-4 rounded-control border-2 border-primary bg-primary-soft p-3 font-semibold text-primary-strong"
             data-testid={TEST_IDS.confirmationWakingUp}
           >
-            Our server is waking up after a nap (this demo runs on free hosting), so the first
-            answer can take up to a minute. Hang tight, your order is safe.
+            {t('checkout.confirmation.waking')}
           </p>
         )}
 
         <div className="mt-5 flex flex-wrap gap-3">
           {view === 'failed' && (
             <Link to="/checkout" className={buttonClasses('primary', 'lg')}>
-              Try again
+              {t('checkout.confirmation.tryAgain')}
             </Link>
           )}
           {view === 'timeout' && (
@@ -142,7 +140,7 @@ export function Confirmation({ number }: { number: string }) {
                 setStartedAt(Date.now());
               }}
             >
-              Check again
+              {t('checkout.confirmation.checkAgain')}
             </Button>
           )}
           {view === 'error' && (
@@ -152,11 +150,11 @@ export function Confirmation({ number }: { number: string }) {
                 void status.refetch();
               }}
             >
-              Try again
+              {t('checkout.confirmation.tryAgain')}
             </Button>
           )}
           <Link to="/" className={buttonClasses(view === 'paid' ? 'primary' : 'secondary', 'lg')}>
-            Continue shopping
+            {t('checkout.confirmation.continueShopping')}
           </Link>
         </div>
       </div>
@@ -165,20 +163,30 @@ export function Confirmation({ number }: { number: string }) {
         <div className="mt-8 grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
           <section aria-labelledby="order-items-heading" className="min-w-0">
             <h2 id="order-items-heading" className="font-display text-2xl font-bold">
-              Your order
+              {t('checkout.confirmation.yourOrder')}
             </h2>
             <div className="mt-4">
               <OrderSummary items={order.data.items} totals={order.data.totals} />
             </div>
           </section>
-          <section aria-label="Delivery" className="flex min-w-0 flex-col gap-5">
-            <OrderAddress title="Shipping to" address={order.data.shippingAddress} />
+          <section
+            aria-label={t('checkout.confirmation.delivery')}
+            className="flex min-w-0 flex-col gap-5"
+          >
+            <OrderAddress
+              title={t('checkout.address.shippingTo')}
+              address={order.data.shippingAddress}
+            />
             <div>
-              <h3 className="font-display text-lg font-bold">Shipping method</h3>
+              <h3 className="font-display text-lg font-bold">
+                {t('checkout.confirmation.shippingMethod')}
+              </h3>
               <p className="mt-1 break-words">{order.data.shippingMethod.name}</p>
             </div>
             <div>
-              <h3 className="font-display text-lg font-bold">Contact</h3>
+              <h3 className="font-display text-lg font-bold">
+                {t('checkout.confirmation.contact')}
+              </h3>
               <p className="mt-1 break-all">{order.data.email}</p>
             </div>
           </section>

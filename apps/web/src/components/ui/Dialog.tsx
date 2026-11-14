@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 
+import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
 
 interface DialogProps {
@@ -25,6 +26,7 @@ export function Dialog({
   placement = 'center',
   className,
 }: DialogProps) {
+  const { t } = useT();
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
@@ -74,7 +76,7 @@ export function Dialog({
             </h2>
             <button
               type="button"
-              aria-label="Close"
+              aria-label={t('shell.close')}
               data-testid="dialog-close"
               onClick={() => ref.current?.close()}
               className="-m-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:bg-pet-soft"

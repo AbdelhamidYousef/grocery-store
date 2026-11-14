@@ -1,5 +1,6 @@
 import { HeartIcon } from '../../components/icons';
 import { useToast } from '../../components/ui/Toast';
+import { useT } from '../../i18n';
 import { TEST_IDS } from '../../lib/test-ids';
 
 import { useWishlist, useWishlistActions } from './queries';
@@ -19,17 +20,18 @@ export function WishlistHeart({
   const { data } = useWishlist();
   const { add, remove } = useWishlistActions();
   const toast = useToast();
+  const { t } = useT();
   const saved = data?.items.find((i) => i.productId === productId);
   const busy = add.isPending || remove.isPending;
 
   const toggle = () => {
-    const fail = () => toast.show('We could not update your wishlist. Please try again.', 'error');
+    const fail = () => toast.show(t('loyalty.wishlist.updateFailed'), 'error');
     if (saved) remove.mutate(saved.id, { onError: fail });
     else {
       add.mutate(
         { productId },
         {
-          onSuccess: () => toast.show(`Saved ${productName} to your wishlist`),
+          onSuccess: () => toast.show(t('loyalty.wishlist.saved', { name: productName })),
           onError: fail,
         },
       );
@@ -40,7 +42,7 @@ export function WishlistHeart({
     <button
       type="button"
       aria-pressed={!!saved}
-      aria-label={`Save ${productName} to wishlist`}
+      aria-label={t('loyalty.wishlist.saveLabel', { name: productName })}
       data-testid={TEST_IDS.wishlistHeart}
       disabled={busy}
       onClick={toggle}

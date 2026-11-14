@@ -16,6 +16,7 @@ import {
 import { useHome } from '../features/home/queries';
 import { getHomeSlots, type HomeSlot } from '../features/home/slots';
 import { SafetyBanner } from '../features/safety/SafetyBanner';
+import { useT } from '../i18n';
 import { TEST_IDS } from '../lib/test-ids';
 import { track } from '../lib/track';
 
@@ -39,6 +40,7 @@ function renderSlot(slot: HomeSlot) {
 }
 
 export default function HomePage() {
+  const { t } = useT();
   const { data, isPending, isError } = useHome();
   const slots = getHomeSlots();
 
@@ -48,29 +50,25 @@ export default function HomePage() {
 
   return (
     <div data-testid={TEST_IDS.pageHome}>
-      <Seo
-        title="Pawsome"
-        canonical="/"
-        description="Colourful, tough and tail-wag-approved supplies for dogs, cats, birds, fish and small pets."
-      />
+      <Seo title="Pawsome" canonical="/" description={t('shell.home.seoDescription')} />
 
       <SafetyBanner />
 
-      <h1 className="sr-only">Happy tails start here</h1>
+      <h1 className="sr-only">{t('shell.home.h1')}</h1>
 
       {data ? <HeroCarousel slides={data.heroSlides} /> : <HeroSkeleton />}
       <TrustBar />
 
       <Section id="shop-by-pet">
-        <h2 className="mb-5 text-2xl font-bold sm:text-3xl">Shop by pet</h2>
+        <h2 className="mb-5 text-2xl font-bold sm:text-3xl">{t('shell.home.shopByPet')}</h2>
         <PetTiles />
       </Section>
 
       <Section id="bestsellers">
-        <h2 className="mb-5 text-2xl font-bold sm:text-3xl">Bestsellers</h2>
+        <h2 className="mb-5 text-2xl font-bold sm:text-3xl">{t('shell.home.bestsellers')}</h2>
         {isError ? (
           <p role="alert" className="rounded-card bg-danger-soft p-4 text-danger">
-            We could not load our bestsellers just now. Please try again in a moment.
+            {t('shell.home.bestsellersError')}
           </p>
         ) : (
           <div aria-busy={isPending}>

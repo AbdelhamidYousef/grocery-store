@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 
@@ -6,12 +7,14 @@ import { Button } from '../../components/ui/Button';
 import { Checkbox } from '../../components/ui/Checkbox';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
+import { useT } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { TEST_IDS } from '../../lib/test-ids';
 
 import {
   DetailsSchema,
   DetailsWithVetSchema,
-  SHIPPING_COUNTRIES,
+  shippingCountries,
   type Details,
   type DetailsInput,
 } from './details';
@@ -36,6 +39,9 @@ export function DetailsStep({
   onSaveAddressChange: (value: boolean) => void;
   onSubmit: (details: Details) => void;
 }) {
+  const { t } = useT();
+  const { locale } = useFormat();
+  const countries = useMemo(() => shippingCountries(locale), [locale]);
   const {
     register,
     handleSubmit,
@@ -60,85 +66,85 @@ export function DetailsStep({
     >
       {!signedIn && (
         <p className="text-sm" data-testid={TEST_IDS.checkoutSignInHint}>
-          Have an account?{' '}
+          {t('checkout.details.haveAccount')}{' '}
           <Link to="/login?next=/checkout" className="font-semibold text-primary-strong underline">
-            Sign in
+            {t('checkout.details.signIn')}
           </Link>{' '}
-          to use your saved details. Or just carry on as a guest.
+          {t('checkout.details.signInRest')}
         </p>
       )}
       <Input
-        label="Email"
+        label={t('checkout.details.email')}
         type="email"
         autoComplete="email"
-        hint="We send your order confirmation here."
+        hint={t('checkout.details.emailHint')}
         error={errors.email?.message}
         data-testid={TEST_IDS.checkoutEmail}
         {...register('email')}
       />
       <Input
-        label="Full name"
+        label={t('checkout.details.fullName')}
         autoComplete="shipping name"
         error={a?.fullName?.message}
         {...register('shippingAddress.fullName')}
       />
       <Input
-        label="Address line 1"
+        label={t('checkout.details.line1')}
         autoComplete="shipping address-line1"
         error={a?.line1?.message}
         {...register('shippingAddress.line1')}
       />
       <Input
-        label="Address line 2 (optional)"
+        label={t('checkout.details.line2')}
         autoComplete="shipping address-line2"
         error={a?.line2?.message}
         {...register('shippingAddress.line2')}
       />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Input
-          label="Postal code"
+          label={t('checkout.details.postalCode')}
           autoComplete="shipping postal-code"
           error={a?.postalCode?.message}
           {...register('shippingAddress.postalCode')}
         />
         <Input
-          label="City"
+          label={t('checkout.details.city')}
           autoComplete="shipping address-level2"
           error={a?.city?.message}
           {...register('shippingAddress.city')}
         />
       </div>
       <Input
-        label="Region (optional)"
+        label={t('checkout.details.region')}
         autoComplete="shipping address-level1"
         error={a?.region?.message}
         {...register('shippingAddress.region')}
       />
       <Select
-        label="Country"
+        label={t('checkout.details.country')}
         autoComplete="shipping country"
-        hint="We ship inside Europe."
+        hint={t('checkout.details.countryHint')}
         error={a?.country?.message}
         {...register('shippingAddress.country')}
       >
-        {SHIPPING_COUNTRIES.map((c) => (
+        {countries.map((c) => (
           <option key={c.code} value={c.code}>
             {c.name}
           </option>
         ))}
       </Select>
       <Input
-        label="Phone (optional)"
+        label={t('checkout.details.phone')}
         type="tel"
         autoComplete="shipping tel"
-        hint="Only for the courier."
+        hint={t('checkout.details.phoneHint')}
         error={a?.phone?.message}
         {...register('shippingAddress.phone')}
       />
       {requiresVet && <VetDetailsForm register={register} errors={errors.vetDetails} />}
       {signedIn && (
         <Checkbox
-          label="Save this address to my account"
+          label={t('checkout.details.saveAddress')}
           checked={saveAddress}
           onChange={(e) => onSaveAddressChange(e.target.checked)}
           data-testid={TEST_IDS.checkoutSaveAddress}
@@ -150,7 +156,7 @@ export function DetailsStep({
         className="self-stretch sm:self-end"
         data-testid={TEST_IDS.checkoutContinueShipping}
       >
-        Continue to shipping
+        {t('checkout.details.continue')}
       </Button>
     </form>
   );
