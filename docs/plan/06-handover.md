@@ -75,7 +75,7 @@ Known follow-ups:
 - Playwright reuses any server already on the e2e ports (`reuseExistingServer: true`). Check `ss -ltnp` before `pnpm e2e`: a leftover dev API there makes many tests fail for no code reason.
 - `pnpm typecheck` can pass on a stale `*.tsbuildinfo`; delete those first when in doubt.
 - Hero slides still use catalogue photos; generated hero art is a later image task.
-- Phase 17 (reviews): seed review photos and the gallery reuse catalogue pictures; live photo upload writes to `UPLOAD_DIR` (ephemeral on Render), so the public demo should set `UPLOADS_ENABLED=false`. Migration `0019_reviews_ugc` (the lead renumbers if phase 19 also took 0019).
+- Phase 17 (reviews): seed review photos and the gallery reuse catalogue pictures; live photo upload writes to `UPLOAD_DIR` (ephemeral on Render), so the public demo should set `UPLOADS_ENABLED=false`. Migration `0020_reviews_ugc` (the lead renumbers if phase 19 also took 0019).
 
 Remote viewing: the screenshot tour of the current `main` (phases 0–13) is a private page at
 https://claude.ai/artifact/GPjeWpRVGZNQeZVcmnvdz1. For the live dev site on your tailnet, run
