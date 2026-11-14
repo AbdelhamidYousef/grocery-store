@@ -68,30 +68,31 @@ export async function reencode(buf: Buffer): Promise<Buffer> {
 
 // Random name: nothing from the client reaches the file system, so no path tricks and no
 // overwriting somebody else's photo.
-export async function savePhoto(cfg: UploadConfig, input: Buffer): Promise<string> {
+export async function savePhoto(
+  cfg: UploadConfig,
+  input: Buffer,
+  folder: 'reviews' | 'gallery' = 'reviews',
+): Promise<string> {
+  if (!cfg.enabled) throw validation(undefined, 'Photo upload is switched off in this demo.');
   if (!sniffImage(input)) {
     throw validation(undefined, 'Photos must be JPEG, PNG or WebP images.');
   }
   const out = await reencode(input);
   const name = `${randomUUID()}.webp`;
-  const folder = join(cfg.dir, 'reviews');
-  await mkdir(folder, { recursive: true });
-  await writeFile(join(folder, name), out);
-  return `${UPLOAD_URL_PREFIX}/reviews/${name}`;
+  const target = join(cfg.dir, folder);
+  await mkdir(target, { recursive: true });
+  await writeFile(join(target, name), out);
+  return `${UPLOAD_URL_PREFIX}/${folder}/${name}`;
 }
 
-/** Best-effort cleanup when the database insert fails after files were written. */
+/** Best-effort cleanup of files WE wrote (anything else, such as a committed seed photo, is left alone). */
 export async function removePhotos(cfg: UploadConfig, urls: string[]): Promise<void> {
-  const prefix = `${UPLOAD_URL_PREFIX}/reviews/`;
   await Promise.all(
-    urls
-      .filter((u) => u.startsWith(prefix))
-      .map((u) =>
-        // The name came from randomUUID, but join() of a stripped basename keeps this safe anyway.
-        unlink(join(cfg.dir, 'reviews', u.slice(prefix.length).replace(/[^\w.-]/g, ''))).catch(
-          () => undefined,
-        ),
-      ),
+    urls.map((u) => {
+      const m = /^\/api\/v1\/uploads\/(reviews|gallery)\/([\w-]+\.webp)$/.exec(u);
+      // The strict pattern (random uuid names only) is what keeps a crafted path from escaping the folder.
+      return m ? unlink(join(cfg.dir, m[1]!, m[2]!)).catch(() => undefined) : Promise.resolve();
+    }),
   );
 }
 
@@ -135,5 +136,32 @@ export const parseReviewUpload: RequestHandler = (req, res, next) => {
       return;
     }
     next(err);
+  });
+};
+
+// Admin gallery upload: exactly one file in the `photo` field, same limits, same re-encoding.
+const single = multer({
+  storage: multer.memoryStorage(),
+  limits: { files: 1, fileSize: MAX_REVIEW_PHOTO_BYTES, fields: 2, parts: 4 },
+}).single('photo');
+
+export const parseGalleryUpload: RequestHandler = (req, res, next) => {
+  single(req, res, (err?: unknown) => {
+    if (err instanceof multer.MulterError) {
+      next(
+        err.code === 'LIMIT_FILE_SIZE'
+          ? new AppError(
+              ErrorCode.VALIDATION_ERROR,
+              'The photo can be at most 3 MB.',
+              undefined,
+              413,
+            )
+          : validation(undefined, 'The upload could not be read.'),
+      );
+      return;
+    }
+    if (err) next(err);
+    else if (!req.file) next(validation(undefined, 'Attach one photo in the "photo" field.'));
+    else next();
   });
 };

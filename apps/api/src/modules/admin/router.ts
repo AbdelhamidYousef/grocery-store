@@ -1,11 +1,14 @@
 import { Router as ExpressRouter, type Router } from 'express';
 
 import type { PaymentGateway } from '../../lib/stripe.ts';
+import type { UploadConfig } from '../../lib/uploads.ts';
 import { requireAdmin } from '../../middleware/auth.ts';
+import { createGalleryAdminRouter } from '../gallery/admin-router.ts';
 import type { Outbox } from '../mail/outbox.ts';
 import { createMerchandisingAdminRouter } from '../merchandising/admin-router.ts';
 import { createNavigationAdminRouter } from '../navigation/admin-router.ts';
 import { createPromotionsAdminRouter } from '../promotions/admin-router.ts';
+import { createReviewsAdminRouter } from '../reviews/admin-router.ts';
 import { createSafetyAdminRouter } from '../safety/admin-router.ts';
 
 import { auditMutations } from './audit.ts';
@@ -20,7 +23,11 @@ import { createStatsRouter } from './stats/router.ts';
 // audit log. The guard is a single `router.use` on the prefix rather than a check in each route,
 // so a route added later is protected by default and cannot forget it. `requireAdmin` runs before
 // body or param validation, so a stranger learns nothing about a route's shape from its errors.
-export function createAdminRouter(deps: { payments: PaymentGateway; outbox: Outbox }): Router {
+export function createAdminRouter(deps: {
+  payments: PaymentGateway;
+  outbox: Outbox;
+  uploads: UploadConfig;
+}): Router {
   const router = ExpressRouter();
   router.use('/admin', requireAdmin, auditMutations);
 
@@ -35,6 +42,8 @@ export function createAdminRouter(deps: { payments: PaymentGateway; outbox: Outb
   admin.use(createAdminContentRouter());
   admin.use(createPromotionsAdminRouter());
   admin.use(createNavigationAdminRouter());
+  admin.use(createReviewsAdminRouter(deps));
+  admin.use(createGalleryAdminRouter(deps));
   router.use('/admin', admin);
   return router;
 }

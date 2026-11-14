@@ -13,19 +13,27 @@ export const MAX_REVIEW_PHOTOS = 3;
 export const MAX_REVIEW_PHOTO_BYTES = 3 * 1024 * 1024;
 
 // A form sends '' for an untouched number box: treat it as "not given".
-const optionalInt = (min: number, max: number) =>
+const optionalInt = (min: number, max: number, message: string) =>
   z.preprocess(
     (v) => (v === '' || v === null ? undefined : v),
-    z.coerce.number().int().min(min).max(max).optional(),
+    z.coerce.number(message).int(message).min(min, message).max(max, message).optional(),
   );
 
 export const reviewInputSchema = z.object({
-  rating: z.coerce.number().int().min(1).max(5),
-  title: z.string().trim().min(3).max(80),
-  body: z.string().trim().min(20).max(2000),
+  rating: z.coerce.number('Choose a star rating').int().min(1, 'Choose a star rating').max(5),
+  title: z
+    .string()
+    .trim()
+    .min(3, 'Give your review a short title')
+    .max(80, 'At most 80 characters'),
+  body: z
+    .string()
+    .trim()
+    .min(20, 'Please write at least 20 characters')
+    .max(2000, 'At most 2000 characters'),
   // Up to 50 years, in months; up to 120 kg (a very large dog), in grams.
-  petAgeMonths: optionalInt(0, 600),
-  petWeightG: optionalInt(50, 120_000),
+  petAgeMonths: optionalInt(0, 600, 'Enter an age between 0 and 600 months'),
+  petWeightG: optionalInt(50, 120_000, 'Enter a weight between 0.05 and 120 kg'),
   sizePurchased: z.preprocess(
     (v) => (v === '' || v === null ? undefined : v),
     z.string().trim().max(40).optional(),
@@ -189,7 +197,14 @@ export const AdminGalleryPhotoSchema = z.object({
 export type AdminGalleryPhoto = z.infer<typeof AdminGalleryPhotoSchema>;
 
 export const GalleryInputSchema = z.object({
-  path: z.string().trim().min(1).max(300),
+  // A path on our own site ("/api/v1/uploads/..." or a committed "/reviews/..." photo): never a
+  // full URL, so the gallery cannot be pointed at somebody else's server.
+  path: z
+    .string()
+    .trim()
+    .min(2)
+    .max(300)
+    .refine((p) => p.startsWith('/') && !p.startsWith('//'), 'Must be a path on this site'),
   caption: z.string().trim().max(200).default(''),
   petName: z.string().trim().max(60).default(''),
   sortOrder: z.coerce.number().int().min(0).max(10_000).default(0),

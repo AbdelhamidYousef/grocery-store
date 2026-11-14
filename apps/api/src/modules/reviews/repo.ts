@@ -301,3 +301,85 @@ export async function photoPathsOf(tx: Tx, reviewId: string): Promise<string[]> 
 export async function deleteReviewRow(tx: Tx, id: string) {
   await tx.delete(reviews).where(eq(reviews.id, id));
 }
+
+// What the thank-you email needs, read inside the approving transaction.
+export async function emailContext(tx: Tx, reviewId: string) {
+  const [row] = await tx
+    .select({
+      email: users.email,
+      firstName: users.firstName,
+      productName: products.name,
+      productSlug: products.slug,
+    })
+    .from(reviews)
+    .innerJoin(users, eq(users.id, reviews.userId))
+    .innerJoin(products, eq(products.id, reviews.productId))
+    .where(eq(reviews.id, reviewId));
+  return row;
+}
+
+// ---------- admin list ----------
+
+const adminCols = {
+  id: reviews.id,
+  productId: reviews.productId,
+  productName: products.name,
+  productSlug: products.slug,
+  firstName: users.firstName,
+  lastName: users.lastName,
+  email: users.email,
+  rating: reviews.rating,
+  title: reviews.title,
+  body: reviews.body,
+  verifiedBuyer: reviews.verifiedBuyer,
+  petAgeMonths: reviews.petAgeMonths,
+  petWeightG: reviews.petWeightG,
+  sizePurchased: reviews.sizePurchased,
+  wouldRecommend: reviews.wouldRecommend,
+  status: reviews.status,
+  rejectReason: reviews.rejectReason,
+  createdAt: reviews.createdAt,
+  moderatedAt: reviews.moderatedAt,
+};
+
+const adminBase = () =>
+  db
+    .select(adminCols)
+    .from(reviews)
+    .innerJoin(products, eq(products.id, reviews.productId))
+    .leftJoin(users, eq(users.id, reviews.userId));
+
+const photosOfReviews = (ids: string[]) =>
+  ids.length === 0
+    ? Promise.resolve([])
+    : db
+        .select({ id: reviewPhotos.id, reviewId: reviewPhotos.reviewId, path: reviewPhotos.path })
+        .from(reviewPhotos)
+        .where(inArray(reviewPhotos.reviewId, ids))
+        .orderBy(reviewPhotos.position);
+
+export async function adminList(
+  status: 'pending' | 'approved' | 'rejected',
+  limit: number,
+  offset: number,
+) {
+  const where = eq(reviews.status, status);
+  const [rows, [count]] = await Promise.all([
+    adminBase()
+      .where(where)
+      // Oldest first for the queue: whoever waited longest is looked at first.
+      .orderBy(status === 'pending' ? reviews.createdAt : desc(reviews.createdAt), reviews.id)
+      .limit(limit)
+      .offset(offset),
+    db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(reviews)
+      .where(where),
+  ]);
+  return { rows, photos: await photosOfReviews(rows.map((r) => r.id)), total: count?.n ?? 0 };
+}
+
+export async function adminListOne(id: string) {
+  const [row] = await adminBase().where(eq(reviews.id, id));
+  return row && { row, photos: await photosOfReviews([id]) };
+}

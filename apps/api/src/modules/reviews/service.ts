@@ -2,6 +2,9 @@ import {
   OrderStatusSchema,
   averageTenths,
   isPaidOrLater,
+  type AdminReview,
+  type AdminReviewListResponseSchema,
+  type AdminReviewQuerySchema,
   type ReviewInput,
   type ReviewListResponse,
 } from '@store/shared';
@@ -178,4 +181,54 @@ export async function toggleHelpful(userId: string, reviewId: string) {
   if (!review) throw notFound('Review not found');
   if (review.userId === userId) throw forbidden('You cannot vote on your own review.');
   return repo.toggleVote(reviewId, userId);
+}
+
+// ---------- admin ----------
+
+type AdminRows = Awaited<ReturnType<typeof repo.adminList>>;
+
+function toAdminReview(r: AdminRows['rows'][number], photos: AdminRows['photos']): AdminReview {
+  return {
+    id: r.id,
+    productId: r.productId,
+    productName: r.productName,
+    productSlug: r.productSlug,
+    authorName: authorName(r.firstName, r.lastName),
+    // Moderators see the email (to judge "is this a real customer"); the public never does.
+    authorEmail: r.email,
+    rating: r.rating,
+    title: r.title,
+    body: r.body,
+    verifiedBuyer: r.verifiedBuyer,
+    petAgeMonths: r.petAgeMonths,
+    petWeightG: r.petWeightG,
+    sizePurchased: r.sizePurchased,
+    wouldRecommend: r.wouldRecommend,
+    status: r.status,
+    rejectReason: r.rejectReason,
+    photos: photos.filter((p) => p.reviewId === r.id).map((p) => ({ id: p.id, path: p.path })),
+    createdAt: r.createdAt.toISOString(),
+    moderatedAt: r.moderatedAt?.toISOString() ?? null,
+  };
+}
+
+export async function adminList(
+  query: z.output<typeof AdminReviewQuerySchema>,
+): Promise<z.input<typeof AdminReviewListResponseSchema>> {
+  const page = await repo.adminList(query.status, query.limit, (query.page - 1) * query.limit);
+  return {
+    data: page.rows.map((r) => toAdminReview(r, page.photos)),
+    meta: {
+      page: query.page,
+      limit: query.limit,
+      total: page.total,
+      totalPages: Math.ceil(page.total / query.limit),
+    },
+  };
+}
+
+export async function adminOne(id: string): Promise<AdminReview> {
+  const page = await repo.adminListOne(id);
+  if (!page) throw notFound('Review not found');
+  return toAdminReview(page.row, page.photos);
 }

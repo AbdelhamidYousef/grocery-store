@@ -4,7 +4,7 @@ import { pino } from 'pino';
 import { describe, expect, it } from 'vitest';
 
 import { MemoryTransport } from '../../lib/mailer.ts';
-import { makeTestApp } from '../../test/app.ts';
+import { makeTestApp, TEST_UPLOAD_DIR } from '../../test/app.ts';
 import { FakeStripe } from '../../test/fake-stripe.ts';
 import { errorOf, bodyOf } from '../../test/http.ts';
 import { signedIn } from '../../test/orders.ts';
@@ -29,6 +29,7 @@ describe('admin guard: every admin route', () => {
     createAdminRouter({
       payments: new FakeStripe(),
       outbox: createOutbox({ transport: new MemoryTransport(), log: pino({ level: 'silent' }) }),
+      uploads: { dir: TEST_UPLOAD_DIR, enabled: true },
     }),
   ).filter((r) => r.path.length > 0);
 
