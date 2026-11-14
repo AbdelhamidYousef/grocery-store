@@ -761,6 +761,9 @@ export function makePoints(overrides: Partial<PointsSummary> = {}): PointsSummar
     tier: { id: 'pup', label: 'Pup', ratePercent: 100 },
     nextTier: { id: 'good_dog', label: 'Good Dog', pointsNeeded: 500 },
     entries: [],
+    ...overrides,
+  };
+}
 
 export function makeReturn(overrides: Partial<CustomerReturn> = {}): CustomerReturn {
   return {
