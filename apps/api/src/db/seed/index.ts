@@ -44,6 +44,7 @@ import {
   memberPriceCents,
   pickMemberVariants,
 } from './promotions.ts';
+import { seedReviews } from './reviews.ts';
 import { validateSeed } from './schema.ts';
 import { shippingMethods } from './shipping.ts';
 import { tags } from './tags.ts';
@@ -481,6 +482,9 @@ export async function runSeed(now = new Date()) {
           role: excluded('role'),
         },
       });
+
+    // ---- reviews and the customer gallery (phase 17): after the products and the users ----
+    await seedReviews(tx, { products, productId, passwordHash, now });
   });
 }
 

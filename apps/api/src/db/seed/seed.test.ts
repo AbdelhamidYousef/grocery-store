@@ -41,7 +41,8 @@ describe('seed', () => {
       brands: 6,
       tags: 6,
       collections: 5,
-      users: 3,
+      // 3 demo logins plus the 14 invented reviewers (phase 17).
+      users: 17,
       shipping: 2,
     });
   });
@@ -163,5 +164,72 @@ describe('seed: product page content', () => {
     // Constituents come in sixes (five percentages and kcal) per variant of a fed product.
     expect((first?.constituents ?? 0) % 6).toBe(0);
     expect(first?.constituents).toBeGreaterThan(100);
+  });
+});
+
+describe('seeded reviews and gallery (phase 17)', () => {
+  it('writes about 60 reviews in all three states, 12 gallery photos, and is idempotent', async () => {
+    await runSeed();
+    const q = async () =>
+      (
+        await db.execute<{
+          total: number;
+          approved: number;
+          pending: number;
+          rejected: number;
+          photos: number;
+          gallery: number;
+          published: number;
+          links: number;
+          products_rated: number;
+        }>(sql`select
+          (select count(*)::int from reviews) as total,
+          (select count(*)::int from reviews where status = 'approved') as approved,
+          (select count(*)::int from reviews where status = 'pending') as pending,
+          (select count(*)::int from reviews where status = 'rejected') as rejected,
+          (select count(*)::int from review_photos) as photos,
+          (select count(*)::int from gallery_photos) as gallery,
+          (select count(*)::int from gallery_photos where published) as published,
+          (select count(*)::int from gallery_photo_products) as links,
+          (select count(*)::int from products where rating_count > 0) as products_rated`)
+      )[0]!;
+    const first = await q();
+    expect(first.total).toBe(60);
+    expect(first.approved).toBeGreaterThan(35);
+    expect(first.pending).toBeGreaterThanOrEqual(3);
+    expect(first.rejected).toBeGreaterThanOrEqual(1);
+    expect(first.photos).toBeGreaterThanOrEqual(3);
+    expect(first.gallery).toBe(12);
+    expect(first.published).toBe(11);
+    expect(first.links).toBeGreaterThanOrEqual(12);
+    expect(first.products_rated).toBeGreaterThan(10);
+    await runSeed();
+    expect(await q()).toEqual(first);
+  });
+
+  it('keeps every product rating equal to its approved reviews, and a review by someone else survives a re-seed', async () => {
+    await runSeed();
+    const [mine] = await db.execute<{ id: string }>(sql`select id from products limit 1`);
+    const [user] = await db.execute<{ id: string }>(
+      sql`select id from users where email = 'sam@pawsome.test'`,
+    );
+    await db.execute(sql`insert into reviews (product_id, user_id, rating, title, body, would_recommend, status)
+      values (${mine!.id}, ${user!.id}, 5, 'Mine', 'A review written by a real demo user.', true, 'approved')`);
+    await runSeed();
+    const rows = await db.execute<{ bad: number; kept: number }>(sql`select
+      (select count(*)::int from products p where p.rating_count <>
+        (select count(*) from reviews r where r.product_id = p.id and r.status = 'approved')
+        or p.rating_sum <>
+        (select coalesce(sum(r.rating), 0) from reviews r where r.product_id = p.id and r.status = 'approved')) as bad,
+      (select count(*)::int from reviews where title = 'Mine') as kept`);
+    expect(rows[0]).toEqual({ bad: 0, kept: 1 });
+  });
+
+  it('never gives the public API a pending or rejected review count', async () => {
+    await runSeed();
+    const [row] = await db.execute<{ n: number }>(
+      sql`select count(*)::int as n from reviews where status = 'approved' and moderated_at is null`,
+    );
+    expect(row?.n).toBe(0);
   });
 });

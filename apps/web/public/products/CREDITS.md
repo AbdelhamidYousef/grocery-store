@@ -86,3 +86,11 @@ New products' photos are generated from `docs/images-brief.csv`.
 The three "How to measure" drawings (neck, chest, length) are inline SVG written for this project in
 `apps/web/src/features/catalog/pdp/MeasureIllustrations.tsx`. They are original line art, not traced
 from or based on any third-party artwork, and may be reused with the rest of the project.
+
+## Review photos and the customer gallery (phase 17)
+
+The demo's seeded review photos and the 12 gallery photos are NOT new images: they point at the
+catalogue pictures in this folder (same files, same credits as above). The "customer" look is
+therefore a placeholder; real customer-style photos can replace them through the admin gallery
+(`/admin/gallery`) without any code change. Photos uploaded by real users are re-encoded by the API,
+stored under `UPLOAD_DIR` (git-ignored) and are not part of the repository.
