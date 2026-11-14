@@ -95,7 +95,16 @@ test('without modelContext the store runs as before, with no console errors', as
   const problems: string[] = [];
   page.on('pageerror', (e) => problems.push(e.message));
   page.on('console', (m) => {
-    if (m.type() === 'error') problems.push(m.text());
+    if (m.type() !== 'error') return;
+    // The one expected message: a visitor without a session gets 401 from the boot call
+    // `GET /auth/me` (the API's deliberate "not signed in" answer, which the web turns into
+    // "guest"), and Chromium logs every failed request to the console. Whether it lands before
+    // the assertion below depends on timing, which is why the test used to be flaky. Only that
+    // exact message, for that exact URL, is ignored: any other 401 (or any other error) still fails.
+    const guestProbe =
+      /status of 401/.test(m.text()) &&
+      new URL(m.location().url || 'http://x/').pathname.endsWith('/auth/me');
+    if (!guestProbe) problems.push(m.text());
   });
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
