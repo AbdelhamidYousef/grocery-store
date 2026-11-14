@@ -41,3 +41,11 @@ services:
         value: Pawsome <onboarding@resend.dev>
       - key: LOG_LEVEL
         value: info
+      # Render's free disk is wiped on every deploy and restart, so review photo upload is off on
+      # the demo (the form says so). Seeded photos are served from the web app.
+      - key: UPLOADS_ENABLED
+        value: 'false'
+      # Shared with the GitHub Actions secret of the same name: the scheduled workflow
+      # (.github/workflows/jobs.yml) calls POST /api/v1/internal/jobs/run with it. 16+ characters.
+      - key: JOBS_SECRET
+        sync: false

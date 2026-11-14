@@ -81,6 +81,8 @@ variables.
 | `RESEND_API_KEY`        | `re_...` (step 6), optional: without it emails are logged and skipped         |
 | `MAIL_FROM`             | `Pawsome <onboarding@resend.dev>` (set by the blueprint)                      |
 | `LOG_LEVEL`             | `info` (optional)                                                             |
+| `UPLOADS_ENABLED`       | `false` (set by the blueprint): the free disk is ephemeral                    |
+| `JOBS_SECRET`           | 16+ random characters; the same value as the GitHub Actions secret `JOBS_SECRET` |
 
 The API refuses to boot (the deploy fails with a readable message in the logs) if `DATABASE_URL`,
 `COOKIE_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` is missing, if `WEB_ORIGIN` is not an
