@@ -1,4 +1,10 @@
-import type { NetUnit } from './pets.ts';
+import { z } from 'zod';
+
+// Net contents are stored as integers in the base *small* unit (grams or millilitres), so unit
+// price maths never touches a float.
+export const NET_UNITS = ['g', 'ml'] as const;
+export const NetUnitSchema = z.enum(NET_UNITS);
+export type NetUnit = z.infer<typeof NetUnitSchema>;
 
 export type UnitPrice = { cents: number; per: 'kg' | 'L' };
 

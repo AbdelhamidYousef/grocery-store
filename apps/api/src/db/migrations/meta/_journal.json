@@ -288,6 +288,13 @@
       "when": 1794687606975,
       "tag": "0040_drop_vet_details",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1794688479655,
+      "tag": "0041_drop_pet_profiles",
+      "breakpoints": true
     }
   ]
 }

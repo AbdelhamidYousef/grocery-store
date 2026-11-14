@@ -27,7 +27,6 @@ import {
   StockAlertCancelPage,
 } from './pages/NewsletterPage';
 import NotFoundPage from './pages/NotFoundPage';
-import PetsPage from './pages/PetsPage';
 import ProductPage from './pages/ProductPage';
 import RegisterPage from './pages/RegisterPage';
 import RouteErrorPage from './pages/RouteErrorPage';
@@ -104,7 +103,6 @@ export const routes: RouteObject[] = [
               },
               // Public on purpose: a guest keeps their pets in the browser (listed before the guarded
               // `account/*` splat, and a static path outranks a splat).
-              { path: 'account/pets', element: <PetsPage /> },
               // Guards are pathless layout routes: they render the matched child via <Outlet />.
               {
                 element: <RequireAuth />,

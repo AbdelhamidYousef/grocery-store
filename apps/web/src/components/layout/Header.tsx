@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { MegaMenu } from '../../features/navigation/MegaMenu';
-import { PetSwitcher } from '../../features/pets/PetSwitcher';
 import { StoreSwitcher } from '../../features/stores/StoreSwitcher';
 import { useT } from '../../i18n';
 import { TEST_IDS } from '../../lib/test-ids';
@@ -73,9 +72,6 @@ export function Header({
         </div>
 
         <div className="flex items-center gap-1 lg:ml-auto">
-          <div className="hidden lg:block">
-            <PetSwitcher />
-          </div>
           {/* Phones get the switcher in the footer: the header row is already full. */}
           <div className="hidden lg:block">
             <StoreSwitcher />

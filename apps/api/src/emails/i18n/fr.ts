@@ -122,32 +122,6 @@ export const fr: Record<EmailKey, TextEntry> = {
   'stock.preheader': '{product} est de retour',
   'stock.heading': 'De nouveau en stock',
 
-  'pet.birthday.subject': 'Joyeux anniversaire, {pet} !',
-  'pet.birthday.heading': 'Joyeux anniversaire, {pet} !',
-  'pet.birthday.treat': 'Un cadeau de notre part : {percent} % de remise, rien que pour vous.',
-  'pet.birthday.code': 'Code : {code}',
-  'pet.birthday.terms': {
-    one: 'Un seul usage, valable {count} jour, et uniquement sur votre compte.',
-    other: 'Un seul usage, valable {count} jours, et uniquement sur votre compte.',
-  },
-  'pet.birthday.shop': 'Boutique : {url}',
-  'pet.birthday.button': 'Choisir un cadeau d’anniversaire',
-  'pet.birthday.preheader': '{percent} % de remise pour l’anniversaire de {pet}',
-  'pet.stage.subject': '{pet} a {age} : le moment de regarder l’alimentation ?',
-  'pet.stage.today': '{pet} a {age} aujourd’hui.',
-  'pet.stage.heading': '{pet} a {age}',
-  'pet.stage.dog':
-    'Un chiot en croissance a besoin d’une alimentation différente en grandissant. Il est peut-être temps de changer ; votre vétérinaire pourra vous dire quand.',
-  'pet.stage.cat':
-    'Un chaton en croissance a besoin d’une alimentation différente en grandissant. Il est peut-être temps de changer ; votre vétérinaire pourra vous dire quand.',
-  'pet.stage.see': 'Découvrez notre sélection : {url}',
-  'pet.stage.button': 'Voir l’alimentation',
-  'pet.stage.preheader.dog': 'L’alimentation des chiots change en grandissant',
-  'pet.stage.preheader.cat': 'L’alimentation des chatons change en grandissant',
-  'pet.age.life_stage_8w': '8 semaines',
-  'pet.age.life_stage_6m': '6 mois',
-  'pet.age.life_stage_12m': '12 mois',
-
   'contact.topic.order': 'Ma commande',
   'contact.topic.shipping': 'Livraison',
   'contact.topic.returns': 'Retours et remboursements',

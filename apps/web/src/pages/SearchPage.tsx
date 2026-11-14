@@ -20,7 +20,7 @@ export default function SearchPage() {
       </h1>
       {q ? (
         <div className="mt-6">
-          <ProductListing listId="search" q={q} petScope="any" />
+          <ProductListing listId="search" q={q} />
         </div>
       ) : (
         <p className="mt-3 text-muted">{t('search.page.prompt')}</p>

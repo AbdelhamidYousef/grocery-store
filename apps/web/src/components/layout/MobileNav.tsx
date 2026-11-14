@@ -1,5 +1,4 @@
 import { MobileMenu } from '../../features/navigation/MobileMenu';
-import { PetChoices } from '../../features/pets/PetSwitcher';
 import { useT } from '../../i18n';
 import { Dialog } from '../ui/Dialog';
 
@@ -20,12 +19,6 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
       <nav aria-label={t('shell.shopByPet')} data-testid="mobile-nav">
         <MobileMenu onNavigate={onClose} />
       </nav>
-      <section aria-labelledby="drawer-pets" data-testid="mobile-pets">
-        <p id="drawer-pets" className="mb-1 font-display text-lg font-bold">
-          {t('shell.shoppingFor')}
-        </p>
-        <PetChoices onPick={onClose} />
-      </section>
     </Dialog>
   );
 }

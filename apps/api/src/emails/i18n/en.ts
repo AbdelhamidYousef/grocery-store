@@ -125,33 +125,6 @@ export const en = {
   'stock.preheader': '{product} is back',
   'stock.heading': 'It is back in stock',
 
-  // ----- pet messages -----
-  'pet.birthday.subject': 'Happy birthday, {pet}!',
-  'pet.birthday.heading': 'Happy birthday, {pet}!',
-  'pet.birthday.treat': 'A treat from us: {percent}% off, just for you.',
-  'pet.birthday.code': 'Code: {code}',
-  'pet.birthday.terms': {
-    one: 'One use, valid for {count} day, and only on your account.',
-    other: 'One use, valid for {count} days, and only on your account.',
-  },
-  'pet.birthday.shop': 'Shop: {url}',
-  'pet.birthday.button': 'Pick a birthday present',
-  'pet.birthday.preheader': "{percent}% off for {pet}'s birthday",
-  'pet.stage.subject': '{pet} is {age} old: time to look at food?',
-  'pet.stage.today': '{pet} is {age} old today.',
-  'pet.stage.heading': '{pet} is {age} old',
-  'pet.stage.dog':
-    'A growing puppy needs different food as it gets older. It may be time to switch, and your vet can tell you when.',
-  'pet.stage.cat':
-    'A growing kitten needs different food as it gets older. It may be time to switch, and your vet can tell you when.',
-  'pet.stage.see': 'See what we have: {url}',
-  'pet.stage.button': 'Browse food',
-  'pet.stage.preheader.dog': 'Growing puppies change what they eat',
-  'pet.stage.preheader.cat': 'Growing kittens change what they eat',
-  'pet.age.life_stage_8w': '8 weeks',
-  'pet.age.life_stage_6m': '6 months',
-  'pet.age.life_stage_12m': '12 months',
-
   // ----- contact -----
   'contact.topic.order': 'My order',
   'contact.topic.shipping': 'Shipping and delivery',

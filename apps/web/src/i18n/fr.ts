@@ -7,7 +7,6 @@ import { checkout } from './fr/checkout';
 import { content } from './fr/content';
 import { loyalty } from './fr/loyalty';
 import { pdp } from './fr/pdp';
-import { pets } from './fr/pets';
 import { returns } from './fr/returns';
 import { reviews } from './fr/reviews';
 import { search } from './fr/search';
@@ -26,6 +25,5 @@ export const fr: Record<keyof typeof en, Entry> = {
   ...auth,
   ...returns,
   ...loyalty,
-  ...pets,
   ...content,
 };

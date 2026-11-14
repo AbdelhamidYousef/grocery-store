@@ -34,7 +34,6 @@ export type AnalyticsEvent =
   | { name: 'review_helpful'; reviewId: string; voted: boolean }
   | { name: 'return_requested'; orderNumber: string; items: number; reason: string }
   | { name: 'pet_added'; species: string }
-  | { name: 'pet_activated'; species: string | null }
   | { name: 'promo_applied'; code: string }
   | { name: 'code_failed'; code: string }
   // Money fields are integer cents like everywhere else; a provider adapter converts if it must.

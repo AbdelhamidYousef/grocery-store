@@ -5,7 +5,6 @@ export const shell = {
   'shell.skipLink': 'Skip to main content',
   'shell.menu': 'Menu',
   'shell.shopByPet': 'Shop by pet',
-  'shell.shoppingFor': 'Shopping for',
   'shell.storeSwitcher': 'Country and language',
   'shell.breadcrumb': 'Breadcrumb',
   'shell.loading': 'Loading',

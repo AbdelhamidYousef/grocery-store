@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-import { NetUnitSchema, PetSchema } from '../pets.ts';
+import { PetSchema } from '../pets.ts';
+import { NetUnitSchema } from '../unit-price.ts';
 
 import { OrderSchema, OrderStatusSchema, PaymentStatusSchema } from './checkout.ts';
 import { DataSchema, PaginatedSchema, PaginationQuerySchema } from './common.ts';

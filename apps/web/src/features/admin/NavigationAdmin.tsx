@@ -25,7 +25,7 @@ import { useToast } from '../../components/ui/Toast';
 import { keys } from '../../lib/query-client';
 import { FormAlert } from '../auth/AuthCard';
 import { PromoTile } from '../navigation/PromoTile';
-import { speciesLabel } from '../pets/age';
+import { speciesLabel } from '../navigation/species-label';
 
 import { adminErrorMessage } from './errors';
 

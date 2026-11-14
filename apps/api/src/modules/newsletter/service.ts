@@ -160,7 +160,7 @@ export async function unsubscribe(token: string, now = new Date()): Promise<void
   if (!row) throw notFound('This unsubscribe link is not valid');
 }
 
-/** A subscriber who may be sent marketing mail (pets, birthdays): confirmed and not unsubscribed. */
+/** A subscriber who may be sent marketing mail (pet interests): confirmed and not unsubscribed. */
 export async function findConfirmedByEmail(run: typeof db | Tx, email: string) {
   const [row] = await run
     .select()

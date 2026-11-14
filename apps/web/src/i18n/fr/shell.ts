@@ -6,7 +6,6 @@ export const shell: Record<keyof typeof enNs, Entry> = {
   'shell.skipLink': 'Aller au contenu principal',
   'shell.menu': 'Menu',
   'shell.shopByPet': 'Acheter par animal',
-  'shell.shoppingFor': 'Vous achetez pour',
   'shell.storeSwitcher': 'Pays et langue',
   'shell.breadcrumb': "Fil d'Ariane",
   'shell.loading': 'Chargement',

@@ -11,8 +11,6 @@ import { UnitPriceNote } from '../../components/ui/UnitPrice';
 import { useT, type StringKey } from '../../i18n';
 import { PETS } from '../../lib/pets';
 import { TEST_IDS } from '../../lib/test-ids';
-import { ActivePetNote } from '../pets/ActivePetNote';
-import { usePetDefaults } from '../pets/use-pet-defaults';
 import { useStore } from '../stores/StoreContext';
 
 import { AppliedFilters } from './AppliedFilters';
@@ -39,24 +37,15 @@ interface ProductListingProps {
    * Where the active pet may pre-filter this list: 'any' (search) or the pet attribute value of
    * the category page ('dog'). Left out on brand and collection pages, which are curated lists.
    */
-  petScope?: string;
 }
 
 // The listing shared by /c/:slug and /search: reads the URL, asks the API, and renders the
 // states (loading, error, empty, results, page out of range). Filters and sort controls attach
 // here: a sidebar on desktop, a drawer on phones, both built from the API's `facets`.
-export function ProductListing({
-  listId,
-  category,
-  q,
-  collection,
-  brand,
-  petScope,
-}: ProductListingProps) {
+export function ProductListing({ listId, category, q, collection, brand }: ProductListingProps) {
   const { t, tn } = useT();
   const { query, search, update, clear } = useProductListParams();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const { waiting: waitingForPet } = usePetDefaults(petScope);
 
   // The route decides category and query; a stray `?category=` or `?limit=` in the URL must not
   // override it, so those are set last.
@@ -71,8 +60,6 @@ export function ProductListing({
   const { currency: storeCurrency } = useStore();
   const { data, isPending, isError, isFetching, refetch } = useProducts(params, {
     keepPrevious: true,
-    // Hold the first request until the active pet's filters are in the URL: one request, not two.
-    enabled: !waitingForPet,
   });
 
   // New page of results: bring the top of the list into view. (Filter changes do not scroll,
@@ -100,7 +87,7 @@ export function ProductListing({
     );
   }
 
-  if (isPending || waitingForPet) {
+  if (isPending) {
     return (
       <div className="lg:grid lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-8" aria-busy="true">
         <p className="sr-only" role="status">
@@ -194,7 +181,6 @@ export function ProductListing({
           </div>
         </div>
 
-        <ActivePetNote query={query} update={update} />
         <QuickChips
           chips={brand ? data.chips.filter((c) => c.kind !== 'brand') : data.chips}
           query={query}

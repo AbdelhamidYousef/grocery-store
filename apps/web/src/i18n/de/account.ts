@@ -8,7 +8,6 @@ export const account: Record<keyof typeof enNs, Entry> = {
   'account.nav.profile': 'Profil',
   'account.nav.security': 'Sicherheit',
   'account.nav.addresses': 'Adressen',
-  'account.nav.pets': 'Haustiere',
   'account.nav.orders': 'Bestellungen',
   'account.nav.buyAgain': 'Nochmal kaufen',
   'account.nav.rewards': 'Prämien',

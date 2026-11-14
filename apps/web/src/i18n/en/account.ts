@@ -7,7 +7,6 @@ export const account = {
   'account.nav.profile': 'Profile',
   'account.nav.security': 'Security',
   'account.nav.addresses': 'Addresses',
-  'account.nav.pets': 'Pets',
   'account.nav.orders': 'Orders',
   'account.nav.buyAgain': 'Buy again',
   'account.nav.rewards': 'Rewards',

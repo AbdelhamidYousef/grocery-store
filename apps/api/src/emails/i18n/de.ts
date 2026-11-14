@@ -121,32 +121,6 @@ export const de: Record<EmailKey, TextEntry> = {
   'stock.preheader': '{product} ist wieder da',
   'stock.heading': 'Wieder auf Lager',
 
-  'pet.birthday.subject': 'Alles Gute zum Geburtstag, {pet}!',
-  'pet.birthday.heading': 'Alles Gute zum Geburtstag, {pet}!',
-  'pet.birthday.treat': 'Ein Geschenk von uns: {percent} % Rabatt, nur für Sie.',
-  'pet.birthday.code': 'Code: {code}',
-  'pet.birthday.terms': {
-    one: 'Einmal einlösbar, {count} Tag gültig und nur in Ihrem Konto.',
-    other: 'Einmal einlösbar, {count} Tage gültig und nur in Ihrem Konto.',
-  },
-  'pet.birthday.shop': 'Zum Shop: {url}',
-  'pet.birthday.button': 'Ein Geburtstagsgeschenk aussuchen',
-  'pet.birthday.preheader': '{percent} % Rabatt zum Geburtstag von {pet}',
-  'pet.stage.subject': '{pet} ist {age} alt: Zeit, sich das Futter anzusehen?',
-  'pet.stage.today': '{pet} ist heute {age} alt.',
-  'pet.stage.heading': '{pet} ist {age} alt',
-  'pet.stage.dog':
-    'Ein heranwachsender Welpe braucht mit zunehmendem Alter anderes Futter. Vielleicht ist es Zeit für einen Wechsel, Ihre Tierarztpraxis sagt Ihnen, wann.',
-  'pet.stage.cat':
-    'Ein heranwachsendes Kätzchen braucht mit zunehmendem Alter anderes Futter. Vielleicht ist es Zeit für einen Wechsel, Ihre Tierarztpraxis sagt Ihnen, wann.',
-  'pet.stage.see': 'Das haben wir für Sie: {url}',
-  'pet.stage.button': 'Futter ansehen',
-  'pet.stage.preheader.dog': 'Heranwachsende Welpen brauchen anderes Futter',
-  'pet.stage.preheader.cat': 'Heranwachsende Kätzchen brauchen anderes Futter',
-  'pet.age.life_stage_8w': '8 Wochen',
-  'pet.age.life_stage_6m': '6 Monate',
-  'pet.age.life_stage_12m': '12 Monate',
-
   'contact.topic.order': 'Meine Bestellung',
   'contact.topic.shipping': 'Versand und Lieferung',
   'contact.topic.returns': 'Rücksendungen und Erstattungen',

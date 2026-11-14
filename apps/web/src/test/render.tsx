@@ -5,7 +5,6 @@ import { createMemoryRouter, RouterProvider, type RouteObject } from 'react-rout
 
 import { ToastProvider } from '../components/ui/Toast';
 import { AuthProvider } from '../features/auth/AuthProvider';
-import { ActivePetProvider } from '../features/pets/ActivePetProvider';
 import { resolveEntry } from '../lib/store-entry';
 import { routes } from '../routes';
 
@@ -16,9 +15,7 @@ export function TestProviders({ children, client }: { children: ReactNode; clien
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <AuthProvider>
-          <ActivePetProvider>{children}</ActivePetProvider>
-        </AuthProvider>
+        <AuthProvider>{children}</AuthProvider>
       </ToastProvider>
     </QueryClientProvider>
   );

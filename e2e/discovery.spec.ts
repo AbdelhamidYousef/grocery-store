@@ -67,34 +67,6 @@ test('open the mega-menu with the keyboard and follow its promo', async ({ page 
   await expect(panel).toBeHidden();
 });
 
-test('a guest adds the pet Biscuit and the dog pages start filtered for it', async ({ page }) => {
-  await page.goto('/account/pets');
-  await expect(page.getByTestId('empty-state')).toBeVisible();
-  await page.getByTestId('pet-add').click();
-  await page.getByLabel('Name').fill('Biscuit');
-  await page.getByLabel('Kind of pet').selectOption('dog');
-  await page.getByTestId('pet-save').click();
-  await expect(page.getByTestId('pet-card')).toContainText('Biscuit');
-
-  await expect(page.getByTestId('pet-switcher-button')).toContainText('Shopping for Biscuit');
-
-  // A dog category page opens with the pet's filters already in the URL.
-  await page.goto('/c/dogs');
-  await expect(page).toHaveURL(/attr\.pet=dog/);
-  await expect(page.getByTestId('active-pet-note')).toContainText('Biscuit');
-  const cards = page.getByTestId('product-card');
-  await expect(cards.first()).toBeVisible();
-
-  // One click clears it, and the list stays unfiltered.
-  await page.getByTestId('active-pet-clear').click();
-  await expect(page).not.toHaveURL(/attr\.pet/);
-  await expect(page.getByTestId('active-pet-note')).toBeHidden();
-
-  // The choice survives a reload (stored in this browser).
-  await page.goto('/');
-  await expect(page.getByTestId('pet-switcher-button')).toContainText('Shopping for Biscuit');
-});
-
 test('set a price range and in-stock only; a reload keeps the state', async ({ page }) => {
   await page.goto('/c/dogs');
   const filters = page.getByTestId('filters');
@@ -127,7 +99,7 @@ for (const [label, size] of [
     await page.setViewportSize(size);
     const overflow = () =>
       page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-    for (const path of ['/', '/c/dogs', '/search?q=chew', '/account/pets']) {
+    for (const path of ['/', '/c/dogs', '/search?q=chew']) {
       await page.goto(path);
       await page.waitForLoadState('networkidle');
       expect(await overflow(), `${path} at ${size.width}px`).toBeLessThanOrEqual(0);

@@ -8,7 +8,6 @@ const LINKS: readonly { to: string; label: StringKey; end: boolean }[] = [
   { to: '/account', label: 'account.nav.profile', end: true },
   { to: '/account/security', label: 'account.nav.security', end: false },
   { to: '/account/addresses', label: 'account.nav.addresses', end: false },
-  { to: '/account/pets', label: 'account.nav.pets', end: false },
   { to: '/account/orders', label: 'account.nav.orders', end: false },
   { to: '/account/buy-again', label: 'account.nav.buyAgain', end: false },
   { to: '/account/rewards', label: 'account.nav.rewards', end: false },

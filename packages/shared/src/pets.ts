@@ -7,12 +7,6 @@ export const PET_VALUES = ['dog', 'cat', 'bird', 'fish', 'small', 'reptile'] as 
 export const PetSchema = z.enum(PET_VALUES);
 export type Pet = z.infer<typeof PetSchema>;
 
-// Net contents are stored as integers in the base *small* unit (grams or millilitres), so unit
-// price maths never touches a float (see unit-price.ts).
-export const NET_UNITS = ['g', 'ml'] as const;
-export const NetUnitSchema = z.enum(NET_UNITS);
-export type NetUnit = z.infer<typeof NetUnitSchema>;
-
 // The top-level category each pet shops in (`/c/<slug>`). The menu and the pet pages use it to go
 // from a pet to its category without guessing; `small` is the pet value, `small-pets` the slug.
 export const PET_CATEGORY_SLUGS: Record<Pet, string> = {

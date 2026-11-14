@@ -10,7 +10,6 @@ import { jobRuns } from '../db/schema/index.ts';
 import type { PaymentGateway } from '../lib/stripe.ts';
 import { sweepOrphanUploads } from '../lib/upload-refs.ts';
 import type { Outbox } from '../modules/mail/outbox.ts';
-import { sendPetMessages } from '../modules/pets/messages-service.ts';
 import { syncFlashSales } from '../modules/promotions/service.ts';
 import { sendDueAlerts } from '../modules/stock-alerts/service.ts';
 
@@ -177,13 +176,6 @@ registerJob({
   name: 'send-stock-alerts',
   every: 'hourly',
   run: (ctx) => sendDueAlerts({ outbox: ctx.outbox, log: ctx.log }),
-});
-
-// Pet birthday codes and "time to switch food" mails, for confirmed newsletter subscribers only.
-registerJob({
-  name: 'pet-messages',
-  every: 'daily',
-  run: (ctx) => sendPetMessages({ now: ctx.now, outbox: ctx.outbox, log: ctx.log }),
 });
 
 // Review photos nobody references any more (phase 17): removed after 24 h. Relative

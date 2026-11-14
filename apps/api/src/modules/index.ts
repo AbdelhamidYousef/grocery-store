@@ -26,7 +26,6 @@ import type { Outbox } from './mail/outbox.ts';
 import { merchandisingRouter } from './merchandising/router.ts';
 import { navigationRouter } from './navigation/router.ts';
 import { createNewsletterRouter } from './newsletter/router.ts';
-import { createPetsRouter } from './pets/router.ts';
 import { promotionsRouter } from './promotions/router.ts';
 import { registerPromotionSubscribers } from './promotions/service.ts';
 import { createReorderRouter } from './reorder/router.ts';
@@ -103,7 +102,6 @@ export function createModulesRouter(opts: {
   router.use(noStore);
   router.use(createAuthRouter(opts));
   router.use(createAccountRouter(opts));
-  router.use(createPetsRouter());
   router.use(createReviewsRouter(opts));
   router.use(createLoyaltyRouter());
   router.use(createNewsletterRouter(opts));

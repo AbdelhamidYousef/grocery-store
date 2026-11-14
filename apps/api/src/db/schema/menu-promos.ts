@@ -1,7 +1,7 @@
 import { boolean, index, integer, pgTable, text } from 'drizzle-orm/pg-core';
 
 import { createdAt, id, updatedAt } from './columns.ts';
-import { petSpecies } from './pets.ts';
+import { petSpecies } from './pet-species.ts';
 
 // The featured tile in a mega-menu panel. `pet` null means "any pet": the fallback shown in a
 // panel that has no promo of its own. Images are files under apps/web/public (or any URL); the

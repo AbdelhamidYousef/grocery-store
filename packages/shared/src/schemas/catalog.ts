@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { BADGES, BADGE_SLUGS } from '../badges.ts';
-import { NetUnitSchema } from '../pets.ts';
+import { NetUnitSchema } from '../unit-price.ts';
 
 import { BundleDetailSchema, KitTeaserSchema } from './bundles.ts';
 import { PaginatedSchema, PaginationQuerySchema, DataSchema } from './common.ts';

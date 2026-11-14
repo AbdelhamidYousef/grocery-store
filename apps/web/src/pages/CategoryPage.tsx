@@ -11,7 +11,7 @@ import { ProductListing } from '../features/catalog/ProductListing';
 import { useCategories, useCategory } from '../features/catalog/queries';
 import { useCanonicalSlug } from '../features/stores/useCanonicalSlug';
 import { useT } from '../i18n';
-import { petAttributeForAccent, petBySlug } from '../lib/pets';
+import { petBySlug } from '../lib/pets';
 import { TEST_IDS } from '../lib/test-ids';
 
 import NotFoundPage from './NotFoundPage';
@@ -98,11 +98,7 @@ export default function CategoryPage() {
           )}
         </div>
         <div className="mt-6">
-          <ProductListing
-            listId={category.slug}
-            category={category.slug}
-            {...(pet && { petScope: petAttributeForAccent(pet.accent) ?? 'none' })}
-          />
+          <ProductListing listId={category.slug} category={category.slug} />
         </div>
       </Container>
     </div>

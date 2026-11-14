@@ -6,7 +6,6 @@ import { checkout } from './en/checkout';
 import { content } from './en/content';
 import { loyalty } from './en/loyalty';
 import { pdp } from './en/pdp';
-import { pets } from './en/pets';
 import { returns } from './en/returns';
 import { reviews } from './en/reviews';
 import { search } from './en/search';
@@ -25,6 +24,5 @@ export const en = {
   ...auth,
   ...returns,
   ...loyalty,
-  ...pets,
   ...content,
 };
