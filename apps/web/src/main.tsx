@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 
 import { ToastProvider } from './components/ui/Toast';
-import { registerAgentTools } from './features/agent/webmcp';
+import { AgentToolsBridge } from './features/agent/AgentToolsBridge';
 import { AuthProvider } from './features/auth/AuthProvider';
 import { ActivePetProvider } from './features/pets/ActivePetProvider';
 import { createQueryClient } from './lib/query-client';
@@ -23,6 +23,8 @@ createRoot(root).render(
       <ToastProvider>
         <AuthProvider>
           <ActivePetProvider>
+            {/* Offers the shop's tools to in-browser AI agents (WebMCP); does nothing without it. */}
+            <AgentToolsBridge />
             <RouterProvider router={router} />
           </ActivePetProvider>
         </AuthProvider>
@@ -30,7 +32,3 @@ createRoot(root).render(
     </QueryClientProvider>
   </StrictMode>,
 );
-
-// Offer the shop's tools to in-browser AI agents when the browser supports WebMCP; otherwise this
-// does nothing (it unregisters itself on pagehide).
-registerAgentTools();

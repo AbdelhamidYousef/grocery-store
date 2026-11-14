@@ -955,3 +955,8 @@ Learn: derive what can drift (kit stock), store what is a decision (kit price), 
 - `features/agent/webmcp.ts` (the single file that knows the browser API), local ambient types in `env.d.ts`, `agent_tool_call` added to the typed `track()` events, one call in `main.tsx`.
 - Tests: tools registered with names, JSON Schema and read-only annotation; older `navigator` fallback; no-op without the API; name-only tracking; thrown errors become coded errors; `pagehide` aborts the signal; one failing registration does not stop the rest.
 - Learn / explain: feature-detect instead of polyfill so unsupported browsers run exactly the old code; abort-signal unregistration is how the draft avoids an `unregisterTool` method; isolating a draft API in one adapter confines spec churn; arguments are never tracked because an agent's input can contain anything.
+
+### 24.5 — safety limits
+- `call-limit.ts` (30/min sliding window), `AgentToolsBridge` (limiter as the adapter's `guard`, toast and cart refresh in `onCall`). Quantity and list limits were already in the schemas (quantity 1..99, 20 lines, search limit 24).
+- Tests: limiter window and refused calls not counted; toast shown on add, none on reads or failures; the 31st call is `RATE_LIMITED` and never reaches the API.
+- Learn / explain: client limits protect the shopper, server limits protect the system, never rely on the first for the second; an action by an agent must be visible to the human it acts for; when a plain module needs React context, a render-nothing bridge component is the usual seam.
