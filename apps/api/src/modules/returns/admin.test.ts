@@ -340,6 +340,31 @@ describe('admin returns: refund safety', () => {
     expect((await act(id, 'refund')).status).toBe(409);
   });
 
+  it('a rejected return in between never lets a line refund more than was paid', async () => {
+    const o = await deliveredOrder(app, { quantity: 3, priceCents: 1000 });
+    const order = await orderByNumber(o.number);
+    const [line] = await lines(o.number);
+    // The customer paid 1000 for the whole line (an order discount), so unit shares are 333/333/334.
+    await db.update(orderItems).set({ discountCents: 2000 }).where(eq(orderItems.id, line!.id));
+    const [a, b, c] = [
+      await requestReturn(o, [{ orderItemId: line!.id, quantity: 1 }]),
+      await requestReturn(o, [{ orderItemId: line!.id, quantity: 1 }]),
+      await requestReturn(o, [{ orderItemId: line!.id, quantity: 1 }]),
+    ] as [string, string, string];
+    expect((await act(a, 'reject', { reason: 'Used and dirty' })).status).toBe(200);
+    const d = await requestReturn(o, [{ orderItemId: line!.id, quantity: 1 }]);
+    for (const id of [b, c, d]) {
+      await act(id, 'approve');
+      await act(id, 'receive');
+      expect((await act(id, 'refund')).status).toBe(200);
+    }
+    const rows = await db.select().from(returns).where(eq(returns.orderId, order.id));
+    const sum = rows.filter((r) => r.status === 'refunded').reduce((s, r) => s + r.refundCents, 0);
+    expect(sum).toBe(1000);
+    expect(fake.refundedCents(await intentOf(o.number))).toBe(1000);
+    expect((await orderByNumber(o.number)).status).toBe('refunded');
+  });
+
   it('never lets returns refund the round-up donation', async () => {
     const o = await deliveredOrder(app, { quantity: 2, priceCents: 1000 });
     const order = await orderByNumber(o.number);

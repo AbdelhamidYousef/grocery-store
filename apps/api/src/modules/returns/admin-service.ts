@@ -1,4 +1,9 @@
-import { ErrorCode, type AdminReturnDetail, type ReturnStatus } from '@store/shared';
+import {
+  ErrorCode,
+  returnLineRefundCents,
+  type AdminReturnDetail,
+  type ReturnStatus,
+} from '@store/shared';
 import type { Logger } from 'pino';
 
 import { db, type Tx } from '../../db/client.ts';
@@ -222,6 +227,19 @@ export async function refund(
         );
       }
       return { done: false as const, ret };
+    }
+    // Price the lines NOW, from the units already refunded or in an intent (not from what was open
+    // when the customer asked): a rejected return in between must not shift the rounding, or the
+    // refunds of one line could add up to a cent more than was paid.
+    const orderLines = new Map(
+      (await checkoutRepo.listOrderItems(tx, order.id)).map((l) => [l.id, l]),
+    );
+    const before = await repo.intentQuantities(tx, order.id, ret.id);
+    for (const item of await repo.listItems(tx, [ret.id])) {
+      const line = orderLines.get(item.orderItemId);
+      if (!line) continue;
+      const cents = returnLineRefundCents(line, before.get(item.orderItemId) ?? 0, item.quantity);
+      if (cents !== item.refundCents) await repo.setItemRefund(tx, item.id, cents);
     }
     const items = await repo.listItems(tx, [ret.id]);
     const lines = items.reduce((sum, i) => sum + i.refundCents, 0);

@@ -192,6 +192,36 @@ export async function refundedQuantities(run: Db, orderId: string): Promise<Map<
   return new Map(rows.map((r) => [r.orderItemId, Number(r.qty)]));
 }
 
+// Units per order line in OTHER returns whose refund intent is written (refunded, or money on its
+// way). A line's refund is priced from exactly these when a return reaches its intent, so the
+// refunds of one line always add up to what was paid, whatever got rejected along the way.
+export async function intentQuantities(
+  run: Db,
+  orderId: string,
+  exceptReturnId: string,
+): Promise<Map<string, number>> {
+  const rows = await run
+    .select({
+      orderItemId: returnItems.orderItemId,
+      qty: sql<number>`sum(${returnItems.quantity})::int`,
+    })
+    .from(returnItems)
+    .innerJoin(returns, eq(returns.id, returnItems.returnId))
+    .where(
+      and(
+        eq(returns.orderId, orderId),
+        isNotNull(returns.refundIntentAt),
+        ne(returns.id, exceptReturnId),
+      ),
+    )
+    .groupBy(returnItems.orderItemId);
+  return new Map(rows.map((r) => [r.orderItemId, Number(r.qty)]));
+}
+
+export async function setItemRefund(tx: Tx, itemId: string, refundCents: number): Promise<void> {
+  await tx.update(returnItems).set({ refundCents }).where(eq(returnItems.id, itemId));
+}
+
 export async function insertAdjustment(
   tx: Tx,
   values: typeof inventoryAdjustments.$inferInsert,
