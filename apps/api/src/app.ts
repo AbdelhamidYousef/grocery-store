@@ -7,6 +7,7 @@ import { pinoHttp } from 'pino-http';
 
 import { createHealthRouter } from './lib/health.ts';
 import type { PaymentGateway } from './lib/stripe.ts';
+import { UPLOAD_URL_PREFIX, type UploadConfig } from './lib/uploads.ts';
 import { createCsrfCheck } from './middleware/csrf.ts';
 import { createErrorHandler, notFoundHandler } from './middleware/error.ts';
 import { createRateLimiter, type RateLimitOptions } from './middleware/rate-limit.ts';
@@ -30,6 +31,11 @@ export interface AppConfig {
   /** Public contact form: 5 per hour per IP when omitted. */
   contactRateLimit?: RateLimitOptions;
   suggestRateLimit?: RateLimitOptions;
+  /** Reviews per signed-in user (5 per hour when omitted) and helpful votes (30 per hour). */
+  reviewRateLimit?: RateLimitOptions;
+  voteRateLimit?: RateLimitOptions;
+  /** Where review photos are stored and whether live upload is on (see lib/uploads.ts). */
+  uploads: UploadConfig;
   /**
    * Switches on POST /test/webhooks/simulate (only ever mounted when `nodeEnv` is `test`).
    * `secret` is what the caller must send; `realStripe` says the payment gateway is the real
@@ -96,6 +102,17 @@ export function createApp({ logger, pingDb, payments, outbox, config }: AppDeps)
     }),
   );
 
+  // Uploaded review photos. Only files WE wrote (random names, re-encoded to WebP) live here, so
+  // serving the folder as-is is safe; `nosniff` comes from helmet. Names never change, hence immutable.
+  app.use(
+    `${UPLOAD_URL_PREFIX}/`.replace(/\/$/, ''),
+    express.static(config.uploads.dir, {
+      index: false,
+      dotfiles: 'deny',
+      immutable: true,
+      maxAge: '30d',
+    }),
+  );
   app.use('/api/v1', createHealthRouter({ pingDb }));
   app.use(
     '/api/v1',
@@ -104,6 +121,9 @@ export function createApp({ logger, pingDb, payments, outbox, config }: AppDeps)
       ...(config.lookupRateLimit && { lookupRateLimit: config.lookupRateLimit }),
       ...(config.contactRateLimit && { contactRateLimit: config.contactRateLimit }),
       ...(config.suggestRateLimit && { suggestRateLimit: config.suggestRateLimit }),
+      ...(config.reviewRateLimit && { reviewRateLimit: config.reviewRateLimit }),
+      ...(config.voteRateLimit && { voteRateLimit: config.voteRateLimit }),
+      uploads: config.uploads,
       payments,
       outbox,
       nodeEnv: config.nodeEnv,

@@ -1,3 +1,6 @@
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { sql } from 'drizzle-orm';
 
 import { createApp } from './app.ts';
@@ -9,6 +12,9 @@ import { createLogger } from './lib/logger.ts';
 import { createMailTransport } from './lib/mailer.ts';
 import { createShutdown } from './lib/shutdown.ts';
 import { createOutbox, startOutboxDrainer } from './modules/mail/outbox.ts';
+
+// apps/api, so a relative UPLOAD_DIR means the same folder wherever the process was started from.
+const API_ROOT = fileURLToPath(new URL('..', import.meta.url));
 
 // Bootstrap only: read config, build the app, listen. Anything testable lives in createApp().
 const logger = createLogger({ level: env.LOG_LEVEL, pretty: env.NODE_ENV === 'development' });
@@ -49,6 +55,7 @@ const app = createApp({
     cookieSecret: env.COOKIE_SECRET,
     rateLimit: { windowMs: env.RATE_LIMIT_WINDOW_MS, limit: env.RATE_LIMIT_MAX },
     authRateLimit: { windowMs: env.RATE_LIMIT_AUTH_WINDOW_MS, limit: env.RATE_LIMIT_AUTH_MAX },
+    uploads: { dir: resolve(API_ROOT, env.UPLOAD_DIR), enabled: env.UPLOADS_ENABLED },
     ...(env.TEST_HOOK_SECRET && {
       testHooks: { secret: env.TEST_HOOK_SECRET, realStripe: gatewayKind === 'stripe' },
     }),

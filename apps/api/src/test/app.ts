@@ -1,3 +1,6 @@
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 import { sql } from 'drizzle-orm';
 import { pino, type Logger } from 'pino';
 
@@ -21,6 +24,8 @@ function withTrackedKicks(real: Outbox): Outbox {
   };
 }
 
+// One folder per test process: nothing in the repo is ever written by the suite.
+export const TEST_UPLOAD_DIR = join(tmpdir(), `pawsome-test-uploads-${process.pid}`);
 export const TEST_ORIGIN = 'http://localhost:5173';
 export const TEST_HOOK_SECRET = 'unit-test-hook-secret-0000';
 
@@ -58,7 +63,10 @@ export function makeTestApp(
       authRateLimit: { windowMs: 60_000, limit: 100_000 },
       lookupRateLimit: { windowMs: 60_000, limit: 100_000 },
       contactRateLimit: { windowMs: 60_000, limit: 100_000 },
+      reviewRateLimit: { windowMs: 60_000, limit: 100_000 },
+      voteRateLimit: { windowMs: 60_000, limit: 100_000 },
       suggestRateLimit: { windowMs: 60_000, limit: 100_000 },
+      uploads: { dir: TEST_UPLOAD_DIR, enabled: true },
       testHooks: { secret: TEST_HOOK_SECRET, realStripe: false },
       ...opts.config,
     },

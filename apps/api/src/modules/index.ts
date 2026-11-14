@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import type { PaymentGateway } from '../lib/stripe.ts';
+import type { UploadConfig } from '../lib/uploads.ts';
 import { attachUser } from '../middleware/auth.ts';
 import { noStore } from '../middleware/cache.ts';
 import type { RateLimitOptions } from '../middleware/rate-limit.ts';
@@ -22,6 +23,7 @@ import { navigationRouter } from './navigation/router.ts';
 import { createPetsRouter } from './pets/router.ts';
 import { promotionsRouter } from './promotions/router.ts';
 import { registerPromotionSubscribers } from './promotions/service.ts';
+import { createReviewsRouter } from './reviews/router.ts';
 import { safetyRouter } from './safety/router.ts';
 import { createSearchRouter } from './search/router.ts';
 import { createTrackingRouter } from './tracking/router.ts';
@@ -37,6 +39,9 @@ export function createModulesRouter(opts: {
   lookupRateLimit?: RateLimitOptions;
   contactRateLimit?: RateLimitOptions;
   suggestRateLimit?: RateLimitOptions;
+  reviewRateLimit?: RateLimitOptions;
+  voteRateLimit?: RateLimitOptions;
+  uploads: UploadConfig;
   payments: PaymentGateway;
   outbox: Outbox;
   nodeEnv: 'development' | 'test' | 'production';
@@ -75,6 +80,7 @@ export function createModulesRouter(opts: {
   router.use(createAuthRouter(opts));
   router.use(createAccountRouter(opts));
   router.use(createPetsRouter());
+  router.use(createReviewsRouter(opts));
   router.use(cartRouter);
   router.use(createTrackingRouter(opts));
   router.use(createWithdrawalsRouter(opts));

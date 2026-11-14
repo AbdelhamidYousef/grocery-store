@@ -93,6 +93,13 @@ export const envSchema = z
     // Where the contact form's notification for the shop goes (Mailpit locally). With the Resend
     // free tier and no verified domain it must be the account owner's address.
     SHOP_INBOX_EMAIL: z.string().trim().min(3).default('hello@pawsome.test'),
+    // Review photo uploads (phase 17). Relative paths resolve from apps/api. UPLOADS_ENABLED=false
+    // turns live upload off (the public demo: Render's free disk is ephemeral, see lib/uploads.ts).
+    UPLOAD_DIR: z.string().trim().min(1).default('uploads'),
+    UPLOADS_ENABLED: z
+      .enum(['true', 'false'])
+      .default('true')
+      .transform((v) => v === 'true'),
     // Background jobs inside the API process (the stale-reservation sweeper). Tests call the job
     // functions directly, so this only matters for a running server.
     ENABLE_JOBS: z

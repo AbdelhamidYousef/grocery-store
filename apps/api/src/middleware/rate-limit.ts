@@ -50,3 +50,12 @@ export function createAuthRateLimiter(opts: RateLimitOptions): RequestHandler {
 export function createIpRateLimiter(opts: RateLimitOptions): RequestHandler {
   return limiter(opts);
 }
+
+// For actions of a signed-in user (reviews, votes): keyed by account, so one person cannot dodge
+// the limit by changing IP and a shared office IP does not throttle colleagues. Mount it after
+// `requireUser`; an anonymous request falls back to its IP.
+export function createUserRateLimiter(opts: RateLimitOptions): RequestHandler {
+  return limiter(opts, {
+    keyGenerator: (req) => req.user?.id ?? ipKeyGenerator(req.ip ?? ''),
+  });
+}

@@ -15,3 +15,6 @@ test-results/
 
 # Local tooling output
 .playwright-mcp/
+
+# Review photos uploaded while developing (phase 17); the demo's photos are committed under apps/web/public
+apps/api/uploads/
