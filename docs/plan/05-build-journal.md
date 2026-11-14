@@ -107,3 +107,53 @@ tabs-by-keyboard test.
 2. Why did removing one status from `order_status` need the whole type to be recreated, and what had to
    be done to existing rows first?
 3. Why was the `pet_species` type kept while the `pets` table that created it was dropped?
+
+## Phase G2: Brand and theme
+
+### G2.1: two store views
+The shop now has two store views, `de-en` (English, `en-DE`) and `de-de` (German), both in euros and
+shipping to Germany only. Gone: the French dictionaries (web and email), `en-GB`, every GBP price, rate
+card and promotion amount in the seed, the admin "Prices" dialog (it only existed to type GBP prices) and
+the currency buttons on the analytics page when there is one currency. The old `/eu-en`, `/uk-en` and
+`/fr-fr` prefixes redirect to the same path under `/de-en`. Migration 0043 changes the `store_view`
+defaults and moves old rows. The currency type narrowed to `'EUR'` on the store view; the engine (per
+currency maps, `variant_prices`) stays generic, with EUR data only. Side effect: English numbers now use
+German separators (`4,6`), because `en-DE` says so. Surprise: a fresh `db:reset` failed on migration 0040
+(G1), because Postgres refuses to use an enum value added in the same transaction; fixed with `::text`.
+Learn: removing a language early saves work in every later phase, because each new feature would
+otherwise need its copy, its tests and its seed data four times.
+
+### G2.2: palette and type
+New tokens: green primary, citrus accent, off-white background; Plus Jakarta Sans for headings (the
+Fredoka package is removed). Contrast, computed with the WCAG formula and pinned in `tokens.test.ts`:
+ink on background 15.7, ink on surface 16.5, muted on background 6.4, muted on surface 6.8, primary on
+background 5.1, primary on surface 5.4, white on primary 5.4 (hover 7.4), strong on background 7.9, ink
+on citrus 10.8. All pass AA (4.5). Learn: a colour is only "accessible" in a pair; test the pairs the UI
+really uses, not the colours alone.
+
+### G2.3: mark, wordmark and brand name
+A `Logo` component draws the bag-and-leaf mark as inline SVG (themed by the tokens, a brighter bag on the
+dark footer) next to the word in the display font. `favicon.svg`, PNG icons made with `sharp`, a web
+manifest, the theme colour, SEO titles, the email header and sender, and every user-visible "Pawsome" now
+say Grocery; demo accounts are `@grocery.test`, the demo password `Grocery-demo-1!`; cookie and storage
+keys use `grocery`. Left for G3: the house brand "Pawsome" in the seed (brands, translations, "Made in"
+spec) and the pet-themed home content. Learn: SVG stays sharp at 16 px and takes its colours from CSS
+variables; a bitmap logo would not.
+
+### G2.4: tone of voice and shell copy
+`docs/plan/03-conventions.md` now has a "Tone of voice" section. Shell copy (tagline, cookie notice,
+server-down notice, footer, trust bar, 404 and error text, newsletter, email footer and sign-off) is
+rewritten to it in English and German ("du"). German outside the shell still says "Sie" until those
+features are reworked. Learn: tone is a list of rules you can check a sentence against, not a mood.
+
+### G2.5: phase end
+Gates green: shared 260, web 900, API 1,361 + 2 skipped, e2e 75 + 1 skipped. Header checked by eye at
+1280 and 375 px: mark crisp, no overflow.
+
+### Quiz: Phase G2
+1. Why does the English store view use the locale `en-DE` and not `en-GB`, and what visible effect does
+   that have on a number such as 4.6?
+2. A colour pair passes AA when the contrast ratio is at least what, and which two pairs matter most
+   for the primary green?
+3. Why is the logo an inline SVG using CSS variables instead of a PNG, and what must you remember to
+   change together when the mark changes?

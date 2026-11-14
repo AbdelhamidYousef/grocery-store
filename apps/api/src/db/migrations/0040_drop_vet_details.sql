@@ -1,7 +1,8 @@
 -- Orders held for a vet's okay carry on to packing; their history rows read "paid" instead of the removed status.
-UPDATE "orders" SET "status" = 'processing' WHERE "status" = 'awaiting_vet_approval';--> statement-breakpoint
-UPDATE "order_status_history" SET "from_status" = 'paid' WHERE "from_status" = 'awaiting_vet_approval';--> statement-breakpoint
-UPDATE "order_status_history" SET "to_status" = 'paid' WHERE "to_status" = 'awaiting_vet_approval';--> statement-breakpoint
+-- The comparisons go through ::text because a fresh database adds the value in an earlier migration of the same transaction, and Postgres refuses to use a just-added enum value.
+UPDATE "orders" SET "status" = 'processing' WHERE "status"::text = 'awaiting_vet_approval';--> statement-breakpoint
+UPDATE "order_status_history" SET "from_status" = 'paid' WHERE "from_status"::text = 'awaiting_vet_approval';--> statement-breakpoint
+UPDATE "order_status_history" SET "to_status" = 'paid' WHERE "to_status"::text = 'awaiting_vet_approval';--> statement-breakpoint
 DROP TABLE "order_vet_details" CASCADE;--> statement-breakpoint
 ALTER TABLE "order_status_history" ALTER COLUMN "from_status" SET DATA TYPE text;--> statement-breakpoint
 ALTER TABLE "order_status_history" ALTER COLUMN "to_status" SET DATA TYPE text;--> statement-breakpoint

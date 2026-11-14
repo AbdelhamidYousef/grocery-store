@@ -14,7 +14,7 @@ test('an unreachable API shows a banner that goes away by itself', async ({ page
   await page.goto('/');
   const banner = page.getByTestId('api-down-banner');
   await expect(banner).toBeVisible();
-  await expect(banner).toContainText('cannot reach the shop');
+  await expect(banner).toContainText("can't reach the shop");
 
   // The server comes back: the quick 5 s poll notices without any click or reload.
   await page.unroute('**/api/v1/health');
