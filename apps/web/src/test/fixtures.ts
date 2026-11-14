@@ -56,6 +56,7 @@ export function makeCard(overrides: Partial<ProductCard> = {}): ProductCard {
     sale: null,
     hasMemberPrice: false,
     member: null,
+    rating: { count: 0, averageTenths: 0 },
     ...overrides,
   };
 }
@@ -204,6 +205,7 @@ export function makeProduct(overrides: Partial<ProductDetail> = {}): ProductDeta
     deliveryNote: null,
     bundle: null,
     kits: [],
+    rating: { count: 0, averageTenths: 0 },
     ...overrides,
   };
 }

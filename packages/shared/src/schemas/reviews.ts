@@ -38,6 +38,12 @@ export const reviewInputSchema = z.object({
 });
 export type ReviewInput = z.output<typeof reviewInputSchema>;
 
+// Average x 10 rounded half up, integers only: floor((sum*10 + count/2) / count) written as
+// floor((sum*20 + count) / (2*count)). 0 when there are no ratings (the UI then shows no stars).
+export function averageTenths(count: number, sum: number): number {
+  return count <= 0 ? 0 : Math.floor((sum * 20 + count) / (count * 2));
+}
+
 export const RatingSummarySchema = z.object({
   count: z.number().int().min(0),
   // Average x 10, rounded (46 = 4.6 stars). The UI formats it; 0 when count is 0.

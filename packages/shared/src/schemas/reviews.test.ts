@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { reviewInputSchema } from './reviews.ts';
+import { averageTenths, reviewInputSchema } from './reviews.ts';
 
 const valid = {
   rating: 5,
@@ -44,5 +44,18 @@ describe('reviewInputSchema', () => {
     ['absurd weight', { petWeightG: 999_999 }],
   ])('rejects %s', (_name, patch) => {
     expect(reviewInputSchema.safeParse({ ...valid, ...patch }).success).toBe(false);
+  });
+});
+
+describe('averageTenths', () => {
+  it.each([
+    [0, 0, 0],
+    [1, 5, 50],
+    [4, 18, 45],
+    [3, 14, 47],
+    [3, 13, 43],
+    [2, 9, 45],
+  ])('count %i, sum %i -> %i', (count, sum, expected) => {
+    expect(averageTenths(count, sum)).toBe(expected);
   });
 });

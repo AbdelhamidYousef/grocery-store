@@ -1,5 +1,6 @@
 import {
   OrderStatusSchema,
+  averageTenths,
   isPaidOrLater,
   type ReviewInput,
   type ReviewListResponse,
@@ -160,9 +161,7 @@ export async function listReviews(
     summary: {
       rating: {
         count: sum.total,
-        // Integer rounding of sum*10/count without floats: add half the divisor before dividing.
-        averageTenths:
-          sum.total === 0 ? 0 : Math.floor((sum.sum * 20 + sum.total) / (sum.total * 2)),
+        averageTenths: averageTenths(sum.total, sum.sum),
       },
       breakdown: [sum.s1, sum.s2, sum.s3, sum.s4, sum.s5],
       recommendPercent: sum.recommendPercent,

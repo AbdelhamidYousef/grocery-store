@@ -33,6 +33,7 @@ function card(
     sale: null,
     hasMemberPrice: false,
     member: null,
+    rating: { count: 0, averageTenths: 0 },
     ...rest,
   };
 }

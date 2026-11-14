@@ -237,3 +237,67 @@ export async function toggleVote(reviewId: string, userId: string) {
     return { voted, helpfulCount: row?.helpfulCount ?? 0 };
   });
 }
+
+// ---------- moderation ----------
+
+// FOR UPDATE: two moderators acting on the same review at once must queue, otherwise both would
+// read "pending" and both add the rating to the aggregate.
+export async function lockReview(tx: Tx, id: string) {
+  const [row] = await tx
+    .select({
+      id: reviews.id,
+      productId: reviews.productId,
+      userId: reviews.userId,
+      rating: reviews.rating,
+      status: reviews.status,
+      rejectReason: reviews.rejectReason,
+    })
+    .from(reviews)
+    .where(eq(reviews.id, id))
+    .for('update');
+  return row;
+}
+
+export async function setStatus(
+  tx: Tx,
+  id: string,
+  status: 'approved' | 'rejected',
+  rejectReason: string | null,
+) {
+  const [row] = await tx
+    .update(reviews)
+    .set({ status, rejectReason, moderatedAt: new Date() })
+    .where(eq(reviews.id, id))
+    .returning();
+  if (!row) throw new Error('review vanished while locked');
+  return row;
+}
+
+// +1 / -1 review with its rating. `greatest(..., 0)` is a second line of defence behind the
+// table's CHECK: a bug elsewhere must never show a negative average.
+export async function adjustAggregate(
+  tx: Tx,
+  productId: string,
+  direction: 1 | -1,
+  rating: number,
+) {
+  await tx
+    .update(products)
+    .set({
+      ratingCount: sql`greatest(${products.ratingCount} + ${direction}, 0)`,
+      ratingSum: sql`greatest(${products.ratingSum} + ${direction * rating}, 0)`,
+    })
+    .where(eq(products.id, productId));
+}
+
+export async function photoPathsOf(tx: Tx, reviewId: string): Promise<string[]> {
+  const rows = await tx
+    .select({ path: reviewPhotos.path })
+    .from(reviewPhotos)
+    .where(eq(reviewPhotos.reviewId, reviewId));
+  return rows.map((r) => r.path);
+}
+
+export async function deleteReviewRow(tx: Tx, id: string) {
+  await tx.delete(reviews).where(eq(reviews.id, id));
+}

@@ -8,6 +8,7 @@ import { BundleDetailSchema, KitTeaserSchema } from './bundles.ts';
 import { PaginatedSchema, PaginationQuerySchema, DataSchema } from './common.ts';
 import { ConstituentSchema, FaqSchema, SizeGuideSchema, SpecSchema } from './pdp.ts';
 import { MemberOfferSchema, SaleOfferSchema } from './promotions.ts';
+import { RatingSummarySchema } from './reviews.ts';
 import { SafetyNoticeSchema } from './safety.ts';
 
 // Attribute keys the shop filters and builds facets on. A constant, not "whatever is in the
@@ -107,6 +108,8 @@ export const ProductCardSchema = z.object({
   // only for a signed-in shopper (null for guests).
   hasMemberPrice: z.boolean(),
   member: MemberOfferSchema.nullable(),
+  // Approved reviews only (denormalised on the product, phase 17); count 0 means "no stars shown".
+  rating: RatingSummarySchema,
 });
 export type ProductCard = z.infer<typeof ProductCardSchema>;
 
@@ -210,6 +213,7 @@ export const ProductDetailSchema = z.object({
   bundle: BundleDetailSchema.nullable(),
   // Kits this product is part of ("Make it a kit"); empty for most products.
   kits: z.array(KitTeaserSchema),
+  rating: RatingSummarySchema,
 });
 export type ProductDetail = z.infer<typeof ProductDetailSchema>;
 export const ProductDetailResponseSchema = DataSchema(ProductDetailSchema);

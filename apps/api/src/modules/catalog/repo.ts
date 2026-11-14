@@ -180,6 +180,8 @@ export interface ProductCardRow {
   unitPer: string | null;
   brandSlug: string | null;
   brandName: string | null;
+  ratingCount: number;
+  ratingSum: number;
 }
 
 export interface ProductImageRow {
@@ -378,6 +380,8 @@ export async function listProducts(
       unitPer: v.unitPer,
       brandSlug: brands.slug,
       brandName: brands.name,
+      ratingCount: products.ratingCount,
+      ratingSum: products.ratingSum,
     })
     .from(products)
     .innerJoin(v, eq(v.productId, products.id))
@@ -527,6 +531,8 @@ export interface ProductDetailRows {
     isBestsellerOverride: boolean;
     badgeNewUntil: Date | null;
     createdAt: Date;
+    ratingCount: number;
+    ratingSum: number;
   };
   brand: { slug: string; name: string } | null;
   tags: { slug: string; name: string }[];
@@ -572,6 +578,8 @@ export async function getProductBySlug(slug: string): Promise<ProductDetailRows 
         isBestsellerOverride: products.isBestsellerOverride,
         badgeNewUntil: products.badgeNewUntil,
         createdAt: products.createdAt,
+        ratingCount: products.ratingCount,
+        ratingSum: products.ratingSum,
       },
       kind: products.kind,
       deliveryNote: products.deliveryNote,

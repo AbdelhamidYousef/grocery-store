@@ -1,4 +1,5 @@
 import {
+  averageTenths,
   CONSTITUENT_KEYS,
   FACET_KEYS,
   badgeFromSlug,
@@ -133,6 +134,10 @@ function toCard(
     swatches,
     sale,
     ...memberFields(memberCents, isMember),
+    rating: {
+      count: row.ratingCount,
+      averageTenths: averageTenths(row.ratingCount, row.ratingSum),
+    },
   };
 }
 
@@ -413,6 +418,10 @@ export async function getProduct(slug: string, viewer: Viewer = GUEST): Promise<
       tip: rows.sizeGuide.tip,
     },
     deliveryNote: rows.deliveryNote,
+    rating: {
+      count: rows.product.ratingCount,
+      averageTenths: averageTenths(rows.product.ratingCount, rows.product.ratingSum),
+    },
     ...(await bundleFields(rows.product.id, rows.variants)),
   };
 }
