@@ -807,3 +807,9 @@ Learn: derive what can drift (kit stock), store what is a decision (kit price), 
 - `e2e/pdp-depth.spec.ts`, four flows on the seeded data: a food page (tabs by arrow keys, Home and End, the hash in the URL, the feeding calculator with a typed weight, the suggested bag becoming the selected variant); the size guide dialog (opens, shows the tip, Escape, focus back on the button); a kit (parts, "Save ... vs individually", add to cart, then "Make it a kit" on a part); bought together with Add all, the delivery sentence with its zone, and the recently viewed strip after a reload.
 - Assertions on dates and amounts use patterns ("arrives Mon 9 Nov", "Cutoff 15:00 CET or CEST", "About N g a day"), never today's date, so the suite does not rot with the calendar or the seed's stock numbers.
 - Phase 16 quiz (no answers): 1. Why is a kit's stock computed in SQL instead of stored, and which three paths must expand a kit into its parts? 2. What does the delivery estimate use to decide the cutoff, and why is the visitor's own time zone not used? 3. Why does the feeding calculator clamp an out-of-range weight and say so, instead of guessing?
+
+## Phase 17 — Reviews and customer photos
+
+### 17.1 — schema and shared types
+- Tables `reviews` (status enum `pending|approved|rejected`, `verified_buyer`, pet context as integer months and grams, unique `(user_id, product_id)`, index `(product_id, status, created_at)`), `review_photos`, `review_votes` (composite PK = one vote per user), `gallery_photos` + `gallery_photo_products`; `products` gains `rating_count` and `rating_sum`. Shared Zod: `reviewInputSchema` plus every DTO the next steps return.
+- Learn: a denormalised aggregate (count and sum) is a cheap read for every card at the price of keeping it in step on every moderation write; we store the SUM, not the average, so adding or removing one rating is exact integer arithmetic. The CHECK constraints make a drifting counter fail loudly.

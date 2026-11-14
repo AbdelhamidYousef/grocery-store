@@ -2,8 +2,10 @@ import type { Pet } from '@store/shared';
 import { sql } from 'drizzle-orm';
 import {
   boolean,
+  check,
   customType,
   index,
+  integer,
   jsonb,
   pgEnum,
   pgTable,
@@ -62,6 +64,10 @@ export const products = pgTable(
     deliveryNote: text('delivery_note'),
     // Which size chart the product page opens; SET NULL so deleting a guide never deletes products.
     sizeGuideId: uuid('size_guide_id').references(() => sizeGuides.id, { onDelete: 'set null' }),
+    // Denormalised review aggregate, kept in step with moderation in the same transaction (so a
+    // card never runs AVG() over reviews). Average = rating_sum / rating_count.
+    ratingCount: integer('rating_count').notNull().default(0),
+    ratingSum: integer('rating_sum').notNull().default(0),
     attributes: jsonb('attributes').$type<ProductAttributes>().notNull().default({}),
     // Computed by Postgres on every write, so it can never drift from name/description and the
     // app never has to remember to maintain it. Name and description are both NOT NULL, so plain
@@ -73,6 +79,7 @@ export const products = pgTable(
     updatedAt: updatedAt(),
   },
   (t) => [
+    check('products_rating_check', sql`${t.ratingCount} >= 0 AND ${t.ratingSum} >= 0`),
     index('products_category_id_idx').on(t.categoryId),
     index('products_brand_id_idx').on(t.brandId),
     index('products_search_vector_idx').using('gin', t.searchVector),
