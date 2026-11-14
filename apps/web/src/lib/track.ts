@@ -27,6 +27,7 @@ export type AnalyticsEvent =
   | { name: 'reorder'; added: number; skipped: number }
   | { name: 'view_guide'; slug: string; category: string }
   | { name: 'agent_tool_call'; tool: string }
+  | { name: 'store_switched'; from: string; to: string }
   | { name: 'add_to_cart'; item: TrackItem; quantity: number }
   | { name: 'remove_from_cart'; item: TrackItem; quantity: number }
   | { name: 'review_submitted'; productId: string; rating: number; photos: number }

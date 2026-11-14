@@ -1,6 +1,9 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
+import { StoreLayout } from '../features/stores/StoreContext';
+import { renderApp } from '../test/render';
+
 import { Seo } from './Seo';
 
 describe('Seo', () => {
@@ -50,5 +53,62 @@ describe('Seo', () => {
     expect(script()[0]?.textContent).toContain('"b"');
     unmount();
     expect(script()).toHaveLength(0);
+  });
+});
+
+describe('Seo alternates', () => {
+  it('adds the store prefix to a root-relative canonical and hreflang links for every store', () => {
+    const { unmount } = render(<Seo title="Dogs" canonical="/c/dogs?page=2" />);
+    expect(document.head.querySelector('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      '/c/dogs?page=2',
+    );
+    const alternates = [...document.head.querySelectorAll('link[rel="alternate"][hreflang]')];
+    expect(alternates.map((l) => l.getAttribute('hreflang'))).toEqual([
+      'en-IE',
+      'de-DE',
+      'fr-FR',
+      'en-GB',
+      'x-default',
+    ]);
+    expect(
+      alternates.map(
+        (l) => new URL(l.getAttribute('href')!).pathname + new URL(l.getAttribute('href')!).search,
+      ),
+    ).toEqual([
+      '/eu-en/c/dogs?page=2',
+      '/de-de/c/dogs?page=2',
+      '/fr-fr/c/dogs?page=2',
+      '/uk-en/c/dogs?page=2',
+      '/eu-en/c/dogs?page=2',
+    ]);
+    unmount();
+    expect(document.head.querySelector('link[rel="alternate"][hreflang]')).toBeNull();
+  });
+
+  it('skips alternates for noindex pages, absolute canonicals and alternates={false}', () => {
+    const { unmount } = render(
+      <>
+        <Seo title="A" canonical="/cart" noindex />
+        <Seo title="B" canonical="https://x.test/c/dogs" />
+        <Seo title="C" canonical="/only-here" alternates={false} />
+      </>,
+    );
+    expect(document.head.querySelector('link[rel="alternate"][hreflang]')).toBeNull();
+    unmount();
+  });
+
+  it('prefixes the canonical with the current store and uses the root for "/"', () => {
+    renderApp('/de-de', [
+      {
+        element: <StoreLayout />,
+        children: [{ path: '*', element: <Seo title="Home" canonical="/" /> }],
+      },
+    ]);
+    expect(document.head.querySelector('link[rel="canonical"]')).toHaveAttribute('href', '/de-de');
+    const hrefs = [...document.head.querySelectorAll('link[rel="alternate"]')].map(
+      (l) => new URL(l.getAttribute('href')!).pathname,
+    );
+    expect(hrefs).toEqual(['/eu-en', '/de-de', '/fr-fr', '/uk-en', '/eu-en']);
   });
 });

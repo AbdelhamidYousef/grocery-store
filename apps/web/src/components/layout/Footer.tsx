@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 
 import { LEGAL_PAGES } from '../../features/legal/pages';
 import { CharityTotalNote } from '../../features/loyalty/CharityTotalNote';
+import { StoreSwitcher } from '../../features/stores/StoreSwitcher';
 import { PETS } from '../../lib/pets';
 import { track } from '../../lib/track';
 import { PawIcon } from '../icons';
@@ -94,6 +95,7 @@ export function Footer() {
             Happy-tail supplies for dogs, cats, birds, fish, reptiles and small pets.
           </p>
           <CharityTotalNote />
+          <StoreSwitcher testId="store-switcher-footer" className="max-w-xs" />
         </div>
 
         {/* One click handler per group (events bubble), so a later analytics project sees which

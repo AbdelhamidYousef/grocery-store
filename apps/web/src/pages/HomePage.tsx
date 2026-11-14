@@ -50,6 +50,7 @@ export default function HomePage() {
     <div data-testid={TEST_IDS.pageHome}>
       <Seo
         title="Pawsome"
+        canonical="/"
         description="Colourful, tough and tail-wag-approved supplies for dogs, cats, birds, fish and small pets."
       />
 

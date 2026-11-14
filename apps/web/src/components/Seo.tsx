@@ -1,12 +1,21 @@
+import { DEFAULT_STORE, STORES } from '@store/shared';
 import { useEffect } from 'react';
+
+import { useStorePath } from '../features/stores/StoreContext';
 
 const SITE = 'Pawsome';
 
 interface SeoProps {
   title: string;
   description?: string;
-  /** Absolute or root-relative URL of the preferred version of this page. */
+  /**
+   * Absolute or root-relative URL of the preferred version of this page. A root-relative one is
+   * written WITHOUT the store prefix; Seo adds the current store's prefix and, from the same path,
+   * the hreflang alternates for every store view.
+   */
   canonical?: string;
+  /** Set false on a page that exists in one store view only (no hreflang links). */
+  alternates?: boolean;
   noindex?: boolean;
   /** `article` adds the Open Graph article tags (guides); everything else stays a plain page. */
   type?: 'website' | 'article';
@@ -33,6 +42,7 @@ export function Seo({
   title,
   description,
   canonical,
+  alternates = true,
   noindex,
   type = 'website',
   publishedAt,
@@ -62,16 +72,43 @@ export function Seo({
     };
   }, [description]);
 
+  const storePath = useStorePath();
+  // Root-relative (`/c/dogs`, not `//host`) means "a page of this shop": it gets the store prefix.
+  const isShopPath = canonical !== undefined && /^\/(?!\/)/.test(canonical);
+  const canonicalHref = canonical !== undefined && isShopPath ? storePath(canonical) : canonical;
+
   useEffect(() => {
-    if (!canonical) return;
+    if (!canonicalHref) return;
     const link = upsert('link[rel="canonical"]', () => {
       const el = document.createElement('link');
       el.setAttribute('rel', 'canonical');
       return el;
     });
-    link.setAttribute('href', canonical);
+    link.setAttribute('href', canonicalHref);
     return () => link.remove();
-  }, [canonical]);
+  }, [canonicalHref]);
+
+  // hreflang: every store view of this page plus x-default (the default store), absolute URLs as
+  // the spec asks. Only for indexable shop pages; the same path in each store is a translation
+  // or a currency variant of this one. (Per-locale slugs arrive with the catalogue slice.)
+  const alternatesPath = isShopPath && alternates && !noindex ? canonical : undefined;
+  useEffect(() => {
+    if (!alternatesPath) return;
+    const tail = alternatesPath === '/' ? '' : alternatesPath;
+    const entries = [
+      ...STORES.map((store) => ({ hreflang: store.locale, code: store.code })),
+      { hreflang: 'x-default', code: DEFAULT_STORE.code },
+    ];
+    const added = entries.map(({ hreflang, code }) => {
+      const link = document.createElement('link');
+      link.setAttribute('rel', 'alternate');
+      link.setAttribute('hreflang', hreflang);
+      link.setAttribute('href', `${window.location.origin}/${code}${tail}`);
+      document.head.appendChild(link);
+      return link;
+    });
+    return () => added.forEach((link) => link.remove());
+  }, [alternatesPath]);
 
   useEffect(() => {
     if (!noindex) return;

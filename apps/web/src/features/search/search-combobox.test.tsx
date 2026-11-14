@@ -202,7 +202,9 @@ describe('recent searches', () => {
 
     await userEvent.clear(box());
     await userEvent.click(box());
-    const option = await screen.findByRole('option', { name: /rope/ });
+    const option = await within(await screen.findByRole('listbox')).findByRole('option', {
+      name: /rope/,
+    });
     expect(screen.getByRole('group', { name: 'Recent searches' })).toBeInTheDocument();
     await userEvent.keyboard('{ArrowDown}{Delete}');
     await waitFor(() => expect(getRecentSearches()).toEqual([]));
@@ -214,7 +216,9 @@ describe('recent searches', () => {
     expect(getRecentSearches()).toEqual(['A1', 'g7', 'f6', 'e5', 'd4', 'c3']);
     renderApp('/');
     await userEvent.click(box());
-    expect(await screen.findAllByRole('option')).toHaveLength(6);
+    expect(await within(await screen.findByRole('listbox')).findAllByRole('option')).toHaveLength(
+      6,
+    );
     await userEvent.click(screen.getByTestId('recent-clear'));
     expect(getRecentSearches()).toEqual([]);
   });
@@ -223,7 +227,9 @@ describe('recent searches', () => {
     addRecentSearch('rope toy');
     const router = renderApp('/');
     await userEvent.click(box());
-    await userEvent.click(await screen.findByRole('option', { name: /rope toy/ }));
+    await userEvent.click(
+      await within(await screen.findByRole('listbox')).findByRole('option', { name: /rope toy/ }),
+    );
     await waitFor(() => expect(router.state.location.search).toBe('?q=rope%20toy'));
   });
 

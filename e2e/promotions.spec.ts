@@ -285,7 +285,7 @@ test.describe('member price', () => {
     await page.getByLabel('Password').fill(MEMBER.password);
     await page.getByTestId('login-submit').click();
 
-    await expect(page).toHaveURL(`/products/${MEMBER_PRODUCT}`);
+    await expect(page).toHaveURL(`/eu-en/products/${MEMBER_PRODUCT}`);
     await expect(page.getByTestId('member-price')).toHaveText('Member price €5.39');
     await expect(page.getByTestId('member-teaser')).toHaveCount(0);
   });

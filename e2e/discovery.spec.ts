@@ -34,7 +34,9 @@ test('search "chew" with the keyboard only and open a suggestion', async ({ page
   await input.focus();
   await input.fill('');
   await expect(page.getByRole('group', { name: 'Recent searches' })).toBeVisible();
-  await expect(page.getByRole('option', { name: /rope/ })).toBeVisible();
+  await expect(
+    page.getByTestId('search-popup').getByRole('option', { name: /rope/ }),
+  ).toBeVisible();
 });
 
 test('open the mega-menu with the keyboard and follow its promo', async ({ page }) => {

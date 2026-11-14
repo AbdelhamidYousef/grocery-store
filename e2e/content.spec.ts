@@ -111,7 +111,7 @@ test.describe('help centre', () => {
 
     await page.getByTestId('help-search').fill('zzzxqvnotaword');
     await expect(page.getByTestId('help-no-results')).toBeVisible();
-    await expect(page.getByTestId('help-contact')).toHaveAttribute('href', '/contact');
+    await expect(page.getByTestId('help-contact')).toHaveAttribute('href', '/eu-en/contact');
   });
 });
 

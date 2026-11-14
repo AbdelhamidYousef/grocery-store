@@ -11,6 +11,11 @@ interface StoreContextValue {
 
 const StoreContext = createContext<StoreContextValue>({ store: DEFAULT_STORE, basePath: '' });
 
+/** '/eu-en' under a store prefix, '' without one. */
+export function useStoreBase(): string {
+  return useContext(StoreContext).basePath;
+}
+
 export function useStore(): StoreView {
   return useContext(StoreContext).store;
 }
