@@ -202,16 +202,39 @@ describe('voiding on refund', () => {
     expect((await referralOf(user.id))?.voidedAt).toBeInstanceOf(Date);
   });
 
+  it('also switches off a code held by an UNPAID order, so it cannot revive when the hold is released', async () => {
+    const r = await referrer();
+    const { shopper } = await register('friend@pawsome.test', r.code);
+    const qualifying = await paidOrder(shopper);
+    const [mine] = await codesOf(r.user.id);
+    // the referrer puts their code on an order that is still pending_payment
+    const { variants } = await createProduct({ variants: [{ priceCents: 3000 }] });
+    await r.shopper.addToCart(variants[0]!.id, 1);
+    expect((await r.shopper.call('post', '/cart/code', { code: mine!.code })).status).toBe(200);
+    const placed = await r.shopper.call('post', '/checkout', {
+      email: 'ref@pawsome.test',
+      shippingAddress: { ...TEST_ADDRESS, line1: '5 Elsewhere Lane' },
+      shippingMethodCode: 'standard',
+    });
+    expect(placed.status).toBe(200);
+    await simulate(app, qualifying.number, 'charge.refunded').expect(200);
+    const [after] = await db.select().from(discountCodes).where(eq(discountCodes.id, mine!.id));
+    expect(after?.active).toBe(false);
+  });
+
   it('keeps a code that was already used', async () => {
     const r = await referrer();
     const { shopper, user } = await register('friend@pawsome.test', r.code);
     const order = await paidOrder(shopper);
     const [mine] = await codesOf(r.user.id);
-    // pretend the referrer's code was spent on an order
+    // the referrer spent their code on an order that was PAID (not the one being refunded)
+    const spent = await paidOrder(r.shopper, {
+      address: { ...TEST_ADDRESS, line1: '9 Spent Lane' },
+    });
     const { discountRedemptions } = await import('../../db/schema/index.ts');
     await db
       .insert(discountRedemptions)
-      .values({ codeId: mine!.id, orderId: order.id, customerKey: r.user.id });
+      .values({ codeId: mine!.id, orderId: spent.id, customerKey: r.user.id });
     await simulate(app, order.number, 'charge.refunded').expect(200);
     const after = await db
       .select()

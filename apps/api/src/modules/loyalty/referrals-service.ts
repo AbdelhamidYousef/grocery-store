@@ -255,7 +255,10 @@ async function voidFor(tx: Tx, orderId: string): Promise<void> {
       .where(
         and(
           inArray(discountCodes.id, ids),
-          sql`not exists (select 1 from ${discountRedemptions} where ${discountRedemptions.codeId} = ${discountCodes.id} and ${discountRedemptions.releasedAt} is null)`,
+          // Skip only a code already spent on an order that was PAID: a redemption held by an
+          // unpaid pending_payment order is released by the sweeper later, and a code left
+          // active would revive.
+          sql`not exists (select 1 from ${discountRedemptions} join ${orders} on ${orders.id} = ${discountRedemptions.orderId} where ${discountRedemptions.codeId} = ${discountCodes.id} and ${discountRedemptions.releasedAt} is null and ${orders.status} in ('paid', 'processing', 'shipped', 'delivered'))`,
         ),
       );
   }
