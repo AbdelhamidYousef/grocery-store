@@ -5,6 +5,7 @@ import {
   check,
   index,
   integer,
+  pgEnum,
   pgTable,
   text,
   time,
@@ -14,6 +15,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import { carts } from './carts.ts';
+import { categories } from './categories.ts';
 import { createdAt, id, updatedAt } from './columns.ts';
 
 // A delivery area is a district we ship to; a dark store is the small warehouse (no walk-in
@@ -104,3 +106,28 @@ export const postcodes = pgTable('postcodes', {
     .notNull()
     .references(() => deliveryAreas.id, { onDelete: 'cascade' }),
 });
+
+// Where a packer walks (G8): per store, which aisle a subcategory sits in and whether it is kept
+// ambient, chilled or frozen. A pick list sorts by zone (ambient, chilled, frozen: cold food is out of
+// the fridge for the shortest time), then aisle. Stores differ a little, so the lists differ too.
+export const aisleZone = pgEnum('aisle_zone', ['ambient', 'chilled', 'frozen']);
+
+export const aisles = pgTable(
+  'aisles',
+  {
+    storeId: uuid('store_id')
+      .notNull()
+      .references(() => darkStores.id, { onDelete: 'cascade' }),
+    subcategoryId: uuid('subcategory_id')
+      .notNull()
+      .references(() => categories.id, { onDelete: 'cascade' }),
+    aisle: integer('aisle').notNull(),
+    zone: aisleZone('zone').notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique('aisles_store_subcategory_key').on(t.storeId, t.subcategoryId),
+    check('aisles_aisle_check', sql`${t.aisle} > 0`),
+  ],
+);

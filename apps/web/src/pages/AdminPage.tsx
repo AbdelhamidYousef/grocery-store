@@ -20,6 +20,7 @@ import { LoyaltyAdmin } from '../features/admin/loyalty/LoyaltyAdmin';
 import { NavigationAdmin } from '../features/admin/NavigationAdmin';
 import { OrderDetail } from '../features/admin/OrderDetail';
 import { OrdersList } from '../features/admin/OrdersList';
+import { PickingPage } from '../features/admin/picking/PickingPage';
 import { ProductEdit } from '../features/admin/ProductEdit';
 import { ProductNew } from '../features/admin/ProductNew';
 import { ProductsList } from '../features/admin/ProductsList';
@@ -46,6 +47,7 @@ export default function AdminPage() {
         <Route path="products/new" element={<ProductNew />} />
         <Route path="products/:id" element={<ProductEdit />} />
         <Route path="orders" element={<OrdersList />} />
+        <Route path="picking" element={<PickingPage />} />
         <Route path="returns" element={<ReturnsAdmin />} />
         <Route path="returns/:id" element={<ReturnDetail />} />
         <Route path="reviews" element={<ReviewsAdmin />} />

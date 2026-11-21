@@ -47,6 +47,9 @@ export const orderItems = pgTable(
     pricePerKgCents: integer('price_per_kg_cents'),
     weighedGrams: integer('weighed_grams'),
     finalCents: integer('final_cents'),
+    // What the packer typed on the scale (G8): changeable until the bag is dispatched, when
+    // `finalizeOrder` freezes it into `weighed_grams` / `final_cents` once.
+    packedGrams: integer('packed_grams'),
     // For a kit: the components one kit expanded to AT CHECKOUT ([{variantId, qty}] per kit). Stock
     // paths (release, commit, restock) read this, never the live `bundle_items`, so editing a kit
     // later cannot change what an existing order holds. Null for a plain variant.

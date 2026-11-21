@@ -121,6 +121,10 @@ export const keys = {
       ['admin', 'returns', 'list', status, page] as const,
     return: (id: string) => ['admin', 'returns', 'detail', id] as const,
     orders: ['admin', 'orders'] as const,
+    pickStores: ['admin', 'picking', 'stores'] as const,
+    picking: (slug: string, window: string) => ['admin', 'picking', slug, window] as const,
+    pickingAll: ['admin', 'picking'] as const,
+    lineSubstitutes: (itemId: string) => ['admin', 'picking', 'substitutes', itemId] as const,
     orderList: (params: AdminOrderListParams) => ['admin', 'orders', 'list', params] as const,
     order: (number: string) => ['admin', 'orders', 'detail', number] as const,
     promotions: {

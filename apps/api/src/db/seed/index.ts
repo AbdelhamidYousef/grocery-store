@@ -26,6 +26,7 @@ import {
   users,
 } from '../schema/index.ts';
 
+import { seedAisles } from './aisles.ts';
 import { seedBatches } from './batches.ts';
 import { brands } from './brands.ts';
 import { seedBundles } from './bundles.ts';
@@ -422,6 +423,7 @@ export async function runSeed(now = new Date()) {
 
     // ---- kits (phase 16): built from the seeded products above ----
     await seedDelivery(tx);
+    await seedAisles(tx, categoryId);
     await generateSlots(tx, new Date());
     await seedBundles(tx);
 

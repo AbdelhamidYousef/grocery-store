@@ -105,6 +105,12 @@ export const orders = pgTable(
     slotId: uuid('slot_id').references(() => deliverySlots.id, { onDelete: 'set null' }),
     deliveryFrom: timestamp('delivery_from', { withTimezone: true }),
     deliveryTo: timestamp('delivery_to', { withTimezone: true }),
+    // The back of the shop (G8): the bag is closed (`packed_at`), handed to the (simulated) rider
+    // (`dispatched_at`, `rider_name`) and arrives once the simulated ride is over (`delivered_at`).
+    packedAt: timestamp('packed_at', { withTimezone: true }),
+    dispatchedAt: timestamp('dispatched_at', { withTimezone: true }),
+    riderName: text('rider_name'),
+    deliveredAt: timestamp('delivered_at', { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

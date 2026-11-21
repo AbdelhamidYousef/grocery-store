@@ -407,6 +407,13 @@
       "when": 1795258301313,
       "tag": "0057_swap_list_price",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1795260428664,
+      "tag": "0058_picking_dispatch",
+      "breakpoints": true
     }
   ]
 }

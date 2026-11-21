@@ -8,6 +8,7 @@ import { createLoyaltyAdminRouter } from '../loyalty/admin-router.ts';
 import type { Outbox } from '../mail/outbox.ts';
 import { createMerchandisingAdminRouter } from '../merchandising/admin-router.ts';
 import { createNavigationAdminRouter } from '../navigation/admin-router.ts';
+import { createPickingAdminRouter } from '../picking/router.ts';
 import { createPromotionsAdminRouter } from '../promotions/admin-router.ts';
 import { createReturnsAdminRouter } from '../returns/admin-router.ts';
 import type { ReturnsConfig } from '../returns/config.ts';
@@ -44,6 +45,7 @@ export function createAdminRouter(deps: {
   admin.use(createBundlesAdminRouter());
   admin.use(createMerchandisingAdminRouter());
   admin.use(createAdminOrdersRouter(deps));
+  admin.use(createPickingAdminRouter());
   admin.use(createSafetyAdminRouter(deps));
   admin.use(createAdminContentRouter());
   admin.use(createPromotionsAdminRouter());

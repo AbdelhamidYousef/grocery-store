@@ -81,6 +81,10 @@ Written by the build sessions for the owner and the next session. Newest state f
   the phase end). Open: no admin screen for recording a shortfall yet (the G8 packer view calls the same service); an
   order whose every line is missing and has free shipping cannot be captured (the capture refuses 0: cancel it); door
   refunds do not claw back loyalty points; analytics' net revenue still reads `total - refunded`, not `captured - refunded`.
+- **G8.1 done** (2026-11-21, G8 in progress): the packer view. Migration 0058 (`aisles`, order dispatch columns,
+  `order_items.packed_grams`), seeded layout per store (`db/seed/aisles.ts`), `modules/picking` (pure `pick-list.ts`,
+  `GET /admin/stores/:slug/picking`, `POST .../items/:itemId/pick`, `GET .../substitutes`), web `/admin/picking`. A database
+  migrated from G7 needs `pnpm db:migrate && pnpm db:seed` (aisles).
 
   Paid orders are only AUTHORISED until captured: tests that refund or return a paid order capture it first
   (`captureOrder` / `deliveredOrder` in `test/orders.ts`); `simulate` turns "the shopper paid" into the

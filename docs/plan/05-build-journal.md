@@ -652,3 +652,26 @@ waiting for a crowded shelf.
    steps of `rejectAtDoor`, say what is stored after each, and explain why a retry made two days after a crash between
    step 2 and step 3 still refunds exactly once even though Stripe has forgotten the idempotency key.
 
+
+## Phase G8: picking and dispatch
+
+### G8.1: packer view (admin)
+Migration 0058: `aisles` (store, subcategory, `aisle`, `zone` ambient | chilled | frozen; one row per store and
+subcategory), `orders.packed_at / dispatched_at / rider_name / delivered_at` (used from G8.2) and
+`order_items.packed_grams`. `db/seed/aisles.ts` has the pure `aisleLayout(storeIndex)`: one layout (cold departments
+chilled or frozen, the rest ambient, numbered inside a zone) with a fixed shuffle per store so the four lists differ;
+the seed inserts it once (insert only, like stock). `modules/picking`: `pick-list.ts` is pure (`buildPickList` merges one
+product across bags and sorts zone, aisle, name; a product with no aisle row falls back to how it is kept and goes last
+in its zone; `isLineResolved`), `service.ts` loads the facts: `GET /admin/stores/:slug/picking?window=next|all` (paid or
+processing, not dispatched, window starting within 2 h or express, oldest window first, cut at 30 bags with the total),
+each unit with the packs to take (the `order_item_batches` of G6, oldest best-before first) and the bag it goes to;
+`POST /admin/orders/:number/items/:itemId/pick` (`found`, `weigh` grams, `reset`), `GET .../substitutes` (the safe list at
+the ORDER's store); the shortfall endpoint of G7 is the same service. Grams are kept on the line (`packed_grams`) and
+frozen into price only at dispatch, so a typo on the scale can be corrected. Web: `/admin/picking` (store switcher
+remembered, "next 2 hours" / "all", the walk by zone and aisle with the bag per unit, one panel per bag, "Found all",
+grams, "Not all found" dialog with the safe replacements). Measured in the browser at 768 and 1280 px: nothing wider than
+the viewport, one column on the tablet and two at 1280.
+Surprise: the seeded dev database already holds about 150 paid orders, so "all" gave 155 bags and a 55,000 px page:
+the list is now cut at 30 with a line saying how many are not shown.
+Learn: a work queue needs a limit and a "how many more" line from the first day; the seed shows where the real one would
+break.
