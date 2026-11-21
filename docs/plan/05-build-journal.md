@@ -418,3 +418,28 @@ or make them tolerate a full slot.
    would a shopper see if it were deleted in a separate step that failed?
 4. A slot starts at 08:00 on 2027-03-28, the day the clocks go forward. Why does adding 3,600,000 ms per
    hour to midnight give the wrong answer, and what does the shared helper do instead?
+
+## Phase G6: weight and expiry
+
+### G6.1: batches and first-expired-first-out (API)
+Migration 0051 adds `stock_batches` (store, variant, `best_before` date or null, quantity, `received_at`;
+a composite FK to the `inventory` row), `order_item_batches` (which packs a line took) and
+`products.shelf_life_days` (backfilled from the catalogue attributes; null = not food), and backfills one
+batch per stock row. `modules/stock/batches.ts` is the only code that writes batches, and every function in
+it moves `inventory.quantity` in the same breath, under the lock the caller already holds
+(`lockInventory`, (store, variant) order): `commitOrderStock` (payment: the oldest packs go, recorded per
+order line), `restoreOrderStock` (cancel or refund of a paid, unshipped order: back into the SAME batches;
+a line with no record, from before G6, returns as a new undated batch), `receiveStock` (admin increase,
+returned household goods), `removeOldestStock` (admin decrease), `writeOffExpired`. The transition
+function calls them instead of the old inventory-only helpers. The new job `write-off-expired` (daily)
+zeroes batches past their date, lowers the stock row and writes an `expired` adjustment. A food return is
+refunded and written off (an adjustment `written_off_return`, delta 0, because the units had already left
+`quantity`); household goods go back as an undated batch. The seed gives every stock row one to three
+batches from `shelfLifeDays`, some short-dated (1 to 2 days) and a few expired, insert-only like the stock.
+One test helper, `expectBatchInvariant()` (`test/stock.ts`), asserts sum(batches) = `inventory.quantity` for
+every row; it runs after every step of the random checkout/payment/cancel property test and as an
+`afterEach` in the admin stock, returns, transition and sweeper suites, plus in the batch tests.
+Surprise: the existing suite needed almost no changes: only the factories (a shelf is one undated batch;
+`stockAt` rewrites it). Tests that poke `inventory.quantity` straight in SQL never reach a commit.
+Learn: a number that is "the sum of other rows" is only safe when there is one writer; funnelling every
+write through one module, under the lock that already existed, is what made the invariant testable.

@@ -377,6 +377,8 @@ export const AdminInventorySetSchema = z.object({
   lowStockThreshold: z.number().int().min(0).max(100_000).optional(),
   reason: InventoryReasonSchema,
   note: z.string().trim().max(300).optional(),
+  // Best-before date of the packs an increase adds ("YYYY-MM-DD"); today + the product's shelf life when left out.
+  bestBefore: z.iso.date().optional(),
 });
 export type AdminInventorySet = z.input<typeof AdminInventorySetSchema>;
 

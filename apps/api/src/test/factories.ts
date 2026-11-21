@@ -17,10 +17,13 @@ import {
   productVariants,
   products,
   shippingMethods,
+  stockBatches,
   users,
 } from '../db/schema/index.ts';
 import type { ProductAttributes } from '../db/schema/products.ts';
 import { DEFAULT_STORE_ID, storeIdBySlug } from '../db/seed/delivery.ts';
+
+import { setBatches } from './stock.ts';
 
 // Unique suffix per call so factories can be used many times inside one test without colliding
 // on slug / SKU / email unique constraints.
@@ -90,6 +93,8 @@ export async function createProduct(
     /** Put the product in this category instead of a fresh one. */
     categoryId?: string;
     attributes?: ProductAttributes;
+    /** Days a fresh pack lasts: makes the product food (returns are written off, not restocked). */
+    shelfLifeDays?: number;
     /** Food information; leave out for a product that is not food. */
     food?: {
       nutrition?: Nutrition | null;
@@ -124,6 +129,7 @@ export async function createProduct(
         categoryId: category.id,
         status: input.status ?? 'active',
         attributes: input.attributes ?? {},
+        ...(input.shelfLifeDays !== undefined && { shelfLifeDays: input.shelfLifeDays }),
         ...(input.food?.nutrition !== undefined && { nutrition: input.food.nutrition }),
         ...(input.food?.ingredients !== undefined && { ingredients: input.food.ingredients }),
         ...(input.food?.allergens && { allergens: input.food.allergens }),
@@ -166,17 +172,25 @@ export async function createProduct(
     .returning();
 
   // Stock goes on the default store's shelf (Mitte), where a request without a postcode looks.
-  await db.insert(inventory).values(
-    variants.map((variant, i) => ({
-      storeId: DEFAULT_STORE_ID,
-      variantId: variant.id,
-      quantity: variantInputs[i]?.stock ?? 50,
-      reserved: variantInputs[i]?.reserved ?? 0,
-      ...(variantInputs[i]?.lowStockThreshold !== undefined && {
-        lowStockThreshold: variantInputs[i]?.lowStockThreshold,
-      }),
-    })),
-  );
+  const stockRows = variants.map((variant, i) => ({
+    storeId: DEFAULT_STORE_ID,
+    variantId: variant.id,
+    quantity: variantInputs[i]?.stock ?? 50,
+    reserved: variantInputs[i]?.reserved ?? 0,
+    ...(variantInputs[i]?.lowStockThreshold !== undefined && {
+      lowStockThreshold: variantInputs[i]?.lowStockThreshold,
+    }),
+  }));
+  await db.insert(inventory).values(stockRows);
+  // One undated batch per shelf, so the batches add up to the stock (the invariant holds from the start).
+  const batched = stockRows.filter((r) => r.quantity > 0);
+  if (batched.length > 0) {
+    await db
+      .insert(stockBatches)
+      .values(
+        batched.map((r) => ({ storeId: r.storeId, variantId: r.variantId, quantity: r.quantity })),
+      );
+  }
 
   const images = input.images?.length
     ? await db
@@ -356,5 +370,6 @@ export async function stockAt(
       target: [inventory.storeId, inventory.variantId],
       set: { quantity, reserved },
     });
+  await setBatches(storeId, variantId, [{ bestBefore: null, quantity }]);
   return storeId;
 }

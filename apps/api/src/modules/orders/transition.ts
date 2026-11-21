@@ -5,6 +5,7 @@ import * as cartRepo from '../cart/repo.ts';
 import * as repo from '../checkout/repo.ts';
 import { enqueueEmail } from '../mail/outbox.ts';
 import { refundedByReturns } from '../returns/refunded.ts';
+import { commitOrderStock, restoreOrderStock } from '../stock/batches.ts';
 
 import { emitOrderCancelled, emitOrderPaid, emitOrderRefunded } from './events.ts';
 import { assertTransition, stockEffect } from './state-machine.ts';
@@ -46,7 +47,8 @@ export async function applyTransition(
 
   const effect = stockEffect(from, to);
   if (effect !== 'none') {
-    const items = repo.expandOrderItems(await repo.listOrderItems(tx, order.id));
+    const lines = await repo.listOrderItems(tx, order.id);
+    const items = repo.expandOrderItems(lines);
     // Every stock effect lands on the shelf of the store that packs the order.
     const storeId = repo.storeOfOrder(order);
     await repo.lockInventory(
@@ -54,11 +56,13 @@ export async function applyTransition(
       storeId,
       items.map((i) => i.variantId),
     );
-    for (const { variantId, quantity } of items) {
-      if (effect === 'commit') await repo.commitStock(tx, storeId, variantId, quantity);
-      else if (effect === 'release') await repo.releaseStock(tx, storeId, variantId, quantity);
-      else await repo.restockUnits(tx, storeId, variantId, quantity);
-    }
+    // Commit and restock also move the batches (oldest first, and back to the same ones); a
+    // release only gives the reservation back, no pack has moved yet.
+    if (effect === 'commit') await commitOrderStock(tx, storeId, lines);
+    else if (effect === 'restock') await restoreOrderStock(tx, storeId, lines);
+    else
+      for (const { variantId, quantity } of items)
+        await repo.releaseStock(tx, storeId, variantId, quantity);
   }
 
   if (payment) {

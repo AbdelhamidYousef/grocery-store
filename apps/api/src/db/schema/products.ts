@@ -71,6 +71,8 @@ export const products = pgTable(
     // card never runs AVG() over reviews). Average = rating_sum / rating_count.
     ratingCount: integer('rating_count').notNull().default(0),
     ratingSum: integer('rating_sum').notNull().default(0),
+    // Days a fresh pack lasts; null for non-food (household goods are restocked on return, food is not).
+    shelfLifeDays: integer('shelf_life_days'),
     attributes: jsonb('attributes').$type<ProductAttributes>().notNull().default({}),
     // Food information (null / empty for a product that is not food). Nutrition is per 100 g or
     // 100 ml, every nutrient an integer count of tenths of a gram (see shared/food.ts).

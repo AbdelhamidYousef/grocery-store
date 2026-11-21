@@ -12,6 +12,7 @@ import { FakeStripe } from '../../test/fake-stripe.ts';
 import { bodyOf } from '../../test/http.ts';
 import { TEST_ADDRESS, simulate } from '../../test/orders.ts';
 import { makeShopper, type Shopper } from '../../test/shopper.ts';
+import { expectBatchInvariant } from '../../test/stock.ts';
 
 import { transitionOrder } from './service.ts';
 import { requestableNext } from './state-machine.ts';
@@ -55,6 +56,8 @@ beforeEach(async () => {
 });
 
 async function checkInvariants(variantIds: string[], initial: Map<string, number>, where: string) {
+  // The batches add up to the stock row after every step, whatever path just ran.
+  await expectBatchInvariant();
   const stock = await db.select().from(inventory).where(inArray(inventory.variantId, variantIds));
   const lines = await db
     .select({

@@ -45,6 +45,9 @@ Written by the build sessions for the owner and the next session. Newest state f
   and passes alone). A database migrated from G4 needs `pnpm db:migrate && pnpm db:seed` for slots and fees. Not pushed.
   Tests that check out through the API use `makeShopper(...).pickSlot()` / the auto-pick before `POST /checkout`
   (`autoSlot: false` for the delivery rule tests); e2e uses `pickSlot` in `e2e/helpers.ts`.
+- **G6 in progress** (weight and expiry): G6.1 done: stock batches with best-before dates, first expired first
+  out, `write-off-expired` job, food returns written off (migration 0051; `modules/stock/batches.ts` is the only
+  writer; `expectBatchInvariant()` in `test/stock.ts` guards sum(batches) = `inventory.quantity`).
 - **Open follow-ups** (small, not blocking):
   - Reseed before the first public deploy: a database migrated from G3 has identical shelves in every store (`pnpm db:reset`).
   - e2e "back in stock" fails under full-suite load (it waits for a mail through two `pnpm` spawns) and passes alone; give it a longer timeout or call the job in-process.

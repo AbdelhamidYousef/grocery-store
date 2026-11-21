@@ -7,6 +7,7 @@ import {
   type AdminVariant,
   type AdminVariantPricesInput,
   STORES,
+  freshBestBefore,
 } from '@store/shared';
 import type {
   AdminImageInputSchema,
@@ -25,6 +26,13 @@ import { conflict, notFound, validation } from '../../../lib/errors.ts';
 import { slugify } from '../../../lib/slug.ts';
 import * as checkoutRepo from '../../checkout/repo.ts';
 import { insertPriceHistory } from '../../promotions/repo.ts';
+import {
+  addToBatch,
+  receiveStock,
+  removeOldestStock,
+  shelfLifeOf,
+  todayKey,
+} from '../../stock/batches.ts';
 
 import * as repo from './repo.ts';
 
@@ -241,6 +249,13 @@ async function createVariant(
       ...(input.lowStockThreshold !== undefined && { lowStockThreshold: input.lowStockThreshold }),
     });
     if (opening > 0) {
+      await addToBatch(
+        tx,
+        store.id,
+        variant.id,
+        opening,
+        freshBestBefore(todayKey(), await shelfLifeOf(tx, variant.id)),
+      );
       await repo.insertAdjustment(tx, {
         storeId: store.id,
         variantId: variant.id,
@@ -305,6 +320,7 @@ export async function createProduct(input: ProductCreate, actor: string): Promis
         categoryId: input.categoryId,
         status: input.status,
         attributes: input.attributes,
+        shelfLifeDays: input.attributes.shelfLifeDays || null,
         brandId: input.brandId,
         isEco: input.isEco,
         isBestsellerOverride: input.isBestsellerOverride,
@@ -353,7 +369,10 @@ export async function updateProduct(id: string, input: ProductUpdate): Promise<A
         ...(input.description !== undefined && { description: input.description }),
         ...(input.categoryId !== undefined && { categoryId: input.categoryId }),
         ...(input.status !== undefined && { status: input.status }),
-        ...(input.attributes !== undefined && { attributes: input.attributes }),
+        ...(input.attributes !== undefined && {
+          attributes: input.attributes,
+          shelfLifeDays: input.attributes.shelfLifeDays || null,
+        }),
         ...(input.brandId !== undefined && { brandId: input.brandId }),
         ...(input.isEco !== undefined && { isEco: input.isEco }),
         ...(input.isBestsellerOverride !== undefined && {
@@ -551,7 +570,15 @@ export async function setInventory(
     }
     const delta = input.quantity - row.quantity;
     if (delta !== 0) {
-      await repo.setInventoryQuantity(tx, storeId, variantId, input.quantity);
+      // The batches move with the stock row: an increase is a new delivery (dated from the
+      // shelf life unless the admin gave a date), a decrease takes the oldest packs first.
+      if (delta > 0) {
+        const bestBefore =
+          input.bestBefore ?? freshBestBefore(todayKey(), await shelfLifeOf(tx, variantId));
+        await receiveStock(tx, storeId, variantId, delta, bestBefore);
+      } else {
+        await removeOldestStock(tx, storeId, variantId, -delta);
+      }
       await repo.insertAdjustment(tx, {
         storeId,
         variantId,

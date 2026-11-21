@@ -12,6 +12,7 @@ import type { PaymentGateway } from '../../lib/stripe.ts';
 import * as checkoutRepo from '../checkout/repo.ts';
 import { emitOrderRefunded } from '../orders/events.ts';
 import { applyTransition } from '../orders/transition.ts';
+import { foodVariantIds, receiveStock } from '../stock/batches.ts';
 
 import type { ReturnsConfig } from './config.ts';
 import { queueReturnEmail } from './mail.ts';
@@ -169,15 +170,22 @@ export async function receive(
       storeId,
       lines.map((l) => l.variantId),
     );
+    // Food that has left the cold chain cannot be sold again: it is refunded and written off
+    // (a zero-delta adjustment keeps the trail); household goods go back on the shelf, undated.
+    const food = await foodVariantIds(
+      tx,
+      lines.map((l) => l.variantId),
+    );
     for (const line of lines) {
-      await checkoutRepo.restockUnits(tx, storeId, line.variantId, line.quantity);
+      const written = food.has(line.variantId);
+      if (!written) await receiveStock(tx, storeId, line.variantId, line.quantity, null);
       await repo.insertAdjustment(tx, {
         storeId,
         variantId: line.variantId,
-        delta: line.quantity,
-        reason: 'return',
+        delta: written ? 0 : line.quantity,
+        reason: written ? 'written_off_return' : 'return',
         actor,
-        note: `Return ${ret.id} of order ${order.number}`,
+        note: `${written ? `${line.quantity} written off, ` : ''}Return ${ret.id} of order ${order.number}`,
       });
     }
     const row = await repo.updateReturn(tx, ret.id, { status: 'received', receivedAt: new Date() });

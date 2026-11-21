@@ -14,3 +14,4 @@ export * from './plural.ts';
 export * from './food.ts';
 export * from './areas.ts';
 export * from './slots.ts';
+export * from './expiry.ts';

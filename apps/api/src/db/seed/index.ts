@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url';
 
+import { dateKeyIn } from '@store/shared';
 import { and, eq, inArray, ne, sql } from 'drizzle-orm';
 
 import { generateSlots } from '../../modules/delivery/slot-generation.ts';
@@ -20,10 +21,12 @@ import {
   productVariants,
   products as productsTable,
   shippingMethods as shippingTable,
+  stockBatches,
   tags as tagsTable,
   users,
 } from '../schema/index.ts';
 
+import { seedBatches } from './batches.ts';
 import { brands } from './brands.ts';
 import { seedBundles } from './bundles.ts';
 import { collectionSeedData } from './catalogue.ts';
@@ -175,6 +178,7 @@ export async function runSeed(now = new Date()) {
               shelfLifeDays: p.shelfLifeDays,
               deposit: p.deposit,
             },
+            shelfLifeDays: p.shelfLifeDays || null,
             nutrition: p.nutrition,
             ingredients: p.ingredients,
             allergens: p.allergens,
@@ -190,6 +194,7 @@ export async function runSeed(now = new Date()) {
           categoryId: excluded('category_id'),
           status: excluded('status'),
           attributes: excluded('attributes'),
+          shelfLifeDays: excluded('shelf_life_days'),
           nutrition: excluded('nutrition'),
           ingredients: excluded('ingredients'),
           allergens: excluded('allergens'),
@@ -283,6 +288,36 @@ export async function runSeed(now = new Date()) {
         }),
       )
       .onConflictDoNothing();
+
+    // ---- batches: every stock row without any gets its packs (insert only, like the stock itself:
+    // a re-seed must not rewrite batches that sales have since drawn down). The sum of a row's
+    // batches is its `inventory.quantity`. ----
+    const unbatched = await tx
+      .select({
+        storeId: inventory.storeId,
+        variantId: inventory.variantId,
+        quantity: inventory.quantity,
+        shelfLifeDays: productsTable.shelfLifeDays,
+      })
+      .from(inventory)
+      .innerJoin(productVariants, eq(productVariants.id, inventory.variantId))
+      .innerJoin(productsTable, eq(productsTable.id, productVariants.productId))
+      .where(
+        and(
+          sql`${inventory.quantity} > 0`,
+          sql`not exists (select 1 from stock_batches b where b.store_id = ${inventory.storeId} and b.variant_id = ${inventory.variantId})`,
+        ),
+      )
+      .orderBy(inventory.storeId, inventory.variantId);
+    const today = dateKeyIn(now);
+    const batchRows = unbatched.flatMap((row, key) =>
+      seedBatches({ quantity: row.quantity, shelfLifeDays: row.shelfLifeDays, key, today }).map(
+        (b) => ({ storeId: row.storeId, variantId: row.variantId, ...b }),
+      ),
+    );
+    for (let i = 0; i < batchRows.length; i += 2000) {
+      await tx.insert(stockBatches).values(batchRows.slice(i, i + 2000));
+    }
 
     // ---- product tags and collections: join rows, replaced wholesale for the seeded products ----
     await tx.delete(productTags).where(inArray(productTags.productId, [...productId.values()]));

@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { describe, expect, it, vi } from 'vitest';
 
+import { expectBatchInvariant } from '../../test/stock.ts';
 import { db } from '../client.ts';
 
 import { runSeed } from './index.ts';
@@ -178,6 +179,36 @@ describe('seed', () => {
 });
 
 describe('seed: product page content', () => {
+  it('gives every stock row batches that add up, with short-dated and expired demo stock, once', async () => {
+    await runSeed();
+    await expectBatchInvariant();
+    const stats = async () => {
+      const [row] = await db.execute<{
+        batches: number;
+        short: number;
+        expired: number;
+        undated: number;
+        food: number;
+      }>(sql`
+        select count(*)::int as batches,
+          count(*) filter (where best_before between current_date and current_date + 2)::int as short,
+          count(*) filter (where best_before < current_date)::int as expired,
+          count(*) filter (where best_before is null)::int as undated,
+          (select count(*)::int from products where shelf_life_days is not null) as food
+        from stock_batches`);
+      return row!;
+    };
+    const first = await stats();
+    expect(first.short).toBeGreaterThan(20);
+    expect(first.expired).toBeGreaterThan(3);
+    expect(first.undated).toBeGreaterThan(50);
+    // Shelf life comes from the catalogue: 98 of the 120 products are food.
+    expect(first.food).toBe(98);
+    await runSeed();
+    expect(await stats()).toEqual(first);
+    await expectBatchInvariant();
+  });
+
   it('seeds specs and FAQs, once', async () => {
     await runSeed();
     const read = async () =>

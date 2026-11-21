@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { pino } from 'pino';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest';
 
 import { db } from '../../db/client.ts';
 import {
@@ -26,6 +26,7 @@ import {
   stockOf,
 } from '../../test/orders.ts';
 import type { Shopper } from '../../test/shopper.ts';
+import { expectBatchInvariant } from '../../test/stock.ts';
 import { createOutbox } from '../mail/outbox.ts';
 import { onOrderRefunded } from '../orders/events.ts';
 import type { OrderRefundedEvent } from '../orders/events.ts';
@@ -97,6 +98,9 @@ const intentOf = async (number: string) =>
       .where(eq(payments.orderId, (await orderByNumber(number)).id))
   )[0]!.providerPaymentIntentId!;
 
+// Whatever a test did to stock, the batches still add up to every stock row.
+afterEach(expectBatchInvariant);
+
 describe('admin returns: guard and listing', () => {
   it('needs an admin and lists returns newest first with a status filter', async () => {
     const o = await deliveredOrder(app, { quantity: 2 });
@@ -161,6 +165,7 @@ describe('admin returns: full flow', () => {
     });
     expect(fake.refundedCents(await intentOf(o.number))).toBe(3000);
     expect((await orderByNumber(o.number)).status).toBe('refunded');
+    await expectBatchInvariant();
     // Not restocked a second time by the order's own refunded transition.
     expect(await stockOf(o.variantId)).toEqual({ quantity: 10, reserved: 0 });
   });

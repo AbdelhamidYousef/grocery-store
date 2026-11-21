@@ -1,6 +1,6 @@
 import { eq, sql } from 'drizzle-orm';
 import { pino } from 'pino';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, afterEach } from 'vitest';
 
 import { db } from '../db/client.ts';
 import { carts, inventory, orderStatusHistory, orders, payments } from '../db/schema/index.ts';
@@ -11,6 +11,7 @@ import { createProduct, createShippingMethods } from '../test/factories.ts';
 import { FakeStripe } from '../test/fake-stripe.ts';
 import { bodyOf } from '../test/http.ts';
 import { makeShopper } from '../test/shopper.ts';
+import { expectBatchInvariant } from '../test/stock.ts';
 
 import {
   releaseStaleReservations,
@@ -62,6 +63,9 @@ const stockOf = async (variantId: string) => {
   const [row] = await db.select().from(inventory).where(eq(inventory.variantId, variantId));
   return { quantity: row!.quantity, reserved: row!.reserved };
 };
+
+// Whatever a test did to stock, the batches still add up to every stock row.
+afterEach(expectBatchInvariant);
 
 describe('releaseStaleReservations', () => {
   it('leaves a recent pending order alone', async () => {

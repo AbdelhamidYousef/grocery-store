@@ -13,6 +13,7 @@ import { releaseOldHolds } from '../modules/delivery/holds.ts';
 import { generateSlots } from '../modules/delivery/slot-generation.ts';
 import type { Outbox } from '../modules/mail/outbox.ts';
 import { syncFlashSales } from '../modules/promotions/service.ts';
+import { writeOffExpired } from '../modules/stock/batches.ts';
 import { sendDueAlerts } from '../modules/stock-alerts/service.ts';
 
 import { runExclusiveSweep } from './release-stale-reservations.ts';
@@ -192,6 +193,15 @@ registerJob({
   name: 'generate-slots',
   every: 'daily',
   run: (ctx) => generateSlots(db, ctx.now),
+});
+
+// Food past its best-before date comes off the shelf: batches go to 0, the stock row drops by the
+// same amount, an `expired` adjustment records it. Daily (one run per UTC day), judged by the
+// Berlin calendar day; a date is over once the next Berlin day has begun.
+registerJob({
+  name: 'write-off-expired',
+  every: 'daily',
+  run: (ctx) => db.transaction((tx) => writeOffExpired(tx, ctx.now)),
 });
 
 // Housekeeping only: a hold stops counting at its own `expires_at`, so a late or missed run never

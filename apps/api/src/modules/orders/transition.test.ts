@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { pino } from 'pino';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, afterEach } from 'vitest';
 
 import { db } from '../../db/client.ts';
 import { orderStatusHistory, orders, payments } from '../../db/schema/index.ts';
@@ -8,6 +8,7 @@ import { makeTestApp } from '../../test/app.ts';
 import { createShippingMethods } from '../../test/factories.ts';
 import { FakeStripe } from '../../test/fake-stripe.ts';
 import { orderByNumber, placeOrder, simulate, stockOf } from '../../test/orders.ts';
+import { expectBatchInvariant } from '../../test/stock.ts';
 
 import { transitionOrder } from './service.ts';
 
@@ -28,6 +29,9 @@ const historyOf = async (orderId: string) =>
   (await db.select().from(orderStatusHistory).where(eq(orderStatusHistory.orderId, orderId)))
     .map((h) => `${h.fromStatus ?? '-'}>${h.toStatus}@${h.actor}`)
     .sort();
+
+// Whatever a test did to stock, the batches still add up to every stock row.
+afterEach(expectBatchInvariant);
 
 describe('transitionOrder (side effects through the state machine)', () => {
   it('walks paid -> processing -> shipped -> delivered and records each step with the actor', async () => {

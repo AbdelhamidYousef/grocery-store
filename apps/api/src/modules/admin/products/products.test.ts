@@ -1,5 +1,5 @@
 import { and, eq } from 'drizzle-orm';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, afterEach } from 'vitest';
 
 import { db } from '../../../db/client.ts';
 import {
@@ -21,6 +21,7 @@ import { FakeStripe } from '../../../test/fake-stripe.ts';
 import { bodyOf, errorOf } from '../../../test/http.ts';
 import { placeOrder, signedIn, stockOf } from '../../../test/orders.ts';
 import type { Shopper } from '../../../test/shopper.ts';
+import { expectBatchInvariant } from '../../../test/stock.ts';
 
 const app = makeTestApp({ payments: new FakeStripe() });
 
@@ -85,6 +86,9 @@ async function created(over: Record<string, unknown> = {}) {
   expect(res.status, JSON.stringify(res.body)).toBe(201);
   return data<Product>(res);
 }
+
+// Whatever a test did to stock, the batches still add up to every stock row.
+afterEach(expectBatchInvariant);
 
 describe('POST /admin/products', () => {
   it('creates a product with variants, stock and images in one go and generates the slug', async () => {
