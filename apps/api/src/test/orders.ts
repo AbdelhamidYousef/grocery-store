@@ -1,3 +1,4 @@
+import { BASKET_RULES } from '@store/shared';
 import { and, eq } from 'drizzle-orm';
 import type { Express } from 'express';
 import { pino } from 'pino';
@@ -38,8 +39,17 @@ export async function placeOrder(
 ) {
   let variantId = opts.variantId;
   if (!variantId) {
+    // A default basket must reach the minimum order (G9) on its own, so a one-unit order is priced
+    // at the minimum and keeps its single line.
+    const quantity = opts.quantity ?? 2;
     const { variants } = await createProduct({
-      variants: [{ priceCents: opts.priceCents ?? 1000, stock: opts.stock ?? 10 }],
+      variants: [
+        {
+          priceCents:
+            opts.priceCents ?? Math.max(1000, Math.ceil(BASKET_RULES.minOrderCents / quantity)),
+          stock: opts.stock ?? 10,
+        },
+      ],
     });
     variantId = variants[0]!.id;
   }

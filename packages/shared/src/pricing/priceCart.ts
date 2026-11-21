@@ -167,7 +167,7 @@ export function priceCart(rawInput: PriceCartInput): PricedCart {
     shipping.freeOverCents !== undefined &&
     lines.length > 0 &&
     discounted >= shipping.freeOverCents;
-  const freeByCode = codeValid && code?.kind === 'free_shipping';
+  const freeByCode = codeValid && code?.kind === 'free_shipping' && !shipping.neverFree;
   if (shippingCents > 0 && (overThreshold || freeByCode)) {
     if (freeByCode && !overThreshold && code) {
       adjustments.push({
@@ -197,7 +197,7 @@ export function priceCart(rawInput: PriceCartInput): PricedCart {
     // Stripe refuses a charge under 50 cents, so a credit may not take what the customer pays
     // (merchandise + shipping) below MIN_CHARGE_CENTS. A basket that is already under it gets no
     // credit at all.
-    const room = Math.max(0, left + shippingCents - MIN_CHARGE_CENTS);
+    const room = Math.max(0, left + shippingCents + input.feesCents - MIN_CHARGE_CENTS);
     const applied = Math.min(credit.cents, left, room);
     if (applied < credit.cents)
       notices.push({ key: 'credit_capped', refId: credit.refId, cents: credit.cents - applied });
@@ -212,7 +212,7 @@ export function priceCart(rawInput: PriceCartInput): PricedCart {
   // ---- 6. round-up donation: up to the next whole euro, on what the customer pays ----
   // A separate line: never discounted, never part of the merchandise or a line, and not counted
   // towards any threshold (those were decided above). A total that is already whole adds nothing.
-  const payable = merchandise + shippingCents;
+  const payable = merchandise + shippingCents + input.feesCents;
   const donationCents =
     input.roundUpDonation && lines.length > 0 && payable > 0 ? (100 - (payable % 100)) % 100 : 0;
 
@@ -255,8 +255,10 @@ export function priceCart(rawInput: PriceCartInput): PricedCart {
     subtotalCents: subtotal,
     discountCents,
     merchandiseCents: merchandise,
+    goodsCents: discounted,
+    feesCents: input.feesCents,
     shippingCents,
-    // What the customer is charged: merchandise + shipping + the round-up donation.
+    // What the customer is charged: merchandise + shipping + fees + the round-up donation.
     totalCents: payable + donationCents,
     donationCents,
     gift,

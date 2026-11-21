@@ -10,6 +10,7 @@ import {
   makeHeldDelivery,
   makeSlotsData,
   makePostcodeLookup,
+  makeBill,
   makeCart,
   makeCategory,
   makeGuideCard,
@@ -218,7 +219,28 @@ export function serveCartWithDelivery(
   delivery: WebCart['delivery'] = null,
 ): void {
   let held = delivery;
-  const answer = () => HttpResponse.json({ data: { ...makeCart(items), delivery: held } });
+  // The server's bill follows the held delivery: a slot is 2.99, express 4.99, none chosen is the
+  // cheapest slot as an estimate (the numbers of `basketTotals`, which the browser never adds up).
+  const answer = () => {
+    const cart = makeCart(items);
+    const fee = held === null ? 299 : held.kind === 'express' ? 499 : 299;
+    return HttpResponse.json({
+      data: {
+        ...cart,
+        delivery: held,
+        pricing: {
+          ...cart.pricing,
+          shippingEstimateCents: fee,
+          bill: makeBill({
+            deliveryKind: held?.kind ?? null,
+            deliveryFeeCents: fee,
+            deliveryFeeBeforeFreeCents: fee,
+            deliveryEstimated: held === null,
+          }),
+        },
+      },
+    });
+  };
   server.use(
     http.get(`${API}/cart`, answer),
     http.put(`${API}/cart/slot`, async ({ request }) => {

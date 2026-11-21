@@ -1,3 +1,5 @@
+import { BASKET_RULES } from '@store/shared';
+
 import { Container } from '../components/layout/Container';
 import { Seo } from '../components/Seo';
 import { Skeleton } from '../components/ui/Skeleton';
@@ -6,11 +8,14 @@ import { DeliveryResult } from '../features/delivery/DeliveryResult';
 import { PostcodeForm } from '../features/delivery/PostcodeForm';
 import { useDeliveryAreas } from '../features/delivery/queries';
 import { useT } from '../i18n';
+import { useFormat } from '../i18n/format';
 
 // The four areas, the store that packs each one and the postcodes it covers. The same table the
 // postcode box looks up, read from `GET /delivery/areas`.
 export default function DeliveryPage() {
   const { t } = useT();
+  const fmt = useFormat();
+  const money = (cents: number) => fmt.money(cents, 'EUR');
   const { data: areas, isPending, isError } = useDeliveryAreas();
   const { postcode, area, setPostcode } = useDelivery();
 
@@ -69,6 +74,28 @@ export default function DeliveryPage() {
           ))}
         </ul>
       )}
+
+      <section className="mt-10" aria-labelledby="basket-rules" data-testid="basket-rules">
+        <h2 id="basket-rules" className="font-display text-2xl font-bold">
+          {t('delivery.rules.title')}
+        </h2>
+        <ul className="mt-3 flex max-w-prose list-disc flex-col gap-2 pl-5">
+          <li>{t('delivery.rules.minimum', { amount: money(BASKET_RULES.minOrderCents) })}</li>
+          <li>
+            {t('delivery.rules.slot', {
+              slot: money(BASKET_RULES.slotFeeCents),
+              peak: money(BASKET_RULES.peakSurchargeCents),
+            })}
+          </li>
+          <li>{t('delivery.rules.free', { amount: money(BASKET_RULES.freeDeliveryOverCents) })}</li>
+          <li>{t('delivery.rules.express', { amount: money(BASKET_RULES.expressFeeCents) })}</li>
+          <li>
+            {t('delivery.rules.outer', { amount: money(BASKET_RULES.outerAreaSurchargeCents) })}
+          </li>
+          <li>{t('delivery.rules.bags', { amount: money(BASKET_RULES.bagFeeCents) })}</li>
+          <li>{t('delivery.rules.deposit', { amount: money(25), small: money(8) })}</li>
+        </ul>
+      </section>
     </Container>
   );
 }

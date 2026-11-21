@@ -68,7 +68,13 @@ export const orders = pgTable(
     storeView: text('store_view').notNull().default('de-en'),
     locale: text('locale').notNull().default('en-IE'),
     subtotalCents: integer('subtotal_cents').notNull(),
+    // The delivery fee charged (0 when free). `delivery_fee_cents` is the fee before the free-delivery
+    // rule (null on orders from before the basket rules, G9): the bill shows "2.99, free".
     shippingCents: integer('shipping_cents').notNull(),
+    deliveryFeeCents: integer('delivery_fee_cents'),
+    // Bottle deposit and bag fee (G9): their own lines on the bill, never discounted, in the total.
+    depositCents: integer('deposit_cents').notNull().default(0),
+    bagFeeCents: integer('bag_fee_cents').notNull().default(0),
     discountCents: integer('discount_cents').notNull().default(0),
     // The round-up donation (phase 19): a separate amount on top of the goods, never discounted.
     donationCents: integer('donation_cents').notNull().default(0),
@@ -124,7 +130,7 @@ export const orders = pgTable(
     // can never be stored.
     check(
       'orders_total_check',
-      sql`${t.totalCents} = ${t.subtotalCents} + ${t.shippingCents} + ${t.taxCents} + ${t.donationCents} - ${t.discountCents}`,
+      sql`${t.totalCents} = ${t.subtotalCents} + ${t.shippingCents} + ${t.taxCents} + ${t.donationCents} + ${t.depositCents} + ${t.bagFeeCents} - ${t.discountCents}`,
     ),
     check(
       'orders_delivery_kind_check',
@@ -142,7 +148,7 @@ export const orders = pgTable(
     ),
     check(
       'orders_amounts_check',
-      sql`${t.subtotalCents} >= 0 AND ${t.shippingCents} >= 0 AND ${t.discountCents} >= 0 AND ${t.taxCents} >= 0 AND ${t.donationCents} >= 0 AND ${t.totalCents} >= 0`,
+      sql`${t.subtotalCents} >= 0 AND ${t.shippingCents} >= 0 AND ${t.discountCents} >= 0 AND ${t.taxCents} >= 0 AND ${t.donationCents} >= 0 AND ${t.depositCents} >= 0 AND ${t.bagFeeCents} >= 0 AND ${t.totalCents} >= 0`,
     ),
   ],
 );

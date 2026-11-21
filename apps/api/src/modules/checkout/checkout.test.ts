@@ -70,15 +70,18 @@ describe('POST /checkout', () => {
     const res = await shopper.call('post', '/checkout', checkoutBody());
     expect(res.status).toBe(200);
     const body = placed(res);
-    // 2 x 12.50 = 25.00; 1200 g = 2 started kg => 490 + 2 x 100 = 690; below the 49.00 threshold.
+    // 2 x 12.50 = 25.00 of goods, one bag 0.25, a slot 2.99 (below the 49.00 threshold): 28.24.
     expect(body.totals).toEqual({
       currency: 'EUR',
       subtotalCents: 2500,
-      shippingCents: 690,
+      shippingCents: 299,
+      deliveryFeeCents: 299,
+      depositCents: 0,
+      bagFeeCents: 25,
       discountCents: 0,
       donationCents: 0,
       taxCents: 0,
-      totalCents: 3190,
+      totalCents: 2824,
     });
     expect(body.orderNumber).toMatch(/^GR-\d{4}-\d{6}$/);
     expect(body.clientSecret).toContain('_secret_');
@@ -89,7 +92,7 @@ describe('POST /checkout', () => {
       status: 'pending_payment',
       email: 'ada@grocery.test',
       userId: null,
-      totalCents: 3190,
+      totalCents: 2824,
       shippingMethodCode: 'standard',
       shippingMethodName: 'Standard',
       shippingAddress: expect.objectContaining({ postalCode: '10115', country: 'DE' }) as object,
@@ -115,12 +118,12 @@ describe('POST /checkout', () => {
     expect(payment).toMatchObject({
       orderId: order!.id,
       status: 'requires_payment',
-      amountCents: 3190,
+      amountCents: 2824,
       providerPaymentIntentId: 'pi_fake_1',
     });
     expect(stripe.callsTo('create')).toHaveLength(1);
     expect(stripe.callsTo('create')[0]?.args[0]).toMatchObject({
-      amountCents: 3190,
+      amountCents: 2824,
       currency: 'EUR',
       orderId: order!.id,
       orderNumber: body.orderNumber,
@@ -139,20 +142,36 @@ describe('POST /checkout', () => {
     const shopper = makeShopper(app);
     await shopper.addToCart(variants[0]!.id, 2);
     const body = placed(await shopper.call('post', '/checkout', checkoutBody()));
-    expect(body.totals).toMatchObject({ subtotalCents: 6000, shippingCents: 0, totalCents: 6000 });
+    // Free delivery from 49.00 of goods; the fee that was waived is kept on the order, the bag is not free.
+    expect(body.totals).toMatchObject({
+      subtotalCents: 6000,
+      shippingCents: 0,
+      deliveryFeeCents: 299,
+      bagFeeCents: 25,
+      totalCents: 6025,
+    });
   });
 
   it('ignores any amount the client sends and never trusts a client price', async () => {
-    const { variants } = await createProduct({ variants: [{ priceCents: 1000 }] });
+    const { variants } = await createProduct({ variants: [{ priceCents: 1600 }] });
     const shopper = makeShopper(app);
     await shopper.addToCart(variants[0]!.id, 1);
     const res = await shopper.call(
       'post',
       '/checkout',
-      checkoutBody({ totalCents: 1, amount: 1, subtotalCents: 1, items: [{ priceCents: 1 }] }),
+      checkoutBody({
+        totalCents: 1,
+        amount: 1,
+        subtotalCents: 1,
+        depositCents: 0,
+        bagFeeCents: 0,
+        shippingCents: 0,
+        items: [{ priceCents: 1 }],
+      }),
     );
-    expect(placed(res).totals).toMatchObject({ subtotalCents: 1000, totalCents: 1590 });
-    expect(stripe.callsTo('create')[0]?.args[0]).toMatchObject({ amountCents: 1590 });
+    // 16.00 + one bag 0.25 + a slot 2.99: none of the numbers the client sent counts.
+    expect(placed(res).totals).toMatchObject({ subtotalCents: 1600, totalCents: 1924 });
+    expect(stripe.callsTo('create')[0]?.args[0]).toMatchObject({ amountCents: 1924 });
   });
 
   it('uses the account email and owner for a signed-in user', async () => {
@@ -252,13 +271,13 @@ describe('POST /checkout', () => {
     });
 
     it('answers 409 when the price moved, then succeeds at the new price after a cart reload', async () => {
-      const { variants } = await createProduct({ variants: [{ priceCents: 1000 }] });
+      const { variants } = await createProduct({ variants: [{ priceCents: 1600 }] });
       const shopper = makeShopper(app);
       await shopper.addToCart(variants[0]!.id, 1);
       await shopper.pickSlot();
       await db
         .update(productVariants)
-        .set({ priceCents: 1200 })
+        .set({ priceCents: 1800 })
         .where(eq(productVariants.id, variants[0]!.id));
 
       const refused = await shopper.call('post', '/checkout', checkoutBody());
@@ -272,7 +291,7 @@ describe('POST /checkout', () => {
       // ...and the retry charges the new price.
       const ok = await shopper.call('post', '/checkout', checkoutBody());
       expect(ok.status).toBe(200);
-      expect(placed(ok).totals).toMatchObject({ subtotalCents: 1200 });
+      expect(placed(ok).totals).toMatchObject({ subtotalCents: 1800 });
     });
   });
 
@@ -301,27 +320,20 @@ describe('POST /checkout', () => {
       await shopper.call('post', '/checkout', checkoutBody());
 
       await shopper.call('post', '/cart/items', { variantId: variants[0]!.id, quantity: 1 });
-      const res = await shopper.call(
-        'post',
-        '/checkout',
-        checkoutBody({ shippingMethodCode: 'express' }),
-      );
-      // 3 x 10.00 + express (990 + 1 kg... 600 g = 1 started kg x 200) = 3000 + 1190.
+      const res = await shopper.call('post', '/checkout', checkoutBody());
+      // 3 x 10.00 of goods + one bag 0.25 + the held slot 2.99: the delivery decides the fee.
       expect(placed(res).totals).toMatchObject({
         subtotalCents: 3000,
-        shippingCents: 1190,
-        totalCents: 4190,
+        shippingCents: 299,
+        totalCents: 3324,
       });
 
       expect(await allOrders()).toHaveLength(1);
       expect(await db.select().from(orderItems)).toMatchObject([{ quantity: 3 }]);
       expect(await stockOf(variants[0]!.id)).toEqual({ quantity: 10, reserved: 3 });
-      expect(stripe.callsTo('update')[0]?.args).toEqual(['pi_fake_1', 4190]);
-      expect((await db.select().from(payments))[0]?.amountCents).toBe(4190);
-      expect((await allOrders())[0]).toMatchObject({
-        shippingMethodCode: 'express',
-        totalCents: 4190,
-      });
+      expect(stripe.callsTo('update')[0]?.args).toEqual(['pi_fake_1', 3324]);
+      expect((await db.select().from(payments))[0]?.amountCents).toBe(3324);
+      expect((await allOrders())[0]).toMatchObject({ totalCents: 3324 });
     });
 
     it('lets a shopper who holds the last unit check out again (own reservation is released first)', async () => {
@@ -386,7 +398,7 @@ describe('POST /checkout', () => {
     });
 
     it('keeps the order (and its intent) when only the amount update fails, and retries cleanly', async () => {
-      const { variants } = await createProduct({ variants: [{ priceCents: 1000, stock: 10 }] });
+      const { variants } = await createProduct({ variants: [{ priceCents: 1600, stock: 10 }] });
       const shopper = makeShopper(app);
       await shopper.addToCart(variants[0]!.id, 1);
       await shopper.call('post', '/checkout', checkoutBody());
@@ -395,13 +407,14 @@ describe('POST /checkout', () => {
       stripe.failNext('update');
       const res = await shopper.call('post', '/checkout', checkoutBody());
       expect(res.status).toBe(502);
+      // 1 unit: 16.00 + bag 0.25 + slot 2.99 = 19.24; 2 units: 32.00 + 0.25 + 2.99 = 35.24.
       // The order is still payable on its intent; payments.amount still names what the intent charges.
-      expect(await allOrders()).toMatchObject([{ status: 'pending_payment', totalCents: 2590 }]);
-      expect((await db.select().from(payments))[0]?.amountCents).toBe(1590);
+      expect(await allOrders()).toMatchObject([{ status: 'pending_payment', totalCents: 3524 }]);
+      expect((await db.select().from(payments))[0]?.amountCents).toBe(1924);
 
       const retry = await shopper.call('post', '/checkout', checkoutBody());
       expect(retry.status).toBe(200);
-      expect((await db.select().from(payments))[0]?.amountCents).toBe(2590);
+      expect((await db.select().from(payments))[0]?.amountCents).toBe(3524);
     });
 
     it('answers 502 and keeps no order when payments are not configured at all', async () => {

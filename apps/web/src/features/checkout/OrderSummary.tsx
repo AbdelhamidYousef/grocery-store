@@ -184,10 +184,16 @@ export function OrderSummary({
         currency={totals.currency}
         rows={[
           { label: t('checkout.summary.subtotal'), cents: totals.subtotalCents },
-          { label: t('checkout.summary.shipping'), cents: totals.shippingCents, free: true },
           ...(totals.discountCents > 0
             ? [{ label: t('checkout.summary.discount'), cents: -totals.discountCents }]
             : []),
+          ...(totals.depositCents > 0
+            ? [{ label: t('checkout.summary.deposit'), cents: totals.depositCents }]
+            : []),
+          ...(totals.bagFeeCents > 0
+            ? [{ label: t('checkout.summary.bags'), cents: totals.bagFeeCents }]
+            : []),
+          { label: t('checkout.summary.shipping'), cents: totals.shippingCents, free: true },
           ...(totals.donationCents > 0
             ? [{ label: t('checkout.summary.donation'), cents: totals.donationCents }]
             : []),

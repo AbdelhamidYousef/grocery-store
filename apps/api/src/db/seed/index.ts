@@ -233,6 +233,7 @@ export async function runSeed(now = new Date()) {
           soldByWeight: excluded('sold_by_weight'),
           pricePerKgCents: excluded('price_per_kg_cents'),
           nominalGrams: excluded('nominal_grams'),
+          depositCents: excluded('deposit_cents'),
           isDefault: excluded('is_default'),
           status: excluded('status'),
         },

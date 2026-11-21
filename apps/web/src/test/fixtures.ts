@@ -25,6 +25,7 @@ import {
   type GuideCard,
   type GuideDetail,
   type HeroSlide,
+  type Bill,
   type HomeResponse,
   type Order,
   type OrderSummary,
@@ -278,6 +279,7 @@ export function makeCartItem(overrides: Partial<WebCartItem> = {}): WebCartItem 
     bestBefore: null,
     substitution: 'best_match',
     substitute: null,
+    depositCents: 0,
     ...overrides,
   };
 }
@@ -294,6 +296,7 @@ export function makeCart(items: WebCartItem[] = [], warnings: WebCart['warnings'
     warnings,
     pricing: makeCartPricing(),
     delivery: null,
+    bags: true,
   };
 }
 
@@ -306,9 +309,35 @@ export function makeCartPricing(overrides: Partial<WebCart['pricing']> = {}): We
     merchandiseCents: 0,
     shippingEstimateCents: 0,
     totalEstimateCents: 0,
+    bill: makeBill(),
     gift: null,
     progress: { freeShipping: null, gift: null, nextTier: null },
     notices: [],
+    ...overrides,
+  };
+}
+
+// A bill that lets the basket through (minimum met, nothing extra); tests override what they check.
+export function makeBill(overrides: Partial<Bill> = {}): Bill {
+  return {
+    subtotalCents: 0,
+    discountCents: 0,
+    merchandiseCents: 0,
+    goodsCents: 0,
+    depositCents: 0,
+    bags: true,
+    bagCount: 0,
+    bagFeeCents: 0,
+    deliveryKind: null,
+    deliveryFeeCents: 0,
+    deliveryFeeBeforeFreeCents: 0,
+    deliveryFree: false,
+    deliveryEstimated: true,
+    donationCents: 0,
+    totalCents: 0,
+    minimumOrder: { minCents: 1500, missingCents: 0, met: true },
+    freeDelivery: null,
+    canCheckout: true,
     ...overrides,
   };
 }
@@ -337,6 +366,9 @@ export function makeOrder(overrides: Partial<Order> = {}): Order {
       currency: 'EUR',
       subtotalCents: 2199,
       shippingCents: 490,
+      deliveryFeeCents: null,
+      depositCents: 0,
+      bagFeeCents: 0,
       discountCents: 0,
       donationCents: 0,
       taxCents: 0,
@@ -372,6 +404,7 @@ export function makeOrder(overrides: Partial<Order> = {}): Order {
         weighedGrams: null,
         finalCents: null,
         shortDated: false,
+        depositCents: 0,
         pickStatus: 'pending' as const,
         pickedQty: null,
         substitutesItemId: null,
@@ -469,6 +502,7 @@ export function makeAdminVariant(overrides: Partial<AdminVariant> = {}): AdminVa
     soldByWeight: false,
     pricePerKgCents: null,
     nominalGrams: null,
+    depositCents: 0,
     status: 'active',
     quantity: 10,
     reserved: 2,
@@ -562,6 +596,9 @@ export function makeAdminOrderDetail(
         currency: 'EUR',
         subtotalCents: 3798,
         shippingCents: 499,
+        deliveryFeeCents: null,
+        depositCents: 0,
+        bagFeeCents: 0,
         discountCents: 0,
         donationCents: 0,
         taxCents: 0,
@@ -597,6 +634,7 @@ export function makeAdminOrderDetail(
           weighedGrams: null,
           finalCents: null,
           shortDated: false,
+          depositCents: 0,
           pickStatus: 'pending' as const,
           pickedQty: null,
           substitutesItemId: null,
@@ -617,6 +655,7 @@ export function makeAdminOrderDetail(
           weighedGrams: null,
           finalCents: null,
           shortDated: false,
+          depositCents: 0,
           pickStatus: 'pending' as const,
           pickedQty: null,
           substitutesItemId: null,

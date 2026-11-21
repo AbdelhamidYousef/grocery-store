@@ -1,6 +1,10 @@
 import {
+  BASKET_RULES,
+  basketTotals,
+  billOf,
   formatMoney,
-  priceCart,
+  type BasketContext,
+  type BasketTotals,
   type CartPricing,
   type PricedCart,
   type BannerResponse,
@@ -12,8 +16,6 @@ import {
 
 import { db, type Tx } from '../../db/client.ts';
 import { validation } from '../../lib/errors.ts';
-import { listActiveShippingMethods } from '../checkout/repo.ts';
-import { estimateRule } from '../checkout/shipping.ts';
 import { currentStore } from '../i18n/context.ts';
 import { onOrderCancelled, type OrderCancelledEvent } from '../orders/events.ts';
 import { customerKey } from '../trials/service.ts';
@@ -29,6 +31,8 @@ export interface PricingLineInput {
   quantity: number;
   unitPriceCents: number;
   isTrial: boolean;
+  // Bottle deposit of one unit (0 for most lines): its own line on the bill, never discounted.
+  depositCents: number;
 }
 
 export interface PricingRequest {
@@ -39,9 +43,9 @@ export interface PricingRequest {
   // Unknown for a guest until checkout asks for it.
   email: string | null;
   code: string | null;
-  // Shipping before any free-shipping threshold, and that threshold; the engine applies it to the
-  // merchandise total after discounts.
-  shipping: { methodCents: number; freeOverCents: number | null };
+  // The delivery the shopper chose and the bag choice: with the lines they decide every fee of the
+  // bill (`basketTotals`, packages/shared/src/basket-rules.ts).
+  basket: Pick<BasketContext, 'delivery' | 'bags'>;
   now?: Date;
   // Prepaid value taken off the merchandise last (loyalty points, referral credit); the engine caps
   // it at what is left, so it can never make the total negative or touch shipping.
@@ -58,6 +62,8 @@ export interface PricingRequest {
 type ServiceNotice = 'code_unknown' | 'code_used_up' | 'code_already_used';
 
 export interface PricingResult {
+  // The bill (`basketTotals`): the single source of every amount; `priced` is its discount detail.
+  totals: BasketTotals;
   priced: PricedCart;
   // The code row the engine was given, if any (checkout needs its id for the redemption row).
   code: repo.CodeRow | null;
@@ -161,10 +167,8 @@ export async function price(tx: Tx, req: PricingRequest): Promise<PricingResult>
     ? await repo.countPlacedOrders(tx, req.userId, req.email)
     : 0;
 
-  const priced = priceCart({
-    now,
-    currency: req.currency,
-    lines: req.lines.map((l) => {
+  const totals = basketTotals(
+    req.lines.map((l) => {
       const sale = sales.get(l.variantId);
       const member = members.get(l.variantId);
       return {
@@ -173,30 +177,35 @@ export async function price(tx: Tx, req: PricingRequest): Promise<PricingResult>
         qty: l.quantity,
         baseCents: l.unitPriceCents,
         fixedPrice: l.isTrial,
+        depositCents: l.depositCents,
         ...(member !== undefined && { memberCents: member }),
         ...(sale && { saleCents: sale.salePriceCents, onSale: true }),
       };
     }),
-    customer: { isMember: req.userId !== null, orderCount },
-    code: code ? toEngineCode(code, req.currency) : undefined,
-    tiers,
-    giftRule: gift
-      ? {
-          id: gift.id,
-          thresholdCents: gift.thresholdCents,
-          variantId: gift.variantId,
-          giftAvailable: gift.available,
-        }
-      : undefined,
-    shipping: {
-      methodCents: req.shipping.methodCents,
-      freeOverCents: req.shipping.freeOverCents ?? undefined,
+    {
+      now,
+      currency: req.currency,
+      customer: { isMember: req.userId !== null, orderCount },
+      code: code ? toEngineCode(code, req.currency) : undefined,
+      tiers,
+      giftRule: gift
+        ? {
+            id: gift.id,
+            thresholdCents: gift.thresholdCents,
+            variantId: gift.variantId,
+            giftAvailable: gift.available,
+          }
+        : undefined,
+      credits: req.credits ?? [],
+      roundUpDonation: req.roundUpDonation ?? false,
+      delivery: req.basket.delivery,
+      bags: req.basket.bags,
     },
-    credits: req.credits ?? [],
-    roundUpDonation: req.roundUpDonation ?? false,
-  });
+  );
+  const priced = totals.priced;
 
   return {
+    totals,
     priced,
     code,
     gift,
@@ -213,8 +222,9 @@ export async function price(tx: Tx, req: PricingRequest): Promise<PricingResult>
       adjustments: priced.adjustments,
       discountCents: priced.discountCents,
       merchandiseCents: priced.merchandiseCents,
-      shippingEstimateCents: priced.shippingCents,
-      totalEstimateCents: priced.totalCents,
+      shippingEstimateCents: totals.deliveryFeeCents,
+      totalEstimateCents: totals.totalCents,
+      bill: billOf(totals, { bags: req.basket.bags, deliveryKind: req.basket.delivery.kind }),
       gift:
         priced.gift && gift
           ? {
@@ -438,11 +448,7 @@ export async function getBanner(now: Date = new Date()): Promise<BannerResponse[
 }
 
 export async function getRules(): Promise<PromotionRulesResponse['data']> {
-  const [tiers, gift, methods] = await Promise.all([
-    repo.activeTiers(db),
-    repo.activeGift(db),
-    listActiveShippingMethods(db),
-  ]);
+  const [tiers, gift] = await Promise.all([repo.activeTiers(db), repo.activeGift(db)]);
   return {
     tiers: tiers.map((t) => ({ minCents: t.minCents, percent: t.percent })),
     gift: gift
@@ -452,6 +458,6 @@ export async function getRules(): Promise<PromotionRulesResponse['data']> {
           variantName: gift.variantName,
         }
       : null,
-    freeDeliveryThresholdCents: estimateRule(methods)?.freeOverCents ?? null,
+    freeDeliveryThresholdCents: BASKET_RULES.freeDeliveryOverCents,
   };
 }

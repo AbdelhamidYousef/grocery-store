@@ -48,6 +48,9 @@ export const productVariants = pgTable(
     soldByWeight: boolean('sold_by_weight').notNull().default(false),
     pricePerKgCents: integer('price_per_kg_cents'),
     nominalGrams: integer('nominal_grams'),
+    // Bottle deposit per unit, in cents (0.25 EUR or 0.08 EUR; 0 for most things). Its own line on the
+    // bill: not goods, so never discounted and not counted by the minimum or free delivery (G9).
+    depositCents: integer('deposit_cents').notNull().default(0),
     // A sample size; at most one unit per customer, ever (trial_redemptions).
     isTrial: boolean('is_trial').notNull().default(false),
     // Colour dot shown on the product card, #RRGGBB.
@@ -68,6 +71,7 @@ export const productVariants = pgTable(
       'product_variants_weight_check',
       sql`(${t.soldByWeight} and ${t.pricePerKgCents} is not null and ${t.pricePerKgCents} > 0 and ${t.nominalGrams} is not null and ${t.nominalGrams} > 0) or (not ${t.soldByWeight} and ${t.pricePerKgCents} is null and ${t.nominalGrams} is null)`,
     ),
+    check('product_variants_deposit_check', sql`${t.depositCents} >= 0`),
     check('product_variants_net_amount_check', sql`${t.netAmount} is null or ${t.netAmount} > 0`),
     // An amount without a unit (or the reverse) is meaningless.
     check(

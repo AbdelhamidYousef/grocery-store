@@ -37,6 +37,8 @@ export const carts = pgTable(
     // The shopper chose express delivery (within 30 minutes). Mutually exclusive with a slot hold;
     // availability is checked when it is chosen and again, under a lock on the store, at checkout.
     express: boolean('express').notNull().default(false),
+    // Paper bags at checkout (0.25 each, one per 8 units). false is "No bags, use boxes" (G9).
+    bags: boolean('bags').notNull().default(true),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

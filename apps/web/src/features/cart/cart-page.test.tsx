@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { WebCart } from '../../api/cart';
 import * as tracking from '../../lib/track';
-import { makeCart, makeCartItem, makeQuote } from '../../test/fixtures';
+import { makeBill, makeCart, makeCartItem, makeCartPricing } from '../../test/fixtures';
 import { renderApp } from '../../test/render';
 import { API, server } from '../../test/server';
 
@@ -30,13 +30,28 @@ const ball = makeCartItem({
   lineTotalCents: 1000,
 });
 
+// A cart whose bill says how far free delivery is (the server's `basketTotals`, never added up here).
+const withFreeDelivery = (cart: WebCart, missingCents: number, thresholdCents = 4900): WebCart => ({
+  ...cart,
+  pricing: makeCartPricing({
+    bill: makeBill({
+      freeDelivery: {
+        thresholdCents,
+        missingCents,
+        percent: Math.floor(((thresholdCents - missingCents) * 100) / thresholdCents),
+        reached: missingCents === 0,
+      },
+    }),
+  }),
+});
+
 function serveCart(cart: WebCart) {
   server.use(http.get(`${API}/cart`, () => HttpResponse.json({ data: cart })));
 }
 
 describe('cart page', () => {
-  it('lists the lines with prices, the subtotal and the free-shipping hint', async () => {
-    serveCart(makeCart([tug, ball]));
+  it('lists the lines with prices, the subtotal and the free-delivery hint', async () => {
+    serveCart(withFreeDelivery(makeCart([tug, ball]), 2801));
     renderApp('/cart');
     const lines = await screen.findAllByTestId('cart-line');
     expect(lines).toHaveLength(2);
@@ -47,32 +62,75 @@ describe('cart page', () => {
     expect(within(lines[1]!).getByTestId('cart-line-total')).toHaveTextContent('€10.00');
     expect(screen.getByTestId('cart-subtotal')).toHaveTextContent('€20.99');
     expect(await screen.findByTestId('cart-shipping-hint')).toHaveTextContent(
-      'Add €28.01 more for free standard shipping.',
+      'Add €28.01 more for free delivery.',
     );
     expect(screen.getByTestId('cart-checkout')).toHaveAttribute('href', '/checkout');
   });
 
-  it('reads the free-shipping threshold from the shipping quotes, not a constant', async () => {
-    serveCart(makeCart([tug, ball]));
-    server.use(
-      http.get(`${API}/checkout/shipping-methods`, () =>
-        HttpResponse.json({ data: [makeQuote({ freeOverCents: 3000 })] }),
-      ),
-    );
+  it("reads the free-delivery threshold from the server's bill, not a constant", async () => {
+    serveCart(withFreeDelivery(makeCart([tug, ball]), 901, 3000));
     renderApp('/cart');
-    expect(await screen.findByText('Add €9.01 more for free standard shipping.')).toBeVisible();
+    expect(await screen.findByText('Add €9.01 more for free delivery.')).toBeVisible();
   });
 
-  it('hides the hint when no shipping method is ever free', async () => {
+  it('hides the hint when delivery is never free (express)', async () => {
     serveCart(makeCart([tug, ball]));
-    server.use(
-      http.get(`${API}/checkout/shipping-methods`, () =>
-        HttpResponse.json({ data: [makeQuote({ freeOverCents: null })] }),
-      ),
-    );
     renderApp('/cart');
     await screen.findAllByTestId('cart-line');
     expect(screen.queryByTestId('cart-shipping-hint')).not.toBeInTheDocument();
+  });
+
+  it('blocks checkout under the minimum order and says what is missing', async () => {
+    serveCart({
+      ...makeCart([tug]),
+      pricing: makeCartPricing({
+        bill: makeBill({
+          canCheckout: false,
+          minimumOrder: { minCents: 1500, missingCents: 320, met: false },
+        }),
+      }),
+    });
+    renderApp('/cart');
+    expect(await screen.findByTestId('cart-minimum')).toHaveTextContent(
+      'Add €3.20 more to check out. The minimum order is €15.00.',
+    );
+    expect(screen.getByTestId('cart-checkout')).toBeDisabled();
+  });
+
+  it('lists the deposit and the bags as their own lines and switches the bags off', async () => {
+    let body: unknown;
+    const bill = makeBill({
+      depositCents: 150,
+      bagCount: 2,
+      bagFeeCents: 50,
+      deliveryFeeCents: 299,
+      deliveryFeeBeforeFreeCents: 299,
+      totalCents: 2698,
+    });
+    serveCart({ ...makeCart([tug]), pricing: makeCartPricing({ bill, totalEstimateCents: 2698 }) });
+    server.use(
+      http.put(`${API}/cart/bags`, async ({ request }) => {
+        body = await request.json();
+        return HttpResponse.json({
+          data: {
+            ...makeCart([tug]),
+            bags: false,
+            pricing: makeCartPricing({
+              bill: { ...bill, bags: false, bagCount: 0, bagFeeCents: 0, totalCents: 2648 },
+              totalEstimateCents: 2648,
+            }),
+          },
+        });
+      }),
+    );
+    renderApp('/cart');
+    expect(await screen.findByTestId('cart-deposit')).toHaveTextContent('Bottle deposit');
+    expect(screen.getByTestId('cart-deposit')).toHaveTextContent('€1.50');
+    expect(screen.getByTestId('cart-bags')).toHaveTextContent('Paper bags (2)');
+    expect(screen.getByTestId('cart-bags')).toHaveTextContent('€0.50');
+    await userEvent.click(screen.getByTestId('cart-bags-toggle'));
+    await waitFor(() => expect(body).toEqual({ bags: false }));
+    expect(await screen.findByText('No bags, use boxes')).toBeVisible();
   });
 
   it('shows an empty state with a way back to the shop', async () => {

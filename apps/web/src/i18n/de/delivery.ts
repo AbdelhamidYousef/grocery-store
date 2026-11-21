@@ -48,6 +48,19 @@ export const delivery: Record<keyof typeof enNs, Entry> = {
   'delivery.page.error':
     'Wir konnten die Liefergebiete nicht laden. Versuch es gleich noch einmal.',
   'delivery.page.yours': 'Deine Postleitzahl liegt hier',
+  'delivery.rules.title': 'Was ein Warenkorb kostet',
+  'delivery.rules.minimum': 'Mindestbestellwert: {amount} Warenwert. Darunter liefern wir nicht.',
+  'delivery.rules.slot':
+    'Lieferung in einem Ein-Stunden-Fenster: {slot}. Fenster, die zwischen 17:00 und 20:00 beginnen, kosten {peak} mehr.',
+  'delivery.rules.free':
+    'Kostenlose Lieferung im Zeitfenster ab {amount} Warenwert, nach Rabatten. Das Flaschenpfand zählt nicht mit.',
+  'delivery.rules.express':
+    'Express innerhalb von 30 Minuten: {amount}. Express ist nie kostenlos.',
+  'delivery.rules.outer': 'In Neukölln kostet jede Lieferung {amount} mehr.',
+  'delivery.rules.bags':
+    'Papiertüten: {amount} pro Tüte, eine für je 8 Artikel. Wähle "Keine Tüten, wir nehmen Kisten", dann ist es kostenlos.',
+  'delivery.rules.deposit':
+    'Flaschenpfand: {amount} oder {small} pro Flasche, obendrauf. Pfand ist keine Ware: Rabatte gelten dafür nicht.',
 
   // ---------- Lieferzeiten (G5) ----------
   'delivery.slots.title': 'Lieferzeit wählen',

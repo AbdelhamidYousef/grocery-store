@@ -73,7 +73,13 @@ export type CheckoutRequest = z.output<typeof CheckoutRequestSchema>;
 export const OrderTotalsSchema = z.object({
   currency: z.string().length(3),
   subtotalCents: z.number().int().min(0),
+  // The delivery fee charged (0 when free).
   shippingCents: z.number().int().min(0),
+  // The delivery fee before the free-delivery rule; null on orders from before the basket rules.
+  deliveryFeeCents: z.number().int().min(0).nullable(),
+  // The bottle deposit and the bag fee: their own lines, included in `totalCents`.
+  depositCents: z.number().int().min(0),
+  bagFeeCents: z.number().int().min(0),
   discountCents: z.number().int().min(0),
   // The round-up donation, included in `totalCents`; 0 unless the shopper chose it.
   donationCents: z.number().int().min(0),
@@ -123,6 +129,8 @@ export const OrderItemSchema = z.object({
   weighedGrams: z.number().int().nullable(),
   finalCents: z.number().int().nullable(),
   shortDated: z.boolean(),
+  // The bottle deposit of one unit, as ordered (0 for most lines); a missing unit's is not charged.
+  depositCents: z.number().int().min(0),
   // Packing (G7): what was found, and for a replacement line which line it replaces and whether the
   // shopper took it. `refundedCents` is what a refused replacement gave back after capture.
   pickStatus: PickStatusSchema,

@@ -145,7 +145,7 @@ describe('GET /checkout/orders/:number', () => {
       status: 'pending_payment',
       email: 'ada@grocery.test',
       notes: 'Ring twice',
-      totals: { totalCents: 2590 },
+      totals: { totalCents: 2324 },
       billingAddress: null,
       shippingAddress: { postalCode: '10115' },
     });

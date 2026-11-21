@@ -79,6 +79,13 @@ export function VariantFields({
         {...field('memberPrice')}
       />
       <Input
+        label="Bottle deposit (optional)"
+        inputMode="decimal"
+        hint="In euros per unit, for example 0.25; charged on top, never discounted"
+        error={errors.deposit}
+        {...field('deposit')}
+      />
+      <Input
         label="Weight (grams)"
         inputMode="numeric"
         error={errors.weight}

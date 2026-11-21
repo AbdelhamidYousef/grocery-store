@@ -88,6 +88,30 @@ describe('weighed variants in the form', () => {
   });
 });
 
+describe('bottle deposit in the form', () => {
+  const base = () => validForm().variants[0]!;
+  it('turns "0.25" into 25 cents and sends it, empty means none', () => {
+    const withDeposit = ProductFormSchema.safeParse(
+      validForm({ variants: [{ ...base(), deposit: '0.25' }] }),
+    );
+    expect(withDeposit.success).toBe(true);
+    if (withDeposit.success) {
+      expect(toCreatePayload(withDeposit.data).variants[0]?.depositCents).toBe(25);
+    }
+    const none = ProductFormSchema.safeParse(validForm({ variants: [{ ...base() }] }));
+    expect(none.success).toBe(true);
+    if (none.success) expect(toCreatePayload(none.data).variants[0]?.depositCents).toBe(0);
+  });
+
+  it('refuses a deposit that is not an amount', () => {
+    const bad = ProductFormSchema.safeParse(
+      validForm({ variants: [{ ...base(), deposit: 'a quarter' }] }),
+    );
+    expect(bad.success).toBe(false);
+    if (!bad.success) expect(bad.error.issues[0]?.path.join('.')).toBe('variants.0.deposit');
+  });
+});
+
 describe('options text', () => {
   it('parses key=value pairs and formats them back', () => {
     expect(parseOptions('Size=Large, Colour=Red')).toEqual({ Size: 'Large', Colour: 'Red' });

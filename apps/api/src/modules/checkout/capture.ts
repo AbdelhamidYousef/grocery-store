@@ -136,7 +136,12 @@ type FinalLine = Pick<repo.OrderItemRow, 'lineTotalCents' | 'finalCents'> &
   Partial<
     Pick<
       repo.OrderItemRow,
-      'quantity' | 'discountCents' | 'pickedQty' | 'substitutesItemId' | 'swapStatus'
+      | 'quantity'
+      | 'discountCents'
+      | 'pickedQty'
+      | 'substitutesItemId'
+      | 'swapStatus'
+      | 'depositCents'
     >
   >;
 
@@ -147,6 +152,8 @@ type FinalLine = Pick<repo.OrderItemRow, 'lineTotalCents' | 'finalCents'> &
  *   - a weighed line costs its real weight (`final_cents`) instead of its estimate;
  *   - a line the packer found only some units of (`picked_qty`) costs those units: its price and its
  *     share of the order discount scale with them, round half up; none found costs nothing;
+ *   - the bottle deposit of a unit that was not found is not charged (the bottle never left the shop);
+ *     delivery, bags and every other fee of the bill stay: they are part of `order.totalCents`;
  *   - a replacement line (it replaces another, was never in the total) is added at its price while
  *     the shopper has not rejected it: accepted, or unanswered, which dispatch settles as accepted.
  *     Its price is already min(its unit, the original's unit); a rejected one is not charged.
@@ -175,6 +182,10 @@ export function finalAmountCents(
           (short ? lineShareCents(i.lineTotalCents, picked, quantity) : i.lineTotalCents));
     const taken = short ? lineShareCents(discount, picked, quantity) : discount;
     delta += gross - taken - (i.lineTotalCents - discount);
+    // The deposit rides on units, not on the goods: only the units that were found keep it.
+    if (picked !== null && quantity > 0 && picked < quantity) {
+      delta -= (i.depositCents ?? 0) * (quantity - picked);
+    }
   }
   const raw = Math.max(order.totalCents + delta, 0);
   const authorized = order.authorizedCents ?? order.totalCents;

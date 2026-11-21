@@ -73,6 +73,12 @@ export async function setCartExpress(): Promise<WebCart> {
   return (await apiFetch('/cart/express', { method: 'PUT', schema: CartResponse })).data;
 }
 
+// Paper bags at checkout (0.25 each) or "No bags, use boxes". Answers the whole cart.
+export async function setCartBags(bags: boolean): Promise<WebCart> {
+  return (await apiFetch('/cart/bags', { method: 'PUT', body: { bags }, schema: CartResponse }))
+    .data;
+}
+
 export async function clearCartDelivery(): Promise<WebCart> {
   return (await apiFetch('/cart/slot', { method: 'DELETE', schema: CartResponse })).data;
 }

@@ -33,7 +33,7 @@ const MITTE = DEFAULT_STORE_ID;
 
 // Out of stock in Mitte, 7 in Neukölln, 3 in Kreuzberg-Friedrichshain.
 async function yoghurt() {
-  const { variants, product } = await createProduct({ variants: [{ priceCents: 500, stock: 0 }] });
+  const { variants, product } = await createProduct({ variants: [{ priceCents: 1600, stock: 0 }] });
   const variantId = variants[0]!.id;
   await stockAt(variantId, 'neukoelln', 7);
   await stockAt(variantId, 'kreuzberg-friedrichshain', 3);

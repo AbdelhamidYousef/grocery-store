@@ -8,6 +8,7 @@ import { ApiError } from '../../api/client';
 import { fetchDeliveryAreas, fetchPostcode } from '../../api/delivery';
 import { Checkbox } from '../../components/ui/Checkbox';
 import { useT, type TFunction } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { keys } from '../../lib/query-client';
 import { paymentsConfigured } from '../../lib/stripe';
 import { TEST_IDS } from '../../lib/test-ids';
@@ -72,8 +73,17 @@ function deliveryErrorMessage(code: string, t: TFunction): string | null {
 function placeErrorMessage(
   error: unknown,
   { t, tm }: { t: TFunction; tm: (message: string) => string },
+  money: (cents: number) => string,
 ): string {
   if (error instanceof ApiError) {
+    if (error.code === 'BELOW_MINIMUM_ORDER') {
+      // The server's rule, said in the shopper's language and money (the cart says it before this).
+      const d = error.details as { missingCents?: number; minCents?: number } | undefined;
+      return t('cart.summary.minimumNeeded', {
+        amount: money(d?.missingCents ?? 0),
+        minimum: money(d?.minCents ?? 0),
+      });
+    }
     if (error.code === 'CART_CHANGED') {
       return t('checkout.error.cartChanged');
     }
@@ -100,6 +110,7 @@ export function CheckoutFlow({
   const { t } = i18n;
   const { shipCountries, locale } = useStore();
   const queryClient = useQueryClient();
+  const fmt = useFormat();
   const delivery = useDelivery();
   const [postcodeError, setPostcodeError] = useState<string | null>(null);
   const [step, setStep] = useState<Step>(1);
@@ -174,6 +185,17 @@ export function CheckoutFlow({
   const continueToPayment = () => {
     const quote = selectedQuote;
     if (!details || !quote) return;
+    const minimum = cart.pricing.bill.minimumOrder;
+    if (!minimum.met) {
+      // Same sentence as the server's refusal, before any request (the server checks again).
+      setError(
+        t('cart.summary.minimumNeeded', {
+          amount: fmt.money(minimum.missingCents, cart.currency),
+          minimum: fmt.money(minimum.minCents, cart.currency),
+        }),
+      );
+      return;
+    }
     setError(null);
     setCodeError(null);
     // No publishable key: show the "not configured" state and never create an order that nobody
@@ -231,7 +253,7 @@ export function CheckoutFlow({
             );
             return;
           }
-          setError(placeErrorMessage(e, i18n));
+          setError(placeErrorMessage(e, i18n, (cents) => fmt.money(cents, cart.currency)));
           setCodeError(codeProblem(e, i18n.tm));
           setPointsError(pointsProblem(e, i18n.tm));
         },
@@ -335,7 +357,7 @@ export function CheckoutFlow({
         </StepCard>
       </div>
 
-      <CheckoutSummary cart={cart} quote={selectedQuote} placed={placed} codeProblem={codeError} />
+      <CheckoutSummary cart={cart} placed={placed} codeProblem={codeError} />
     </div>
   );
 }

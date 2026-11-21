@@ -78,7 +78,9 @@ async function make(
     food: { allergens: ['milk'], dietary: ['vegetarian'] },
     variants: [
       {
-        priceCents: opts.price ?? 200,
+        // The yoghurts of a bag add up to the minimum order (15.00) on their own, so the bag has just
+        // its own lines.
+        priceCents: opts.price ?? Math.ceil(1500 / (opts.qty ?? 3)),
         stock: 30,
         ...(opts.weight && { weight: opts.weight }),
       },
@@ -259,7 +261,8 @@ describe('handing the bag to the rider', () => {
       shopper: buyer.shopper,
       email: buyer.user.email,
       variantId: orig.variants[0]!.id,
-      quantity: 3,
+      // 8 x 2.00 = 16.00: the yoghurts alone reach the minimum order
+      quantity: 8,
     });
     await simulate(app, placed.number);
     const order = await orderByNumber(placed.number);
@@ -280,9 +283,9 @@ describe('handing the bag to the rider', () => {
     expect((await lines(order.id)).find((i) => i.substitutesItemId)?.swapStatus).toBe('proposed');
     expect((await post(m, '/dispatch')).status).toBe(200);
     expect((await lines(order.id)).find((i) => i.substitutesItemId)?.swapStatus).toBe('accepted');
-    // 1 x 200 packed + 2 x 190 replacement, plus the order's shipping.
+    // 1 x 200 packed + 7 x 190 replacement, plus the order's other lines (bag, delivery).
     const o = await orderByNumber(placed.number);
-    expect(o.capturedCents).toBe(order.totalCents - 400 + 380);
+    expect(o.capturedCents).toBe(order.totalCents - 1400 + 1330);
   });
 
   it('ships an order that was charged in full at checkout without capturing anything', async () => {
@@ -377,7 +380,7 @@ describe('a replacement refused at the door', () => {
       shopper: buyer.shopper,
       email: buyer.user.email,
       variantId: orig.variants[0]!.id,
-      quantity: 3,
+      quantity: 8,
     });
     await simulate(app, placed.number);
     const order = await orderByNumber(placed.number);
@@ -415,7 +418,7 @@ describe('a replacement refused at the door', () => {
     );
     expect(res.status, JSON.stringify(res.body)).toBe(200);
     const base = m.order.subtotalCents - m.order.discountCents;
-    const back = Math.floor((earned * 380) / base);
+    const back = Math.floor((earned * 1330) / base);
     expect(back).toBeGreaterThan(0);
     expect(await points()).toBe(before - back);
     // Repeating the refusal takes nothing more.

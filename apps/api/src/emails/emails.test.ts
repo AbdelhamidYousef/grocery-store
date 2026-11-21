@@ -16,11 +16,14 @@ const order: Order = {
   totals: {
     currency: 'EUR',
     subtotalCents: 2598,
-    shippingCents: 490,
+    shippingCents: 299,
+    deliveryFeeCents: 299,
+    depositCents: 50,
+    bagFeeCents: 25,
     discountCents: 0,
     donationCents: 0,
     taxCents: 0,
-    totalCents: 3088,
+    totalCents: 2972,
   },
   shippingMethod: { code: 'standard', name: 'Standard' },
   shippingAddress: {
@@ -46,6 +49,7 @@ const order: Order = {
       unitPriceCents: 1299,
       quantity: 2,
       lineTotalCents: 2598,
+      depositCents: 0,
       pricePerKgCents: null,
       weighedGrams: null,
       finalCents: null,
@@ -71,13 +75,13 @@ describe('order emails', () => {
     ['shipped', orderShipped],
   ])('%s carries the number, the lines and money formatted by the shared formatter', (_n, make) => {
     const email = make(order, emailText());
-    const total = formatMoney(3088, 'EUR');
+    const total = formatMoney(2972, 'EUR');
     expect(email.subject).toContain('PW-2026-000007');
     for (const part of [email.text, email.html]) {
       expect(part).toContain('PW-2026-000007');
       expect(part).toContain('Rope toy');
       expect(part).toContain(total);
-      expect(part).toContain(formatMoney(490, 'EUR'));
+      expect(part).toContain(formatMoney(299, 'EUR'));
     }
     expect(email.html.startsWith('<!doctype html>')).toBe(true);
     expect(email.html).toContain('Grocery');
@@ -99,10 +103,42 @@ describe('order emails', () => {
     const none = orderConfirmation(order, emailText()).text;
     expect(none).not.toContain('Discount');
     const some = orderConfirmation(
-      { ...order, totals: { ...order.totals, discountCents: 100, totalCents: 2988 } },
+      { ...order, totals: { ...order.totals, discountCents: 100, totalCents: 2872 } },
       emailText(),
     ).text;
     expect(some).toContain(`Discount: -${formatMoney(100, 'EUR')}`);
+  });
+
+  it('shows the deposit and the bags as their own lines, and free delivery as "Free" (G9)', () => {
+    const mail = orderConfirmation(order, emailText());
+    for (const part of [mail.text, mail.html]) {
+      expect(part).toContain('Bottle deposit');
+      expect(part).toContain(formatMoney(50, 'EUR'));
+      expect(part).toContain('Bags');
+      expect(part).toContain(formatMoney(25, 'EUR'));
+    }
+    const free = orderConfirmation(
+      {
+        ...order,
+        totals: { ...order.totals, shippingCents: 0, deliveryFeeCents: 299, totalCents: 2673 },
+      },
+      emailText(),
+    );
+    expect(free.text).toContain('Delivery: Free');
+    expect(free.html).toContain('Free');
+    const plain = orderConfirmation(
+      {
+        ...order,
+        totals: { ...order.totals, depositCents: 0, bagFeeCents: 0, totalCents: 2897 },
+      },
+      emailText(),
+    ).text;
+    expect(plain).not.toContain('Bottle deposit');
+    expect(plain).not.toContain('Bags');
+    const de = orderConfirmation(order, emailText('de-de')).text;
+    expect(de).toContain('Pfand');
+    expect(de).toContain('Tüten');
+    expect(de).toContain('Lieferung');
   });
 
   it('escapes the five HTML metacharacters', () => {

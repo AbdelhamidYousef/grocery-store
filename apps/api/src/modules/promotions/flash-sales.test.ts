@@ -6,6 +6,7 @@ import {
   discountCodes,
   flashSaleItems,
   flashSales,
+  orderItems,
   orders,
   priceHistory,
   productVariants,
@@ -437,7 +438,10 @@ describe('sale prices in the cart and at checkout', () => {
     }>(await shop.call('get', '/cart')).data;
     expect(cart.pricing.lines[0]).toMatchObject({ unitCents: 300, priceSource: 'fixed' });
     expect((await shop.call('post', '/checkout', checkoutBody)).status).toBe(200);
-    expect((await db.select().from(orders))[0]?.subtotalCents).toBe(300);
+    // 3.00 is under the minimum order, so the test helper added a filler line: the trial line is the
+    // one that must have stayed at its fixed price.
+    const trial = (await db.select().from(orderItems)).find((i) => i.variantId === t.id);
+    expect(trial).toMatchObject({ unitPriceCents: 300, lineTotalCents: 300 });
   });
 });
 

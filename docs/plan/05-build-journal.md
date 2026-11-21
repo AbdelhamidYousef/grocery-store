@@ -761,3 +761,42 @@ Surprise: the form's price rule had to run even when the SKU was wrong (the old 
 zod refine normally waits for the fields before it, so each rule is its own refine with `when: () => true`.
 Learn: a UI that mirrors a server rule (the derived price) should call the same pure function (`estimateCents`), and a rule
 about money belongs on the layer every caller passes, not on the one the current screen happens to use.
+
+### G9.1: basket rules (money, risky)
+`packages/shared/src/basket-rules.ts` holds the constants (`BASKET_RULES`: minimum 15.00, slot 2.99, peak +1.00 for slots
+starting 17:00 to 19:59 shop time, express 4.99, outer area +0.50 for `neukoelln`, free slot from 49.00, bag 0.25 per 8 units)
+and `basketTotals(lines, context)`. It is ONE function with the discount engine inside it: it computes the bag and deposit
+fees, picks the delivery fee, and calls `priceCart` with the fee as the "shipping" and a new `feesCents` input (deposit and
+bags: added to the total and to what the round-up donation and the 50-cent minimum charge look at, never discounted, never
+counted by a threshold). `priceCart` also got `shipping.neverFree` (express: no threshold, and a free-shipping code cannot waive
+it) and returns `goodsCents`, the goods after discounts and BEFORE credits: that is what the minimum order and the free-delivery
+rule read, so paying with points can never change them. `billOf` turns the result into the wire `Bill` (`CartPricing.bill`).
+The whole chain reads it: `promotions.price()` (cart and checkout) calls `basketTotals`; the cart's `shippingEstimateCents` and
+`totalEstimateCents` are the bill's; checkout recomputes it from the delivery the order really takes (`takenDeliveryContext`), the
+cart's `bags` flag and the DB prices, refuses goods under the minimum (422 `BELOW_MINIMUM_ORDER`, `details.missingCents`) and
+stores the lines: migration 0059 adds `product_variants.deposit_cents` (backfilled 25 for the seeded PET drinks), `carts.bags`,
+`orders.deposit_cents`, `bag_fee_cents` (default 0) and `delivery_fee_cents` (the fee before the free rule, nullable: old orders
+have none), `order_items.deposit_cents` (per unit), and widens `orders_total_check` to include the two new lines, so an old order
+still satisfies it. `shipping.ts` no longer prices anything: a method is a delivery kind, `quote()` answers from the rules.
+The authorisation is `authorisationCents(total, weighedLines)` as before, and the total now carries deposit, bags and delivery,
+so they are held exactly while only the weighed goods get the 15 % buffer. `finalAmountCents` starts from the stored total, so
+the bag and the delivery stay; it takes back the deposit of the units not found (`pickedQty < quantity`); a replacement carries
+no deposit, so a refused one costs nothing. Web: the cart shows deposit, bags (with the toggle "Pack in paper bags" and "No bags,
+use boxes"), delivery ("Delivery (from)" until a time is chosen, "Free" when waived), the free-delivery bar from the bill and
+the minimum-order block with "Add 3.20 more"; checkout, order pages, admin order and both emails show the same lines (EN + DE);
+the admin variant form gained "Bottle deposit". `/delivery` states every rule from the shared constants.
+Tests: shared `basket-rules.test.ts` (exactly 15.00 and 49.00, deposit outside the minimum, the threshold, the discounts and tier
+base, weighed estimate and short-dated price as plain goods, express never free even with a code, peak by shop time in winter and
+summer, outer area, bags, rounding to the donation) and API `basket-bill.test.ts` (minimum 422 and nothing reserved, cart bill =
+order snapshot = payment = authorisation, buffer only on weighed goods, peak and outer surcharge, bags toggle, capture at
+dispatch drops two deposits and keeps bag and delivery). About 120 older API tests and a few web tests had to change: the
+minimum order (15.00) and the new fees broke every basket under 15.00 and every asserted total. The test shopper now tops a short
+basket up with one filler line at checkout (and picks off-peak slots, so the fee does not depend on the clock); a few tests got
+baskets that reach the minimum on their own.
+Surprise: the first top-up helper read `GET /cart` to learn the goods, and that read REPAIRS the cart (clamps quantities, drops
+sold-out lines), which hid the CART_CHANGED the tests wanted. It now reads the bill from the last cart answer it already had.
+Learn: when one number rule (a minimum, a fee) touches every order, change the single function and the single test helper first,
+then count what breaks: the failures are the list of every place that assumed the old rule. And a "convenience read" in a test
+helper must never be a request that changes state.
+
+### Quiz: Phase G9 (placeholder, completed at G9.4)

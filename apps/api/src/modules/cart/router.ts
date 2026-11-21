@@ -6,6 +6,7 @@ import {
   CartItemParamsSchema,
   CartResponseSchema,
   PutCartSlotSchema,
+  SetBagsSchema,
   SetSubstitutionSchema,
   UpdateCartItemSchema,
 } from '@store/shared';
@@ -105,6 +106,13 @@ cartRouter.delete('/cart/slot', async (req, res) => {
 
 cartRouter.put('/cart/express', async (req, res) => {
   respond(res, CartResponseSchema, { data: await service.setExpress(cartIdOf(req)) });
+});
+
+// Paper bags at checkout (0.25 each) or "No bags, use boxes".
+const putBags = { body: SetBagsSchema };
+cartRouter.put('/cart/bags', validate(putBags), async (req, res) => {
+  const { body } = valid(req, putBags);
+  respond(res, CartResponseSchema, { data: await service.setBags(cartIdOf(req), body.bags) });
 });
 
 cartRouter.delete('/cart', async (req, res) => {

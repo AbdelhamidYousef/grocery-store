@@ -88,8 +88,10 @@ export function itemsTable(order: Order, x: EmailText): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 12px;">
     ${rows}
     ${total(escapeHtml(x.t('order.subtotal')), order.totals.subtotalCents)}
-    ${total(escapeHtml(x.t('order.shipping', { method: order.shippingMethod.name })), order.totals.shippingCents)}
     ${order.totals.discountCents > 0 ? total(escapeHtml(x.t('order.discount')), -order.totals.discountCents) : ''}
+    ${order.totals.depositCents > 0 ? total(escapeHtml(x.t('order.deposit')), order.totals.depositCents) : ''}
+    ${order.totals.bagFeeCents > 0 ? total(escapeHtml(x.t('order.bags')), order.totals.bagFeeCents) : ''}
+    <tr><td style="padding:4px 0;color:${MUTED};">${escapeHtml(x.t('order.shipping'))}</td><td style="padding:4px 0;text-align:right;">${order.totals.shippingCents === 0 ? escapeHtml(x.t('order.free')) : money(order.totals.shippingCents)}</td></tr>
     ${order.totals.donationCents > 0 ? total(escapeHtml(x.t('order.donation')), order.totals.donationCents) : ''}
     ${total(escapeHtml(x.t('order.total')), order.totals.totalCents, true)}
   </table>`;
@@ -139,10 +141,16 @@ export function itemsText(order: Order, x: EmailText): string {
     ...lines,
     '',
     `${x.t('order.subtotal')}${x.colon}${money(order.totals.subtotalCents)}`,
-    `${x.t('order.shipping', { method: order.shippingMethod.name })}${x.colon}${money(order.totals.shippingCents)}`,
     ...(order.totals.discountCents > 0
       ? [`${x.t('order.discount')}${x.colon}-${money(order.totals.discountCents)}`]
       : []),
+    ...(order.totals.depositCents > 0
+      ? [`${x.t('order.deposit')}${x.colon}${money(order.totals.depositCents)}`]
+      : []),
+    ...(order.totals.bagFeeCents > 0
+      ? [`${x.t('order.bags')}${x.colon}${money(order.totals.bagFeeCents)}`]
+      : []),
+    `${x.t('order.shipping')}${x.colon}${order.totals.shippingCents === 0 ? x.t('order.free') : money(order.totals.shippingCents)}`,
     ...(order.totals.donationCents > 0
       ? [`${x.t('order.donation')}${x.colon}${money(order.totals.donationCents)}`]
       : []),

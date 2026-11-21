@@ -1,4 +1,3 @@
-import type { ShippingQuote } from '@store/shared';
 import { Link } from 'react-router-dom';
 
 import type { WebCart } from '../../api/cart';
@@ -16,12 +15,10 @@ const LONG_LIST = 5;
 // browser never adds money up, so what it shows is always what Stripe will charge.
 export function CheckoutSummary({
   cart,
-  quote,
   placed,
   codeProblem = null,
 }: {
   cart: WebCart;
-  quote: ShippingQuote | null;
   placed: PlacedOrder | null;
   /** Why the discount code stopped applying, when checkout refused it. */
   codeProblem?: string | null;
@@ -38,6 +35,12 @@ export function CheckoutSummary({
       imageUrl: i.imageUrl,
     }));
   const totals = placed?.totals;
+  // Before the order is placed the lines come from the server's bill of the cart (never added up
+  // here); after, from the totals the server stored and will charge.
+  const bill = cart.pricing.bill;
+  const discountCents = totals?.discountCents ?? bill.discountCents;
+  const depositCents = totals?.depositCents ?? bill.depositCents;
+  const bagCents = totals?.bagFeeCents ?? bill.bagFeeCents;
   return (
     <aside
       aria-label={t('checkout.summary.aria')}
@@ -81,17 +84,25 @@ export function CheckoutSummary({
         rows={[
           {
             label: t('checkout.summary.subtotal'),
-            cents: totals?.subtotalCents ?? cart.subtotalCents,
+            cents: totals?.subtotalCents ?? bill.subtotalCents,
           },
+          ...(discountCents > 0
+            ? [{ label: t('checkout.summary.discount'), cents: -discountCents }]
+            : []),
+          ...(depositCents > 0
+            ? [{ label: t('checkout.summary.deposit'), cents: depositCents }]
+            : []),
+          ...(bagCents > 0 ? [{ label: t('checkout.summary.bags'), cents: bagCents }] : []),
+          ...(!totals && !bill.bags
+            ? [{ label: t('checkout.summary.noBags'), cents: 0, free: true }]
+            : []),
           {
             label: t('checkout.summary.shipping'),
-            cents: totals?.shippingCents ?? quote?.priceCents ?? null,
+            // The fee follows the chosen delivery time; before one is chosen it is the next step.
+            cents: totals?.shippingCents ?? (bill.deliveryEstimated ? null : bill.deliveryFeeCents),
             fallback: t('checkout.summary.shippingNext'),
             free: true,
           },
-          ...(totals && totals.discountCents > 0
-            ? [{ label: t('checkout.summary.discount'), cents: -totals.discountCents }]
-            : []),
           ...(totals && totals.donationCents > 0
             ? [{ label: t('checkout.summary.donation'), cents: totals.donationCents }]
             : []),

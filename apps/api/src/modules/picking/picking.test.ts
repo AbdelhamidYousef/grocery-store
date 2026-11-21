@@ -59,7 +59,8 @@ async function product(
     name,
     categoryId: category.id,
     ...(opts.storage && { attributes: { storage: opts.storage } }),
-    variants: [{ priceCents: 300, stock: 20 }],
+    // 15.00 a pack: one pack already reaches the minimum order, so every bag has just its own lines
+    variants: [{ priceCents: 1500, stock: 20 }],
   });
   if (opts.aisle) {
     await db.insert(aisles).values({

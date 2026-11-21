@@ -44,6 +44,18 @@ export const delivery = {
   'delivery.page.loading': 'Loading the delivery areas',
   'delivery.page.error': "We couldn't load the delivery areas. Try again in a moment.",
   'delivery.page.yours': 'Your postcode is here',
+  'delivery.rules.title': 'What a basket costs',
+  'delivery.rules.minimum': 'Minimum order: {amount} of goods. Below it we cannot deliver.',
+  'delivery.rules.slot':
+    'Delivery in a one-hour slot: {slot}. Slots that start between 17:00 and 20:00 cost {peak} more.',
+  'delivery.rules.free':
+    'Free delivery for a slot from {amount} of goods, after discounts. The bottle deposit does not count.',
+  'delivery.rules.express': 'Express, within 30 minutes: {amount}. Express is never free.',
+  'delivery.rules.outer': 'Neukölln pays {amount} more on any delivery.',
+  'delivery.rules.bags':
+    'Paper bags: {amount} each, one for every 8 items. Choose "No bags, use boxes" and it is free.',
+  'delivery.rules.deposit':
+    'Bottle deposit: {amount} or {small} a bottle, charged on top. It is not goods: no discount applies to it.',
 
   // ---------- delivery times (G5) ----------
   'delivery.slots.title': 'Choose a delivery time',

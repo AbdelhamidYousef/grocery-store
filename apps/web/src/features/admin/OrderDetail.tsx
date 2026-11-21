@@ -136,12 +136,24 @@ function Body({ detail }: { detail: AdminOrderDetail }) {
         <dl className="ml-auto grid w-full max-w-xs grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm">
           <dt>Subtotal</dt>
           <dd className="text-right">{money(totals.subtotalCents)}</dd>
-          <dt>Shipping ({order.shippingMethod.name})</dt>
+          <dt>Delivery ({order.shippingMethod.name})</dt>
           <dd className="text-right">{money(totals.shippingCents)}</dd>
           {totals.discountCents > 0 && (
             <>
               <dt>Discount</dt>
               <dd className="text-right">-{money(totals.discountCents)}</dd>
+            </>
+          )}
+          {totals.depositCents > 0 && (
+            <>
+              <dt>Bottle deposit</dt>
+              <dd className="text-right">{money(totals.depositCents)}</dd>
+            </>
+          )}
+          {totals.bagFeeCents > 0 && (
+            <>
+              <dt>Bags</dt>
+              <dd className="text-right">{money(totals.bagFeeCents)}</dd>
             </>
           )}
           {totals.donationCents > 0 && (

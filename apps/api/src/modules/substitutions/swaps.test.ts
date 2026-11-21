@@ -101,6 +101,10 @@ async function paidOrder(
 
 const lines = async (orderId: string) =>
   db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+// The order's own lines: a 6.00 basket is under the minimum order, so checkout adds a filler line
+// ("Test product N", see the test shopper) that has nothing to do with swaps.
+const shelfLines = async (orderId: string) =>
+  (await lines(orderId)).filter((i) => !i.productName.startsWith('Test product'));
 const swapOf = async (orderId: string) => (await lines(orderId)).find((i) => i.substitutesItemId)!;
 
 function short(
@@ -199,7 +203,7 @@ describe('recording a shortfall', () => {
     const s = await shelf({}, [{ name: 'Sold out', price: 200, stock: 0 }]);
     const p = await paidOrder(s);
     await short(p, { pickedQty: 2 });
-    const rows = await lines(p.order.id);
+    const rows = await shelfLines(p.order.id);
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ pickStatus: 'short', pickedQty: 2 });
   });
@@ -211,7 +215,7 @@ describe('recording a shortfall', () => {
       (await short(p, { pickedQty: 0, substituteVariantId: s.others[0]!.variants[0]!.id })).status,
     ).toBe(422);
     expect((await short(p, { pickedQty: 0 })).status).toBe(200);
-    const rows = await lines(p.order.id);
+    const rows = await shelfLines(p.order.id);
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ pickStatus: 'missing', pickedQty: 0 });
   });

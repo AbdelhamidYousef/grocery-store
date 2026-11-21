@@ -116,6 +116,8 @@ const VariantFields = {
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/, 'A colour like #A1B2C3')
     .nullish(),
+  // Bottle deposit per unit in cents (0.25 EUR is 25, 0.08 EUR is 8); 0 or absent for most things.
+  depositCents: z.number().int().min(0).max(500).optional(),
   // Sold by weight: a price per kilogram and the weight of one "unit" in the cart. The unit price
   // is DERIVED from them by the server (`estimateCents`), whatever `priceCents` says.
   soldByWeight: z.boolean().optional(),
@@ -224,6 +226,7 @@ export const AdminVariantSchema = z.object({
   soldByWeight: z.boolean(),
   pricePerKgCents: z.number().int().nullable(),
   nominalGrams: z.number().int().nullable(),
+  depositCents: z.number().int().min(0),
   status: ProductStatusSchema,
   // Totals over every dark store; the per-store numbers are in `stores`.
   quantity: z.number().int(),

@@ -29,6 +29,9 @@ export type UpdateCartItemInput = z.input<typeof UpdateCartItemSchema>;
 
 export const CartItemParamsSchema = IdParamsSchema;
 
+export const SetBagsSchema = z.object({ bags: z.boolean() });
+export type SetBagsInput = z.input<typeof SetBagsSchema>;
+
 // ---------- the cart ----------
 
 export const CartItemSchema = z.object({
@@ -58,6 +61,8 @@ export const CartItemSchema = z.object({
       nominalGrams: z.number().int().positive(),
     })
     .nullable(),
+  // The bottle deposit of one unit (0 for most lines), charged on top and shown as its own bill line.
+  depositCents: z.number().int().min(0),
   // A short-dated line: priced 30 % off and filled only from short-dated packs.
   shortDated: z.boolean(),
   // The oldest short-dated pack's best-before date ("YYYY-MM-DD") of a short-dated line; else null.
@@ -108,6 +113,8 @@ export const CartSchema = z.object({
   pricing: CartPricingSchema,
   // The delivery slot (or express) chosen for this cart, null until the shopper picks one.
   delivery: CartDeliverySchema.nullable(),
+  // Paper bags at checkout (0.25 each): false is "No bags, use boxes".
+  bags: z.boolean(),
 });
 export type Cart = z.infer<typeof CartSchema>;
 

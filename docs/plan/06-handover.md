@@ -104,6 +104,14 @@ Written by the build sessions for the owner and the next session. Newest state f
   from G7 needs `pnpm db:migrate && pnpm db:seed` (aisles). Not pushed (the lead pushes at the phase end). Open: the admin's
   "mark shipped" button still bypasses pack and capture; the e2e and a packer need `Find an order` because the list is cut at
   30 bags; admin product forms still cannot create weighed variants.
+- **G9.1 done** (2026-11-21, G9 in progress): basket rules. Shared `basket-rules.ts` (`BASKET_RULES`, `basketTotals`, `billOf`,
+  `isPeakSlot`, `isOuterArea`), `priceCart` got `feesCents`, `shipping.neverFree` and `goodsCents`; migration 0059 (deposit per
+  variant, `carts.bags`, order `deposit_cents` / `bag_fee_cents` / `delivery_fee_cents`, `order_items.deposit_cents`, widened total
+  check); `PUT /cart/bags`; checkout refuses goods under 15.00 with 422 `BELOW_MINIMUM_ORDER`; `finalAmountCents` drops the deposit
+  of units not found; cart, checkout, order pages, admin order and emails show deposit, bags and delivery (EN + DE); `/delivery`
+  states the rules; admin variant form has "Bottle deposit". Shipping methods are only a delivery kind now (their price columns are
+  unused). The test shopper tops a short basket up with a filler line (see the journal). A database migrated from G8 needs
+  `pnpm db:migrate && pnpm db:seed` (deposit on the seven drinks). Not pushed.
 
   Paid orders are only AUTHORISED until captured: tests that refund or return a paid order capture it first
   (`captureOrder` / `deliveredOrder` in `test/orders.ts`); `simulate` turns "the shopper paid" into the

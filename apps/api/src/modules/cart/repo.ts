@@ -97,6 +97,10 @@ export async function setStore(
   await tx.update(carts).set({ storeView, currency }).where(eq(carts.id, cartId));
 }
 
+export async function setBags(tx: Tx, cartId: string, bags: boolean): Promise<void> {
+  await tx.update(carts).set({ bags }).where(eq(carts.id, cartId));
+}
+
 export type LineRow = {
   itemId: string;
   quantity: number;
@@ -116,6 +120,8 @@ export type LineRow = {
   soldByWeight: boolean;
   pricePerKgCents: number | null;
   nominalGrams: number | null;
+  // Bottle deposit of one unit, in cents.
+  depositCents: number;
   variantStatus: 'draft' | 'active' | 'archived';
   productId: string;
   productName: string;
@@ -157,6 +163,7 @@ export async function listLines(
       soldByWeight: productVariants.soldByWeight,
       pricePerKgCents: productVariants.pricePerKgCents,
       nominalGrams: productVariants.nominalGrams,
+      depositCents: productVariants.depositCents,
       variantStatus: productVariants.status,
       productId: products.id,
       productName: products.name,

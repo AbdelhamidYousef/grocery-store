@@ -45,7 +45,7 @@ async function seedMethods() {
 }
 
 describe('GET /checkout/shipping-methods', () => {
-  it('prices the active methods for the current cart weight and subtotal', async () => {
+  it('prices the active methods by the basket rules (not by weight)', async () => {
     await seedMethods();
     const { variants } = await createProduct({
       variants: [{ priceCents: 1000, weightGrams: 1500 }],
@@ -56,14 +56,15 @@ describe('GET /checkout/shipping-methods', () => {
       .send({ variantId: variants[0]!.id, quantity: 2 });
     const cookie = `cart_id=${cookieValue(add, 'cart_id')}`;
 
-    // 2 x 1500 g = 3 kg, subtotal 2000: below the free threshold.
+    // Goods 20.00: below the free-delivery threshold.
     const res = await request(app)
       .get('/api/v1/checkout/shipping-methods?country=de')
       .set('Cookie', cookie);
     expect(res.status).toBe(200);
+    // The prices are the basket rules', whatever the rows' price columns say: a slot 2.99, express 4.99.
     expect(bodyOf<Quotes>(res).data).toMatchObject([
-      { code: 'standard', priceCents: 790, free: false },
-      { code: 'express', priceCents: 1590, free: false },
+      { code: 'standard', priceCents: 299, free: false },
+      { code: 'express', priceCents: 499, free: false },
     ]);
   });
 
@@ -87,7 +88,7 @@ describe('GET /checkout/shipping-methods', () => {
   it('quotes base prices for an empty cart', async () => {
     await seedMethods();
     const res = await request(app).get('/api/v1/checkout/shipping-methods?country=DE');
-    expect(bodyOf<Quotes>(res).data.map((q) => q.priceCents)).toEqual([490, 990]);
+    expect(bodyOf<Quotes>(res).data.map((q) => q.priceCents)).toEqual([299, 499]);
   });
 
   it('rejects a missing, malformed or unsupported country', async () => {

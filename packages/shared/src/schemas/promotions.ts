@@ -12,6 +12,40 @@ const ProgressSchema = z.object({
   reached: z.boolean(),
 });
 
+// The whole bill of a basket, from the shared `basketTotals` (packages/shared/src/basket-rules.ts).
+// The cart, checkout and every order screen show these numbers; the browser adds up nothing.
+export const BillSchema = z.object({
+  subtotalCents: Cents,
+  discountCents: Cents,
+  merchandiseCents: Cents,
+  // Goods after discounts, before credits: what the minimum and free delivery look at.
+  goodsCents: Cents,
+  depositCents: Cents,
+  bags: z.boolean(),
+  bagCount: z.number().int().min(0),
+  bagFeeCents: Cents,
+  deliveryKind: z.enum(['slot', 'express']).nullable(),
+  deliveryFeeCents: Cents,
+  deliveryFeeBeforeFreeCents: Cents,
+  deliveryFree: z.boolean(),
+  // No delivery time chosen yet: the fee is the cheapest slot's.
+  deliveryEstimated: z.boolean(),
+  donationCents: Cents,
+  totalCents: Cents,
+  minimumOrder: z.object({ minCents: Cents, missingCents: Cents, met: z.boolean() }),
+  // Null for express (never free) and for an empty basket.
+  freeDelivery: z
+    .object({
+      thresholdCents: Cents,
+      missingCents: Cents,
+      reached: z.boolean(),
+      percent: z.number().int().min(0).max(100),
+    })
+    .nullable(),
+  canCheckout: z.boolean(),
+});
+export type Bill = z.infer<typeof BillSchema>;
+
 export const CartPricingSchema = z.object({
   // The code the shopper applied, as stored on the cart (it may currently not apply: see notices).
   code: z.string().nullable(),
@@ -38,9 +72,10 @@ export const CartPricingSchema = z.object({
   ),
   discountCents: Cents,
   merchandiseCents: Cents,
-  // An estimate with the standard method; checkout prices the method actually chosen.
+  // The delivery fee and total of the bill below (kept for the readers that only need these two).
   shippingEstimateCents: Cents,
   totalEstimateCents: Cents,
+  bill: BillSchema,
   gift: z
     .object({
       variantId: z.string(),

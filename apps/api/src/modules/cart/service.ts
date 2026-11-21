@@ -1,4 +1,5 @@
 import {
+  BASKET_RULES,
   ErrorCode,
   MAX_LINE_QUANTITY,
   shortDatedPrice,
@@ -14,8 +15,8 @@ import {
 
 import { db, type Tx } from '../../db/client.ts';
 import { AppError, conflict, notFound, unprocessable } from '../../lib/errors.ts';
-import { bundleComponentsOf, listActiveShippingMethods } from '../checkout/repo.ts';
-import { estimateRule, priceBeforeThreshold } from '../checkout/shipping.ts';
+import { bundleComponentsOf } from '../checkout/repo.ts';
+import { deliveryContext } from '../delivery/bill-context.ts';
 import { cartDelivery, clearDelivery, putExpress, putSlot } from '../delivery/holds.ts';
 import { currentDelivery, currentStore, currentStoreId } from '../i18n/context.ts';
 import * as promotions from '../promotions/service.ts';
@@ -209,6 +210,7 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
       available,
       maxQty,
       shortDated,
+      depositCents: line.depositCents,
       bestBefore: shortOffer?.bestBefore ?? null,
       // A "specific" choice whose product is gone reads as a best match (the FK set it to null).
       substitution:
@@ -231,6 +233,7 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
         // Trial sizes, kits and short-dated packs all price at their own fixed price: no sale or
         // member price, no code or order discount on top of an offer that is already 30 % off.
         isTrial: line.isTrial || line.isBundle || shortDated,
+        depositCents: line.depositCents,
       });
       weightGrams += line.weightGrams * quantity;
     }
@@ -238,17 +241,17 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
 
   await repo.deleteItems(tx, removeIds);
 
-  const rule = estimateRule(await listActiveShippingMethods(tx, currency));
+  // What the shopper chose for the delivery (a held slot or express) decides the fee; with nothing
+  // chosen yet the bill shows the cheapest slot as an estimate.
+  const delivery = cartRow ? await deliveryOf(tx, cartRow) : null;
+  const bags = cartRow?.bags ?? true;
   const { pricing } = await promotions.price(tx, {
     currency,
     lines: pricingLines,
     userId: cartRow?.userId ?? null,
     email: null,
     code: cartRow?.discountCode ?? null,
-    shipping: {
-      methodCents: rule ? priceBeforeThreshold(rule, weightGrams) : 0,
-      freeOverCents: rule?.freeOverCents ?? null,
-    },
+    basket: { bags, delivery: deliveryContext(delivery, currentDelivery().area?.slug) },
   });
 
   return {
@@ -259,7 +262,8 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
     weightGrams,
     warnings,
     pricing,
-    delivery: cartRow ? await deliveryOf(tx, cartRow) : null,
+    delivery,
+    bags,
   };
 }
 
@@ -274,6 +278,7 @@ export function emptyCart(): Cart {
     warnings: [],
     pricing: EMPTY_PRICING,
     delivery: null,
+    bags: true,
   };
 }
 
@@ -285,6 +290,30 @@ const EMPTY_PRICING: CartPricing = {
   merchandiseCents: 0,
   shippingEstimateCents: 0,
   totalEstimateCents: 0,
+  bill: {
+    subtotalCents: 0,
+    discountCents: 0,
+    merchandiseCents: 0,
+    goodsCents: 0,
+    depositCents: 0,
+    bags: true,
+    bagCount: 0,
+    bagFeeCents: 0,
+    deliveryKind: null,
+    deliveryFeeCents: 0,
+    deliveryFeeBeforeFreeCents: 0,
+    deliveryFree: false,
+    deliveryEstimated: true,
+    donationCents: 0,
+    totalCents: 0,
+    minimumOrder: {
+      minCents: BASKET_RULES.minOrderCents,
+      missingCents: BASKET_RULES.minOrderCents,
+      met: false,
+    },
+    freeDelivery: null,
+    canCheckout: false,
+  },
   gift: null,
   progress: { freeShipping: null, gift: null, nextTier: null },
   notices: [],
@@ -554,6 +583,10 @@ export async function setSlot(cartId: string, slotId: string): Promise<Cart> {
 
 export async function setExpress(cartId: string): Promise<Cart> {
   return mutate(cartId, (tx, cart) => putExpress(tx, cart, currentDelivery(), new Date()));
+}
+
+export async function setBags(cartId: string, bags: boolean): Promise<Cart> {
+  return mutate(cartId, (tx) => repo.setBags(tx, cartId, bags));
 }
 
 export async function clearSlot(cartId: string): Promise<Cart> {

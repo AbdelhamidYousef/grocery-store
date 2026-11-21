@@ -49,6 +49,8 @@ export const PricingTierSchema = z.object({
 export const PricingShippingSchema = z.object({
   methodCents: Cents,
   freeOverCents: Cents.optional(),
+  // Express: never free, not by the threshold (none is given) and not by a free-shipping code.
+  neverFree: z.boolean().default(false),
 });
 
 export const PricingGiftRuleSchema = z.object({
@@ -77,6 +79,9 @@ export const PriceCartInputSchema = z.object({
   shipping: PricingShippingSchema,
   credits: z.array(PricingCreditSchema).default([]),
   roundUpDonation: z.boolean().default(false),
+  // Charges that are not goods (bottle deposit, bags): added to the total and to what the donation
+  // rounds up and the minimum charge protects, never discounted, never counted by a threshold.
+  feesCents: Cents.default(0),
 });
 
 export type PriceCartInput = z.input<typeof PriceCartInputSchema>;
@@ -151,6 +156,11 @@ export interface PricedCart {
   discountCents: number;
   // subtotal - discount, shipping excluded
   merchandiseCents: number;
+  // The goods after discounts and BEFORE credits: what thresholds (free delivery, gift, a minimum
+  // order) look at, so paying with points never changes them.
+  goodsCents: number;
+  // The non-goods charges that were added (`feesCents` of the input).
+  feesCents: number;
   shippingCents: number;
   totalCents: number;
   // The round-up donation (phase 19): a separate order field, never part of a line, and included

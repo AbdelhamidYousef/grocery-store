@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { WebCart } from '../../api/cart';
 import { lookupFor, type TFunction } from '../../i18n';
 import * as tracking from '../../lib/track';
-import { makeCart, makeCartItem, makeCartPricing } from '../../test/fixtures';
+import { makeBill, makeCart, makeCartItem, makeCartPricing } from '../../test/fixtures';
 import { renderApp } from '../../test/render';
 import { API, server } from '../../test/server';
 
@@ -57,20 +57,29 @@ describe('progress bars', () => {
     );
   });
 
-  it('uses the engine free-delivery bar when the cart carries one', async () => {
+  it("shows the free-delivery bar from the server's bill", async () => {
     serveCart(
       cartWith({
-        progress: { freeShipping: progress(50, 2450, 4900), gift: null, nextTier: null },
+        bill: makeBill({
+          freeDelivery: { thresholdCents: 4900, missingCents: 2450, percent: 50, reached: false },
+        }),
       }),
     );
     renderApp('/cart');
     expect(await screen.findByTestId('cart-shipping-hint')).toHaveTextContent(
-      'Add €24.50 more for free standard shipping.',
+      'Add €24.50 more for free delivery.',
     );
-    expect(screen.getByRole('progressbar', { name: 'Progress to free shipping' })).toHaveAttribute(
+    expect(screen.getByRole('progressbar', { name: 'Progress to free delivery' })).toHaveAttribute(
       'aria-valuenow',
       '50',
     );
+  });
+
+  it('has no free-delivery bar for express (never free)', async () => {
+    serveCart(cartWith({ bill: makeBill({ deliveryKind: 'express', freeDelivery: null }) }));
+    renderApp('/cart');
+    await screen.findByTestId('cart-total-estimate');
+    expect(screen.queryByTestId('cart-shipping-hint')).not.toBeInTheDocument();
   });
 
   it('also shows the bars in the mini cart', async () => {
@@ -92,8 +101,14 @@ describe('summary', () => {
       { type: 'bulk_tier', refId: 't1', label: '5% bulk discount', cents: 55, scope: 'lines' },
     ],
     discountCents: 165,
-    shippingEstimateCents: 490,
+    shippingEstimateCents: 299,
     totalEstimateCents: 1424,
+    bill: makeBill({
+      deliveryFeeCents: 299,
+      deliveryFeeBeforeFreeCents: 299,
+      deliveryEstimated: true,
+      totalCents: 1424,
+    }),
     gift: {
       variantId: 'g1',
       productName: 'Peanut Crunch Biscuits',
@@ -112,12 +127,12 @@ describe('summary', () => {
     expect(rows[1]).toHaveTextContent('5% bulk discount');
   });
 
-  it('shows the delivery estimate, the estimated total and the tax note', async () => {
+  it('shows the delivery fee estimate, the estimated total and the tax note', async () => {
     serveCart(priced);
     renderApp('/cart');
     expect(await screen.findByTestId('cart-total-estimate')).toHaveTextContent('€14.24');
-    expect(screen.getByText(/Shipping \(estimate, standard delivery\)/)).toBeVisible();
-    expect(screen.getByText('€4.90')).toBeVisible();
+    expect(screen.getByText('Delivery (from)')).toBeVisible();
+    expect(screen.getByTestId('cart-delivery-fee')).toHaveTextContent('€2.99');
     expect(screen.getByText('Demo store: no tax is charged.')).toBeVisible();
     expect(screen.queryByText(/worked out at checkout/)).not.toBeInTheDocument();
   });

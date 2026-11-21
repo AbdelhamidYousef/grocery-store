@@ -41,12 +41,13 @@ async function checkout(shopper: Shopper, priceCents: number, roundUp: boolean) 
   return orderByNumber(bodyOf<{ data: { orderNumber: string } }>(res).data.orderNumber);
 }
 
-// 53.50 is over the 49 EUR free-delivery line, so the payable total is the merchandise alone.
+// 53.25 is over the 49 EUR free-delivery line, so the payable total is the goods plus the one 0.25 bag
+// (a whole 53.50 the donation then rounds up by 0.50). 52.75 + the bag is already a whole euro amount.
 describe('round-up at checkout', () => {
   it('adds the cents up to the next euro as a separate amount in the order total', async () => {
-    const order = await checkout(makeShopper(app), 5350, true);
+    const order = await checkout(makeShopper(app), 5325, true);
     expect(order).toMatchObject({
-      subtotalCents: 5350,
+      subtotalCents: 5325,
       shippingCents: 0,
       donationCents: 50,
       totalCents: 5400,
@@ -54,13 +55,13 @@ describe('round-up at checkout', () => {
   });
 
   it('adds nothing to a whole-euro total or when the shopper did not tick it', async () => {
-    expect((await checkout(makeShopper(app), 5300, true)).donationCents).toBe(0);
-    const off = await checkout(makeShopper(app), 5350, false);
+    expect((await checkout(makeShopper(app), 5275, true)).donationCents).toBe(0);
+    const off = await checkout(makeShopper(app), 5325, false);
     expect(off).toMatchObject({ donationCents: 0, totalCents: 5350 });
   });
 
   it('is counted when the order is paid, exactly once', async () => {
-    const order = await checkout(makeShopper(app), 5350, true);
+    const order = await checkout(makeShopper(app), 5325, true);
     expect(await total()).toMatchObject({ totalCents: 0 }); // pending: nothing yet
     await simulate(app, order.number).expect(200);
     await simulate(app, order.number); // redelivered
@@ -69,7 +70,7 @@ describe('round-up at checkout', () => {
   });
 
   it('is reversed when the paid order is refunded, and only once', async () => {
-    const order = await checkout(makeShopper(app), 5350, true);
+    const order = await checkout(makeShopper(app), 5325, true);
     await simulate(app, order.number).expect(200);
     await simulate(app, order.number, 'charge.refunded').expect(200);
     await simulate(app, order.number, 'charge.refunded');
@@ -97,7 +98,7 @@ describe('round-up and returns', () => {
     );
 
   it('stays donated when returns refund every item, since returns never hand it back', async () => {
-    const order = await checkout(makeShopper(app), 5350, true);
+    const order = await checkout(makeShopper(app), 5325, true);
     await simulate(app, order.number).expect(200);
     await refund(order.id, 'ret_1', false, 0);
     await refund(order.id, 'ret_2', true, 0); // the last return: the order is fully refunded
@@ -105,7 +106,7 @@ describe('round-up and returns', () => {
   });
 
   it('is reversed once by the refund that hands it back', async () => {
-    const order = await checkout(makeShopper(app), 5350, true);
+    const order = await checkout(makeShopper(app), 5325, true);
     await simulate(app, order.number).expect(200);
     await refund(order.id, 'ret_1', false, 0);
     await refund(order.id, null, true, 50);

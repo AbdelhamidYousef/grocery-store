@@ -277,6 +277,7 @@ describe('admin order detail: capture now', () => {
     weighedGrams: null,
     finalCents: null,
     shortDated: false,
+    depositCents: 0,
     pickStatus: 'pending' as const,
     pickedQty: null,
     substitutesItemId: null,

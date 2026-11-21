@@ -13,7 +13,13 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
-import { clearCartDelivery, setCartExpress, setCartSlot, type WebCart } from '../../api/cart';
+import {
+  clearCartDelivery,
+  setCartBags,
+  setCartExpress,
+  setCartSlot,
+  type WebCart,
+} from '../../api/cart';
 import { fetchSlots } from '../../api/delivery';
 import type { TFunction } from '../../i18n';
 import { keys } from '../../lib/query-client';
@@ -72,6 +78,7 @@ function useDeliveryMutation<Variables>(fn: (v: Variables) => Promise<WebCart>) 
 
 export const useSetSlot = () => useDeliveryMutation((slotId: string) => setCartSlot(slotId));
 export const useSetExpress = () => useDeliveryMutation(() => setCartExpress());
+export const useSetBags = () => useDeliveryMutation((bags: boolean) => setCartBags(bags));
 export const useClearDelivery = () => useDeliveryMutation(() => clearCartDelivery());
 
 // ---------- words ----------

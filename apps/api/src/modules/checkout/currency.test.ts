@@ -59,8 +59,8 @@ describe('cart and checkout in the store currency', () => {
     for (const store of ['de-en', 'de-de']) {
       const cart = cartOf(await makeShopper(app, undefined, store).addToCart(variants[0]!.id, 2));
       expect(cart).toMatchObject({ currency: 'EUR', subtotalCents: 3000 });
-      // EUR standard: 490 + 1 started kg x 100.
-      expect(cart.pricing.shippingEstimateCents).toBe(590);
+      // The basket rules: a slot 2.99 (the cheapest one, until a time is chosen).
+      expect(cart.pricing.shippingEstimateCents).toBe(299);
     }
   });
 
@@ -68,8 +68,9 @@ describe('cart and checkout in the store currency', () => {
     const { variants } = await createProduct({ variants: [{ priceCents: 1500, stock: 20 }] });
     const shopper = makeShopper(app, undefined, 'de-en');
     expect(cartOf(await shopper.addToCart(variants[0]!.id, 3)).pricing.shippingEstimateCents).toBe(
-      590,
+      299,
     );
+    // 4 x 15.00 = 60.00 of goods: past 49.00.
     expect(cartOf(await shopper.addToCart(variants[0]!.id, 1)).pricing.shippingEstimateCents).toBe(
       0,
     );
@@ -83,13 +84,14 @@ describe('cart and checkout in the store currency', () => {
       storeView: 'de-en',
       locale: 'en-IE',
       subtotalCents: 3000,
-      shippingCents: 590,
-      totalCents: 3590,
+      shippingCents: 299,
+      bagFeeCents: 25,
+      totalCents: 3324,
     });
     const [payment] = await db.select().from(payments).where(eq(payments.orderId, placed.id));
-    expect(payment).toMatchObject({ currency: 'EUR', amountCents: 3590 });
+    expect(payment).toMatchObject({ currency: 'EUR', amountCents: 3324 });
     const intent = await gateway.retrievePaymentIntent(payment!.providerPaymentIntentId!);
-    expect(intent).toMatchObject({ currency: 'eur', amountCents: 3590 });
+    expect(intent).toMatchObject({ currency: 'eur', amountCents: 3324 });
   });
 
   it('rejects a payment in another currency than the order', async () => {

@@ -82,6 +82,8 @@ export type VariantInput = {
   swatchHex?: string;
   /** Sold by weight: "about nominalGrams" at pricePerKgCents (priceCents should be the estimate). */
   weight?: { pricePerKgCents: number; nominalGrams: number };
+  /** Bottle deposit per unit, in cents. */
+  depositCents?: number;
 };
 
 export type ImageInput = { url?: string; alt?: string; variantIndex?: number; sortOrder?: number };
@@ -164,6 +166,7 @@ export async function createProduct(
         compareAtPriceCents: v.compareAtPriceCents ?? null,
         status: v.status ?? 'active',
         weightGrams: v.weightGrams ?? 200,
+        ...(v.depositCents !== undefined && { depositCents: v.depositCents }),
         isDefault: i === 0,
         ...(v.netAmount !== undefined && { netAmount: v.netAmount }),
         ...(v.netUnit && { netUnit: v.netUnit }),

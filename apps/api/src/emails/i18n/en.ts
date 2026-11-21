@@ -17,7 +17,10 @@ export const en = {
   // ----- order summary (confirmation, shipped) -----
   'order.qty': 'qty {quantity}',
   'order.subtotal': 'Subtotal',
-  'order.shipping': 'Shipping ({method})',
+  'order.shipping': 'Delivery',
+  'order.free': 'Free',
+  'order.deposit': 'Bottle deposit',
+  'order.bags': 'Bags',
   'order.discount': 'Discount',
   'order.donation': 'Donation to Spreeufer Food Bank (demo)',
   'order.total': 'Total',

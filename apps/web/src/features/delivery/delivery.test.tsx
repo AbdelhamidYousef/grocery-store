@@ -267,6 +267,22 @@ describe('the /delivery page', () => {
     expect(areas[0]).not.toHaveTextContent('Your postcode is here');
   });
 
+  it('states the basket rules with the numbers of the shared rules', async () => {
+    renderApp('/delivery');
+    const rules = within(await screen.findByTestId('basket-rules'));
+    expect(rules.getByText(/Minimum order: €15\.00 of goods/)).toBeVisible();
+    expect(
+      rules.getByText(/one-hour slot: €2\.99.*17:00 and 20:00 cost €1\.00 more/),
+    ).toBeVisible();
+    expect(rules.getByText(/Free delivery for a slot from €49\.00 of goods/)).toBeVisible();
+    expect(
+      rules.getByText(/Express, within 30 minutes: €4\.99\. Express is never free/),
+    ).toBeVisible();
+    expect(rules.getByText(/Neukölln pays €0\.50 more/)).toBeVisible();
+    expect(rules.getByText(/Paper bags: €0\.25 each, one for every 8 items/)).toBeVisible();
+    expect(rules.getByText(/Bottle deposit: €0\.25 or €0\.08 a bottle/)).toBeVisible();
+  });
+
   it('is linked from the footer', async () => {
     renderApp('/help');
     const footer = within(await screen.findByRole('contentinfo'));

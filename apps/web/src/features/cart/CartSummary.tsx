@@ -6,10 +6,9 @@ import { buttonClasses, Button } from '../../components/ui/Button';
 import { useT } from '../../i18n';
 import { useFormat } from '../../i18n/format';
 import { cn } from '../../lib/cn';
-import { freeShippingProgress } from '../../lib/shipping';
 import { TEST_IDS } from '../../lib/test-ids';
-import { useFreeShippingThreshold } from '../checkout/queries';
 import { NextDelivery } from '../delivery/NextDelivery';
+import { useSetBags } from '../delivery/slots';
 import { EarnPoints } from '../loyalty/EarnPoints';
 import { WeighedNotice } from '../weight/Weight';
 
@@ -37,13 +36,13 @@ export function CartSummary({
   const fmt = useFormat();
   const noteId = useId();
   const blocked = cart.items.some((item) => item.available === 0);
-  const threshold = useFreeShippingThreshold();
+  const setBags = useSetBags();
   const { pricing } = cart;
-  // The engine's bar counts the cart after discounts, like the real free-delivery rule. The
-  // shipping quotes are the fallback for a cart priced before the engine had a threshold.
-  const fromEngine = pricing.progress.freeShipping;
-  const shipping =
-    fromEngine ?? (threshold === null ? null : freeShippingProgress(cart.subtotalCents, threshold));
+  const bill = pricing.bill;
+  // The bar and every fee come from the server's bill (shared `basketTotals`): the goods after
+  // discounts count towards free delivery, the deposit does not, and express is never free.
+  const shipping = bill.freeDelivery;
+  const belowMinimum = cart.items.length > 0 && !bill.minimumOrder.met;
   const money = (cents: number) => fmt.money(cents, cart.currency);
 
   return (
@@ -72,30 +71,66 @@ export function CartSummary({
         </ul>
       )}
 
-      {shipping && (
+      {shipping && !belowMinimum && (
         <FreeShippingProgress
           percent={shipping.percent}
-          remainingCents={shipping.remainingCents}
+          remainingCents={shipping.missingCents}
           currency={cart.currency}
         />
       )}
       <GiftProgress pricing={pricing} currency={cart.currency} />
+      {belowMinimum && (
+        <p
+          role="status"
+          data-testid={TEST_IDS.cartMinimum}
+          className="rounded-control border-2 border-danger bg-danger-soft p-3 text-sm font-semibold text-danger"
+        >
+          {t('cart.summary.minimumNeeded', {
+            amount: money(bill.minimumOrder.missingCents),
+            minimum: money(bill.minimumOrder.minCents),
+          })}
+        </p>
+      )}
 
       {!compact && (
         <>
           <NextDelivery />
           <CartCode cart={cart} />
           <dl className="flex flex-col gap-1 border-t-2 border-line pt-3 text-sm">
-            <div className="flex justify-between gap-4">
-              <dt>{t('cart.summary.shippingEstimate')}</dt>
+            {bill.depositCents > 0 && (
+              <div className="flex justify-between gap-4" data-testid={TEST_IDS.cartDeposit}>
+                <dt>{t('cart.summary.deposit')}</dt>
+                <dd className="font-semibold">{money(bill.depositCents)}</dd>
+              </div>
+            )}
+            <div className="flex justify-between gap-4" data-testid={TEST_IDS.cartBags}>
+              <dt>
+                {bill.bags
+                  ? t('cart.summary.bags', { count: bill.bagCount })
+                  : t('cart.summary.noBags')}
+              </dt>
               <dd className="font-semibold">
-                {pricing.shippingEstimateCents === 0
+                {bill.bags ? money(bill.bagFeeCents) : t('cart.summary.free')}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-4" data-testid={TEST_IDS.cartDeliveryFee}>
+              <dt>
+                {bill.deliveryEstimated
+                  ? t('cart.summary.deliveryFrom')
+                  : t('cart.summary.delivery')}
+              </dt>
+              <dd className="font-semibold">
+                {bill.deliveryFeeCents === 0 && bill.deliveryFree
                   ? t('cart.summary.free')
-                  : money(pricing.shippingEstimateCents)}
+                  : money(bill.deliveryFeeCents)}
               </dd>
             </div>
             <div className="flex items-baseline justify-between gap-4">
-              <dt className="font-bold">{t('cart.summary.estimatedTotal')}</dt>
+              <dt className="font-bold">
+                {bill.deliveryEstimated
+                  ? t('cart.summary.estimatedTotal')
+                  : t('cart.summary.total')}
+              </dt>
               <dd
                 className="font-display text-xl font-bold"
                 data-testid={TEST_IDS.cartTotalEstimate}
@@ -104,6 +139,17 @@ export function CartSummary({
               </dd>
             </div>
           </dl>
+          <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm">
+            <input
+              type="checkbox"
+              checked={bill.bags}
+              disabled={setBags.isPending}
+              onChange={(e) => setBags.mutate(e.target.checked)}
+              data-testid={TEST_IDS.cartBagsToggle}
+              className="h-5 w-5 accent-primary"
+            />
+            <span>{t('cart.summary.bagsToggle')}</span>
+          </label>
           <WeighedNotice
             items={cart.items}
             totalCents={pricing.totalEstimateCents}
@@ -115,13 +161,18 @@ export function CartSummary({
         </>
       )}
 
-      {blocked ? (
+      {blocked || belowMinimum ? (
         <>
           <Button size="lg" disabled aria-describedby={noteId} data-testid={TEST_IDS.cartCheckout}>
             {t('cart.summary.checkout')}
           </Button>
           <p id={noteId} className="text-sm font-semibold text-danger">
-            {t('cart.summary.soldOutBlock')}
+            {blocked
+              ? t('cart.summary.soldOutBlock')
+              : t('cart.summary.minimumNeeded', {
+                  amount: money(bill.minimumOrder.missingCents),
+                  minimum: money(bill.minimumOrder.minCents),
+                })}
           </p>
         </>
       ) : (

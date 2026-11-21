@@ -59,7 +59,7 @@ const address = {
   country: 'DE',
 };
 
-// A pending order for 2 x 10.00 + 5.90 shipping = 2590, paid through the fake intent `pi_fake_1`.
+// A pending order for 2 x 10.00 + one bag 0.25 + a slot 2.99 = 2324, paid through the fake intent `pi_fake_1`.
 async function pendingOrder() {
   const { variants } = await createProduct({ variants: [{ priceCents: 1000, stock: 10 }] });
   const shopper = makeShopper(app);
@@ -77,8 +77,8 @@ let eventCounter = 0;
 const intentObject = (over: Record<string, unknown> = {}) => ({
   id: 'pi_fake_1',
   object: 'payment_intent',
-  amount: 2590,
-  amount_received: 2590,
+  amount: 2324,
+  amount_received: 2324,
   currency: 'eur',
   ...over,
 });
@@ -125,7 +125,7 @@ describe('POST /webhooks/stripe signature', () => {
   it('rejects a body changed after signing (the amount cannot be edited in transit)', async () => {
     await pendingOrder();
     const event = succeeded();
-    const forged = JSON.stringify(event).replace('2590', '1');
+    const forged = JSON.stringify(event).replace('2324', '1');
     const res = await deliver(event, { body: forged });
     expect(res.status).toBe(400);
     expect((await theOrder()).status).toBe('pending_payment');
@@ -209,7 +209,7 @@ describe('payment_intent.succeeded', () => {
     expect((await theOrder()).status).toBe('pending_payment');
     expect((await thePayment()).status).toBe('requires_payment');
     expect((await thePayment()).lastError).toMatch(
-      /Amount mismatch: received 1 eur, expected 2590 EUR/,
+      /Amount mismatch: received 1 eur, expected 2324 EUR/,
     );
     // Nothing shipped, nothing released: a human decides.
     expect(await stockOf(variantId)).toEqual({ quantity: 10, reserved: 2 });

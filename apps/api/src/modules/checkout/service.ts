@@ -1,6 +1,7 @@
 import {
   ErrorCode,
   authorisationCents,
+  isOuterArea,
   sumCents,
   type CheckoutRequest,
   type Order,
@@ -12,6 +13,7 @@ import type { Logger } from 'pino';
 
 import { db } from '../../db/client.ts';
 import {
+  belowMinimumOrder,
   conflict,
   notFound,
   paymentProvider,
@@ -23,8 +25,9 @@ import type { AuthUser } from '../auth/sessions.ts';
 import * as cartRepo from '../cart/repo.ts';
 import { getCart, loadCart } from '../cart/service.ts';
 import { listAreaNames, lookupPostcode } from '../delivery/areas.ts';
+import { takenDeliveryContext } from '../delivery/bill-context.ts';
 import { restoreHold, takeDelivery } from '../delivery/holds.ts';
-import { currentStore, runInStore } from '../i18n/context.ts';
+import { currentDelivery, currentStore, runInStore } from '../i18n/context.ts';
 import * as loyalty from '../loyalty/service.ts';
 import { toOrderDto, totalsOf } from '../orders/view.ts';
 import * as promotionsRepo from '../promotions/repo.ts';
@@ -34,7 +37,7 @@ import { assertTrialAllowed, customerKey } from '../trials/service.ts';
 
 import { cancelPendingOrder, releaseReservations } from './orders.ts';
 import * as repo from './repo.ts';
-import { priceBeforeThreshold, quote } from './shipping.ts';
+import { quote } from './shipping.ts';
 
 // Prices every active method for the caller's current cart. Weight and subtotal come from the
 // re-priced cart (never from the client), and sold-out lines are already excluded from both.
@@ -43,9 +46,9 @@ export async function getShippingQuotes(cartId: string, country: string): Promis
   const [cart, methods] = await Promise.all([getCart(cartId), repo.listActiveShippingMethods()]);
   return quote(methods, {
     country,
-    weightGrams: cart.weightGrams,
-    // The free-delivery threshold counts the merchandise after discounts, like the engine does.
-    subtotalCents: cart.pricing.merchandiseCents,
+    // The free-delivery threshold counts the goods after discounts, like the bill does.
+    goodsCents: cart.pricing.bill.goodsCents,
+    outerArea: isOuterArea(currentDelivery().area?.slug),
     currency: cart.currency,
   });
 }
@@ -186,7 +189,7 @@ async function reserveAndSave(
       cart.items,
     );
 
-    // The rate card of the cart's currency: a method with no rate in it is not offered here.
+    // A method is only a delivery kind now; what it costs is the basket rules' (shared `basketTotals`).
     const method = await repo.findActiveShippingMethod(input.shippingMethodCode, tx, cart.currency);
     if (!method) throw fieldError('shippingMethodCode', 'Unknown shipping method');
     // Express delivery is its own fee, so it cannot be paid for with the cheaper method. (The other
@@ -220,13 +223,16 @@ async function reserveAndSave(
           unitPriceCents: i.unitPriceCents,
           isTrial:
             cart.pricing.lines.find((l) => l.variantId === i.variantId)?.priceSource === 'fixed',
+          depositCents: i.depositCents,
         })),
       userId: user?.id ?? null,
       email,
       code: cartRow.discountCode,
-      shipping: {
-        methodCents: priceBeforeThreshold(method, cart.weightGrams),
-        freeOverCents: method.freeOverCents,
+      // The bill is recomputed here from the delivery this order really takes and the cart's bag
+      // choice; nothing the browser showed is trusted.
+      basket: {
+        bags: cartRow.bags,
+        delivery: takenDeliveryContext(delivery, currentDelivery().area?.slug),
       },
       lockCode: true,
       exceptOrderId: pending?.id,
@@ -252,14 +258,25 @@ async function reserveAndSave(
       );
       if (refusal) throw promotions.codeError(refusal);
     }
-    const { priced } = result;
-    const subtotalCents = priced.subtotalCents;
-    const discountCents = priced.discountCents;
-    const donationCents = priced.donationCents;
-    const shippingCents = priced.shippingCents;
+    const { priced, totals } = result;
+    // The minimum order is the server's rule, checked on the goods after discounts: the cart's
+    // button is a courtesy. Nothing has been reserved yet, and the throw rolls the transaction back.
+    if (!totals.minimumOrder.met) {
+      throw belowMinimumOrder(
+        totals.minimumOrder.missingCents,
+        totals.minimumOrder.minCents,
+        cart.currency,
+      );
+    }
+    const subtotalCents = totals.subtotalCents;
+    const discountCents = totals.discountCents;
+    const donationCents = totals.donationCents;
+    const shippingCents = totals.deliveryFeeCents;
     // Tax is out of scope for this project; the column stays so orders look like real ones.
     const taxCents = 0;
-    const totalCents = sumCents([priced.totalCents, taxCents]);
+    // Goods + deposit + bags + delivery + donation: the one total. The authorisation below holds
+    // exactly this plus the buffer on the weighed goods, so fees are never short on capture.
+    const totalCents = sumCents([totals.totalCents, taxCents]);
     // The card is AUTHORISED at checkout and captured after packing (manual capture): for the weighed
     // lines the estimate plus a 15 % buffer, for anything else exactly the total. A retried payment
     // whose first attempt was an automatic-capture intent (made before G6) stays automatic.
@@ -330,6 +347,9 @@ async function reserveAndSave(
       discountCents,
       donationCents,
       shippingCents,
+      deliveryFeeCents: totals.deliveryFeeBeforeFreeCents,
+      depositCents: totals.depositCents,
+      bagFeeCents: totals.bagFeeCents,
       taxCents,
       totalCents,
       shippingMethodCode: method.code,
@@ -368,6 +388,7 @@ async function reserveAndSave(
           unitPriceCents,
           quantity: i.quantity,
           shortDated: i.shortDated,
+          depositCents: i.depositCents,
           pricePerKgCents: i.weight?.pricePerKgCents ?? null,
           lineTotalCents: unitPriceCents * i.quantity,
           discountCents: line?.lineDiscountCents ?? 0,

@@ -37,6 +37,8 @@ export const orderItems = pgTable(
     // Sold as a short-dated offer: the packs come from short-dated batches, and until payment the
     // units count against the store's short-dated availability.
     shortDated: boolean('short_dated').notNull().default(false),
+    // Bottle deposit of ONE unit, as ordered (G9). Units not found at packing are not charged it.
+    depositCents: integer('deposit_cents').notNull().default(0),
     lineTotalCents: integer('line_total_cents').notNull(),
     // This line's share of the order-level discounts and credits (largest-remainder split by the
     // pricing engine). The single source for refund amounts (phase 22).

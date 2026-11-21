@@ -21,8 +21,9 @@ beforeEach(async () => {
 
 describe('admin stats', () => {
   it("counts today's placed orders and 30-day revenue, excluding cancelled and refunded ones", async () => {
-    const a = await placeOrder(app, { priceCents: 1000, quantity: 1 }); // 1000 + 590 shipping (490 + 100 per started kg)
-    const b = await placeOrder(app, { priceCents: 2000, quantity: 1 }); // 2000 + 590
+    // Goods + one bag (0.25) + a slot (2.99): 15.00 -> 1824, 20.00 -> 2324.
+    const a = await placeOrder(app, { priceCents: 1500, quantity: 1 });
+    const b = await placeOrder(app, { priceCents: 2000, quantity: 1 });
     const c = await placeOrder(app, { priceCents: 3000, quantity: 1 }); // refunded below
     const pendingOnly = await placeOrder(app); // never paid: not an order yet
     for (const o of [a, b, c]) await simulate(app, o.number);
@@ -35,7 +36,7 @@ describe('admin stats', () => {
     const res = await admin.shopper.call('get', '/admin/stats');
     const { data } = bodyOf<{ data: Record<string, unknown> }>(res);
     // Today's count includes the refunded one (it was placed today); revenue does not.
-    expect(data).toMatchObject({ ordersToday: 3, revenue30dCents: 1590 + 2590, currency: 'EUR' });
+    expect(data).toMatchObject({ ordersToday: 3, revenue30dCents: 1824 + 2324, currency: 'EUR' });
   });
 
   it('ignores orders placed before the windows', async () => {

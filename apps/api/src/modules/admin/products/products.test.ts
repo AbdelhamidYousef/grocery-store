@@ -504,6 +504,21 @@ describe('weighed variants', () => {
   });
 });
 
+describe('bottle deposit', () => {
+  it('sets a deposit per unit on create and edit, 0 by default', async () => {
+    const product = await created({
+      variants: [variant({ depositCents: 25 }), variant({ sku: 'B', options: { x: '1' } })],
+    });
+    expect(
+      product.variants.map((v) => (v as Variant & { depositCents: number }).depositCents),
+    ).toEqual([25, 0]);
+    const [first] = product.variants as [Variant, Variant];
+    const res = await patch(`/admin/variants/${first.id}`, { depositCents: 8 });
+    expect(data<{ depositCents: number }>(res).depositCents).toBe(8);
+    expect((await patch(`/admin/variants/${first.id}`, { depositCents: -1 })).status).toBe(400);
+  });
+});
+
 describe('PATCH /admin/inventory/:variantId', () => {
   it('sets an absolute quantity with a reason and records the delta and the admin', async () => {
     const product = await created();

@@ -10,13 +10,13 @@ const lines = (n: number) =>
 
 describe('<CheckoutSummary /> with many lines', () => {
   it('lists a few lines in the page itself', () => {
-    render(<CheckoutSummary cart={makeCart(lines(3))} quote={null} placed={null} />);
+    render(<CheckoutSummary cart={makeCart(lines(3))} placed={null} />);
     expect(screen.getAllByTestId('order-item')).toHaveLength(3);
     expect(screen.queryByTestId('checkout-summary-lines')).not.toBeInTheDocument();
   });
 
   it('puts 20 lines in a labelled, keyboard-focusable scroll box so the totals stay close', () => {
-    render(<CheckoutSummary cart={makeCart(lines(20))} quote={null} placed={null} />);
+    render(<CheckoutSummary cart={makeCart(lines(20))} placed={null} />);
     const box = screen.getByRole('region', { name: /Items in your order \(20\)/ });
     expect(box).toHaveAttribute('tabindex', '0');
     expect(box).toHaveClass('overflow-y-auto');

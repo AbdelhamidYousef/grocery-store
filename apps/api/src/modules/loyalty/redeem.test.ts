@@ -55,7 +55,7 @@ describe('redeeming points at checkout', () => {
     expect(res.status).toBe(200);
     const order = await orderByNumber(numberOf(res));
     expect(order).toMatchObject({ subtotalCents: 2000, discountCents: 500 });
-    expect(order.totalCents).toBe(1500 + order.shippingCents);
+    expect(order.totalCents).toBe(1500 + order.shippingCents + order.bagFeeCents);
     const [credit] = await db
       .select()
       .from(orderPromotions)
@@ -68,15 +68,16 @@ describe('redeeming points at checkout', () => {
   });
 
   it('caps the points at the merchandise left and never touches shipping', async () => {
-    const c = await customerCart(500, 1); // 5.00 merchandise
+    const c = await customerCart(1500, 1); // 15.00 merchandise, the minimum order
     await give(c.user.id, 5000);
     const res = await checkout(c.shopper, { pointsToRedeem: 5000 });
     const order = await orderByNumber(numberOf(res));
-    expect(order.discountCents).toBe(500);
+    expect(order.discountCents).toBe(1500);
     expect(order.shippingCents).toBeGreaterThan(0);
-    expect(order.totalCents).toBe(order.shippingCents);
+    // The goods are paid with points; delivery and the bag are not.
+    expect(order.totalCents).toBe(order.shippingCents + order.bagFeeCents);
     // only what was applied is spent
-    expect(await balanceOf(c.user.id)).toBe(4500);
+    expect(await balanceOf(c.user.id)).toBe(3500);
   });
 
   it('refuses more points than the balance, and a guest, without creating an order', async () => {
@@ -134,16 +135,17 @@ describe('redeeming points at checkout', () => {
 
 describe('the card minimum', () => {
   it('keeps at least 50 cents payable when the points would cover everything (free delivery)', async () => {
-    const c = await customerCart(3000, 2); // 60.00: free standard delivery
+    const c = await customerCart(3000, 2); // 60.00 of goods: free delivery, one bag of 0.25
     await give(c.user.id, 6000);
     const res = await checkout(c.shopper, { pointsToRedeem: 6000 });
     expect(res.status).toBe(200);
     const order = await orderByNumber(numberOf(res));
     expect(order.shippingCents).toBe(0);
     expect(order.totalCents).toBe(50);
-    expect(order.discountCents).toBe(5950);
+    // The points cover the goods up to what leaves 50 cents payable (the bag is 0.25 of them).
+    expect(order.discountCents).toBe(5975);
     // only what was applied is spent
-    expect(await balanceOf(c.user.id)).toBe(50);
+    expect(await balanceOf(c.user.id)).toBe(25);
   });
 });
 

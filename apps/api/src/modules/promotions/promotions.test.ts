@@ -67,16 +67,16 @@ async function placedOrder(email: string, userId: string | null = null) {
 }
 
 describe('priced cart', () => {
-  it('returns the engine output with a standard-delivery estimate', async () => {
+  it('returns the engine output with the cheapest slot as the delivery estimate', async () => {
     await createShippingMethods();
     const shop = makeShopper(app);
     await shop.addToCart(await variant(2000));
     const pricing = pricingOf(await shop.call('get', '/cart'));
     expect(pricing.discountCents).toBe(0);
     expect(pricing.merchandiseCents).toBe(2000);
-    // 4.90 base + 1 started kg at 1.00, under the 49.00 free threshold
-    expect(pricing.shippingEstimateCents).toBe(590);
-    expect(pricing.totalEstimateCents).toBe(2590);
+    // A slot 2.99 (no time chosen yet) and one bag 0.25, under the 49.00 free threshold
+    expect(pricing.shippingEstimateCents).toBe(299);
+    expect(pricing.totalEstimateCents).toBe(2324);
   });
 
   it('applies the best bulk tier without any code', async () => {

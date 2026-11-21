@@ -1,4 +1,4 @@
-import { ErrorCode, errorStatus } from '@store/shared';
+import { ErrorCode, errorStatus, formatMoney } from '@store/shared';
 
 // The one error type services throw. Nothing below the error middleware knows about HTTP bodies:
 // they pick a code, and the status comes from the shared code→status table so API and web agree.
@@ -79,3 +79,11 @@ export const slotError = (
   message: string,
   details?: unknown,
 ) => new AppError(code, message, details);
+
+// The goods are under the minimum order (G9): 422 with what is missing, so the cart can say "Add 3.20 more".
+export const belowMinimumOrder = (missingCents: number, minCents: number, currency = 'EUR') =>
+  new AppError(
+    ErrorCode.BELOW_MINIMUM_ORDER,
+    `Add ${formatMoney(missingCents, currency)} more: the minimum order is ${formatMoney(minCents, currency)}`,
+    { missingCents, minCents },
+  );

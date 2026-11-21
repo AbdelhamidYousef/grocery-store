@@ -66,12 +66,13 @@ describe('checkout through the promotions engine', () => {
     const res = await shop.call('post', '/checkout', body());
     expect(res.status).toBe(200);
     const order = await onlyOrder();
-    // 30.00 - 10% = 27.00; shipping 4.90 + 1 kg x 1.00 (27.00 is under the 49.00 threshold)
+    // 30.00 - 10% = 27.00; a bag 0.25 and a slot 2.99 (27.00 is under the 49.00 threshold)
     expect(order).toMatchObject({
       subtotalCents: 3000,
       discountCents: 300,
-      shippingCents: 590,
-      totalCents: 3290,
+      shippingCents: 299,
+      bagFeeCents: 25,
+      totalCents: 3024,
     });
     const lines = await db.select().from(orderItems).where(eq(orderItems.orderId, order.id));
     expect(lines.reduce((n, l) => n + l.discountCents, 0)).toBe(300);
@@ -81,7 +82,7 @@ describe('checkout through the promotions engine', () => {
       .where(eq(orderPromotions.orderId, order.id));
     expect(snapshot).toMatchObject([{ type: 'code', label: 'Code GROCERY10', cents: 300 }]);
     const created = stripe.calls.filter((c) => c.method === 'create').at(-1);
-    expect((created?.args[0] as { amountCents: number }).amountCents).toBe(3290);
+    expect((created?.args[0] as { amountCents: number }).amountCents).toBe(3024);
   });
 
   it('keeps old orders unchanged when the code is edited later', async () => {
@@ -109,7 +110,7 @@ describe('checkout through the promotions engine', () => {
     await shop.call('post', '/checkout', body());
     const order = await onlyOrder();
     expect(order.discountCents).toBe(500);
-    expect(order.shippingCents).toBe(590);
+    expect(order.shippingCents).toBe(299);
   });
 
   it('adds the free gift as a zero-priced line and reserves one unit of it', async () => {
@@ -127,8 +128,9 @@ describe('checkout through the promotions engine', () => {
     });
     const [stock] = await db.select().from(inventory).where(eq(inventory.variantId, gift));
     expect(stock?.reserved).toBe(1);
-    // 45.00 is under the 49.00 free-delivery threshold: 4.90 + 1 kg x 1.00
-    expect(order.totalCents).toBe(5090);
+    // 45.00 is under the 49.00 free-delivery threshold: + a bag 0.25 (the free gift is not a unit
+    // the shopper bought, so it fills no bag) + a slot 2.99
+    expect(order.totalCents).toBe(4824);
   });
 
   it('refuses a guest whose email already used a once-per-customer code', async () => {

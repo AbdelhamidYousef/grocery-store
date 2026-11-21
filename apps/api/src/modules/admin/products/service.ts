@@ -80,6 +80,7 @@ const toAdminVariant = (v: repo.VariantWithStock): AdminVariant => {
     soldByWeight: v.soldByWeight,
     pricePerKgCents: v.pricePerKgCents,
     nominalGrams: v.nominalGrams,
+    depositCents: v.depositCents,
     status: v.status,
     quantity,
     reserved,
@@ -254,6 +255,7 @@ async function createVariant(
     netUnit: input.netUnit ?? null,
     isTrial: input.isTrial ?? false,
     swatchHex: input.swatchHex ?? null,
+    depositCents: input.depositCents ?? 0,
   });
   // The first row of the variant's Omnibus price history (append-only).
   await insertPriceHistory(tx, [
@@ -547,6 +549,7 @@ export async function updateVariant(
         ...(fields.netUnit !== undefined && { netUnit: fields.netUnit }),
         ...(fields.isTrial !== undefined && { isTrial: fields.isTrial }),
         ...(fields.swatchHex !== undefined && { swatchHex: fields.swatchHex }),
+        ...(fields.depositCents !== undefined && { depositCents: fields.depositCents }),
       });
       if (lowStockThreshold !== undefined) {
         await repo.setLowStockThreshold(tx, variantId, lowStockThreshold);

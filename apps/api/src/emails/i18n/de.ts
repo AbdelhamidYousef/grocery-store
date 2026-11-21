@@ -13,7 +13,10 @@ export const de: Record<EmailKey, TextEntry> = {
 
   'order.qty': 'Menge {quantity}',
   'order.subtotal': 'Zwischensumme',
-  'order.shipping': 'Versand ({method})',
+  'order.shipping': 'Lieferung',
+  'order.free': 'Kostenlos',
+  'order.deposit': 'Pfand',
+  'order.bags': 'Tüten',
   'order.discount': 'Rabatt',
   'order.donation': 'Spende an Spreeufer Food Bank (Demo)',
   'order.total': 'Gesamtsumme',

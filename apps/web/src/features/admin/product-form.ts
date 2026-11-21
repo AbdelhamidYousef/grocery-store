@@ -115,6 +115,19 @@ const VariantTextSchema = z.object({
       return result ?? undefined;
     }),
   status: ProductStatusSchema,
+  // Bottle deposit of one unit in euros ("0.25"); empty = none.
+  deposit: z
+    .string()
+    .trim()
+    .default('')
+    .transform((value, ctx) => {
+      if (value === '') return 0;
+      const result = inputToCents(value);
+      if (result === null || result > 500) {
+        ctx.issues.push({ code: 'custom', message: 'Enter an amount like 0.25', input: value });
+      }
+      return result ?? 0;
+    }),
   // Sold by weight: a price per kilogram and the weight of one unit; the unit price follows.
   soldByWeight: z.boolean().default(false),
   pricePerKg: z.string().trim().default(''),
@@ -207,6 +220,7 @@ export const emptyVariantForm: VariantFormInput = {
   stock: '0',
   lowStockThreshold: '',
   status: 'active',
+  deposit: '',
   soldByWeight: false,
   pricePerKg: '',
   nominalGrams: '',
@@ -225,6 +239,7 @@ export function variantToForm(variant: AdminVariant): VariantFormInput {
     stock: String(variant.quantity),
     lowStockThreshold: String(variant.lowStockThreshold),
     status: variant.status,
+    deposit: variant.depositCents === 0 ? '' : centsToInput(variant.depositCents),
     soldByWeight: variant.soldByWeight,
     pricePerKg: variant.pricePerKgCents === null ? '' : centsToInput(variant.pricePerKgCents),
     nominalGrams: variant.nominalGrams === null ? '' : String(variant.nominalGrams),
@@ -253,6 +268,7 @@ export function variantToCreate(v: VariantFormOutput, isDefault: boolean): Admin
     status: v.status,
     stock: v.stock,
     ...weighedFields(v),
+    depositCents: v.deposit,
     ...(v.lowStockThreshold !== undefined && { lowStockThreshold: v.lowStockThreshold }),
   };
 }
@@ -272,6 +288,7 @@ export function variantToUpdate(v: VariantFormOutput): AdminVariantUpdate {
     // An update always says which kind the variant is, so switching a variant off clears the numbers.
     soldByWeight: v.soldByWeight,
     ...weighedFields(v),
+    depositCents: v.deposit,
     ...(v.lowStockThreshold !== undefined && { lowStockThreshold: v.lowStockThreshold }),
   };
 }

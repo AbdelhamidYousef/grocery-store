@@ -108,6 +108,7 @@ export function ProductForm({
       compareAtPrice: e?.compareAtPrice?.message,
       memberPrice: e?.memberPrice?.message,
       weight: e?.weight?.message,
+      deposit: e?.deposit?.message,
       stock: e?.stock?.message,
       lowStockThreshold: e?.lowStockThreshold?.message,
       status: e?.status?.message,

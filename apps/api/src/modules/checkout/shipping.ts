@@ -1,63 +1,44 @@
-import type { ShippingQuote } from '@store/shared';
+import { BASKET_RULES, deliveryFeeBeforeFreeCents, type ShippingQuote } from '@store/shared';
 
-// The shape of a `shipping_methods` row that pricing needs; kept separate from Drizzle's row type
-// so this file stays pure (no database import) and trivially unit-testable.
+// A shipping method is only a delivery KIND now (G9): `slot` or `express`, with a name and an ETA
+// for the page. What it costs comes from the basket rules (packages/shared/src/basket-rules.ts), the
+// same function the cart and the order use, so this list can never quote another price. The price
+// columns of `shipping_methods` stay in the table (old orders were priced with them) and are unused.
 export interface ShippingRule {
   code: string;
   name: string;
-  baseCents: number;
-  perKgCents: number;
-  freeOverCents: number | null;
   etaDaysMin: number;
   etaDaysMax: number;
 }
 
 export interface ShippingContext {
-  // Accepted so the signature will not change when zones arrive, but every supported country is
-  // one zone today, so it does not influence the price (the route still validates it).
+  // Accepted so the signature will not change when zones arrive (the route validates it).
   country: string;
-  /** Weight of the purchasable lines. */
-  weightGrams: number;
-  /** Subtotal of the purchasable lines, before shipping. */
-  subtotalCents: number;
+  /** Goods after discounts, before credits: what the free-delivery rule looks at. */
+  goodsCents: number;
+  /** The delivery address is in an outer area (surcharge). */
+  outerArea: boolean;
   currency?: string;
 }
 
-// price = base + (started kilograms) x per-kg, or 0 once the subtotal reaches the free threshold.
-// Carriers bill per started kilogram, hence ceil: 1 g and 1000 g cost the same, 1001 g costs more.
-export function shippingPriceCents(
-  rule: ShippingRule,
-  ctx: Pick<ShippingContext, 'weightGrams' | 'subtotalCents'>,
-): number {
-  if (rule.freeOverCents !== null && ctx.subtotalCents >= rule.freeOverCents) return 0;
-  return priceBeforeThreshold(rule, ctx.weightGrams);
-}
-
-// The price ignoring the free threshold: what the pricing engine is given, since it applies the
-// threshold itself, to the merchandise total after discounts.
-export function priceBeforeThreshold(rule: ShippingRule, weightGrams: number): number {
-  return rule.baseCents + Math.ceil(weightGrams / 1000) * rule.perKgCents;
-}
-
-// The method the cart estimates with: standard delivery, or the cheapest one if it is switched off.
-export function estimateRule<T extends ShippingRule>(rules: T[]): T | undefined {
-  return (
-    rules.find((r) => r.code === 'standard') ??
-    [...rules].sort((a, b) => a.baseCents - b.baseCents || a.code.localeCompare(b.code))[0]
-  );
-}
-
-// Cheapest first, ties broken by code so the order never flickers between requests.
+// The fee a quote shows: express has its own, every other method is a slot (peak is only known once
+// a slot is chosen, so the quote is the cheapest slot's). Free only for a slot, from the threshold.
 export function quote(rules: ShippingRule[], ctx: ShippingContext): ShippingQuote[] {
   return rules
     .map((rule) => {
-      const priceCents = shippingPriceCents(rule, ctx);
+      const express = rule.code === 'express';
+      const fee = deliveryFeeBeforeFreeCents({
+        kind: express ? 'express' : 'slot',
+        peak: false,
+        outerArea: ctx.outerArea,
+      });
+      const free = !express && ctx.goodsCents >= BASKET_RULES.freeDeliveryOverCents;
       return {
         code: rule.code,
         name: rule.name,
-        priceCents,
-        free: priceCents === 0,
-        freeOverCents: rule.freeOverCents,
+        priceCents: free ? 0 : fee,
+        free,
+        freeOverCents: express ? null : BASKET_RULES.freeDeliveryOverCents,
         currency: ctx.currency ?? 'EUR',
         etaDaysMin: rule.etaDaysMin,
         etaDaysMax: rule.etaDaysMax,

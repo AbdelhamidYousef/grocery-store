@@ -82,7 +82,12 @@ export type VariantSeed = {
   soldByWeight: boolean;
   pricePerKgCents: number | null;
   nominalGrams: number | null;
+  // Bottle deposit per unit in cents (G9): 0.25 EUR for the returnable PET bottles of the catalogue.
+  depositCents: number;
 };
+
+/** The deposit of a returnable PET bottle (the 0.08 EUR crate bottle is set by hand in the admin). */
+export const PET_DEPOSIT_CENTS = 25;
 
 // ---- Expansion ----
 
@@ -131,6 +136,7 @@ export function expandVariants(product: ProductSeed): VariantSeed[] {
       soldByWeight: weighed !== null,
       pricePerKgCents: weighed?.pricePerKgCents ?? null,
       nominalGrams: weighed?.nominalGrams ?? null,
+      depositCents: product.deposit && trialValue === undefined ? PET_DEPOSIT_CENTS : 0,
     };
   });
 }

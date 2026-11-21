@@ -54,7 +54,7 @@ describe('GET /me/buy-again', () => {
 
   it("lists distinct variants from paid orders, newest first, with today's price", async () => {
     const c = await signedIn(app);
-    const a = await variantOf(20, 1000, 'Alpha');
+    const a = await variantOf(20, 1500, 'Alpha');
     const b = await variantOf(20, 2000, 'Beta');
     await order(c, [{ id: a.id, qty: 1 }]);
     await order(c, [{ id: b.id, qty: 1 }]);

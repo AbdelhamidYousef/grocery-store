@@ -17,4 +17,5 @@ export * from './rider.ts';
 export * from './slots.ts';
 export * from './expiry.ts';
 export * from './weight.ts';
+export * from './basket-rules.ts';
 export * from './substitutions.ts';

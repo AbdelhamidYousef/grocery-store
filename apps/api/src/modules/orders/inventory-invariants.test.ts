@@ -138,7 +138,9 @@ async function run(seed: number, steps: number) {
         shippingAddress: TEST_ADDRESS,
         shippingMethodCode: 'standard',
       });
-      expect([200, 409, 400], `checkout answered ${res.status}`).toContain(res.status);
+      // 422 is the minimum order (G9): a random basket of a unit or two can be under 15.00 when an
+      // add was refused for stock, which is a business refusal like the others.
+      expect([200, 409, 400, 422], `checkout answered ${res.status}`).toContain(res.status);
       if (res.status === 200) {
         entry.number = bodyOf<{ data: { orderNumber: string } }>(res).data.orderNumber;
       }

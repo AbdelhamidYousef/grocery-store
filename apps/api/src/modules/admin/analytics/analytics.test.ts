@@ -50,7 +50,7 @@ async function sale(
   const placed = await placeOrder(app, {
     ...(opts.variantId && { variantId: opts.variantId }),
     quantity: opts.quantity ?? 1,
-    priceCents: opts.priceCents ?? 1000,
+    priceCents: opts.priceCents ?? 1500,
     stock: 50,
   });
   await simulate(app, placed.number);
@@ -203,7 +203,7 @@ describe('GET /admin/analytics', () => {
   it('ranks products by units and by revenue, taking refunded returns back off', async () => {
     const cheap = await createProduct({
       name: 'Cheap Chew',
-      variants: [{ priceCents: 100, stock: 50 }],
+      variants: [{ priceCents: 200, stock: 50 }],
     });
     const dear = await createProduct({
       name: 'Dear Bed',
@@ -221,7 +221,7 @@ describe('GET /admin/analytics', () => {
     ]);
     expect(a.topByRevenue.map((p) => [p.name, p.revenueCents])).toEqual([
       ['Dear Bed', 10000],
-      ['Cheap Chew', 900],
+      ['Cheap Chew', 1800],
     ]);
 
     // One bed comes back and is refunded.
@@ -375,7 +375,7 @@ describe('GET /admin/analytics/export.csv', () => {
   it('defuses formulas in customer-controlled text (a product named like a formula)', async () => {
     const evil = await createProduct({
       name: '=HYPERLINK("http://evil.test","click")',
-      variants: [{ priceCents: 100, stock: 50 }],
+      variants: [{ priceCents: 1500, stock: 50 }],
     });
     await sale('2026-11-03T10:00:00Z', { variantId: evil.variants[0]!.id });
     const rows = lines((await csv('report=products&from=2026-11-03&to=2026-11-03')).text);

@@ -16,6 +16,7 @@ export const ErrorCode = {
   SLOT_HOLD_EXPIRED: 'SLOT_HOLD_EXPIRED',
   EXPRESS_UNAVAILABLE: 'EXPRESS_UNAVAILABLE',
   DELIVERY_REQUIRED: 'DELIVERY_REQUIRED',
+  BELOW_MINIMUM_ORDER: 'BELOW_MINIMUM_ORDER',
   RATE_LIMITED: 'RATE_LIMITED',
   PAYMENT_PROVIDER_ERROR: 'PAYMENT_PROVIDER_ERROR',
   INTERNAL: 'INTERNAL',
@@ -43,6 +44,8 @@ export const errorStatus: Record<ErrorCode, number> = {
   SLOT_HOLD_EXPIRED: 409,
   EXPRESS_UNAVAILABLE: 409,
   DELIVERY_REQUIRED: 422,
+  // The goods are under the minimum order: well-formed, the rule refuses it; `details.missingCents`.
+  BELOW_MINIMUM_ORDER: 422,
   RATE_LIMITED: 429,
   // The payment provider (Stripe) failed or is not configured; nothing is charged. Retryable.
   PAYMENT_PROVIDER_ERROR: 502,
