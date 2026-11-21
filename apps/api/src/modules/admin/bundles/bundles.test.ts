@@ -249,6 +249,7 @@ describe('kits in the cart and checkout', () => {
     const kit = data<Bundle>(res);
     const shopper = makeShopper(app);
     await shopper.addToCart(kit.variantId, 3);
+    await shopper.pickSlot();
     await db
       .update(inventory)
       .set({ quantity: 4 })

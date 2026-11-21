@@ -1,38 +1,42 @@
-import type {
-  DeliveryArea,
-  PostcodeLookup,
-  Navigation,
-  Address,
-  AdminCollection,
-  AdminOrderDetail,
-  AdminOrderRow,
-  AdminProduct,
-  AdminProductRow,
-  AdminStats,
-  AdminVariant,
-  Brand,
-  CategoryNode,
-  Collection,
-  AdminReturnDetail,
-  CustomerOrder,
-  CustomerReturn,
-  OrderReturns,
-  Facets,
-  GuideCard,
-  GuideDetail,
-  HeroSlide,
-  HomeResponse,
-  Order,
-  OrderSummary,
-  PointsSummary,
-  ProductCard,
-  ProductDetail,
-  ProductListResponse,
-  Review,
-  ReviewListResponse,
-  ShippingQuote,
-  User,
-  Variant,
+import {
+  dateKeyIn,
+  type DeliveryArea,
+  type DeliverySlot,
+  type SlotDay,
+  type SlotsResponse,
+  type PostcodeLookup,
+  type Navigation,
+  type Address,
+  type AdminCollection,
+  type AdminOrderDetail,
+  type AdminOrderRow,
+  type AdminProduct,
+  type AdminProductRow,
+  type AdminStats,
+  type AdminVariant,
+  type Brand,
+  type CategoryNode,
+  type Collection,
+  type AdminReturnDetail,
+  type CustomerOrder,
+  type CustomerReturn,
+  type OrderReturns,
+  type Facets,
+  type GuideCard,
+  type GuideDetail,
+  type HeroSlide,
+  type HomeResponse,
+  type Order,
+  type OrderSummary,
+  type PointsSummary,
+  type ProductCard,
+  type ProductDetail,
+  type ProductListResponse,
+  type Review,
+  type ReviewListResponse,
+  type ShippingQuote,
+  type User,
+  type Variant,
 } from '@store/shared';
 
 import type { WebCart, WebCartItem } from '../api/cart';
@@ -280,6 +284,7 @@ export function makeCart(items: WebCartItem[] = [], warnings: WebCart['warnings'
     weightGrams: 0,
     warnings,
     pricing: makeCartPricing(),
+    delivery: null,
   };
 }
 
@@ -353,6 +358,7 @@ export function makeOrder(overrides: Partial<Order> = {}): Order {
         lineTotalCents: 2198,
       },
     ],
+    delivery: null,
     placedAt: '2026-10-31T10:00:00.000Z',
     createdAt: '2026-10-31T09:59:00.000Z',
     ...overrides,
@@ -569,6 +575,7 @@ export function makeAdminOrderDetail(
           lineTotalCents: 1600,
         },
       ],
+      delivery: null,
       placedAt: '2026-10-30T09:15:00.000Z',
       createdAt: '2026-10-30T09:10:00.000Z',
     },
@@ -885,4 +892,69 @@ export function makeDeliveryAreas(): DeliveryArea[] {
       postcodes: ['12043', '12045'],
     },
   ];
+}
+
+// ---------- delivery slots (G5) ----------
+
+const SLOT_MIN = 60_000;
+
+/**
+ * `GET /delivery/slots` for tests: today's slots relative to the real clock (one closed, one full, two
+ * open) grouped by the shop's day, plus one slot tomorrow, like the API does. `express` is the
+ * answer for the express card.
+ */
+export function makeSlotsData(
+  overrides: Partial<SlotsResponse['data']> = {},
+  now = new Date(),
+): SlotsResponse['data'] {
+  const slot = (
+    id: string,
+    inMinutes: number,
+    status: DeliverySlot['status'],
+    remaining: number,
+  ): DeliverySlot => {
+    const startsAt = new Date(now.getTime() + inMinutes * SLOT_MIN);
+    return {
+      id,
+      startsAt: startsAt.toISOString(),
+      endsAt: new Date(startsAt.getTime() + 60 * SLOT_MIN).toISOString(),
+      remaining,
+      status,
+    };
+  };
+  const all = [
+    slot('11111111-1111-4111-8111-111111111111', 20, 'closed', 5),
+    slot('22222222-2222-4222-8222-222222222222', 180, 'full', 0),
+    slot('33333333-3333-4333-8333-333333333333', 300, 'open', 5),
+    slot('44444444-4444-4444-8444-444444444444', 420, 'open', 2),
+    slot('55555555-5555-4555-8555-555555555555', 24 * 60 + 180, 'open', 8),
+  ];
+  const days: SlotDay[] = [];
+  for (const s of all) {
+    const date = dateKeyIn(new Date(s.startsAt));
+    const last = days[days.length - 1];
+    if (last?.date === date) last.slots.push(s);
+    else days.push({ date, slots: [s] });
+  }
+  return {
+    serverNow: now.toISOString(),
+    days,
+    express: { available: false, reason: 'closed' },
+    ...overrides,
+  };
+}
+
+/** A cart delivery holding the given slot of `makeSlotsData` for 15 minutes. */
+export function makeHeldDelivery(
+  slotId = '33333333-3333-4333-8333-333333333333',
+  now = new Date(),
+): NonNullable<WebCart['delivery']> {
+  const slot = makeSlotsData({}, now)
+    .days.flatMap((d) => d.slots)
+    .find((s) => s.id === slotId)!;
+  return {
+    kind: 'slot',
+    slot: { id: slot.id, startsAt: slot.startsAt, endsAt: slot.endsAt },
+    holdExpiresAt: new Date(now.getTime() + 15 * SLOT_MIN).toISOString(),
+  };
 }

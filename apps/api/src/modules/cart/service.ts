@@ -14,7 +14,8 @@ import { db, type Tx } from '../../db/client.ts';
 import { AppError, conflict, notFound } from '../../lib/errors.ts';
 import { bundleComponentsOf, listActiveShippingMethods } from '../checkout/repo.ts';
 import { estimateRule, priceBeforeThreshold } from '../checkout/shipping.ts';
-import { currentStore } from '../i18n/context.ts';
+import { cartDelivery, clearDelivery, putExpress, putSlot } from '../delivery/holds.ts';
+import { currentDelivery, currentStore } from '../i18n/context.ts';
 import * as promotions from '../promotions/service.ts';
 import { customerKey, isRedeemed, trialLimit } from '../trials/service.ts';
 
@@ -228,6 +229,7 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
     weightGrams,
     warnings,
     pricing,
+    delivery: cartRow ? await deliveryOf(tx, cartRow) : null,
   };
 }
 
@@ -241,6 +243,7 @@ export function emptyCart(): Cart {
     weightGrams: 0,
     warnings: [],
     pricing: EMPTY_PRICING,
+    delivery: null,
   };
 }
 
@@ -427,7 +430,33 @@ export async function removeCode(cartId: string): Promise<Cart> {
 }
 
 export async function clear(cartId: string): Promise<Cart> {
-  return mutate(cartId, (tx) => repo.deleteAllItems(tx, cartId));
+  return mutate(cartId, async (tx, cart) => {
+    await repo.deleteAllItems(tx, cartId);
+    // An empty cart holds no place: free the slot at once instead of waiting for it to expire.
+    await clearDelivery(tx, cart);
+  });
+}
+
+// ---------- delivery: slot hold or express (rules in delivery/holds.ts) ----------
+
+// The delivery the cart response shows, read with the cart row locked by the surrounding call.
+function deliveryOf(tx: Tx, cartRow: repo.CartRow) {
+  return cartDelivery(tx, cartRow, new Date());
+}
+
+// The slot must belong to the store of the shopper's postcode (the `X-Postcode` header).
+export async function setSlot(cartId: string, slotId: string): Promise<Cart> {
+  return mutate(cartId, (tx, cart) =>
+    putSlot(tx, cart, slotId, currentDelivery().storeId, new Date()),
+  );
+}
+
+export async function setExpress(cartId: string): Promise<Cart> {
+  return mutate(cartId, (tx, cart) => putExpress(tx, cart, currentDelivery(), new Date()));
+}
+
+export async function clearSlot(cartId: string): Promise<Cart> {
+  return mutate(cartId, (tx, cart) => clearDelivery(tx, cart));
 }
 
 // ---------- merge on login ----------

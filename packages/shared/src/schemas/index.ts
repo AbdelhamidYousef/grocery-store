@@ -20,6 +20,7 @@ export * from './help.ts';
 export * from './home.ts';
 export * from './safety.ts';
 export * from './shipping.ts';
+export * from './slots.ts';
 export * from './tracking.ts';
 export * from './withdrawals.ts';
 export * from './search.ts';

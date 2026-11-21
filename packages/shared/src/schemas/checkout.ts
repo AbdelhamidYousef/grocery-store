@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { DataSchema, optionalText, requiredText } from './common.ts';
 import { CountrySchema } from './shipping.ts';
+import { OrderDeliverySchema } from './slots.ts';
 
 // ---------- statuses ----------
 
@@ -127,6 +128,8 @@ export const OrderSchema = z.object({
   billingAddress: OrderAddressSchema.nullable(),
   notes: z.string().nullable(),
   items: z.array(OrderItemSchema),
+  // The promised delivery window; null for orders placed before slots existed.
+  delivery: OrderDeliverySchema.nullable(),
   placedAt: z.string().nullable(),
   createdAt: z.string(),
 });

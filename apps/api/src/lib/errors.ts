@@ -66,3 +66,16 @@ export const postcodeNotServed = (postcode: string, areas: string[]) =>
     `We don't deliver to ${postcode} yet. We cover ${areas.join(', ')}.`,
     { field: 'shippingAddress.postalCode', postcode, areas },
   );
+
+// Delivery slots (G5.2). One helper for the six codes, the status comes from the shared table.
+export const slotError = (
+  code:
+    | typeof ErrorCode.SLOT_FULL
+    | typeof ErrorCode.SLOT_CLOSED
+    | typeof ErrorCode.SLOT_WRONG_AREA
+    | typeof ErrorCode.SLOT_HOLD_EXPIRED
+    | typeof ErrorCode.EXPRESS_UNAVAILABLE
+    | typeof ErrorCode.DELIVERY_REQUIRED,
+  message: string,
+  details?: unknown,
+) => new AppError(code, message, details);

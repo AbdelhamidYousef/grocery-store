@@ -32,6 +32,12 @@ describe('runKeyFor', () => {
     expect(runKeyFor('hourly', d)).toBe('2026-11-08T14');
     expect(runKeyFor('daily', d)).toBe('2026-11-08');
   });
+
+  it('is the 5-minute bucket for the five-minutes cadence', () => {
+    expect(runKeyFor('five-minutes', new Date('2026-11-08T14:04:59Z'))).toBe('2026-11-08T14:00');
+    expect(runKeyFor('five-minutes', new Date('2026-11-08T14:05:00Z'))).toBe('2026-11-08T14:05');
+    expect(runKeyFor('five-minutes', new Date('2026-11-08T14:59:59Z'))).toBe('2026-11-08T14:55');
+  });
 });
 
 describe('runJob', () => {

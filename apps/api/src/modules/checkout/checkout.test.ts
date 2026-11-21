@@ -241,6 +241,7 @@ describe('POST /checkout', () => {
       const { variants } = await createProduct({ variants: [{ stock: 10 }] });
       const shopper = makeShopper(app);
       await shopper.addToCart(variants[0]!.id, 5);
+      await shopper.pickSlot();
       await db
         .update(inventory)
         .set({ quantity: 2 })
@@ -254,6 +255,7 @@ describe('POST /checkout', () => {
       const { variants } = await createProduct({ variants: [{ priceCents: 1000 }] });
       const shopper = makeShopper(app);
       await shopper.addToCart(variants[0]!.id, 1);
+      await shopper.pickSlot();
       await db
         .update(productVariants)
         .set({ priceCents: 1200 })

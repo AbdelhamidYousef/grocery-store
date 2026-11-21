@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import {
+  boolean,
   char,
   index,
   pgEnum,
@@ -33,6 +34,9 @@ export const carts = pgTable(
     // store; they are what the cart was last shown in, never an input to a price.
     storeView: text('store_view').notNull().default('de-en'),
     currency: char('currency', { length: 3 }).notNull().default('EUR'),
+    // The shopper chose express delivery (within 30 minutes). Mutually exclusive with a slot hold;
+    // availability is checked when it is chosen and again, under a lock on the store, at checkout.
+    express: boolean('express').notNull().default(false),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

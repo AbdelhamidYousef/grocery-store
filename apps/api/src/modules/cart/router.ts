@@ -4,6 +4,7 @@ import {
   BulkAddCartItemsSchema,
   CartItemParamsSchema,
   CartResponseSchema,
+  PutCartSlotSchema,
   UpdateCartItemSchema,
 } from '@store/shared';
 import { Router as ExpressRouter, type Router } from 'express';
@@ -65,6 +66,21 @@ cartRouter.post('/cart/code', validate(applyCode), async (req, res) => {
 
 cartRouter.delete('/cart/code', async (req, res) => {
   respond(res, CartResponseSchema, { data: await service.removeCode(cartIdOf(req)) });
+});
+
+// Delivery time (phase G5): hold a slot for 15 minutes, choose express, or let go of either.
+const putSlot = { body: PutCartSlotSchema };
+cartRouter.put('/cart/slot', validate(putSlot), async (req, res) => {
+  const { body } = valid(req, putSlot);
+  respond(res, CartResponseSchema, { data: await service.setSlot(cartIdOf(req), body.slotId) });
+});
+
+cartRouter.delete('/cart/slot', async (req, res) => {
+  respond(res, CartResponseSchema, { data: await service.clearSlot(cartIdOf(req)) });
+});
+
+cartRouter.put('/cart/express', async (req, res) => {
+  respond(res, CartResponseSchema, { data: await service.setExpress(cartIdOf(req)) });
 });
 
 cartRouter.delete('/cart', async (req, res) => {

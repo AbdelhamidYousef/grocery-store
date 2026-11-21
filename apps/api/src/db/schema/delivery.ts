@@ -3,6 +3,7 @@ import {
   boolean,
   char,
   check,
+  index,
   integer,
   pgTable,
   text,
@@ -12,6 +13,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 
+import { carts } from './carts.ts';
 import { createdAt, id, updatedAt } from './columns.ts';
 
 // A delivery area is a district we ship to; a dark store is the small warehouse (no walk-in
@@ -71,6 +73,27 @@ export const deliverySlots = pgTable(
     check('delivery_slots_capacity_check', sql`${t.capacity} > 0`),
     check('delivery_slots_window_check', sql`${t.endsAt} > ${t.startsAt}`),
   ],
+);
+
+// A shopper's claim on one place of a slot while they check out. It belongs to the cart (one hold
+// per cart) and stops counting by itself at `expires_at`: nothing has to run for that. The
+// `release-slot-holds` job only deletes old rows. When the order is placed the hold is deleted and
+// the order carries the slot.
+export const slotHolds = pgTable(
+  'slot_holds',
+  {
+    id: id(),
+    slotId: uuid('slot_id')
+      .notNull()
+      .references(() => deliverySlots.id, { onDelete: 'cascade' }),
+    cartId: uuid('cart_id')
+      .notNull()
+      .unique()
+      .references(() => carts.id, { onDelete: 'cascade' }),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index('slot_holds_slot_expires_idx').on(t.slotId, t.expiresAt)],
 );
 
 // A lookup table, not a rule ("10xxx is Mitte"): real areas are not ranges. Seeded, never edited

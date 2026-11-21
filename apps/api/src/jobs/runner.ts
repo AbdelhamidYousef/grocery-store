@@ -9,6 +9,7 @@ import { db } from '../db/client.ts';
 import { jobRuns } from '../db/schema/index.ts';
 import type { PaymentGateway } from '../lib/stripe.ts';
 import { sweepOrphanUploads } from '../lib/upload-refs.ts';
+import { releaseOldHolds } from '../modules/delivery/holds.ts';
 import { generateSlots } from '../modules/delivery/slot-generation.ts';
 import type { Outbox } from '../modules/mail/outbox.ts';
 import { syncFlashSales } from '../modules/promotions/service.ts';
@@ -29,7 +30,7 @@ import { runExclusiveSweep } from './release-stale-reservations.ts';
 // Who calls `runJob` / `runDueJobs` is a separate, interchangeable question (see cli.ts, the
 // in-process ticker in index.ts, and POST /internal/jobs/run): any of them, or all at once, is safe.
 
-export type JobCadence = 'hourly' | 'daily';
+export type JobCadence = 'five-minutes' | 'hourly' | 'daily';
 
 export interface JobContext {
   now: Date;
@@ -58,6 +59,11 @@ export function registerJob(job: Job): void {
 
 export function runKeyFor(every: JobCadence, now: Date): string {
   const iso = now.toISOString(); // always UTC
+  if (every === 'five-minutes') {
+    // 2026-11-08T14:05 for any time from 14:05:00 to 14:09:59.
+    const bucket = String(Math.floor(now.getUTCMinutes() / 5) * 5).padStart(2, '0');
+    return `${iso.slice(0, 14)}${bucket}`;
+  }
   return every === 'hourly' ? iso.slice(0, 13) : iso.slice(0, 10);
 }
 
@@ -186,6 +192,14 @@ registerJob({
   name: 'generate-slots',
   every: 'daily',
   run: (ctx) => generateSlots(db, ctx.now),
+});
+
+// Housekeeping only: a hold stops counting at its own `expires_at`, so a late or missed run never
+// keeps a place taken. It just deletes holds that expired more than an hour ago.
+registerJob({
+  name: 'release-slot-holds',
+  every: 'five-minutes',
+  run: (ctx) => releaseOldHolds(db, ctx.now),
 });
 
 // Review photos nobody references any more (phase 17): removed after 24 h. Relative

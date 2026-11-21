@@ -22,6 +22,7 @@ import type { AuthUser } from '../auth/sessions.ts';
 import * as cartRepo from '../cart/repo.ts';
 import { getCart, loadCart } from '../cart/service.ts';
 import { listAreaNames, lookupPostcode } from '../delivery/areas.ts';
+import { restoreHold, takeDelivery } from '../delivery/holds.ts';
 import { currentStore, runInStore } from '../i18n/context.ts';
 import * as loyalty from '../loyalty/service.ts';
 import { toOrderDto, totalsOf } from '../orders/view.ts';
@@ -112,6 +113,7 @@ export async function placeOrder(
   cartId: string,
   input: CheckoutRequest,
   user: AuthUser | null,
+  now: Date = new Date(),
 ): Promise<PlacedOrder> {
   // The store comes from the delivery ADDRESS (where the bag actually goes), never from the browsing
   // header: an unserved postcode is refused before anything is reserved.
@@ -127,7 +129,7 @@ export async function placeOrder(
       area: { slug: area.areaSlug, name: area.areaName },
       storeId: area.storeId,
     },
-    () => reserveAndSave(cartId, input, user, area.storeId),
+    () => reserveAndSave(cartId, input, user, area.storeId, now),
   );
   const clientSecret = await attachPaymentIntent(gateway, log, order, payment);
   return { orderNumber: order.number, clientSecret, totals: totalsOf(order) };
@@ -138,6 +140,7 @@ async function reserveAndSave(
   input: CheckoutRequest,
   user: AuthUser | null,
   storeId: string,
+  now: Date,
 ): Promise<{ order: repo.OrderRow; payment: repo.PaymentRow }> {
   return db.transaction(async (tx) => {
     const cartRow = await cartRepo.lockCart(tx, cartId);
@@ -147,6 +150,11 @@ async function reserveAndSave(
 
     const lines = await cartRepo.listItems(tx, cartId);
     if (lines.length === 0) throw fieldError('cart', 'Your cart is empty');
+
+    // The delivery time comes first: a slot needs a live hold on a slot of THIS address's store (the
+    // hold is turned into the order's slot here, in the same transaction as the stock reservation
+    // below), express is re-checked under a lock on the store. Lock order: cart, store/slot, stock.
+    const delivery = await takeDelivery(tx, { cart: cartRow, storeId, pending, now });
 
     // The free gift's stock row joins the same ordered lock set, so gift and lines are locked in
     // one variant-id order (no deadlock with another checkout holding the gift in its cart).
@@ -196,6 +204,11 @@ async function reserveAndSave(
     // The rate card of the cart's currency: a method with no rate in it is not offered here.
     const method = await repo.findActiveShippingMethod(input.shippingMethodCode, tx, cart.currency);
     if (!method) throw fieldError('shippingMethodCode', 'Unknown shipping method');
+    // Express delivery is its own fee, so it cannot be paid for with the cheaper method. (The other
+    // way round is harmless: a slot paid at the express fee only costs the shopper more.)
+    if (delivery.deliveryKind === 'express' && method.code !== 'express') {
+      throw fieldError('shippingMethodCode', 'Express delivery needs the express method');
+    }
 
     // The engine decides every amount, now with the chosen method and the customer's email (a
     // guest's per-customer and first-order history is only known from here on). The code row is
@@ -314,6 +327,7 @@ async function reserveAndSave(
       notes: input.notes ?? null,
       cartId,
       darkStoreId: storeId,
+      ...delivery,
     };
     const order = pending
       ? await repo.updateOrder(tx, pending.id, values)
@@ -491,6 +505,9 @@ async function attachPaymentIntent(
             note: 'Payment provider unavailable while placing the order',
           }),
         );
+        // The place the order held is free again: hand the shopper their slot back, so pressing pay
+        // again works without choosing a time twice.
+        await db.transaction((tx) => restoreHold(tx, order, new Date()));
       } catch (cleanupError) {
         // The sweeper (8.7) will find this order and release it; the original error is the one
         // the shopper needs to hear about.

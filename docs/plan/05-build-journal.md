@@ -345,3 +345,27 @@ opens at those hours. The 5-minute job cadence the next step needs is not in the
 daily only); it arrives with G5.2.
 Learn: build time from wall-clock parts in the zone and convert once at the end; adding 3,600,000 ms to
 "08:00" works until the one day a year it does not.
+
+### G5.2: holds, capacity and express (API)
+Migration 0050 adds `slot_holds` (one per cart, unique `cart_id`), `carts.express`, the order columns
+`delivery_kind`, `slot_id`, `delivery_from`, `delivery_to`, and the shipping methods (`slot` 2.99 € free
+over 49 €, `express` 4.99 € never free; `standard` kept but switched off). New code in
+`modules/delivery/holds.ts`; its header comment is the design. `GET /delivery/slots` (live, `no-store`,
+per `X-Postcode`), `PUT/DELETE /cart/slot`, `PUT /cart/express`; the cart answer carries `delivery` and
+the order answer carries the window. Booking locks the slot row `FOR UPDATE`, counts live holds of other
+carts plus orders not cancelled or refunded, and upserts the hold; express locks the store row and counts
+express orders of the last 30 minutes against `express_riders`. Checkout takes the delivery first
+(`takeDelivery`): a live hold on a slot of the ADDRESS's store becomes the order's slot and the hold is
+deleted in the same transaction as the stock reservation; no hold is `DELIVERY_REQUIRED`, an expired one
+`SLOT_HOLD_EXPIRED`, another area `SLOT_WRONG_AREA`. The job `release-slot-holds` (new `five-minutes`
+cadence in the runner) only deletes holds expired over an hour ago. The tests include six carts racing
+for one place (exactly one wins), and I checked by hand that they fail when the `FOR UPDATE` is removed.
+Existing checkout tests use a test helper: `makeShopper` picks the first open slot through the real
+`PUT /cart/slot` before a `POST /checkout`.
+Surprises: (1) a retried payment has no hold any more (the first attempt used it), so the pending order
+itself carries the slot for the retry; (2) when Stripe fails right after the order was placed, the order is
+cancelled and its place is free, so the hold is restored (otherwise "press pay again" would ask for a time
+a second time); (3) the helper's cart read repaired carts and hid two tests' warnings, so those tests pick
+the slot before changing stock or prices.
+Learn: when a count decides who gets the last place, the lock must be on a row both writers share (the
+slot), taken before the count; a unique key alone only tells the loser after the fact.

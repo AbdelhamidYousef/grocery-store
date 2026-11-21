@@ -40,6 +40,14 @@ export function toOrderDto(
       quantity: i.quantity,
       lineTotalCents: i.lineTotalCents,
     })),
+    delivery:
+      order.deliveryKind && order.deliveryFrom && order.deliveryTo
+        ? {
+            kind: order.deliveryKind,
+            from: order.deliveryFrom.toISOString(),
+            to: order.deliveryTo.toISOString(),
+          }
+        : null,
     placedAt: order.placedAt?.toISOString() ?? null,
     createdAt: order.createdAt.toISOString(),
   };

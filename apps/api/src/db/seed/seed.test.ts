@@ -44,7 +44,8 @@ describe('seed', () => {
       collections: 5,
       // 3 demo logins, the 14 invented reviewers (phase 17) and the returns demo customer (phase 22).
       users: 18,
-      shipping: 2,
+      // Slot and express delivery, plus the old parcel method kept (switched off) for old orders.
+      shipping: 3,
     });
   });
 

@@ -50,6 +50,7 @@ const order = {
     },
   ],
   placedAt: null,
+  delivery: null,
   createdAt: '2026-10-31T10:00:00.000Z',
 };
 

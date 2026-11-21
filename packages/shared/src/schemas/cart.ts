@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { IdParamsSchema } from './account.ts';
 import { DataSchema } from './common.ts';
 import { CartPricingSchema } from './promotions.ts';
+import { CartDeliverySchema } from './slots.ts';
 
 // Most of one line a shopper may hold; mirrors the cart_items check constraint.
 export const MAX_LINE_QUANTITY = 99;
@@ -84,6 +85,8 @@ export const CartSchema = z.object({
   warnings: z.array(CartWarningSchema),
   // Promotions applied by the pricing engine (phase 18).
   pricing: CartPricingSchema,
+  // The delivery slot (or express) chosen for this cart, null until the shopper picks one.
+  delivery: CartDeliverySchema.nullable(),
 });
 export type Cart = z.infer<typeof CartSchema>;
 

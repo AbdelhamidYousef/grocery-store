@@ -138,6 +138,9 @@ describe('labels', () => {
     const s = slot('2026-11-23T13:00:00Z');
     expect(formatSlotLabel(s.startsAt, s.endsAt, now, 'en-IE')).toBe('Today 14:00–15:00');
     expect(formatSlotLabel(s.startsAt, s.endsAt, now, 'de-DE')).toBe('Heute 14:00–15:00');
+    expect(formatSlotLabel(s.startsAt, s.endsAt, now, 'en-IE', undefined, 'sentence')).toBe(
+      'today 14:00–15:00',
+    );
     const t = slot('2026-11-24T08:00:00Z');
     expect(formatSlotLabel(t.startsAt, t.endsAt, now, 'en-IE')).toBe('Tomorrow 09:00–10:00');
     expect(formatSlotLabel(t.startsAt, t.endsAt, now, 'de-DE')).toBe('Morgen 09:00–10:00');

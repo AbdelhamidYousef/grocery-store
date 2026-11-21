@@ -15,6 +15,7 @@ import { createCheckoutRouter } from './checkout/router.ts';
 import { createTestRouter } from './checkout/test-router.ts';
 import { createContactRouter } from './contact/router.ts';
 import { deliveryRouter } from './delivery/router.ts';
+import { slotsRouter } from './delivery/slots-router.ts';
 import { guidesRouter } from './guides/router.ts';
 import { helpRouter } from './help/router.ts';
 import { homeRouter } from './home/router.ts';
@@ -81,6 +82,8 @@ export function createModulesRouter(opts: {
   // Public and identical for everyone, so it sits before the session middleware like the catalog.
   router.use(createSearchRouter(opts));
   router.use(navigationRouter);
+  // Before `deliveryRouter`, whose paths are cached: the slot list is live and per postcode.
+  router.use(slotsRouter);
   router.use(deliveryRouter);
   // Secret-header authenticated, no session: scheduled work trigger (see jobs/router.ts).
   router.use(

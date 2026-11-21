@@ -15,7 +15,7 @@ import {
 
 import { carts } from './carts.ts';
 import { citext, createdAt, id, updatedAt } from './columns.ts';
-import { darkStores } from './delivery.ts';
+import { darkStores, deliverySlots } from './delivery.ts';
 import { users } from './users.ts';
 
 export const orderStatus = pgEnum('order_status', [
@@ -92,17 +92,31 @@ export const orders = pgTable(
     // from before G4 (they were all packed from the one warehouse).
     darkStoreId: uuid('dark_store_id').references(() => darkStores.id, { onDelete: 'restrict' }),
     cartId: uuid('cart_id').references(() => carts.id, { onDelete: 'set null' }),
+    // How the bag was promised (null for orders from before G5): a one-hour slot or express. The
+    // slot id links to the capacity count; the window is a snapshot, so a deleted slot never loses
+    // what the shopper was told.
+    deliveryKind: text('delivery_kind', { enum: ['slot', 'express'] }),
+    slotId: uuid('slot_id').references(() => deliverySlots.id, { onDelete: 'set null' }),
+    deliveryFrom: timestamp('delivery_from', { withTimezone: true }),
+    deliveryTo: timestamp('delivery_to', { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
   (t) => [
     index('orders_user_id_idx').on(t.userId),
     index('orders_cart_id_idx').on(t.cartId),
+    // The capacity count: orders per slot, and express orders per store over the last minutes.
+    index('orders_slot_id_idx').on(t.slotId),
+    index('orders_store_kind_created_idx').on(t.darkStoreId, t.deliveryKind, t.createdAt),
     // Last line of defence: whatever the pricing code does, an order whose parts do not add up
     // can never be stored.
     check(
       'orders_total_check',
       sql`${t.totalCents} = ${t.subtotalCents} + ${t.shippingCents} + ${t.taxCents} + ${t.donationCents} - ${t.discountCents}`,
+    ),
+    check(
+      'orders_delivery_kind_check',
+      sql`${t.deliveryKind} is null or ${t.deliveryKind} in ('slot', 'express')`,
     ),
     check(
       'orders_refunded_check',

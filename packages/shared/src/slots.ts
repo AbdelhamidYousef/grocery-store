@@ -159,15 +159,19 @@ export function isStoreOpen(
 
 // ---------- labels ----------
 
-/** "14:00–15:00", 24-hour clock in the shop's zone, the same in every language. */
-export function formatSlotRange(startsAt: Date, endsAt: Date, zone: string = SHOP_ZONE): string {
-  const clock = new Intl.DateTimeFormat('en-GB', {
+/** "14:30": one time on the 24-hour clock in the shop's zone. */
+export function formatClock(at: Date, zone: string = SHOP_ZONE): string {
+  return new Intl.DateTimeFormat('en-GB', {
     timeZone: zone,
     hour: '2-digit',
     minute: '2-digit',
     hourCycle: 'h23',
-  });
-  return `${clock.format(startsAt)}–${clock.format(endsAt)}`;
+  }).format(at);
+}
+
+/** "14:00–15:00", 24-hour clock in the shop's zone, the same in every language. */
+export function formatSlotRange(startsAt: Date, endsAt: Date, zone: string = SHOP_ZONE): string {
+  return `${formatClock(startsAt, zone)}–${formatClock(endsAt, zone)}`;
 }
 
 export type SlotDayKind = 'today' | 'tomorrow' | 'later';
@@ -194,7 +198,8 @@ export function formatSlotDate(startsAt: Date, locale: string, zone: string = SH
 const capitalise = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
 /**
- * "Today 14:00–15:00", "Tomorrow 09:00–10:00", "Mon 22 Nov 09:00–10:00". Today and tomorrow come
+ * "Today 14:00–15:00", "Tomorrow 09:00–10:00", "Mon 22 Nov 09:00–10:00" (`style: 'sentence'` keeps today and
+ * tomorrow lower case, for use inside a sentence). Today and tomorrow come
  * from Intl, so the German label says "Heute" and "Morgen" without a dictionary.
  */
 export function formatSlotLabel(
@@ -203,10 +208,13 @@ export function formatSlotLabel(
   now: Date,
   locale: string,
   zone: string = SHOP_ZONE,
+  style: 'label' | 'sentence' = 'label',
 ): string {
   const kind = slotDayKind(startsAt, now, zone);
   const range = formatSlotRange(startsAt, endsAt, zone);
   if (kind === 'later') return `${formatSlotDate(startsAt, locale, zone)} ${range}`;
   const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
-  return `${capitalise(rtf.format(kind === 'today' ? 0 : 1, 'day'))} ${range}`;
+  const day = rtf.format(kind === 'today' ? 0 : 1, 'day');
+  // "label" starts a line ("Today 14:00"), "sentence" sits inside one ("Next delivery: today 14:00").
+  return `${style === 'label' ? capitalise(day) : day} ${range}`;
 }
