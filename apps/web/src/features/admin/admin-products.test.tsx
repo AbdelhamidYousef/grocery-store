@@ -413,6 +413,39 @@ describe('admin product edit', () => {
     expect(body).not.toHaveProperty('quantity');
   });
 
+  it('edits a weighed variant: price per kilo and grams, the unit price is derived', async () => {
+    let body: Record<string, unknown> = {};
+    const weighed = makeAdminVariant({
+      id: 'v2',
+      sku: 'LOOSE-BAN',
+      soldByWeight: true,
+      pricePerKgCents: 189,
+      nominalGrams: 500,
+      priceCents: 95,
+    });
+    server.use(
+      http.get(`${API}/admin/products/p1`, () =>
+        HttpResponse.json({ data: makeAdminProduct({ variants: [makeAdminVariant(), weighed] }) }),
+      ),
+      http.patch(`${API}/admin/variants/v2`, async ({ request }) => {
+        body = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json({ data: weighed });
+      }),
+    );
+    renderApp('/admin/products/p1');
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit LOOSE-BAN' }));
+    const form = within(await screen.findByTestId('admin-variant-form'));
+    expect(form.queryByLabelText('Price')).not.toBeInTheDocument();
+    expect(form.getByLabelText('Price per kilogram')).toHaveValue('1.89');
+    await userEvent.clear(form.getByLabelText('Price per kilogram'));
+    await userEvent.type(form.getByLabelText('Price per kilogram'), '4');
+    await userEvent.clear(form.getByLabelText('Weight of one unit (grams)'));
+    await userEvent.type(form.getByLabelText('Weight of one unit (grams)'), '250');
+    await userEvent.click(form.getByRole('button', { name: 'Save variant' }));
+    await waitFor(() => expect(body.pricePerKgCents).toBe(400));
+    expect(body).toMatchObject({ soldByWeight: true, nominalGrams: 250, priceCents: 100 });
+  });
+
   it('adds a variant with opening stock', async () => {
     let body: unknown;
     server.use(

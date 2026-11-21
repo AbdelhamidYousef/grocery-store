@@ -1,6 +1,9 @@
+import { eq } from 'drizzle-orm';
 import { pino } from 'pino';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { db } from '../../../db/client.ts';
+import { payments } from '../../../db/schema/index.ts';
 import { MemoryTransport } from '../../../lib/mailer.ts';
 import { makeTestApp } from '../../../test/app.ts';
 import { createShippingMethods, createUser } from '../../../test/factories.ts';
@@ -130,8 +133,27 @@ describe('POST /admin/orders/:number/transition', () => {
     expect(data.allowedNext).toEqual(['shipped', 'cancelled']);
   });
 
-  it('sends the shipped email when an order is marked shipped', async () => {
+  it('refuses "shipped" for an authorised (manual capture) order and points to the packer view', async () => {
+    const { number } = await placeOrder(app);
+    await simulate(app, number);
+    await move(number, { to: 'processing' });
+    const res = await move(number, { to: 'shipped' });
+    expect(res.status).toBe(409);
+    expect(errorOf(res)).toMatchObject({
+      code: 'CONFLICT',
+      details: { to: 'shipped', via: 'picking' },
+    });
+    expect(errorOf(res).message).toContain('packer view');
+    expect((await orderByNumber(number)).status).toBe('processing');
+    expect(fake.captured).toEqual([]);
+  });
+
+  it('sends the shipped email when an old automatic-capture order is marked shipped', async () => {
     const { number } = await placeOrder(app, { email: 'ada@grocery.test' });
+    await db
+      .update(payments)
+      .set({ captureMethod: 'automatic' })
+      .where(eq(payments.orderId, (await orderByNumber(number)).id));
     await simulate(app, number);
     await move(number, { to: 'processing' });
     await move(number, { to: 'shipped' });

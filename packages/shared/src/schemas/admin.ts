@@ -116,7 +116,30 @@ const VariantFields = {
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/, 'A colour like #A1B2C3')
     .nullish(),
+  // Sold by weight: a price per kilogram and the weight of one "unit" in the cart. The unit price
+  // is DERIVED from them by the server (`estimateCents`), whatever `priceCents` says.
+  soldByWeight: z.boolean().optional(),
+  pricePerKgCents: z.number().int().min(1).max(MAX_PRICE_CENTS).nullish(),
+  nominalGrams: z.number().int().min(1).max(100_000).nullish(),
 };
+
+// A weighed variant needs both numbers; a plain one must have neither. On a PATCH that does not
+// mention `soldByWeight`, the two numbers alone are allowed (they re-price an already weighed one).
+const WEIGHED_MESSAGE = 'A weighed item needs a price per kilogram and a nominal weight';
+const PLAIN_MESSAGE = 'Price per kilogram and nominal weight belong to weighed items only';
+const weighedPair = (v: {
+  soldByWeight?: boolean | undefined;
+  pricePerKgCents?: number | null | undefined;
+  nominalGrams?: number | null | undefined;
+}) => v.soldByWeight !== true || (v.pricePerKgCents != null && v.nominalGrams != null);
+const plainHasNone = (v: {
+  soldByWeight?: boolean | undefined;
+  pricePerKgCents?: number | null | undefined;
+  nominalGrams?: number | null | undefined;
+}) =>
+  v.soldByWeight === undefined ||
+  v.soldByWeight ||
+  (v.pricePerKgCents == null && v.nominalGrams == null);
 
 const netPair = (v: {
   netAmount?: number | null | undefined;
@@ -146,7 +169,12 @@ export const AdminVariantInputSchema = z
   })
   .refine(compareAtAbovePrice, { message: COMPARE_AT_MESSAGE, path: ['compareAtPriceCents'] })
   .refine(memberBelowPrice, { message: MEMBER_MESSAGE, path: ['memberPriceCents'] })
-  .refine(netPair, { message: NET_PAIR_MESSAGE, path: ['netAmount'] });
+  .refine(netPair, { message: NET_PAIR_MESSAGE, path: ['netAmount'] })
+  .refine(weighedPair, { message: WEIGHED_MESSAGE, path: ['pricePerKgCents'] })
+  .refine((v) => v.soldByWeight === true || (v.pricePerKgCents == null && v.nominalGrams == null), {
+    message: PLAIN_MESSAGE,
+    path: ['pricePerKgCents'],
+  });
 export type AdminVariantInput = z.input<typeof AdminVariantInputSchema>;
 
 export const AdminVariantUpdateSchema = z
@@ -160,7 +188,9 @@ export const AdminVariantUpdateSchema = z
   .refine(memberBelowPrice, { message: MEMBER_MESSAGE, path: ['memberPriceCents'] })
   // On a PATCH, "set neither" means "leave both alone"; setting one alone would pair it with the
   // old other half, so it is refused.
-  .refine(netPair, { message: NET_PAIR_MESSAGE, path: ['netAmount'] });
+  .refine(netPair, { message: NET_PAIR_MESSAGE, path: ['netAmount'] })
+  .refine(weighedPair, { message: WEIGHED_MESSAGE, path: ['pricePerKgCents'] })
+  .refine(plainHasNone, { message: PLAIN_MESSAGE, path: ['pricePerKgCents'] });
 export type AdminVariantUpdate = z.input<typeof AdminVariantUpdateSchema>;
 
 // One row of the stock editor: a variant's shelf in one dark store.
@@ -191,6 +221,9 @@ export const AdminVariantSchema = z.object({
   netUnit: NetUnitSchema.nullable(),
   isTrial: z.boolean(),
   swatchHex: z.string().nullable(),
+  soldByWeight: z.boolean(),
+  pricePerKgCents: z.number().int().nullable(),
+  nominalGrams: z.number().int().nullable(),
   status: ProductStatusSchema,
   // Totals over every dark store; the per-store numbers are in `stores`.
   quantity: z.number().int(),

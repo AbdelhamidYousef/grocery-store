@@ -1,8 +1,14 @@
-import type { AdminCustomerRow, AdminOrderDetail, AdminOrderRow, OrderStatus } from '@store/shared';
+import {
+  ErrorCode,
+  type AdminCustomerRow,
+  type AdminOrderDetail,
+  type AdminOrderRow,
+  type OrderStatus,
+} from '@store/shared';
 import type { Logger } from 'pino';
 
 import { db } from '../../../db/client.ts';
-import { notFound } from '../../../lib/errors.ts';
+import { conflict, notFound } from '../../../lib/errors.ts';
 import type { PaymentGateway } from '../../../lib/stripe.ts';
 import { finalizeOrder, type Weighing } from '../../checkout/capture.ts';
 import * as checkoutRepo from '../../checkout/repo.ts';
@@ -102,6 +108,19 @@ export async function transition(
   actor: string,
   note: string | undefined,
 ): Promise<AdminOrderDetail> {
+  // A card that is only authorised is charged at dispatch, from the packed grams. "Mark shipped"
+  // would skip the packing and the capture, so it stays only for orders charged in full at checkout.
+  if (to === 'shipped') {
+    const order = await checkoutRepo.findOrderByNumber(number);
+    const payment = order ? await checkoutRepo.findPaymentByOrder(db, order.id) : null;
+    if (payment?.captureMethod === 'manual') {
+      throw conflict(
+        ErrorCode.CONFLICT,
+        'Pack the bag and hand it to the rider in the packer view: that charges the card and ships the order',
+        { from: order?.status, to, via: 'picking' },
+      );
+    }
+  }
   await transitionOrder(deps, number, to, { actor, note: note ?? null });
   return getOrderDetail(number);
 }

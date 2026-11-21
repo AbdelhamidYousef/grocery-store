@@ -102,6 +102,9 @@ export function ProductForm({
       name: e?.name?.message,
       options: e?.options?.message,
       price: e?.price?.message,
+      pricePerKg: e?.pricePerKg?.message,
+      nominalGrams: e?.nominalGrams?.message,
+      soldByWeight: undefined,
       compareAtPrice: e?.compareAtPrice?.message,
       memberPrice: e?.memberPrice?.message,
       weight: e?.weight?.message,
@@ -275,6 +278,7 @@ export function ProductForm({
             >
               <VariantFields
                 showStock
+                weighed={variantSkus[index]?.soldByWeight === true}
                 errors={variantErrors(index)}
                 field={(name): UseFormRegisterReturn => register(`variants.${index}.${name}`)}
               />

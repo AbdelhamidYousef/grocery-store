@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { AdminVariant } from '@store/shared';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 
 import { Button } from '../../components/ui/Button';
 import { Dialog } from '../../components/ui/Dialog';
@@ -39,11 +39,14 @@ function VariantForm({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<VariantFormInput, unknown, VariantFormOutput>({
     resolver: zodResolver(VariantFormSchema),
     defaultValues: variant ? variantToForm(variant) : emptyVariantForm,
   });
+
+  const weighed = useWatch({ control, name: 'soldByWeight' }) === true;
 
   const submit = handleSubmit((values) => {
     setFormError(null);
@@ -77,11 +80,14 @@ function VariantForm({
       <FormAlert message={formError} />
       <VariantFields
         showStock={!variant}
+        weighed={weighed}
         errors={{
           sku: errors.sku?.message,
           name: errors.name?.message,
           options: errors.options?.message,
           price: errors.price?.message,
+          pricePerKg: errors.pricePerKg?.message,
+          nominalGrams: errors.nominalGrams?.message,
           compareAtPrice: errors.compareAtPrice?.message,
           memberPrice: errors.memberPrice?.message,
           weight: errors.weight?.message,

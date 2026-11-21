@@ -12,6 +12,7 @@ import {
   type AdminVariant,
   type AdminVariantInput,
   type AdminVariantUpdate,
+  estimateCents,
 } from '@store/shared';
 import { z } from 'zod';
 
@@ -21,16 +22,6 @@ import { centsToInput, inputToCents, inputToInt } from './money-input';
 // API wants. Each field reuses the shared schema's own rule (max length, ranges, SKU pattern) by
 // piping into it, so the form and the server cannot drift apart: the client shows the server's
 // message before the request, and the server stays the one that has the last word.
-
-const cents = (message: string) =>
-  z
-    .string()
-    .trim()
-    .transform((value, ctx) => {
-      const result = inputToCents(value);
-      if (result === null) ctx.issues.push({ code: 'custom', message, input: value });
-      return result ?? 0;
-    });
 
 const wholeNumber = (message: string) =>
   z
@@ -80,59 +71,128 @@ const options = z
 
 const variantShape = AdminVariantInputSchema.shape;
 
-export const VariantFormSchema = z
-  .object({
-    sku: z.string().pipe(variantShape.sku),
-    name: z.string().pipe(variantShape.name),
-    options,
-    price: cents('Enter an amount like 12.99').pipe(variantShape.priceCents),
-    compareAtPrice: z
-      .string()
-      .trim()
-      .transform((value, ctx) => {
-        if (value === '') return null;
-        const result = inputToCents(value);
-        if (result === null) {
-          ctx.issues.push({ code: 'custom', message: 'Enter an amount like 19.99', input: value });
-        }
-        return result;
-      }),
-    // Optional: empty = no member price. Parsed from the string with integer maths (inputToCents).
-    memberPrice: z
-      .string()
-      .trim()
-      .transform((value, ctx) => {
-        if (value === '') return null;
-        const result = inputToCents(value);
-        if (result === null || result < 1) {
-          ctx.issues.push({ code: 'custom', message: 'Enter an amount like 9.99', input: value });
-        }
-        return result;
-      }),
-    weight: wholeNumber('Enter the weight in whole grams').pipe(variantShape.weightGrams),
-    stock: wholeNumber('Enter a whole number').pipe(variantShape.stock.unwrap()),
-    lowStockThreshold: z
-      .string()
-      .trim()
-      .transform((value, ctx) => {
-        if (value === '') return undefined;
-        const result = inputToInt(value);
-        if (result === null) {
-          ctx.issues.push({ code: 'custom', message: 'Enter a whole number', input: value });
-        }
-        return result ?? undefined;
-      }),
-    status: ProductStatusSchema,
+const VariantTextSchema = z.object({
+  sku: z.string().pipe(variantShape.sku),
+  name: z.string().pipe(variantShape.name),
+  options,
+  // Raw text: a weighed variant has no typed price (it is derived below), so the amount is checked
+  // in the transform that knows which kind it is.
+  price: z.string().trim(),
+  compareAtPrice: z
+    .string()
+    .trim()
+    .transform((value, ctx) => {
+      if (value === '') return null;
+      const result = inputToCents(value);
+      if (result === null) {
+        ctx.issues.push({ code: 'custom', message: 'Enter an amount like 19.99', input: value });
+      }
+      return result;
+    }),
+  // Optional: empty = no member price. Parsed from the string with integer maths (inputToCents).
+  memberPrice: z
+    .string()
+    .trim()
+    .transform((value, ctx) => {
+      if (value === '') return null;
+      const result = inputToCents(value);
+      if (result === null || result < 1) {
+        ctx.issues.push({ code: 'custom', message: 'Enter an amount like 9.99', input: value });
+      }
+      return result;
+    }),
+  weight: wholeNumber('Enter the weight in whole grams').pipe(variantShape.weightGrams),
+  stock: wholeNumber('Enter a whole number').pipe(variantShape.stock.unwrap()),
+  lowStockThreshold: z
+    .string()
+    .trim()
+    .transform((value, ctx) => {
+      if (value === '') return undefined;
+      const result = inputToInt(value);
+      if (result === null) {
+        ctx.issues.push({ code: 'custom', message: 'Enter a whole number', input: value });
+      }
+      return result ?? undefined;
+    }),
+  status: ProductStatusSchema,
+  // Sold by weight: a price per kilogram and the weight of one unit; the unit price follows.
+  soldByWeight: z.boolean().default(false),
+  pricePerKg: z.string().trim().default(''),
+  nominalGrams: z.string().trim().default(''),
+});
+
+type WeighedText = {
+  soldByWeight: boolean;
+  price: string;
+  pricePerKg: string;
+  nominalGrams: string;
+};
+
+/** The numbers behind the price boxes: typed (plain) or derived from price per kilo (weighed). */
+export function resolveVariantPrice(v: WeighedText): {
+  price: number | null;
+  pricePerKgCents: number | null;
+  nominalGrams: number | null;
+} {
+  if (!v.soldByWeight) {
+    return { price: inputToCents(v.price), pricePerKgCents: null, nominalGrams: null };
+  }
+  const perKg = inputToCents(v.pricePerKg);
+  const grams = inputToInt(v.nominalGrams);
+  const valid = perKg !== null && perKg >= 1 && grams !== null && grams >= 1;
+  return {
+    // The same derivation the server applies: price per kg x grams, rounded once.
+    price: valid ? estimateCents(perKg, grams) : null,
+    pricePerKgCents: perKg !== null && perKg >= 1 ? perKg : null,
+    nominalGrams: grams !== null && grams >= 1 ? grams : null,
+  };
+}
+
+// Each rule is its own refine with `when: () => true`, so a bad SKU does not hide a bad price: the
+// person sees every problem at once (a refine normally waits until the fields before it are valid).
+const always = { when: () => true } as const;
+const priceOfText = (v: WeighedText) => resolveVariantPrice(v).price;
+
+export const VariantFormSchema = VariantTextSchema.refine(
+  (v) => v.soldByWeight || priceOfText(v) !== null,
+  { message: 'Enter an amount like 12.99', path: ['price'], ...always },
+)
+  .refine(
+    (v) =>
+      v.soldByWeight ||
+      priceOfText(v) === null ||
+      variantShape.priceCents.safeParse(priceOfText(v)).success,
+    { message: 'That price is too high', path: ['price'], ...always },
+  )
+  .refine((v) => !v.soldByWeight || resolveVariantPrice(v).pricePerKgCents !== null, {
+    message: 'Enter the price per kilogram, like 3.78',
+    path: ['pricePerKg'],
+    ...always,
   })
-  .refine((v) => v.memberPrice === null || v.memberPrice < v.price, {
-    message: 'The member price must be lower than the price',
-    path: ['memberPrice'],
+  .refine((v) => !v.soldByWeight || resolveVariantPrice(v).nominalGrams !== null, {
+    message: 'Enter the weight of one unit in whole grams',
+    path: ['nominalGrams'],
+    ...always,
   })
-  // Same rule as the server (and the same message), but on the field the person typed in.
-  .refine((v) => v.compareAtPrice === null || v.compareAtPrice > v.price, {
-    message: 'The strike-through price must be higher than the price',
-    path: ['compareAtPrice'],
-  });
+  // Same rules as the server (and the same messages), but on the field the person typed in.
+  .refine(
+    (v) => {
+      const price = priceOfText(v);
+      return v.memberPrice == null || price === null || v.memberPrice < price;
+    },
+    { message: 'The member price must be lower than the price', path: ['memberPrice'], ...always },
+  )
+  .refine(
+    (v) => {
+      const price = priceOfText(v);
+      return v.compareAtPrice == null || price === null || v.compareAtPrice > price;
+    },
+    {
+      message: 'The strike-through price must be higher than the price',
+      path: ['compareAtPrice'],
+      ...always,
+    },
+  );
 export type VariantFormInput = z.input<typeof VariantFormSchema>;
 export type VariantFormOutput = z.output<typeof VariantFormSchema>;
 
@@ -147,6 +207,9 @@ export const emptyVariantForm: VariantFormInput = {
   stock: '0',
   lowStockThreshold: '',
   status: 'active',
+  soldByWeight: false,
+  pricePerKg: '',
+  nominalGrams: '',
 };
 
 export function variantToForm(variant: AdminVariant): VariantFormInput {
@@ -162,21 +225,34 @@ export function variantToForm(variant: AdminVariant): VariantFormInput {
     stock: String(variant.quantity),
     lowStockThreshold: String(variant.lowStockThreshold),
     status: variant.status,
+    soldByWeight: variant.soldByWeight,
+    pricePerKg: variant.pricePerKgCents === null ? '' : centsToInput(variant.pricePerKgCents),
+    nominalGrams: variant.nominalGrams === null ? '' : String(variant.nominalGrams),
   };
 }
+
+// The weighed numbers, only for a weighed variant (a plain one sends nothing extra).
+function weighedFields(v: VariantFormOutput) {
+  if (!v.soldByWeight) return {};
+  const { pricePerKgCents, nominalGrams } = resolveVariantPrice(v);
+  return { soldByWeight: true as const, pricePerKgCents, nominalGrams };
+}
+
+const priceOf = (v: VariantFormOutput): number => resolveVariantPrice(v).price ?? 0;
 
 export function variantToCreate(v: VariantFormOutput, isDefault: boolean): AdminVariantInput {
   return {
     sku: v.sku,
     name: v.name,
     options: v.options,
-    priceCents: v.price,
+    priceCents: priceOf(v),
     compareAtPriceCents: v.compareAtPrice,
     memberPriceCents: v.memberPrice,
     weightGrams: v.weight,
     isDefault,
     status: v.status,
     stock: v.stock,
+    ...weighedFields(v),
     ...(v.lowStockThreshold !== undefined && { lowStockThreshold: v.lowStockThreshold }),
   };
 }
@@ -188,11 +264,14 @@ export function variantToUpdate(v: VariantFormOutput): AdminVariantUpdate {
     sku: v.sku,
     name: v.name,
     options: v.options,
-    priceCents: v.price,
+    priceCents: priceOf(v),
     compareAtPriceCents: v.compareAtPrice,
     memberPriceCents: v.memberPrice,
     weightGrams: v.weight,
     status: v.status,
+    // An update always says which kind the variant is, so switching a variant off clears the numbers.
+    soldByWeight: v.soldByWeight,
+    ...weighedFields(v),
     ...(v.lowStockThreshold !== undefined && { lowStockThreshold: v.lowStockThreshold }),
   };
 }

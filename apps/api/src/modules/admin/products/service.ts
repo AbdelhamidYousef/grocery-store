@@ -7,6 +7,7 @@ import {
   type AdminVariant,
   type AdminVariantPricesInput,
   STORES,
+  estimateCents,
   freshBestBefore,
 } from '@store/shared';
 import type {
@@ -76,6 +77,9 @@ const toAdminVariant = (v: repo.VariantWithStock): AdminVariant => {
     netUnit: v.netUnit,
     isTrial: v.isTrial,
     swatchHex: v.swatchHex,
+    soldByWeight: v.soldByWeight,
+    pricePerKgCents: v.pricePerKgCents,
+    nominalGrams: v.nominalGrams,
     status: v.status,
     quantity,
     reserved,
@@ -206,6 +210,18 @@ async function uniqueSlug(tx: Tx, name: string): Promise<string> {
   return candidate;
 }
 
+function assertPriceTiers(price: number, compareAt: number | null, member: number | null) {
+  if (compareAt !== null && compareAt <= price) {
+    throw fieldError(
+      'compareAtPriceCents',
+      'The strike-through price must be higher than the price',
+    );
+  }
+  if (member !== null && member >= price) {
+    throw fieldError('memberPriceCents', 'The member price must be lower than the price');
+  }
+}
+
 // Inserts a variant with its inventory row (and the opening-stock adjustment when there is stock).
 async function createVariant(
   tx: Tx,
@@ -214,12 +230,21 @@ async function createVariant(
   isDefault: boolean,
   actor: string,
 ): Promise<repo.VariantRow> {
+  const weighed = input.soldByWeight === true;
+  // A weighed variant's unit price is the estimate of one nominal unit, never what was typed.
+  const priceCents = weighed
+    ? estimateCents(input.pricePerKgCents ?? 0, input.nominalGrams ?? 0)
+    : input.priceCents;
+  assertPriceTiers(priceCents, input.compareAtPriceCents ?? null, input.memberPriceCents ?? null);
   const variant = await repo.insertVariant(tx, {
     productId,
     sku: input.sku,
     name: input.name,
     options: input.options,
-    priceCents: input.priceCents,
+    priceCents,
+    soldByWeight: weighed,
+    pricePerKgCents: weighed ? (input.pricePerKgCents ?? null) : null,
+    nominalGrams: weighed ? (input.nominalGrams ?? null) : null,
     compareAtPriceCents: input.compareAtPriceCents ?? null,
     memberPriceCents: input.memberPriceCents ?? null,
     weightGrams: input.weightGrams,
@@ -446,23 +471,29 @@ export async function updateVariant(
       const { product, variant } = await lockedVariant(tx, variantId);
       if (input.options) assertOptionKeys(product.attributes.optionKeys, input.options);
 
-      const price = input.priceCents ?? variant.priceCents;
+      // What the variant will be after this save: weighed or not, and the numbers that go with it.
+      const weighed = input.soldByWeight ?? variant.soldByWeight;
+      const pricePerKg = weighed ? (input.pricePerKgCents ?? variant.pricePerKgCents) : null;
+      const nominal = weighed ? (input.nominalGrams ?? variant.nominalGrams) : null;
+      if (weighed && (pricePerKg === null || nominal === null)) {
+        throw fieldError(
+          'pricePerKgCents',
+          'A weighed item needs a price per kilogram and a nominal weight',
+        );
+      }
+      // The unit price of a weighed variant is derived; a typed one is ignored.
+      const derivedPrice =
+        weighed && pricePerKg !== null && nominal !== null
+          ? estimateCents(pricePerKg, nominal)
+          : null;
+      const price = derivedPrice ?? input.priceCents ?? variant.priceCents;
       const compareAt =
         input.compareAtPriceCents === undefined
           ? variant.compareAtPriceCents
           : input.compareAtPriceCents;
-      if (compareAt !== null && compareAt <= price) {
-        throw fieldError(
-          'compareAtPriceCents',
-          'The strike-through price must be higher than the price',
-        );
-      }
-
       const member =
         input.memberPriceCents === undefined ? variant.memberPriceCents : input.memberPriceCents;
-      if (member !== null && member >= price) {
-        throw fieldError('memberPriceCents', 'The member price must be lower than the price');
-      }
+      assertPriceTiers(price, compareAt, member);
 
       if (input.sku !== undefined && input.sku.toLowerCase() !== variant.sku.toLowerCase()) {
         const siblings = await repo.listVariants(tx, product.id);
@@ -477,7 +508,12 @@ export async function updateVariant(
         await repo.demoteDefaults(tx, product.id, variant.id);
       }
 
-      const { lowStockThreshold, ...fields } = input;
+      const { lowStockThreshold, ...rest } = input;
+      const fields = { ...rest, ...(derivedPrice !== null && { priceCents: derivedPrice }) };
+      const weightChange =
+        input.soldByWeight !== undefined ||
+        input.pricePerKgCents !== undefined ||
+        input.nominalGrams !== undefined;
       // A price change is a new history row (never an edit of an old one), in this transaction.
       if (fields.priceCents !== undefined && fields.priceCents !== variant.priceCents) {
         await insertPriceHistory(tx, [{ variantId, priceCents: fields.priceCents, kind: 'base' }]);
@@ -493,6 +529,11 @@ export async function updateVariant(
         ...(fields.name !== undefined && { name: fields.name }),
         ...(fields.options !== undefined && { options: fields.options }),
         ...(fields.priceCents !== undefined && { priceCents: fields.priceCents }),
+        ...(weightChange && {
+          soldByWeight: weighed,
+          pricePerKgCents: pricePerKg,
+          nominalGrams: nominal,
+        }),
         ...(fields.compareAtPriceCents !== undefined && {
           compareAtPriceCents: fields.compareAtPriceCents,
         }),

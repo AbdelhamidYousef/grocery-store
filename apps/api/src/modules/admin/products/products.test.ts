@@ -428,6 +428,82 @@ describe('variants', () => {
   });
 });
 
+describe('weighed variants', () => {
+  const weighed = (over: Record<string, unknown> = {}) =>
+    variant({
+      sku: 'LOOSE-BAN',
+      options: { x: 'loose' },
+      soldByWeight: true,
+      pricePerKgCents: 189,
+      nominalGrams: 500,
+      priceCents: 1, // typed, must be ignored
+      ...over,
+    });
+
+  it('creates a weighed variant with the unit price derived from the price per kilo', async () => {
+    const product = await created({ variants: [weighed()] });
+    expect(product.variants[0]).toMatchObject({
+      soldByWeight: true,
+      pricePerKgCents: 189,
+      nominalGrams: 500,
+      priceCents: 95, // round(189 * 500 / 1000) = 94.5 -> 95
+    });
+  });
+
+  it('refuses a weighed variant without both numbers, and numbers on a plain one', async () => {
+    const noGrams = await post(
+      '/admin/products',
+      newProduct({ variants: [weighed({ nominalGrams: null })] }),
+    );
+    expect(noGrams.status).toBe(400);
+    const plainWithKg = await post(
+      '/admin/products',
+      newProduct({ variants: [variant({ pricePerKgCents: 300 })] }),
+    );
+    expect(plainWithKg.status).toBe(400);
+  });
+
+  it('edits a weighed variant (new price per kilo re-derives the unit price) and can switch it off', async () => {
+    const product = await created({
+      variants: [weighed(), variant({ sku: 'B', options: { x: '1' } })],
+    });
+    const [loose] = product.variants as [Variant, Variant];
+    const up = await patch(`/admin/variants/${loose.id}`, {
+      pricePerKgCents: 400,
+      nominalGrams: 250,
+    });
+    expect(up.status, JSON.stringify(up.body)).toBe(200);
+    expect(data<Variant & { priceCents: number }>(up)).toMatchObject({
+      soldByWeight: true,
+      pricePerKgCents: 400,
+      nominalGrams: 250,
+      priceCents: 100,
+    });
+    const off = await patch(`/admin/variants/${loose.id}`, {
+      soldByWeight: false,
+      priceCents: 350,
+    });
+    expect(data<Variant>(off)).toMatchObject({
+      soldByWeight: false,
+      pricePerKgCents: null,
+      nominalGrams: null,
+      priceCents: 350,
+    });
+    const on = await patch(`/admin/variants/${loose.id}`, { soldByWeight: true });
+    expect(on.status).toBe(400);
+  });
+
+  it('adds a weighed variant to an existing product', async () => {
+    const product = await created();
+    const add = await post(
+      `/admin/products/${product.id}/variants`,
+      weighed({ pricePerKgCents: 1000, nominalGrams: 300 }),
+    );
+    expect(add.status, JSON.stringify(add.body)).toBe(201);
+    expect(data<{ priceCents: number }>(add).priceCents).toBe(300);
+  });
+});
+
 describe('PATCH /admin/inventory/:variantId', () => {
   it('sets an absolute quantity with a reason and records the delta and the admin', async () => {
     const product = await created();

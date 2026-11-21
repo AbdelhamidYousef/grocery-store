@@ -109,7 +109,7 @@ Written by the build sessions for the owner and the next session. Newest state f
   (`captureOrder` / `deliveredOrder` in `test/orders.ts`); `simulate` turns "the shopper paid" into the
   authorisation event for a manual-capture order.
 - **Open follow-ups** (small, not blocking):
-  - Admin product and variant forms cannot yet create or edit a weighed variant (price per kg, nominal grams): only the seed sets them (G6.3).
+  - (Closed before G9.1) The admin status button refuses "shipped" for a manual-capture order and points to the packer view; admin variant forms create and edit weighed variants (price per kg and nominal grams; the unit price is derived).
   - The admin "Capture now" and the overdue job stay as a safety net beside dispatch (which captures with the packed grams).
   - The e2e API now needs a `JOBS_SECRET` (set by `playwright.config.ts`); a hand-started e2e server without it makes the back-in-stock spec fail with 404.
   - Reseed before the first public deploy: a database migrated from G3 has identical shelves in every store (`pnpm db:reset`).

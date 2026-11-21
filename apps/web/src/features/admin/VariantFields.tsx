@@ -14,11 +14,14 @@ export function VariantFields({
   field,
   errors,
   showStock,
+  weighed,
 }: {
   field: (name: VariantField) => UseFormRegisterReturn;
   errors: Partial<Record<VariantField, string | undefined>>;
   /** Stock is typed only when creating; afterwards it changes through "Adjust stock". */
   showStock: boolean;
+  /** The "sold by weight" box is ticked: the price per kilogram replaces the typed price. */
+  weighed: boolean;
 }) {
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -32,13 +35,36 @@ export function VariantFields({
           {...field('options')}
         />
       </div>
-      <Input
-        label="Price"
-        inputMode="decimal"
-        hint="In euros, for example 12.99"
-        error={errors.price}
-        {...field('price')}
-      />
+      <label className="flex min-h-11 cursor-pointer items-center gap-3 sm:col-span-2">
+        <input type="checkbox" className="h-5 w-5 accent-primary" {...field('soldByWeight')} />
+        <span>Sold by weight (loose fruit, counter cheese)</span>
+      </label>
+      {weighed ? (
+        <>
+          <Input
+            label="Price per kilogram"
+            inputMode="decimal"
+            hint="In euros, for example 3.78; the unit price follows from it"
+            error={errors.pricePerKg}
+            {...field('pricePerKg')}
+          />
+          <Input
+            label="Weight of one unit (grams)"
+            inputMode="numeric"
+            hint='The "about 500 g" the shopper adds to the basket'
+            error={errors.nominalGrams}
+            {...field('nominalGrams')}
+          />
+        </>
+      ) : (
+        <Input
+          label="Price"
+          inputMode="decimal"
+          hint="In euros, for example 12.99"
+          error={errors.price}
+          {...field('price')}
+        />
+      )}
       <Input
         label="Strike-through price (optional)"
         inputMode="decimal"

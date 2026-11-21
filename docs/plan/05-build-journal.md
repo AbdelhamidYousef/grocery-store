@@ -745,3 +745,19 @@ depends on the order of the queue.
 4. A bag is handed over at 14:20 and the window ends at 15:00. When does the simulated rider arrive, what does
    `riderProgress` return at 14:35, and what stops the page's "about 15 minutes away" and the `deliver-simulated` job from
    disagreeing about the moment of arrival?
+
+## Phase G9: basket rules and repeat shopping
+
+### G9.0: two G8 loose ends (fix)
+The admin's status button could move a manual-capture order to `shipped` without packing it and without the capture, so
+the card stayed an authorisation for ever (only `capture-overdue` would take it). `admin/orders/service.ts` `transition`
+now refuses `shipped` when the payment is manual capture: 409 `CONFLICT` with `details.via = 'picking'` and a message
+pointing to the packer view; orders charged in full at checkout (old automatic capture) keep the button. The guard lives in
+the admin layer, not in `transitionOrder`, because dispatch and the tests use the engine directly. Admin variant forms
+(create, add, edit) gained "Sold by weight": price per kilogram and the weight of one unit; the shared schema requires both
+together and the SERVER derives the unit price (`estimateCents`), ignoring whatever `priceCents` says, so the form can show
+the same number but never decides it. Turning the box off clears both numbers (the table's check constraint).
+Surprise: the form's price rule had to run even when the SKU was wrong (the old test expects every message at once); a
+zod refine normally waits for the fields before it, so each rule is its own refine with `when: () => true`.
+Learn: a UI that mirrors a server rule (the derived price) should call the same pure function (`estimateCents`), and a rule
+about money belongs on the layer every caller passes, not on the one the current screen happens to use.

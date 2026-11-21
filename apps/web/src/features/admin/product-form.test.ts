@@ -51,6 +51,43 @@ function validForm(overrides: Partial<ProductFormInput> = {}): ProductFormInput 
   };
 }
 
+describe('weighed variants in the form', () => {
+  const base = () => validForm().variants[0]!;
+  const parse = (v: object) =>
+    ProductFormSchema.safeParse(validForm({ variants: [{ ...base(), ...v }] }));
+
+  it('derives the unit price from the price per kilo and sends the weighed fields', () => {
+    const r = parse({ soldByWeight: true, price: '', pricePerKg: '1.89', nominalGrams: '500' });
+    expect(r.success).toBe(true);
+    if (!r.success) return;
+    expect(toCreatePayload(r.data).variants[0]).toMatchObject({
+      soldByWeight: true,
+      pricePerKgCents: 189,
+      nominalGrams: 500,
+      priceCents: 95,
+    });
+  });
+
+  it('needs both numbers, on their own fields, and ignores the typed price', () => {
+    const r = parse({ soldByWeight: true, price: '', pricePerKg: 'x', nominalGrams: '0' });
+    expect(r.success).toBe(false);
+    if (r.success) return;
+    const paths = r.error.issues.map((i) => i.path.join('.'));
+    expect(paths).toContain('variants.0.pricePerKg');
+    expect(paths).toContain('variants.0.nominalGrams');
+    expect(paths).not.toContain('variants.0.price');
+  });
+
+  it('keeps a plain variant free of weighed fields', () => {
+    const r = parse({});
+    expect(r.success).toBe(true);
+    if (!r.success) return;
+    const created = toCreatePayload(r.data).variants[0]!;
+    expect(created).not.toHaveProperty('soldByWeight');
+    expect(created).not.toHaveProperty('pricePerKgCents');
+  });
+});
+
 describe('options text', () => {
   it('parses key=value pairs and formats them back', () => {
     expect(parseOptions('Size=Large, Colour=Red')).toEqual({ Size: 'Large', Colour: 'Red' });
