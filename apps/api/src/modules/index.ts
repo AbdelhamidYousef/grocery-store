@@ -20,6 +20,7 @@ import { guidesRouter } from './guides/router.ts';
 import { helpRouter } from './help/router.ts';
 import { homeRouter } from './home/router.ts';
 import { createJobsRouter } from './jobs/router.ts';
+import { createListsRouter } from './lists/router.ts';
 import { registerCharitySubscribers } from './loyalty/charity-service.ts';
 import { registerReferralSubscribers } from './loyalty/referrals-service.ts';
 import { createLoyaltyRouter, rewardsRouter } from './loyalty/router.ts';
@@ -114,6 +115,7 @@ export function createModulesRouter(opts: {
   router.use(createNewsletterRouter(opts));
   router.use(createStockAlertsRouter(opts));
   router.use(createWishlistRouter());
+  router.use(createListsRouter());
   router.use(createReorderRouter());
   router.use(createReturnsRouter(opts));
   router.use(cartRouter);

@@ -7,6 +7,7 @@ import { OrderDetail } from '../features/account/OrderDetail';
 import { OrdersSection } from '../features/account/OrdersSection';
 import { ProfileSection } from '../features/account/ProfileSection';
 import { SecuritySection } from '../features/account/SecuritySection';
+import { ListsSection } from '../features/lists/ListsSection';
 import { RewardsSection } from '../features/loyalty/RewardsSection';
 import { BuyAgainSection } from '../features/reorder/BuyAgainSection';
 import { useT } from '../i18n';
@@ -22,6 +23,7 @@ export default function AccountPage() {
         <Route path="addresses" element={<AddressesSection />} />
         <Route path="rewards" element={<RewardsSection />} />
         <Route path="buy-again" element={<BuyAgainSection />} />
+        <Route path="lists" element={<ListsSection />} />
         <Route path="orders" element={<OrdersSection />} />
         <Route path="orders/:number" element={<OrderDetail />} />
         <Route path="*" element={<AccountNotFound />} />

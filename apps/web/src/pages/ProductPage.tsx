@@ -30,6 +30,7 @@ import { VariantPicker } from '../features/catalog/VariantPicker';
 import { useSoldOutLabel } from '../features/delivery/DeliveryContext';
 import { NextDelivery } from '../features/delivery/NextDelivery';
 import { BestBeforeNote, ShortDatedOffer } from '../features/expiry/BestBefore';
+import { AddToList } from '../features/lists/AddToList';
 import { EarnPoints } from '../features/loyalty/EarnPoints';
 import { formatRating } from '../features/reviews/format';
 import { RatingStars } from '../features/reviews/RatingStars';
@@ -317,6 +318,12 @@ function ProductView({ product }: { product: ProductDetail }) {
                 }
               />
             )}
+
+            <AddToList
+              productId={product.id}
+              variantId={variant?.id ?? null}
+              productName={product.name}
+            />
 
             {variant?.available && <NextDelivery />}
           </div>

@@ -62,6 +62,8 @@ export const keys = {
   wishlist: ['wishlist'] as const,
   buyAgain: ['buy-again'] as const,
   usuals: ['usuals'] as const,
+  lists: ['lists'] as const,
+  list: (id: string) => ['lists', id] as const,
   sharedWishlist: (token: string) => ['wishlist', 'shared', token] as const,
   charityTotal: ['charity', 'total'] as const,
   myCodes: ['points', 'codes'] as const,

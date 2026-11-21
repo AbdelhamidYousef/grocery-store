@@ -116,6 +116,11 @@ Written by the build sessions for the owner and the next session. Newest state f
   2 of the last 10 paid-or-later orders, most often first, in stock at the request's store, max 12; carries `lastOrder`), shared
   constants `USUALS_*`, web `features/reorder/UsualsBlock` on the home page (the G3 placeholder slot is replaced and enabled) and on
   the account's Buy again page, "Reorder last basket" through the existing reorder service (store-aware, skipped lines listed).
+- **G9.3 done** (2026-11-21, G9 in progress): named shopping lists. Migration 0060 (`wishlists.name` / `is_default`, `wishlist_items.quantity`,
+  partial unique indexes; the wishlist becomes the default list "Saved" by the column defaults), module `modules/lists` (`/me/lists`
+  CRUD, items with quantity, `POST /me/lists/:id/add-to-cart` that reports what could not go in), the old wishlist routes and share
+  links unchanged (they act on the default list), web Account > Lists and "Add to list" on the product page. A database migrated from
+  G8 needs `pnpm db:migrate`.
 
   Paid orders are only AUTHORISED until captured: tests that refund or return a paid order capture it first
   (`captureOrder` / `deliveredOrder` in `test/orders.ts`); `simulate` turns "the shopper paid" into the

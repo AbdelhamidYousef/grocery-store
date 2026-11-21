@@ -36,7 +36,11 @@ export interface WishlistWho {
 
 async function findList(run: Run, who: WishlistWho) {
   if (who.userId) {
-    const [row] = await run.select().from(wishlists).where(eq(wishlists.userId, who.userId));
+    // The wishlist is the user's DEFAULT list ("Saved"); named lists are served by modules/lists.
+    const [row] = await run
+      .select()
+      .from(wishlists)
+      .where(and(eq(wishlists.userId, who.userId), eq(wishlists.isDefault, true)));
     return row ?? null;
   }
   if (who.guestWishlistId) {
@@ -64,7 +68,7 @@ export async function resolveList(run: Run, who: WishlistWho) {
 const availableOf = () =>
   sql<number>`coalesce(${stockQuantity(productVariants.id)} - ${stockReserved(productVariants.id)}, 0)`;
 
-async function viewItems(run: Run, wishlistId: string): Promise<WishlistItem[]> {
+export async function viewItems(run: Run, wishlistId: string): Promise<WishlistItem[]> {
   const rows = await run
     .select({
       id: wishlistItems.id,
@@ -73,6 +77,7 @@ async function viewItems(run: Run, wishlistId: string): Promise<WishlistItem[]> 
       name: products.name,
       status: products.status,
       savedVariantId: wishlistItems.variantId,
+      quantity: wishlistItems.quantity,
     })
     .from(wishlistItems)
     .innerJoin(products, eq(products.id, wishlistItems.productId))
@@ -131,6 +136,7 @@ async function viewItems(run: Run, wishlistId: string): Promise<WishlistItem[]> 
       priceCents: chosen?.priceCents ?? null,
       currency: chosen?.currency ?? currentStore().currency,
       available: (chosen?.available ?? 0) > 0,
+      quantity: r.quantity,
     };
   });
 }
@@ -237,8 +243,8 @@ export async function mergeGuestWishlist(guestListId: string, userId: string): P
     if (!guest || guest.userId !== null) return;
     const { list } = await resolveList(tx, { userId, guestWishlistId: null });
     await tx.execute(sql`
-      insert into wishlist_items (wishlist_id, product_id, variant_id)
-      select ${list.id}, product_id, variant_id from wishlist_items where wishlist_id = ${guest.id}
+      insert into wishlist_items (wishlist_id, product_id, variant_id, quantity)
+      select ${list.id}, product_id, variant_id, quantity from wishlist_items where wishlist_id = ${guest.id}
       on conflict do nothing`);
     await tx.delete(wishlists).where(eq(wishlists.id, guest.id));
   });

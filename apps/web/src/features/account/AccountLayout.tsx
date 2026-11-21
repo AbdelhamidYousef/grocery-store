@@ -10,6 +10,7 @@ const LINKS: readonly { to: string; label: StringKey; end: boolean }[] = [
   { to: '/account/addresses', label: 'account.nav.addresses', end: false },
   { to: '/account/orders', label: 'account.nav.orders', end: false },
   { to: '/account/buy-again', label: 'account.nav.buyAgain', end: false },
+  { to: '/account/lists', label: 'account.nav.lists', end: false },
   { to: '/account/rewards', label: 'account.nav.rewards', end: false },
 ];
 

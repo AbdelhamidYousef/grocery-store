@@ -819,4 +819,29 @@ Learn: write the rule in the constants and in one sentence next to the query ("a
 then test each word: the window (an old order falls out), the minimum (once is not a usual), the order (count, then recency), and
 the "in stock at your store" (the same list is empty at another postcode).
 
+### G9.3: named shopping lists
+Lists reuse the wishlist tables instead of adding new ones. Migration 0060: `wishlists` gets `name` (default 'Saved') and
+`is_default` (default true), the one-row-per-user unique constraint is replaced by two partial unique indexes (one DEFAULT list per
+user; no two lists of a user with the same name, case aside) and a 1 to 40 character check; `wishlist_items` gets `quantity`
+(default 1, check 1 to 99). The column defaults ARE the backfill: every existing wishlist becomes "Saved" and every item gets
+quantity 1, so nothing was rewritten and the old routes and share links keep working. The old wishlist service now looks up the
+user's DEFAULT list (`isDefault`), so a heart and `/wishlist/share` always act on "Saved", and `mergeGuestWishlist` carries quantities.
+New module `modules/lists`: `GET/POST /me/lists`, `GET/PATCH/DELETE /me/lists/:id` (the default list cannot be renamed or deleted),
+`PUT /me/lists/:id/items` (put a product or one variant with a quantity; the quantity REPLACES, so a second add is an edit),
+`PATCH/DELETE .../items/:itemId`, `POST /me/lists/:id/add-to-cart`. Every route loads the list by (id, session user): someone else's
+list is a 404. At most 20 lists per shopper (counted under a lock on the user row, so two creates at once cannot both pass) and 100
+items per list. "Add all to basket" walks the lines through the ordinary cart service one at a time (stock at the shopper's store,
+trial limit, kits), so what cannot go in is returned with its reason (`sold_out`, `limit`, `unavailable`) and never stops the rest;
+it answers with the same `ReorderResult` as the reorder button, and the web reuses its sentences. A line that asks for more than the
+store has is reported whole (all or nothing, like reorder). Web: Account > Lists (pills for the lists with counts, create, rename,
+delete, quantity boxes that send once on Enter or blur, remove, "Add all to basket" with the skipped lines), and "Add to list" (a
+select) on the product page for a signed-in shopper; English and German.
+Surprise: a subquery written with drizzle's column helper printed `"id"` unqualified, which the inner `wishlist_items` row read as
+its own id: the item count was always 0. The fix is to write `"wishlists"."id"` out in the SQL fragment. And a quantity box bound
+straight to the server value turned a typed "12" into 1 then 2 (each keystroke sent a request and the box kept the old value): it
+keeps local text and sends once.
+Learn: when a feature is "the same thing, several of them", look for the unique constraint that says "one": here a single
+`unique(user_id)`. Replace it with a partial index for the special row (the default) instead of a new table, and the defaults of the
+new columns do the data migration. And a number input that saves needs a commit moment (Enter, blur), never a request per keystroke.
+
 ### Quiz: Phase G9 (placeholder, completed at G9.4)

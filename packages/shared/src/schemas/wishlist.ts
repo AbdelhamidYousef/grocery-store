@@ -27,6 +27,8 @@ export const WishlistItemSchema = z.object({
   priceCents: z.number().int().nullable(),
   currency: z.string(),
   available: z.boolean(),
+  // How many (G9.3, shopping lists); a wishlist heart saves one.
+  quantity: z.number().int().min(1).default(1),
 });
 export type WishlistItem = z.infer<typeof WishlistItemSchema>;
 
