@@ -44,11 +44,20 @@ describe('Stripe configuration', () => {
 
   it.each([
     ['STRIPE_SECRET_KEY', 'sk_live_abc'],
-    ['STRIPE_SECRET_KEY', 'rk_test_abc'],
+    ['STRIPE_SECRET_KEY', 'rk_live_abc'],
     ['STRIPE_WEBHOOK_SECRET', 'abc'],
     ['STRIPE_PUBLISHABLE_KEY', 'pk_live_abc'],
   ])('rejects %s = %s', (name, value) => {
     expect(problems({ ...base, [name]: value })).toEqual([name]);
+  });
+
+  it('accepts a restricted test key (rk_test_) as the secret key', () => {
+    expect(problems({ ...base, STRIPE_SECRET_KEY: 'rk_test_abc' })).toEqual([]);
+  });
+
+  it('says live keys are refused', () => {
+    const r = envSchema.safeParse({ ...base, STRIPE_SECRET_KEY: 'rk_live_abc' });
+    expect(JSON.stringify(r.error?.issues)).toContain('live keys are refused');
   });
 
   it('requires the secret key and the webhook secret in production', () => {

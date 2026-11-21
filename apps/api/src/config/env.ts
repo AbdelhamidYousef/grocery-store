@@ -14,13 +14,20 @@ const DEV_COOKIE_SECRET = 'dev-only-cookie-secret-do-not-use-in-production';
 // A key variable that may be absent or empty (`STRIPE_SECRET_KEY=` in a fresh `.env`), but when it
 // is set it must be a *test-mode* key: a live key in this portfolio project would charge real
 // cards, so it is refused at boot, not just discouraged in a comment.
-const testKey = (prefix: string, hint: string) =>
+const testKey = (prefixes: string[], hint: string) =>
   z
     .string()
     .trim()
     .optional()
     .transform((v) => (v === '' ? undefined : v))
-    .pipe(z.string().startsWith(prefix, `must start with ${prefix} (${hint})`).optional());
+    .pipe(
+      z
+        .string()
+        .refine((v) => prefixes.some((p) => v.startsWith(p)), {
+          message: `must start with ${prefixes.join(' or ')} (${hint}); live keys are refused`,
+        })
+        .optional(),
+    );
 
 export const envSchema = z
   .object({
@@ -50,9 +57,9 @@ export const envSchema = z
     RATE_LIMIT_AUTH_MAX: z.coerce.number().int().positive().default(10),
     // Optional in development and tests (checkout then answers 502 "payments not configured" and
     // the suite uses a fake gateway); required in production by the refinement below.
-    STRIPE_SECRET_KEY: testKey('sk_test_', 'test-mode secret key only'),
+    STRIPE_SECRET_KEY: testKey(['sk_test_', 'rk_test_'], 'test-mode secret or restricted key only'),
     STRIPE_WEBHOOK_SECRET: testKey(
-      'whsec_',
+      ['whsec_'],
       'signing secret from `stripe listen` or the dashboard',
     ),
     // Shared secret for the test-only payment simulator (POST /test/webhooks/simulate), sent in the
@@ -66,7 +73,7 @@ export const envSchema = z
       .transform((v) => (v === '' ? undefined : v))
       .pipe(z.string().min(16, 'use at least 16 characters').optional()),
     // Read by the web build, not the API; validated here too so one typo'd `.env` fails in one place.
-    STRIPE_PUBLISHABLE_KEY: testKey('pk_test_', 'test-mode publishable key only'),
+    STRIPE_PUBLISHABLE_KEY: testKey(['pk_test_'], 'test-mode publishable key only'),
     // Email. Development: Mailpit (smtp://127.0.0.1:1026, see docker-compose.yml) when SMTP_URL is
     // empty. Production: RESEND_API_KEY (sent over Resend's SMTP endpoint) or any SMTP_URL; with
     // neither, emails are logged and skipped and the API still boots.
@@ -134,7 +141,7 @@ export const envSchema = z
     path: ['COOKIE_SECRET'],
   })
   .refine((e) => e.NODE_ENV !== 'production' || e.STRIPE_SECRET_KEY !== undefined, {
-    message: 'STRIPE_SECRET_KEY (sk_test_...) is required in production',
+    message: 'STRIPE_SECRET_KEY (sk_test_... or rk_test_...) is required in production',
     path: ['STRIPE_SECRET_KEY'],
   })
   .refine((e) => e.NODE_ENV !== 'production' || e.STRIPE_WEBHOOK_SECRET !== undefined, {
