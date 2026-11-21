@@ -64,13 +64,16 @@ describe('toListSearch', () => {
   it('writes attribute filters as attr.<key>=a,b and skips defaults', () => {
     expect(
       toListSearch({
-        category: 'dogs',
+        category: 'dairy-eggs',
         page: 1,
         inStock: false,
-        attr: { material: ['plush', 'rubber'], pet: [] },
+        attr: { origin: ['spain', 'germany'], storage: [] },
+        diet: ['vegan', 'gluten-free'],
         minPrice: 500,
       }),
-    ).toBe('?category=dogs&minPrice=500&attr.material=plush%2Crubber');
+    ).toBe(
+      '?category=dairy-eggs&minPrice=500&diet=vegan%2Cgluten-free&attr.origin=spain%2Cgermany',
+    );
   });
 
   it('is empty when there is nothing to send', () => {

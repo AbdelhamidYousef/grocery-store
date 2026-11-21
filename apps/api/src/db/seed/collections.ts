@@ -21,47 +21,47 @@ export const CollectionSeedSchema = z.object({
   // How members are picked. `listed` collections are named on the product (`collections: [...]`
   // in the product seed); the others are computed from the product's own data so they cannot go
   // stale when a price changes.
-  membership: z.enum(['listed', 'eco', 'under-10']),
+  membership: z.enum(['listed', 'eco', 'under-2']),
 });
 export type CollectionSeed = z.infer<typeof CollectionSeedSchema>;
 
 export const collections: CollectionSeed[] = [
   {
-    slug: 'halloween',
-    name: 'Halloween',
-    description: 'Spooky toys, pumpkin treats and costumes-free fun for the October crowd.',
-    accentColor: '#EA580C',
-    window: { start: { month: 10, day: 1 }, end: { month: 11, day: 2 } },
-    membership: 'listed',
-  },
-  {
-    slug: 'christmas',
-    name: 'Christmas',
-    description: 'Stocking fillers and festive treats for pets who are on the nice list.',
+    slug: 'christmas-baking',
+    name: 'Christmas baking',
+    description: 'Flour, butter, nuts and Lebkuchen for the advent weekends.',
     accentColor: '#DC2626',
     window: { start: { month: 11, day: 15 }, end: { month: 12, day: 27 } },
     membership: 'listed',
   },
   {
-    slug: 'puppy-starter-kit',
-    name: 'Puppy Starter Kit',
-    description: 'Everything for the first weeks: a bed, a bowl, training bites and a chew.',
-    accentColor: '#F59E0B',
+    slug: 'bbq-season',
+    name: 'BBQ season',
+    description: 'Sausages, drumsticks, salad and cold drinks for the grill.',
+    accentColor: '#EA580C',
+    window: { start: { month: 5, day: 1 }, end: { month: 9, day: 15 } },
     membership: 'listed',
   },
   {
-    slug: 'eco-picks',
-    name: 'Eco Picks',
-    description: 'Recycled, refillable and plant-dyed: our lighter-footprint favourites.',
+    slug: 'weekday-lunch',
+    name: 'Weekday lunch',
+    description: 'Quick things for a packed lunch or a fast bite at the desk.',
+    accentColor: '#0F7A3D',
+    membership: 'listed',
+  },
+  {
+    slug: 'organic-picks',
+    name: 'Organic picks',
+    description: 'Certified organic fruit, vegetables and pantry staples.',
     accentColor: '#15803D',
     membership: 'eco',
   },
   {
-    slug: 'under-10',
-    name: 'Under €10',
-    description: 'Small prices, big tail wags. Every product here has a variant under €10.',
+    slug: 'under-2',
+    name: 'Under €2',
+    description: 'Everyday items at small prices. Every product here costs less than 2 euros.',
     accentColor: '#0EA5E9',
-    membership: 'under-10',
+    membership: 'under-2',
   },
 ];
 

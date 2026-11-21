@@ -21,7 +21,6 @@
     "db:seed": "pnpm --filter @store/api db:seed",
     "db:reset": "pnpm --filter @store/api db:reset",
     "images:process": "pnpm --filter @store/api images:process",
-    "images:brief": "pnpm --filter @store/api images:brief",
     "prepare": "simple-git-hooks"
   },
   "devDependencies": {

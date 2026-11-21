@@ -52,7 +52,7 @@ export function QuickChips({
                 'inline-flex min-h-11 max-w-full items-center gap-2 rounded-full border-2 px-4 text-sm font-semibold',
                 pressed
                   ? 'border-primary bg-primary-soft text-primary-strong'
-                  : 'border-line bg-surface hover:bg-pet-soft',
+                  : 'border-line bg-surface hover:bg-dept-soft',
               )}
             >
               <span className="min-w-0 break-words">{chip.label}</span>

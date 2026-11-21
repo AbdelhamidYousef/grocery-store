@@ -28,11 +28,11 @@ export const rewardSeeds = [
     valueCents: 0,
   },
   {
-    name: 'A free toy',
-    description: 'Takes EUR 6.99 off your order: choose any toy you like.',
-    costPoints: 600,
+    name: 'A free treat',
+    description: 'Takes EUR 3.00 off your order: pick any chocolate, biscuit or snack you like.',
+    costPoints: 300,
     kind: 'gift' as const,
-    valueCents: 699,
+    valueCents: 300,
   },
 ];
 

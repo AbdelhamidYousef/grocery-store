@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Pantry">
+<rect width="200" height="200" fill="#ffedd5"/>
+<circle cx="100" cy="100" r="62" fill="#fb923c" fill-opacity="0.55"/>
+<g transform="translate(52 52) scale(4)" fill="none" stroke="#9a3412" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.500h8v2.500H8z"/><path d="M7 6h10l1 3v9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9l1-3z"/><path d="M6.500 11h11M6.500 16h11"/></g>
+</svg>

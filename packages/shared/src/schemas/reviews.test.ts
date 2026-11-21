@@ -4,8 +4,8 @@ import { averageTenths, reviewInputSchema } from './reviews.ts';
 
 const valid = {
   rating: 5,
-  title: 'Brilliant bed',
-  body: 'My dog sleeps in it every single night and it still looks new.',
+  title: 'Lovely loaf',
+  body: 'Fresh, crusty and still warm when it arrived at my door.',
   wouldRecommend: true,
 };
 
@@ -18,15 +18,11 @@ describe('reviewInputSchema', () => {
     const r = reviewInputSchema.parse({
       ...valid,
       rating: '4',
-      petAgeMonths: '18',
-      petWeightG: '4500',
       sizePurchased: '',
       wouldRecommend: 'false',
     });
     expect(r).toMatchObject({
       rating: 4,
-      petAgeMonths: 18,
-      petWeightG: 4500,
       wouldRecommend: false,
     });
     expect(r.sizePurchased).toBeUndefined();
@@ -39,9 +35,6 @@ describe('reviewInputSchema', () => {
     ['short title', { title: 'ok' }],
     ['short body', { body: 'too short' }],
     ['long body', { body: 'x'.repeat(2001) }],
-    ['fractional weight', { petWeightG: 4.5 }],
-    ['negative age', { petAgeMonths: -1 }],
-    ['absurd weight', { petWeightG: 999_999 }],
   ])('rejects %s', (_name, patch) => {
     expect(reviewInputSchema.safeParse({ ...valid, ...patch }).success).toBe(false);
   });

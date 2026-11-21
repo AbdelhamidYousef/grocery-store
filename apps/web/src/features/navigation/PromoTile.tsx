@@ -13,7 +13,7 @@ export function PromoTile({ promo, onNavigate }: { promo: NavPromo; onNavigate?:
         width={320}
         height={200}
         loading="lazy"
-        className="aspect-[8/5] w-full rounded-control bg-pet-soft object-cover"
+        className="aspect-[8/5] w-full rounded-control bg-dept-soft object-cover"
       />
       <span className="mt-2 block break-words font-display text-lg font-bold">{promo.title}</span>
       {promo.subtitle && (
@@ -21,7 +21,7 @@ export function PromoTile({ promo, onNavigate }: { promo: NavPromo; onNavigate?:
       )}
     </>
   );
-  const className = 'block min-h-11 rounded-card border-2 border-line p-2 hover:bg-pet-soft';
+  const className = 'block min-h-11 rounded-card border-2 border-line p-2 hover:bg-dept-soft';
   return external ? (
     <a
       href={promo.link}

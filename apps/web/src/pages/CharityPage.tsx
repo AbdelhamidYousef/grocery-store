@@ -22,11 +22,11 @@ export default function CharityPage() {
         canonical="/charity"
       />
       <h1 className="font-display text-3xl font-bold sm:text-4xl">
-        {data?.charity.name ?? 'Whisker Hollow Rescue'}
+        {data?.charity.name ?? 'Spreeufer Food Bank'}
       </h1>
       <p
         role="note"
-        className="mt-3 rounded-control border-2 border-line bg-pet-soft p-3 font-semibold"
+        className="mt-3 rounded-control border-2 border-line bg-dept-soft p-3 font-semibold"
       >
         {t('loyalty.charity.note')}
       </p>
@@ -35,7 +35,7 @@ export default function CharityPage() {
       {data && (
         <>
           <p className="mt-6 max-w-prose text-lg">{data.charity.description}</p>
-          <div className="mt-6 rounded-card bg-pet-soft p-5">
+          <div className="mt-6 rounded-card bg-dept-soft p-5">
             <p className="text-sm text-muted">{t('loyalty.charity.given')}</p>
             <p className="font-display text-4xl font-bold" data-testid={TEST_IDS.charityAmount}>
               {fmt.money(data.totalCents)}

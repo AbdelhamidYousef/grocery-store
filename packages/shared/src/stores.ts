@@ -45,7 +45,7 @@ export const STORES: readonly StoreView[] = [
   },
 ];
 
-/** Prefixes of the old multi-country shop (Pawsome): they land on the English view. */
+/** Prefixes of the old multi-country shop of the first version of the shop: they land on the English view. */
 export const LEGACY_STORE_CODES = ['eu-en', 'uk-en', 'fr-fr'] as const;
 
 export const DEFAULT_STORE: StoreView = STORES[0] as StoreView;

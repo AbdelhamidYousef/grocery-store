@@ -156,3 +156,31 @@ Gates green: shared 260, web 900, API 1,361 + 2 skipped, e2e 75 + 1 skipped. Hea
    for the primary green?
 3. Why is the logo an inline SVG using CSS variables instead of a PNG, and what must you remember to
    change together when the mark changes?
+
+## Phase G3: Catalogue
+
+### G3.1 to G3.3: departments, food information, catalogue seed (one commit)
+Built on 2026-11-15, committed on 2026-11-21 as one commit (decisions log: the steps were done
+together and would not pass the gates apart).
+- **Departments replace pets.** Migration 0044 adds the new columns, backfills them, then drops the old
+  ones: `menu_promos.pet` → `category_id` (null = any department), newsletter `pets` → `interests`
+  (empty = everything), testimonial `pet` → `area` (a Berlin district), review pet age/weight gone,
+  the `pet_species` enum dropped. `DEPARTMENTS` in `@store/shared`, `DepartmentTiles` (was
+  `PetTiles`), one accent colour per department in `tokens.css`, the mega-menu per department.
+- **Food information.** Migration 0045: `nutrition` (jsonb, per 100 g/ml, tenths of a gram),
+  `ingredients`, `allergens` (the 14 EU allergens) and `dietary` (GIN-indexed). Shared Zod schemas in
+  `food.ts`, a PDP "Nutrition & ingredients" tab (`NutritionPanel`, allergens in bold) and `?diet=`
+  as a PLP filter.
+- **Catalogue seed.** `seed/catalogue.ts` reads `docs/plan/data/catalogue.json` (8 brands, 10
+  departments, 120 products, 98 with nutrition) and checks it with Zod, so a typo fails the seed with
+  the product named. Pet seed files, guides and photos are gone; five recipe/tip guides, Berlin
+  testimonials and food-bank charity replace them. SVG placeholders per department
+  (`tools/make-placeholders.ts`), photos for the first four fruit products, and the home hero with
+  the postcode box (G3.5) came along.
+- **Clean-up before the commit:** lint (import order, two `any` matchers, redundant union types,
+  `tools/**` out of ESLint), and three tests half-renamed from Pawsome (`paws10` vs `GROCERY10`, a
+  testimonial still sending `pet`). The reward code prefix `PAWS-` became `REWARD-`, next to
+  `FRIEND-` and `WELCOME-`.
+Gates green: shared 270, web 920, API 1,377 + 2 skipped (e2e at phase end).
+Learn: when a column other data depends on changes, do it in one migration in three moves (add,
+backfill, drop), so no row is ever left pointing at nothing.

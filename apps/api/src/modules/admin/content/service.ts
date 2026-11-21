@@ -170,7 +170,7 @@ export async function deleteHelp(id: string): Promise<void> {
 const toTestimonial = (r: AdminTestimonial): AdminTestimonial => ({
   id: r.id,
   name: r.name,
-  pet: r.pet,
+  area: r.area,
   rating: r.rating,
   quote: r.quote,
   isFeatured: r.isFeatured,

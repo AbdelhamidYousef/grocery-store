@@ -17,8 +17,8 @@ beforeEach(async () => {
   app = makeTestApp();
   await createShippingMethods();
   await db.insert(charities).values({
-    slug: 'whisker-hollow-rescue',
-    name: 'Whisker Hollow Rescue',
+    slug: 'spreeufer-food-bank',
+    name: 'Spreeufer Food Bank',
     description: 'A fictional shelter.',
   });
 });

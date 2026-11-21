@@ -12,7 +12,7 @@ beforeEach(() => {
 
 const code = (over: Record<string, unknown> = {}) => ({
   id: 'c1',
-  code: 'PAWS10',
+  code: 'GROCERY10',
   kind: 'percent',
   value: 10,
   minSpendCents: 3000,
@@ -156,7 +156,7 @@ describe('discount codes screen', () => {
     renderApp('/admin/promotions/codes');
     await userEvent.click(await screen.findByRole('button', { name: 'New code' }));
     const form = await screen.findByTestId('admin-code-form');
-    await userEvent.type(within(form).getByLabelText('Code'), 'paws10');
+    await userEvent.type(within(form).getByLabelText('Code'), 'grocery10');
     await userEvent.type(within(form).getByLabelText('Percentage'), '10');
     await userEvent.click(within(form).getByRole('button', { name: 'Create code' }));
     expect(await within(form).findByRole('alert')).toHaveTextContent('already exists');

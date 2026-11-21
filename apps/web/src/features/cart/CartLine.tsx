@@ -95,10 +95,10 @@ export function CartLine({
             width={96}
             height={96}
             loading="lazy"
-            className={cn(imageSize, 'rounded-control bg-pet-soft object-cover')}
+            className={cn(imageSize, 'rounded-control bg-dept-soft object-cover')}
           />
         ) : (
-          <span className={cn(imageSize, 'block rounded-control bg-pet-soft')} />
+          <span className={cn(imageSize, 'block rounded-control bg-dept-soft')} />
         )}
       </Link>
 

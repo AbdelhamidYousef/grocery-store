@@ -4,7 +4,6 @@ import {
   AdminInventorySetSchema,
   AdminProductCreateSchema,
   AdminVariantInputSchema,
-  PET_VALUES,
   ProductStatusSchema,
   type AdminImageInput,
   type AdminProduct,
@@ -222,15 +221,11 @@ export const emptyImageForm: ImageFormInput = {
 
 // ---------- product ----------
 
-const PETS = PET_VALUES;
-const AGE_STAGES = ['puppy', 'kitten', 'adult', 'senior', 'all'] as const;
-export const PET_OPTIONS = PETS;
-export const AGE_STAGE_OPTIONS = AGE_STAGES;
+export const STORAGE_OPTIONS = ['ambient', 'chilled', 'frozen'] as const;
 
 const AttributesTextSchema = z.object({
-  pet: z.string(),
-  ageStage: z.string(),
-  material: z.string().trim(),
+  storage: z.string(),
+  origin: z.string().trim(),
   size: z.string().trim(),
   optionKeys: z.string().trim(),
 });
@@ -245,9 +240,8 @@ const AttributesFormSchema = AttributesTextSchema.transform((a) => {
     .map((k) => k.trim())
     .filter(Boolean);
   return {
-    ...(a.pet && { pet: a.pet }),
-    ...(a.ageStage && { ageStage: a.ageStage }),
-    ...(a.material && { material: a.material }),
+    ...(a.storage && { storage: a.storage }),
+    ...(a.origin && { origin: a.origin }),
     ...(a.size && { size: a.size }),
     ...(keys.length > 0 && { optionKeys: keys }),
   };
@@ -282,9 +276,8 @@ export function productDefaults(product?: AdminProduct): ProductFormInput {
     categoryId: product?.category.id ?? '',
     status: product?.status ?? 'draft',
     attributes: {
-      pet: text('pet'),
-      ageStage: text('ageStage'),
-      material: text('material'),
+      storage: text('storage'),
+      origin: text('origin'),
       size: text('size'),
       optionKeys: keys.join(', '),
     },

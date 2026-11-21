@@ -15,12 +15,11 @@ import { useCategories } from '../catalog/queries';
 
 import { adminErrorMessage } from './errors';
 import {
-  AGE_STAGE_OPTIONS,
   emptyImageForm,
   emptyVariantForm,
-  PET_OPTIONS,
   ProductFormSchema,
   productDefaults,
+  STORAGE_OPTIONS,
   toCreatePayload,
   toUpdatePayload,
   type ProductFormInput,
@@ -163,30 +162,22 @@ export function ProductForm({
 
       <fieldset className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <legend className="mb-1 font-display text-lg font-bold">Attributes</legend>
-        <Select label="Pet" error={errors.attributes?.pet?.message} {...register('attributes.pet')}>
-          <option value="">Not set</option>
-          {PET_OPTIONS.map((p) => (
-            <option key={p} value={p}>
-              {p}
-            </option>
-          ))}
-        </Select>
         <Select
-          label="Age stage"
-          error={errors.attributes?.ageStage?.message}
-          {...register('attributes.ageStage')}
+          label="Storage"
+          error={errors.attributes?.storage?.message}
+          {...register('attributes.storage')}
         >
           <option value="">Not set</option>
-          {AGE_STAGE_OPTIONS.map((p) => (
+          {STORAGE_OPTIONS.map((p) => (
             <option key={p} value={p}>
               {p}
             </option>
           ))}
         </Select>
         <Input
-          label="Material"
-          error={errors.attributes?.material?.message}
-          {...register('attributes.material')}
+          label="Origin"
+          error={errors.attributes?.origin?.message}
+          {...register('attributes.origin')}
         />
         <Input
           label="Size"

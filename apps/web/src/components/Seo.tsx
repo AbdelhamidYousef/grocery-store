@@ -73,7 +73,7 @@ export function Seo({
   }, [description]);
 
   const storePath = useStorePath();
-  // Root-relative (`/c/dogs`, not `//host`) means "a page of this shop": it gets the store prefix.
+  // Root-relative (`/c/bakery`, not `//host`) means "a page of this shop": it gets the store prefix.
   const isShopPath = canonical !== undefined && /^\/(?!\/)/.test(canonical);
   const canonicalHref = canonical !== undefined && isShopPath ? storePath(canonical) : canonical;
 

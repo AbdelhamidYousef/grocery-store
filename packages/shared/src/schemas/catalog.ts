@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { BADGES, BADGE_SLUGS } from '../badges.ts';
+import { DIETARY_SLUGS, FoodInfoSchema } from '../food.ts';
 import { NetUnitSchema } from '../unit-price.ts';
 
 import { BundleDetailSchema, KitTeaserSchema } from './bundles.ts';
@@ -12,7 +13,7 @@ import { SafetyNoticeSchema } from './safety.ts';
 
 // Attribute keys the shop filters and builds facets on. A constant, not "whatever is in the
 // jsonb", so the filter UI is predictable and the facet query stays cheap.
-export const FACET_KEYS = ['pet', 'material', 'ageStage'] as const;
+export const FACET_KEYS = ['storage', 'origin'] as const;
 export type FacetKey = (typeof FACET_KEYS)[number];
 
 // ---------- shared pieces ----------
@@ -43,7 +44,11 @@ export const CategorySchema = z.object({
   description: z.string().nullable(),
   parentId: z.string().nullable(),
   sortOrder: z.number().int(),
-  // Theme data for the per-pet look; only top-level categories have it.
+  // The top-level department this category belongs to, by its untranslated slug (the key of the
+  // department colours): the category's own slug when it is top-level. Slugs in `slug` follow the
+  // store language, this one never does.
+  departmentSlug: z.string(),
+  // Theme data for the department look; only top-level categories have it.
   accentColor: z.string().nullable(),
   icon: z.string().nullable(),
   // Active products in this category, children included, so a parent shows its true total.
@@ -51,7 +56,7 @@ export const CategorySchema = z.object({
 });
 export type Category = z.infer<typeof CategorySchema>;
 
-// The tree is one level deep (Dogs > Toys), so children are plain categories, no recursion.
+// The tree is one level deep (Dairy & eggs > Cheese), so children are plain categories, no recursion.
 export const CategoryNodeSchema = CategorySchema.extend({ children: z.array(CategorySchema) });
 export type CategoryNode = z.infer<typeof CategoryNodeSchema>;
 
@@ -81,10 +86,9 @@ export const SwatchSchema = z.object({
 export type Swatch = z.infer<typeof SwatchSchema>;
 
 export const CardAttributesSchema = z.object({
-  pet: z.string().optional(),
-  material: z.string().optional(),
+  storage: z.string().optional(),
+  origin: z.string().optional(),
   brand: z.string().optional(),
-  ageStage: z.string().optional(),
 });
 
 export const ProductCardSchema = z.object({
@@ -92,6 +96,8 @@ export const ProductCardSchema = z.object({
   slug: z.string(),
   name: z.string(),
   categorySlug: z.string(),
+  // The top-level department (its colours theme the card); the category itself when it is one.
+  departmentSlug: z.string(),
   image: ImageSchema.nullable(),
   price: PriceRangeSchema,
   inStock: z.boolean(),
@@ -127,6 +133,8 @@ export const FacetsSchema = z.object({
   brand: z.array(FacetValueSchema),
   tag: z.array(FacetValueSchema),
   badge: z.array(FacetValueSchema),
+  // Dietary tags (vegan, gluten-free, ...), counted over the same scope.
+  diet: z.array(FacetValueSchema),
   // Null when the current result set is empty.
   price: z.object({ min: z.number().int(), max: z.number().int() }).nullable(),
 });
@@ -184,13 +192,16 @@ export const ProductDetailSchema = z.object({
   category: BreadcrumbItemSchema,
   // Root first, current category last.
   breadcrumb: z.array(BreadcrumbItemSchema),
+  // The top-level department by its untranslated slug (see Category.departmentSlug).
+  departmentSlug: z.string(),
   attributes: z.object({
-    pet: z.string().optional(),
-    material: z.string().optional(),
+    storage: z.string().optional(),
+    origin: z.string().optional(),
     brand: z.string().optional(),
-    ageStage: z.string().optional(),
     size: z.string().optional(),
   }),
+  // Nutrition, ingredients, allergens and dietary tags; null for a product that is not food.
+  food: FoodInfoSchema.nullable(),
   brand: BrandRefSchema.nullable(),
   tags: z.array(z.object({ slug: z.string(), name: z.string() })),
   badges: z.array(BadgeSchema),
@@ -272,6 +283,12 @@ export const ProductListQuerySchema = z.preprocess(
     // OR within one filter, AND across filters (same rule as `attr`).
     brand: SlugListSchema.optional(),
     tag: SlugListSchema.optional(),
+    // Dietary needs are restrictions, so they AND: `?diet=vegan,gluten-free` is both at once.
+    diet: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : [v]).flatMap((s) => s.split(',')))
+      .pipe(z.array(z.enum(DIETARY_SLUGS)).min(1).max(DIETARY_SLUGS.length))
+      .optional(),
     badge: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : [v]).flatMap((s) => s.split(',')))

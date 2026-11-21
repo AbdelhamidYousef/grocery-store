@@ -2,6 +2,7 @@ import type { Facets, ProductListQuery } from '@store/shared';
 
 import { useT } from '../../i18n';
 import { useFormat } from '../../i18n/format';
+import { dietaryLabel, labelLang } from '../../lib/food-labels';
 import { TEST_IDS } from '../../lib/test-ids';
 
 import { facetLabel, formatFacetValue, priceChipLabel } from './filters';
@@ -19,6 +20,7 @@ interface AppliedFiltersProps {
 export function AppliedFilters({ query, facets, currency, update, onClear }: AppliedFiltersProps) {
   const { t } = useT();
   const fmt = useFormat();
+  const lang = labelLang(fmt.locale);
   const chips: { id: string; label: string; remove: () => void }[] = [];
 
   if (query.inStock)
@@ -48,6 +50,13 @@ export function AppliedFilters({ query, facets, currency, update, onClear }: App
       id: `tag:${slug}`,
       label: t('catalog.filters.chipHealth', { name: named(facets?.tag, slug) }),
       remove: () => update({ tag: (query.tag ?? []).filter((v) => v !== slug) }),
+    });
+  }
+  for (const slug of query.diet ?? []) {
+    chips.push({
+      id: `diet:${slug}`,
+      label: t('catalog.filters.chipDiet', { name: dietaryLabel(slug, lang) }),
+      remove: () => update({ diet: (query.diet ?? []).filter((v) => v !== slug) }),
     });
   }
   for (const slug of query.badge ?? []) {
@@ -84,7 +93,7 @@ export function AppliedFilters({ query, facets, currency, update, onClear }: App
             data-testid={TEST_IDS.filterChip}
             aria-label={t('catalog.filters.remove', { label: chip.label })}
             onClick={chip.remove}
-            className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-full bg-pet-soft px-4 text-left text-sm font-semibold text-pet-strong hover:brightness-95"
+            className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-full bg-dept-soft px-4 text-left text-sm font-semibold text-dept-strong hover:brightness-95"
           >
             <span className="min-w-0 break-words">{chip.label}</span>
             <span aria-hidden="true">&times;</span>

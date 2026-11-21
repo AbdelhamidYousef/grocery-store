@@ -2,8 +2,7 @@ import { z } from 'zod';
 
 import { DataSchema, PaginationMetaSchema } from './common.ts';
 
-// Customer reviews (phase 17). Weight is integer grams and age integer
-// months everywhere: no floats cross the wire.
+// Customer reviews (phase 17). No floats cross the wire.
 
 export const REVIEW_STATUSES = ['pending', 'approved', 'rejected'] as const;
 export const ReviewStatusSchema = z.enum(REVIEW_STATUSES);
@@ -11,13 +10,6 @@ export type ReviewStatus = z.infer<typeof ReviewStatusSchema>;
 
 export const MAX_REVIEW_PHOTOS = 3;
 export const MAX_REVIEW_PHOTO_BYTES = 3 * 1024 * 1024;
-
-// A form sends '' for an untouched number box: treat it as "not given".
-const optionalInt = (min: number, max: number, message: string) =>
-  z.preprocess(
-    (v) => (v === '' || v === null ? undefined : v),
-    z.coerce.number(message).int(message).min(min, message).max(max, message).optional(),
-  );
 
 export const reviewInputSchema = z.object({
   rating: z.coerce.number('Choose a star rating').int().min(1, 'Choose a star rating').max(5),
@@ -31,9 +23,6 @@ export const reviewInputSchema = z.object({
     .trim()
     .min(20, 'Please write at least 20 characters')
     .max(2000, 'At most 2000 characters'),
-  // Up to 50 years, in months; up to 120 kg (a very large dog), in grams.
-  petAgeMonths: optionalInt(0, 600, 'Enter an age between 0 and 600 months'),
-  petWeightG: optionalInt(50, 120_000, 'Enter a weight between 0.05 and 120 kg'),
   sizePurchased: z.preprocess(
     (v) => (v === '' || v === null ? undefined : v),
     z.string().trim().max(40).optional(),
@@ -68,8 +57,6 @@ export const ReviewSchema = z.object({
   body: z.string(),
   verifiedBuyer: z.boolean(),
   authorName: z.string(),
-  petAgeMonths: z.number().int().nullable(),
-  petWeightG: z.number().int().nullable(),
   sizePurchased: z.string().nullable(),
   wouldRecommend: z.boolean(),
   helpfulCount: z.number().int().min(0),
@@ -134,8 +121,6 @@ export const AdminReviewSchema = z.object({
   title: z.string(),
   body: z.string(),
   verifiedBuyer: z.boolean(),
-  petAgeMonths: z.number().int().nullable(),
-  petWeightG: z.number().int().nullable(),
   sizePurchased: z.string().nullable(),
   wouldRecommend: z.boolean(),
   status: ReviewStatusSchema,

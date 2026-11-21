@@ -23,8 +23,8 @@ beforeEach(() => {
         data: [
           makeCategory({
             id: 'parent',
-            name: 'Dogs',
-            children: [makeCategory({ id: CATEGORY_UUID, slug: 'dog-toys', name: 'Dog toys' })],
+            name: 'Dairy & eggs',
+            children: [makeCategory({ id: CATEGORY_UUID, slug: 'cheese', name: 'Dog toys' })],
           }),
         ],
       }),

@@ -101,7 +101,7 @@ export const routes: RouteObject[] = [
                   Component: (await import('./pages/ConfirmationPage')).default,
                 }),
               },
-              // Public on purpose: a guest keeps their pets in the browser (listed before the guarded
+              // Public on purpose: a guest can open this page (listed before the guarded
               // `account/*` splat, and a static path outranks a splat).
               // Guards are pathless layout routes: they render the matched child via <Outlet />.
               {

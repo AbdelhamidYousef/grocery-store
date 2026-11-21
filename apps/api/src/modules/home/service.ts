@@ -35,7 +35,7 @@ export async function getTestimonials(): Promise<TestimonialsResponse> {
       .select({
         id: testimonials.id,
         name: testimonials.name,
-        pet: testimonials.pet,
+        area: testimonials.area,
         rating: testimonials.rating,
         quote: testimonials.quote,
       })

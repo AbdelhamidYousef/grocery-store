@@ -8,7 +8,7 @@ const de = () => storeFromCode('de-de')!;
 
 describe('resolveEntry', () => {
   it('uses a valid prefix as the basename and leaves the URL alone', () => {
-    expect(resolveEntry(url('/de-de/c/dogs', '?sort=price'))).toEqual({
+    expect(resolveEntry(url('/de-de/c/dairy-eggs', '?sort=price'))).toEqual({
       basename: '/de-de',
       replaceWith: null,
     });
@@ -36,16 +36,16 @@ describe('resolveEntry', () => {
   });
 
   it('sends the prefixes of the old multi-country shop to the English view, keeping the rest', () => {
-    expect(resolveEntry(url('/eu-en/c/dogs', '?page=2', '#top'))).toEqual({
+    expect(resolveEntry(url('/eu-en/c/dairy-eggs', '?page=2', '#top'))).toEqual({
       basename: '/de-en',
-      replaceWith: '/de-en/c/dogs?page=2#top',
+      replaceWith: '/de-en/c/dairy-eggs?page=2#top',
     });
     expect(resolveEntry(url('/uk-en')).replaceWith).toBe('/de-en');
     expect(resolveEntry(url('/fr-fr/'), de).replaceWith).toBe('/de-en');
   });
 
   it('does not treat an unknown store-like prefix as a legacy path (it is a 404)', () => {
-    expect(resolveEntry(url('/xx-yy/c/dogs'))).toEqual({ basename: '', replaceWith: null });
+    expect(resolveEntry(url('/xx-yy/c/dairy-eggs'))).toEqual({ basename: '', replaceWith: null });
   });
 });
 

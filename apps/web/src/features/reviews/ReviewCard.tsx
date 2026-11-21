@@ -11,7 +11,7 @@ import { loginUrl } from '../../lib/safe-next';
 import { TEST_IDS } from '../../lib/test-ids';
 import { useAuth } from '../auth/AuthProvider';
 
-import { petContextLine } from './format';
+import { reviewContextLine } from './format';
 import { useHelpful } from './queries';
 import { RatingStars } from './RatingStars';
 
@@ -23,7 +23,7 @@ export function ReviewCard({ review }: { review: Review }) {
   const location = useLocation();
   const helpful = useHelpful();
   const [open, setOpen] = useState<string | null>(null);
-  const context = petContextLine(review, { t, tn, locale: fmt.locale });
+  const context = reviewContextLine(review, { t, tn, locale: fmt.locale });
 
   return (
     <li
@@ -44,7 +44,7 @@ export function ReviewCard({ review }: { review: Review }) {
           </Badge>
         )}
       </p>
-      {context && <p className="text-sm font-semibold text-pet-strong">{context}</p>}
+      {context && <p className="text-sm font-semibold text-dept-strong">{context}</p>}
       <p className="whitespace-pre-line break-words">{review.body}</p>
       <p className="text-sm">
         {review.wouldRecommend ? t('reviews.card.recommend') : t('reviews.card.notRecommend')}

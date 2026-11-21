@@ -46,7 +46,7 @@ export function Pagination({ page, totalPages, hrefFor }: PaginationProps) {
             <Link
               to={hrefFor(page - 1)}
               rel="prev"
-              className={cn(item, 'border-2 border-ink hover:bg-pet-soft')}
+              className={cn(item, 'border-2 border-ink hover:bg-dept-soft')}
             >
               <ChevronRightIcon className="mr-1 rotate-180" width={16} height={16} />{' '}
               {t('catalog.pagination.prev')}
@@ -69,7 +69,7 @@ export function Pagination({ page, totalPages, hrefFor }: PaginationProps) {
                 to={hrefFor(p)}
                 aria-label={t('catalog.pagination.page', { page: p })}
                 aria-current={p === page ? 'page' : undefined}
-                className={cn(item, p === page ? 'bg-ink text-surface' : 'hover:bg-pet-soft')}
+                className={cn(item, p === page ? 'bg-ink text-surface' : 'hover:bg-dept-soft')}
               >
                 {p}
               </Link>
@@ -81,7 +81,7 @@ export function Pagination({ page, totalPages, hrefFor }: PaginationProps) {
             <Link
               to={hrefFor(page + 1)}
               rel="next"
-              className={cn(item, 'border-2 border-ink hover:bg-pet-soft')}
+              className={cn(item, 'border-2 border-ink hover:bg-dept-soft')}
             >
               {t('catalog.pagination.next')}{' '}
               <ChevronRightIcon className="ml-1" width={16} height={16} />

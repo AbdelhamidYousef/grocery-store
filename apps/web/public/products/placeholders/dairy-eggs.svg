@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Dairy & eggs">
+<rect width="200" height="200" fill="#e0f2fe"/>
+<circle cx="100" cy="100" r="62" fill="#7dd3fc" fill-opacity="0.55"/>
+<g transform="translate(52 52) scale(4)" fill="none" stroke="#075985" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8.500 3h7l1.500 4v13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V7l1.500-4z"/><path d="M7 8.500h10"/><path d="M12 12.500c-1.500 1.800-2 2.500-2 3.300a2 2 0 0 0 4 0c0-.8-.5-1.500-2-3.300z"/></g>
+</svg>

@@ -1,10 +1,10 @@
+import { DEPARTMENTS } from '@store/shared';
 import { Link } from 'react-router-dom';
 
 import { Container } from '../components/layout/Container';
 import { Seo } from '../components/Seo';
-import { petName } from '../features/navigation/pet-names';
+import { departmentName } from '../features/navigation/department-names';
 import { useT, type StringKey } from '../i18n';
-import { PETS } from '../lib/pets';
 
 type What = 'page' | 'product' | 'category' | 'brand' | 'collection' | 'guide';
 
@@ -48,13 +48,13 @@ export default function NotFoundPage({ what = 'page' }: { what?: What }) {
       </Link>
       <p className="mt-8 text-sm font-semibold text-muted">{t('shell.notFound.orLookAt')}</p>
       <ul className="mt-3 flex flex-wrap justify-center gap-2">
-        {PETS.map((pet) => (
-          <li key={pet.slug} data-pet={pet.accent}>
+        {DEPARTMENTS.map((dept) => (
+          <li key={dept.slug} data-dept={dept.slug}>
             <Link
-              to={`/c/${pet.slug}`}
-              className="inline-flex min-h-11 items-center rounded-full bg-pet-soft px-4 font-display font-semibold text-pet-strong"
+              to={`/c/${dept.slug}`}
+              className="inline-flex min-h-11 items-center rounded-full bg-dept-soft px-4 font-display font-semibold text-dept-strong"
             >
-              {petName(t, pet)}
+              {departmentName(t, dept)}
             </Link>
           </li>
         ))}

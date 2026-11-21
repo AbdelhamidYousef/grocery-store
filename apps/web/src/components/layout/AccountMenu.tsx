@@ -38,7 +38,7 @@ export function AccountMenu() {
   }, [open]);
 
   const itemClass =
-    'flex min-h-11 items-center rounded-control px-3 font-semibold hover:bg-pet-soft';
+    'flex min-h-11 items-center rounded-control px-3 font-semibold hover:bg-dept-soft';
 
   return (
     <div ref={wrapper} className="relative">
@@ -49,7 +49,7 @@ export function AccountMenu() {
         aria-label={t('shell.account.label')}
         data-testid="account-menu-button"
         onClick={() => setOpen((v) => !v)}
-        className="flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-control px-2 hover:bg-pet-soft"
+        className="flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-control px-2 hover:bg-dept-soft"
       >
         <UserIcon />
         {user && (

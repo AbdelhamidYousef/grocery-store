@@ -11,7 +11,7 @@ export function DeliveryPanel({ note }: { note: string | null }) {
       {note && (
         <p
           data-testid="delivery-note"
-          className="rounded-card border-2 border-pet bg-pet-soft p-3 font-semibold"
+          className="rounded-card border-2 border-dept-strong bg-dept-soft p-3 font-semibold"
         >
           {note}
         </p>

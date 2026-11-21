@@ -141,6 +141,10 @@ async function loadProduct(run: typeof db | Tx, id: string): Promise<AdminProduc
     isEco: product.isEco,
     isBestsellerOverride: product.isBestsellerOverride,
     badgeNewUntil: product.badgeNewUntil?.toISOString() ?? null,
+    nutrition: product.nutrition,
+    ingredients: product.ingredients,
+    allergens: product.allergens,
+    dietary: product.dietary,
     tags,
     variants: variants.map(toAdminVariant),
     images: images.map((i) => ({
@@ -283,6 +287,10 @@ export async function createProduct(input: ProductCreate, actor: string): Promis
         isEco: input.isEco,
         isBestsellerOverride: input.isBestsellerOverride,
         badgeNewUntil: input.badgeNewUntil ? new Date(input.badgeNewUntil) : null,
+        nutrition: input.nutrition,
+        ingredients: input.ingredients,
+        allergens: input.allergens,
+        dietary: input.dietary,
       });
 
       // The explicitly flagged variant is the default, else the first one.
@@ -332,6 +340,10 @@ export async function updateProduct(id: string, input: ProductUpdate): Promise<A
         ...(input.badgeNewUntil !== undefined && {
           badgeNewUntil: input.badgeNewUntil ? new Date(input.badgeNewUntil) : null,
         }),
+        ...(input.nutrition !== undefined && { nutrition: input.nutrition }),
+        ...(input.ingredients !== undefined && { ingredients: input.ingredients }),
+        ...(input.allergens !== undefined && { allergens: input.allergens }),
+        ...(input.dietary !== undefined && { dietary: input.dietary }),
       });
       if (input.images) {
         const idBySku = new Map(variants.map((v) => [v.sku, v.id]));

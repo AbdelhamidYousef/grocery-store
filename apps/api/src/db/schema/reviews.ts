@@ -40,9 +40,6 @@ export const reviews = pgTable(
     body: text('body').notNull(),
     // Computed by the server from a paid order, never accepted from the client.
     verifiedBuyer: boolean('verified_buyer').notNull().default(false),
-    // Integers only: months and grams, no floats (a 4.5 kg cat is 4500).
-    petAgeMonths: integer('pet_age_months'),
-    petWeightG: integer('pet_weight_g'),
     sizePurchased: text('size_purchased'),
     wouldRecommend: boolean('would_recommend').notNull(),
     status: reviewStatus('status').notNull().default('pending'),
@@ -58,8 +55,6 @@ export const reviews = pgTable(
     index('reviews_status_created_idx').on(t.status, t.createdAt),
     check('reviews_rating_check', sql`${t.rating} between 1 and 5`),
     check('reviews_helpful_check', sql`${t.helpfulCount} >= 0`),
-    check('reviews_pet_age_check', sql`${t.petAgeMonths} is null or ${t.petAgeMonths} >= 0`),
-    check('reviews_pet_weight_check', sql`${t.petWeightG} is null or ${t.petWeightG} > 0`),
   ],
 );
 

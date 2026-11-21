@@ -38,7 +38,7 @@ describe('emails without an order follow the store view the person used', () => 
     await makeShopper(app).call('post', '/newsletter/subscribe', {
       email: 'eve@grocery.test',
       consent: true,
-      pets: [],
+      interests: [],
     });
     await outbox.drain();
     expect(transport.sent[0]?.subject).toBe('Confirm your Grocery subscription');

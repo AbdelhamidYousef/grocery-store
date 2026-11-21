@@ -20,7 +20,6 @@ export * from './order-items.ts';
 export * from './order-status-history.ts';
 export * from './orders.ts';
 export * from './payments.ts';
-export * from './pet-species.ts';
 export * from './pdp-content.ts';
 export * from './points-ledger.ts';
 export * from './product-images.ts';

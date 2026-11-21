@@ -94,7 +94,7 @@ function Ready({ detail, back }: { detail: AdminReturnDetail; back: React.ReactN
       >
         <span>Return for order {r.orderNumber}</span>
         <Badge tone={RETURN_TONE[r.status]}>{RETURN_STATUS_LABELS[r.status]}</Badge>
-        {r.simulated && <Badge tone="pet">Simulated refund</Badge>}
+        {r.simulated && <Badge tone="dept">Simulated refund</Badge>}
       </h2>
       <p className="text-muted">
         {detail.email} · asked {formatDate(r.createdAt, true)} · {RETURN_REASON_LABELS[r.reason]}
@@ -151,7 +151,7 @@ function Ready({ detail, back }: { detail: AdminReturnDetail; back: React.ReactN
       {can('refunded') && (
         <div className="flex flex-col gap-2">
           {detail.simulatedMode && (
-            <p role="note" className="rounded-control bg-pet-soft p-2 text-sm">
+            <p role="note" className="rounded-control bg-dept-soft p-2 text-sm">
               Demo mode: no payment provider is connected, so this refund will be recorded as
               simulated and no money moves.
             </p>

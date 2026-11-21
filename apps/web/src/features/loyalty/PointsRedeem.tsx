@@ -48,7 +48,7 @@ export function PointsRedeem({
   return (
     <div
       data-testid={TEST_IDS.pointsRedeem}
-      className="mb-4 rounded-card border-2 border-line bg-pet-soft p-4"
+      className="mb-4 rounded-card border-2 border-line bg-dept-soft p-4"
     >
       <label htmlFor={id} className="font-display font-bold">
         {t('loyalty.redeem.title')}

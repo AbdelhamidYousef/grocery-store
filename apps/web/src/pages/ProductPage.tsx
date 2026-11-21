@@ -37,7 +37,7 @@ import { useCanonicalSlug } from '../features/stores/useCanonicalSlug';
 import { WishlistHeart } from '../features/wishlist/WishlistHeart';
 import { useT, type StringKey } from '../i18n';
 import { useFormat } from '../i18n/format';
-import { accentForPetAttribute, petBySlug } from '../lib/pets';
+import { useFoodLabels } from '../lib/food-labels';
 import { recordRecentlyViewed } from '../lib/recently-viewed';
 import { TEST_IDS } from '../lib/test-ids';
 import { track } from '../lib/track';
@@ -45,9 +45,8 @@ import { track } from '../lib/track';
 import NotFoundPage from './NotFoundPage';
 
 const ATTRIBUTE_LABELS: [keyof ProductDetail['attributes'], StringKey][] = [
-  ['pet', 'pdp.page.attr.pet'],
-  ['material', 'pdp.page.attr.material'],
-  ['ageStage', 'pdp.page.attr.ageStage'],
+  ['storage', 'pdp.page.attr.storage'],
+  ['origin', 'pdp.page.attr.origin'],
   ['size', 'pdp.page.attr.size'],
   ['brand', 'pdp.page.attr.brand'],
 ];
@@ -76,6 +75,7 @@ export default function ProductPage() {
 
 function ProductView({ product }: { product: ProductDetail }) {
   const { t, tn } = useT();
+  const foodLabels = useFoodLabels();
   const fmt = useFormat();
   const ratingText = (tenths: number) =>
     fmt.number(tenths / 10, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -117,8 +117,6 @@ function ProductView({ product }: { product: ProductDetail }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.id]);
 
-  const pet = petBySlug(product.breadcrumb[0]?.slug);
-  const accent = pet?.accent ?? accentForPetAttribute(product.attributes.pet);
   const crumbs: Crumb[] = [
     { label: t('pdp.page.home'), to: '/' },
     ...product.breadcrumb.map((b) => ({ label: b.name, to: `/c/${b.slug}` })),
@@ -130,7 +128,7 @@ function ProductView({ product }: { product: ProductDetail }) {
   });
 
   return (
-    <div data-pet={accent} data-testid={TEST_IDS.pageProduct}>
+    <div data-dept={product.departmentSlug} data-testid={TEST_IDS.pageProduct}>
       <Seo
         title={product.name}
         description={product.description.slice(0, 155)}
@@ -172,6 +170,11 @@ function ProductView({ product }: { product: ProductDetail }) {
                   </Badge>
                 )}
                 <ProductBadges badges={product.badges} />
+                {product.food?.dietary.map((d) => (
+                  <Badge key={d} tone="dept" data-testid="dietary-tag">
+                    {foodLabels.dietary(d)}
+                  </Badge>
+                ))}
               </div>
             </div>
 
@@ -184,27 +187,27 @@ function ProductView({ product }: { product: ProductDetail }) {
                 member={variant.member}
                 regularCents={variant.priceCents}
                 currency={variant.currency}
-                className="text-3xl text-pet-strong"
+                className="text-3xl text-dept-strong"
               />
             ) : variant?.sale ? (
               <SalePrice
                 sale={variant.sale}
                 currency={variant.currency}
-                className="text-3xl text-pet-strong"
+                className="text-3xl text-dept-strong"
               />
             ) : variant ? (
               <Price
                 cents={variant.priceCents}
                 compareAtCents={variant.compareAtPriceCents}
                 currency={variant.currency}
-                className="text-3xl text-pet-strong"
+                className="text-3xl text-dept-strong"
               />
             ) : (
               <Price
                 cents={product.price.minCents}
                 maxCents={product.price.maxCents}
                 currency={product.price.currency}
-                className="text-3xl text-pet-strong"
+                className="text-3xl text-dept-strong"
               />
             )}
 
@@ -222,7 +225,7 @@ function ProductView({ product }: { product: ProductDetail }) {
                 {variant.unitPrice && <UnitPriceNote />}
                 {variant.isTrial && (
                   <div className="mt-1 flex flex-col gap-1">
-                    <Badge tone="pet" data-testid={TEST_IDS.trialPill} className="w-fit">
+                    <Badge tone="dept" data-testid={TEST_IDS.trialPill} className="w-fit">
                       {t('pdp.page.trialSize')}
                     </Badge>
                     <p data-testid={TEST_IDS.trialNote} className="text-sm text-muted">
@@ -289,17 +292,17 @@ function ProductView({ product }: { product: ProductDetail }) {
           attributes={
             <dl
               data-testid={TEST_IDS.productAttributes}
-              className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 rounded-card bg-pet-soft p-4"
+              className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 rounded-card bg-dept-soft p-4"
             >
               {attributes.map(({ label, value }) => (
                 <div key={label} className="contents">
-                  <dt className="font-semibold text-pet-strong">{label}</dt>
+                  <dt className="font-semibold text-dept-strong">{label}</dt>
                   <dd className="min-w-0 break-words">{value}</dd>
                 </div>
               ))}
               {product.tags.length > 0 && (
                 <div className="contents">
-                  <dt className="font-semibold text-pet-strong">{t('pdp.page.attr.goodFor')}</dt>
+                  <dt className="font-semibold text-dept-strong">{t('pdp.page.attr.goodFor')}</dt>
                   <dd className="min-w-0 break-words">
                     {product.tags.map((tag) => tag.name).join(', ')}
                   </dd>

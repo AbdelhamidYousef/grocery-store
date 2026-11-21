@@ -54,7 +54,7 @@ export function TestimonialsAdmin() {
                 <p className="break-words">&ldquo;{t.quote}&rdquo;</p>
                 <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
                   <span>
-                    {t.name}, {t.pet}
+                    {t.name}, {t.area}
                   </span>
                   <span aria-label={`${t.rating} out of 5 stars`}>{'★'.repeat(t.rating)}</span>
                   {t.isFeatured && <Badge tone="primary">featured</Badge>}
@@ -91,7 +91,7 @@ function TestimonialForm({ item, onDone }: { item: AdminTestimonial | null; onDo
   const save = useSaveTestimonial(item?.id ?? null);
   const toast = useToast();
   const [name, setName] = useState(item?.name ?? '');
-  const [pet, setPet] = useState(item?.pet ?? '');
+  const [area, setArea] = useState(item?.area ?? '');
   const [rating, setRating] = useState(String(item?.rating ?? 5));
   const [quote, setQuote] = useState(item?.quote ?? '');
   const [isFeatured, setIsFeatured] = useState(item?.isFeatured ?? false);
@@ -101,7 +101,7 @@ function TestimonialForm({ item, onDone }: { item: AdminTestimonial | null; onDo
     e.preventDefault();
     setMessage(null);
     save.mutate(
-      { name, pet, rating: Number(rating), quote, isFeatured },
+      { name, area, rating: Number(rating), quote, isFeatured },
       {
         onSuccess: () => {
           toast.show(item ? 'Testimonial saved' : 'Testimonial created', 'success');
@@ -127,7 +127,13 @@ function TestimonialForm({ item, onDone }: { item: AdminTestimonial | null; onDo
           onChange={(e) => setName(e.target.value)}
           required
         />
-        <Input label="Pet" value={pet} onChange={(e) => setPet(e.target.value)} required />
+        <Input
+          label="Area"
+          hint="A Berlin district, shown under the name."
+          value={area}
+          onChange={(e) => setArea(e.target.value)}
+          required
+        />
         <Select label="Rating" value={rating} onChange={(e) => setRating(e.target.value)}>
           {[5, 4, 3, 2, 1].map((n) => (
             <option key={n} value={n}>

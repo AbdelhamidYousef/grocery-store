@@ -30,7 +30,7 @@ export function WishlistItemCard({
     >
       <Link
         to={`/products/${item.slug}`}
-        className="h-24 w-24 shrink-0 overflow-hidden rounded-control bg-pet-soft"
+        className="h-24 w-24 shrink-0 overflow-hidden rounded-control bg-dept-soft"
       >
         {item.image && (
           <img
@@ -111,7 +111,7 @@ export default function WishlistPage() {
           <section
             aria-labelledby="share-heading"
             data-testid={TEST_IDS.wishlistShare}
-            className="mt-8 max-w-xl rounded-card border-2 border-line bg-pet-soft p-4"
+            className="mt-8 max-w-xl rounded-card border-2 border-line bg-dept-soft p-4"
           >
             <h2 id="share-heading" className="font-display text-xl font-bold">
               {t('loyalty.wishlist.shareTitle')}

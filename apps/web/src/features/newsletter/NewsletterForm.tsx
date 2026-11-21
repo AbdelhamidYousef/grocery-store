@@ -1,4 +1,4 @@
-import { NewsletterSubscribeSchema } from '@store/shared';
+import { DEPARTMENTS, NewsletterSubscribeSchema } from '@store/shared';
 import { useMutation } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
 
@@ -8,19 +8,14 @@ import { Button } from '../../components/ui/Button';
 import { Checkbox } from '../../components/ui/Checkbox';
 import { Input } from '../../components/ui/Input';
 import { useT } from '../../i18n';
-import { PETS } from '../../lib/pets';
 import { TEST_IDS } from '../../lib/test-ids';
 import { track } from '../../lib/track';
-import { petName } from '../navigation/pet-names';
-
-// The attribute value a pet carries (`small`, not the `small-pets` slug).
-const PET_VALUE: Record<string, string> = { 'small-pets': 'small' };
-const petValue = (slug: string): string => PET_VALUE[slug] ?? slug.replace(/s$/, '');
+import { departmentName } from '../navigation/department-names';
 
 export function NewsletterForm() {
   const { t, tm } = useT();
   const [email, setEmail] = useState('');
-  const [pets, setPets] = useState<string[]>([]);
+  const [interests, setInterests] = useState<string[]>([]);
   const [consent, setConsent] = useState(false);
   const [website, setWebsite] = useState('');
   const [error, setError] = useState<string | undefined>();
@@ -28,12 +23,12 @@ export function NewsletterForm() {
 
   const send = useMutation({
     mutationFn: subscribeNewsletter,
-    onSuccess: () => track({ name: 'newsletter_subscribe', pets: pets.length }),
+    onSuccess: () => track({ name: 'newsletter_subscribe', interests: interests.length }),
   });
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    const parsed = NewsletterSubscribeSchema.safeParse({ email, pets, consent, website });
+    const parsed = NewsletterSubscribeSchema.safeParse({ email, interests, consent, website });
     if (!parsed.success) {
       const emailIssue = parsed.error.issues.find((i) => i.path[0] === 'email');
       setError(emailIssue ? tm(emailIssue.message) : undefined);
@@ -85,23 +80,20 @@ export function NewsletterForm() {
         error={error}
       />
       <fieldset className="flex flex-col">
-        <legend className="font-semibold">{t('loyalty.newsletter.pets')}</legend>
+        <legend className="font-semibold">{t('loyalty.newsletter.interests')}</legend>
         <div className="flex flex-wrap gap-x-5">
-          {PETS.map((p) => {
-            const value = petValue(p.slug);
-            return (
-              <Checkbox
-                key={p.slug}
-                label={petName(t, p)}
-                checked={pets.includes(value)}
-                onChange={(e) =>
-                  setPets((cur) =>
-                    e.target.checked ? [...cur, value] : cur.filter((v) => v !== value),
-                  )
-                }
-              />
-            );
-          })}
+          {DEPARTMENTS.map((d) => (
+            <Checkbox
+              key={d.slug}
+              label={departmentName(t, d)}
+              checked={interests.includes(d.slug)}
+              onChange={(e) =>
+                setInterests((cur) =>
+                  e.target.checked ? [...cur, d.slug] : cur.filter((v) => v !== d.slug),
+                )
+              }
+            />
+          ))}
         </div>
       </fieldset>
       <Checkbox

@@ -14,44 +14,60 @@ import {
 interface BundleSeed {
   slug: string;
   name: string;
+  nameDe: string;
   description: string;
+  descriptionDe: string;
   sku: string;
   parts: { productSlug: string; qty: number }[];
 }
 
 export const bundleSeeds: BundleSeed[] = [
   {
-    slug: 'fetch-play-kit',
-    name: 'Fetch & Tug Play Kit',
+    slug: 'sunday-breakfast-kit',
+    name: 'Sunday breakfast kit',
+    nameDe: 'Sonntagsfrühstück-Set',
     description:
-      'Everything for a good game of fetch and tug in one box: a braided rope, a bouncy rubber ball and a squeaky fox to cuddle afterwards.',
-    sku: 'KIT-FETCH',
+      'Six fresh rolls, ten free-range eggs, a block of butter and a jar of strawberry jam: a slow breakfast for the whole table.',
+    descriptionDe:
+      'Sechs frische Brötchen, zehn Freilandeier, ein Stück Butter und ein Glas Erdbeermarmelade: ein langes Frühstück für den ganzen Tisch.',
+    sku: 'KIT-BREAKFAST',
     parts: [
-      { productSlug: 'braided-tug-rope', qty: 1 },
-      { productSlug: 'bouncy-rubber-ball', qty: 1 },
-      { productSlug: 'squeaky-fox-plush', qty: 1 },
+      { productSlug: 'broetchen-6', qty: 1 },
+      { productSlug: 'free-range-eggs-10', qty: 1 },
+      { productSlug: 'butter-250g', qty: 1 },
+      { productSlug: 'strawberry-jam', qty: 1 },
     ],
   },
   {
-    slug: 'dinner-time-kit',
-    name: 'Dinner Time Kit',
+    slug: 'pasta-night-kit',
+    name: 'Pasta night kit',
+    nameDe: 'Pasta-Abend-Set',
     description:
-      'A steel bowl for meals, a slow-feeder maze for slower gulps, and two bags of treats for training and rewards.',
-    sku: 'KIT-DINNER',
+      'Two packs of spaghetti, two tins of chopped tomatoes, olive oil and fresh mozzarella: dinner for four in fifteen minutes.',
+    descriptionDe:
+      'Zwei Packungen Spaghetti, zwei Dosen gehackte Tomaten, Olivenöl und frischer Mozzarella: Abendessen für vier in fünfzehn Minuten.',
+    sku: 'KIT-PASTA',
     parts: [
-      { productSlug: 'steel-feeding-bowl', qty: 1 },
-      { productSlug: 'maze-slow-feeder', qty: 1 },
-      { productSlug: 'soft-training-bites', qty: 2 },
+      { productSlug: 'spaghetti-500g', qty: 2 },
+      { productSlug: 'chopped-tomatoes', qty: 2 },
+      { productSlug: 'olive-oil-500ml', qty: 1 },
+      { productSlug: 'mozzarella', qty: 1 },
     ],
   },
   {
-    slug: 'walkies-starter-kit',
-    name: 'Walkies Starter Kit',
-    description: 'A collar and a reflective leash that match for a first walk, or a fresh start.',
-    sku: 'KIT-WALKIES',
+    slug: 'clean-home-kit',
+    name: 'Clean home kit',
+    nameDe: 'Sauber-Zuhause-Set',
+    description:
+      'An all-purpose cleaner, a glass cleaner, six sponges and washing-up liquid: the basics for a cleaning day.',
+    descriptionDe:
+      'Ein Allzweckreiniger, ein Glasreiniger, sechs Schwämme und Spülmittel: die Grundausstattung für den Putztag.',
+    sku: 'KIT-CLEAN',
     parts: [
-      { productSlug: 'everyday-webbing-collar', qty: 1 },
-      { productSlug: 'reflective-walking-leash', qty: 1 },
+      { productSlug: 'all-purpose-cleaner', qty: 1 },
+      { productSlug: 'glass-cleaner', qty: 1 },
+      { productSlug: 'kitchen-sponges-6', qty: 1 },
+      { productSlug: 'dish-soap-500ml', qty: 1 },
     ],
   },
 ];
@@ -103,7 +119,7 @@ export async function seedBundles(tx: Tx): Promise<void> {
         brandId: first.brandId,
         status: 'active',
         kind: 'bundle',
-        attributes: first.attributes.pet ? { pet: first.attributes.pet } : {},
+        attributes: {},
       })
       .onConflictDoUpdate({
         target: products.slug,

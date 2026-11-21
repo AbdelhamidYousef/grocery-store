@@ -18,12 +18,12 @@ export const loyalty: Record<keyof typeof enNs, Entry> = {
 
   // Footer note and charity page
   'loyalty.charityNote.text':
-    '(ein erfundenes Tierheim) hat bisher {amount} erhalten. Nur eine Demo: Es fließt kein Geld.',
-  'loyalty.charity.seoTitle': 'Unser Tierheim',
+    '(eine erfundene Tafel) hat bisher {amount} erhalten. Nur eine Demo: Es fließt kein Geld.',
+  'loyalty.charity.seoTitle': 'Unsere Tafel',
   'loyalty.charity.seoDescription':
-    'Whisker Hollow Rescue, das (fiktive) Tierheim, das Grocery unterstützt. Eine Demo: Es fließt kein Geld.',
+    'Spreeufer Food Bank, die (fiktive) Tafel, die Grocery unterstützt. Eine Demo: Es fließt kein Geld.',
   'loyalty.charity.note':
-    'Dies ist ein Demo-Shop und das Tierheim ist erfunden. Spenden werden hier gezählt, aber es fließt nirgendwohin Geld.',
+    'Dies ist ein Demo-Shop und die Tafel ist erfunden. Spenden werden hier gezählt, aber es fließt nirgendwohin Geld.',
   'loyalty.charity.error': 'Die Summe konnte gerade nicht geladen werden.',
   'loyalty.charity.given': 'Bisher gespendet',
   'loyalty.charity.donations': { one: 'aus {count} Spende', other: 'aus {count} Spenden' },
@@ -75,10 +75,10 @@ export const loyalty: Record<keyof typeof enNs, Entry> = {
   'loyalty.rewards.giveAwayTitle': 'Oder verschenken',
   'loyalty.rewards.donate.giveTo': 'Punkte spenden an',
   'loyalty.rewards.donate.aboutShelter':
-    ', ein erfundenes Tierheim (1 Punkt = 1 Cent; nur Demo, es fließt kein Geld).',
+    ', eine erfundene Tafel (1 Punkt = 1 Cent; nur Demo, es fließt kein Geld).',
   'loyalty.rewards.donate.label': 'Zu spendende Punkte',
   'loyalty.rewards.donate.button': 'Spenden',
-  'loyalty.rewards.donate.thanks': 'Danke! {points} Punkte gingen an das Tierheim.',
+  'loyalty.rewards.donate.thanks': 'Danke! {points} Punkte gingen an die Tafel.',
   'loyalty.rewards.donate.failed': 'Das konnte nicht gespendet werden.',
   'loyalty.rewards.codesTitle': 'Deine Codes',
   'loyalty.rewards.codesEmpty':
@@ -140,7 +140,7 @@ export const loyalty: Record<keyof typeof enNs, Entry> = {
     'Neuigkeiten und hin und wieder ein Angebot. Zuerst schicken wir einen Bestätigungslink, und jede Nachricht lässt sich mit einem Klick abbestellen. Lies die',
   'loyalty.newsletter.privacyLink': 'Datenschutzerklärung',
   'loyalty.newsletter.email': 'E-Mail',
-  'loyalty.newsletter.pets': 'Welche Tiere hast du?',
+  'loyalty.newsletter.interests': 'Welche Abteilungen interessieren dich?',
   'loyalty.newsletter.consent':
     'Schick mir Grocery-News und Angebote. Ich kann mich jederzeit mit einem Klick abmelden.',
   'loyalty.newsletter.consentRequired': 'Bitte setze das Häkchen, um zu abonnieren',

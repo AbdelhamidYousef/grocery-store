@@ -33,7 +33,7 @@ describe('GET /api/v1/products — base list', () => {
   it('returns card fields: price range, stock flag, primary image, attribute subset', async () => {
     await createProduct({
       name: 'Rope',
-      attributes: { pet: 'dog', material: 'cotton', optionKeys: ['size'], size: 'L' },
+      attributes: { storage: 'chilled', origin: 'spain', optionKeys: ['size'], size: 'L' },
       variants: [
         { options: { size: 'S' }, priceCents: 500 },
         { options: { size: 'L' }, priceCents: 900, stock: 0 },
@@ -49,7 +49,7 @@ describe('GET /api/v1/products — base list', () => {
       price: { minCents: 500, maxCents: 900, currency: 'EUR' },
       inStock: true,
       image: { url: '/a.webp', alt: 'A', width: 1200, height: 1200 },
-      attributes: { pet: 'dog', material: 'cotton' },
+      attributes: { storage: 'chilled', origin: 'spain' },
     });
     // Internal keys such as optionKeys never leave on a card.
     expect(body.data[0]?.attributes).not.toHaveProperty('optionKeys');
@@ -185,16 +185,16 @@ describe('GET /api/v1/products — pagination', () => {
 
 describe('GET /api/v1/products — filters', () => {
   it('filters by category and includes child categories', async () => {
-    const dogs = await createCategory({ slug: 'dogs', name: 'Dogs' });
-    const toys = await createCategory({ slug: 'dog-toys', name: 'Toys', parentId: dogs.id });
-    const cats = await createCategory({ slug: 'cats', name: 'Cats' });
-    await createProduct({ name: 'Direct', categoryId: dogs.id });
-    await createProduct({ name: 'Child', categoryId: toys.id });
-    await createProduct({ name: 'Other', categoryId: cats.id });
+    const dairy = await createCategory({ slug: 'dairy', name: 'Dairy' });
+    const cheese = await createCategory({ slug: 'cheese', name: 'Cheese', parentId: dairy.id });
+    const frozen = await createCategory({ slug: 'frozen', name: 'Frozen' });
+    await createProduct({ name: 'Direct', categoryId: dairy.id });
+    await createProduct({ name: 'Child', categoryId: cheese.id });
+    await createProduct({ name: 'Other', categoryId: frozen.id });
 
-    expect(names((await list('?category=dogs')).body).sort()).toEqual(['Child', 'Direct']);
-    expect(names((await list('?category=dog-toys')).body)).toEqual(['Child']);
-    expect(names((await list('?category=cats')).body)).toEqual(['Other']);
+    expect(names((await list('?category=dairy')).body).sort()).toEqual(['Child', 'Direct']);
+    expect(names((await list('?category=cheese')).body)).toEqual(['Child']);
+    expect(names((await list('?category=frozen')).body)).toEqual(['Other']);
   });
 
   it('returns an empty list for an unknown category', async () => {
@@ -237,32 +237,43 @@ describe('GET /api/v1/products — filters', () => {
   });
 
   it('filters by attribute: OR within a key, AND across keys', async () => {
-    await createProduct({ name: 'Plush dog', attributes: { pet: 'dog', material: 'plush' } });
-    await createProduct({ name: 'Rubber dog', attributes: { pet: 'dog', material: 'rubber' } });
-    await createProduct({ name: 'Plush cat', attributes: { pet: 'cat', material: 'plush' } });
-    await createProduct({ name: 'Wood cat', attributes: { pet: 'cat', material: 'wood' } });
+    await createProduct({
+      name: 'Spanish chilled',
+      attributes: { storage: 'chilled', origin: 'spain' },
+    });
+    await createProduct({
+      name: 'German chilled',
+      attributes: { storage: 'chilled', origin: 'germany' },
+    });
+    await createProduct({
+      name: 'Spanish frozen',
+      attributes: { storage: 'frozen', origin: 'spain' },
+    });
+    await createProduct({
+      name: 'Norwegian frozen',
+      attributes: { storage: 'frozen', origin: 'norway' },
+    });
 
-    expect(names((await list('?attr.material=plush,rubber')).body).sort()).toEqual([
-      'Plush cat',
-      'Plush dog',
-      'Rubber dog',
+    expect(names((await list('?attr.origin=spain,germany')).body).sort()).toEqual([
+      'German chilled',
+      'Spanish chilled',
+      'Spanish frozen',
     ]);
-    expect(names((await list('?attr.pet=dog&attr.material=plush,rubber')).body).sort()).toEqual([
-      'Plush dog',
-      'Rubber dog',
-    ]);
-    expect(names((await list('?attr.pet=cat&attr.material=rubber')).body)).toEqual([]);
+    expect(
+      names((await list('?attr.storage=chilled&attr.origin=spain,germany')).body).sort(),
+    ).toEqual(['German chilled', 'Spanish chilled']);
+    expect(names((await list('?attr.storage=frozen&attr.origin=germany')).body)).toEqual([]);
   });
 
   it('treats attribute values as data, not SQL', async () => {
-    await createProduct({ attributes: { material: 'plush' } });
-    const { res, body } = await list(`?attr.material=${encodeURIComponent(`x'} OR 1=1 --`)}`);
+    await createProduct({ attributes: { origin: 'spain' } });
+    const { res, body } = await list(`?attr.origin=${encodeURIComponent(`x'} OR 1=1 --`)}`);
     expect(res.status).toBe(200);
     expect(body.data).toEqual([]);
   });
 
   it('combines category, price, stock, attribute, sort and pagination', async () => {
-    const dogs = await createCategory({ slug: 'dogs', name: 'Dogs' });
+    const dairy = await createCategory({ slug: 'dairy', name: 'Dairy' });
     for (const [name, price, stock] of [
       ['A', 900, 5],
       ['B', 400, 5],
@@ -271,25 +282,25 @@ describe('GET /api/v1/products — filters', () => {
     ] as const) {
       await createProduct({
         name,
-        categoryId: dogs.id,
-        attributes: { pet: 'dog' },
+        categoryId: dairy.id,
+        attributes: { storage: 'chilled' },
         variants: [{ priceCents: price, stock }],
       });
     }
-    await createProduct({ name: 'Cat thing', attributes: { pet: 'cat' } });
+    await createProduct({ name: 'Frozen thing', attributes: { storage: 'frozen' } });
 
     const { body } = await list(
-      '?category=dogs&attr.pet=dog&inStock=true&minPrice=500&sort=price_asc&limit=1&page=2',
+      '?category=dairy&attr.storage=chilled&inStock=true&minPrice=500&sort=price_asc&limit=1&page=2',
     );
     expect(names(body)).toEqual(['A']);
     expect(body.meta).toMatchObject({ total: 2, totalPages: 2, page: 2 });
   });
 
   it('keeps meta.total consistent with the filters', async () => {
-    await createProduct({ attributes: { pet: 'dog' } });
-    await createProduct({ attributes: { pet: 'dog' } });
-    await createProduct({ attributes: { pet: 'cat' } });
-    expect((await list('?attr.pet=dog')).body.meta.total).toBe(2);
+    await createProduct({ attributes: { storage: 'chilled' } });
+    await createProduct({ attributes: { storage: 'chilled' } });
+    await createProduct({ attributes: { storage: 'frozen' } });
+    expect((await list('?attr.storage=chilled')).body.meta.total).toBe(2);
   });
 });
 
@@ -312,7 +323,7 @@ describe('GET /api/v1/products — full-text search', () => {
     });
     await createProduct({
       name: 'Seed Mix',
-      description: 'A tasty mix for your pet parrot or budgie.',
+      description: 'A tasty mix for your breakfast bowl.',
       createdAt: new Date('2026-01-04'),
     });
   }
@@ -320,7 +331,7 @@ describe('GET /api/v1/products — full-text search', () => {
   it('finds products by words in the name or description', async () => {
     await seedToys();
     expect(names((await list('?q=rope')).body).sort()).toEqual(['Braided Tug Rope', 'Rope Ball']);
-    expect(names((await list('?q=parrot')).body)).toEqual(['Seed Mix']);
+    expect(names((await list('?q=breakfast')).body)).toEqual(['Seed Mix']);
   });
 
   it('matches word forms through stemming (ropes finds rope, squeaking finds squeaks)', async () => {
@@ -351,10 +362,9 @@ describe('GET /api/v1/products — full-text search', () => {
     expect(names((await list(`?q=${encodeURIComponent('rope -ball')}`)).body)).toEqual([
       'Braided Tug Rope',
     ]);
-    expect(names((await list(`?q=${encodeURIComponent('parrot or fox')}`)).body).sort()).toEqual([
-      'Seed Mix',
-      'Squeaky Fox',
-    ]);
+    expect(names((await list(`?q=${encodeURIComponent('breakfast or fox')}`)).body).sort()).toEqual(
+      ['Seed Mix', 'Squeaky Fox'],
+    );
   });
 
   it('does not promise typo tolerance: a misspelling finds nothing', async () => {
@@ -386,10 +396,18 @@ describe('GET /api/v1/products — full-text search', () => {
   });
 
   it('combines search with filters and counts the matches', async () => {
-    await createProduct({ name: 'Dog rope', description: 'rope', attributes: { pet: 'dog' } });
-    await createProduct({ name: 'Cat rope', description: 'rope', attributes: { pet: 'cat' } });
-    const { body } = await list('?q=rope&attr.pet=dog');
-    expect(names(body)).toEqual(['Dog rope']);
+    await createProduct({
+      name: 'Chilled rope',
+      description: 'rope',
+      attributes: { storage: 'chilled' },
+    });
+    await createProduct({
+      name: 'Frozen rope',
+      description: 'rope',
+      attributes: { storage: 'frozen' },
+    });
+    const { body } = await list('?q=rope&attr.storage=chilled');
+    expect(names(body)).toEqual(['Chilled rope']);
     expect(body.meta.total).toBe(1);
   });
 
@@ -409,50 +427,49 @@ describe('GET /api/v1/products — facets', () => {
   const facets = async (query = '') => bodyOf<FacetBody>((await list(query)).res).facets;
 
   async function seed() {
-    const dogs = await createCategory({ slug: 'dogs', name: 'Dogs' });
-    const cats = await createCategory({ slug: 'cats', name: 'Cats' });
+    const dairy = await createCategory({ slug: 'dairy', name: 'Dairy' });
+    const frozen = await createCategory({ slug: 'frozen', name: 'Frozen' });
     await createProduct({
-      name: 'Plush dog toy',
-      description: 'squeaky',
-      categoryId: dogs.id,
-      attributes: { pet: 'dog', material: 'plush' },
+      name: 'Spanish chilled item',
+      description: 'creamy',
+      categoryId: dairy.id,
+      attributes: { storage: 'chilled', origin: 'spain' },
       variants: [{ priceCents: 500 }, { options: { v: '2' }, priceCents: 900 }],
     });
     await createProduct({
-      name: 'Rubber dog toy',
-      description: 'squeaky',
-      categoryId: dogs.id,
-      attributes: { pet: 'dog', material: 'rubber' },
+      name: 'German chilled item',
+      description: 'creamy',
+      categoryId: dairy.id,
+      attributes: { storage: 'chilled', origin: 'germany' },
       variants: [{ priceCents: 1500 }],
     });
     await createProduct({
-      name: 'Plush cat toy',
-      description: 'catnip',
-      categoryId: cats.id,
-      attributes: { pet: 'cat', material: 'plush' },
+      name: 'Spanish frozen item',
+      description: 'saffron',
+      categoryId: frozen.id,
+      attributes: { storage: 'frozen', origin: 'spain' },
       variants: [{ priceCents: 300 }],
     });
-    await createProduct({ name: 'Draft toy', status: 'draft', attributes: { pet: 'dog' } });
+    await createProduct({ name: 'Draft toy', status: 'draft', attributes: { storage: 'chilled' } });
   }
 
   it('returns every facet key, empty when there is no data, and a null price range', async () => {
     const f = await facets();
-    expect(f.attributes).toEqual({ pet: [], material: [], ageStage: [] });
+    expect(f.attributes).toEqual({ storage: [], origin: [] });
     expect(f.price).toBeNull();
   });
 
   it('counts attribute values over active products, most frequent first', async () => {
     await seed();
     const f = await facets();
-    expect(f.attributes.pet).toEqual([
-      { value: 'dog', count: 2 },
-      { value: 'cat', count: 1 },
+    expect(f.attributes.storage).toEqual([
+      { value: 'chilled', count: 2 },
+      { value: 'frozen', count: 1 },
     ]);
-    expect(f.attributes.material).toEqual([
-      { value: 'plush', count: 2 },
-      { value: 'rubber', count: 1 },
+    expect(f.attributes.origin).toEqual([
+      { value: 'spain', count: 2 },
+      { value: 'germany', count: 1 },
     ]);
-    expect(f.attributes.ageStage).toEqual([]);
   });
 
   it('reports the price range of the scope across all active variants', async () => {
@@ -462,38 +479,91 @@ describe('GET /api/v1/products — facets', () => {
 
   it('scopes counts and price to the current category (children included)', async () => {
     await seed();
-    const f = await facets('?category=dogs');
-    expect(f.attributes.pet).toEqual([{ value: 'dog', count: 2 }]);
+    const f = await facets('?category=dairy');
+    expect(f.attributes.storage).toEqual([{ value: 'chilled', count: 2 }]);
     expect(f.price).toEqual({ min: 500, max: 1500 });
   });
 
   it('scopes to the search term', async () => {
     await seed();
-    const f = await facets('?q=catnip');
-    expect(f.attributes.pet).toEqual([{ value: 'cat', count: 1 }]);
+    const f = await facets('?q=saffron');
+    expect(f.attributes.storage).toEqual([{ value: 'frozen', count: 1 }]);
   });
 
   it('ignores attribute, price and stock filters so alternatives keep their counts', async () => {
     await seed();
-    const unfiltered = await facets('?category=dogs');
-    const filtered = await facets('?category=dogs&attr.material=plush&minPrice=400&maxPrice=600');
+    const unfiltered = await facets('?category=dairy');
+    const filtered = await facets('?category=dairy&attr.origin=spain&minPrice=400&maxPrice=600');
     expect(filtered).toEqual(unfiltered);
     // ...while the list itself is filtered.
-    expect((await list('?category=dogs&attr.material=plush')).body.meta.total).toBe(1);
+    expect((await list('?category=dairy&attr.origin=spain')).body.meta.total).toBe(1);
   });
 
   it('does not count non-facet attributes such as size', async () => {
-    await createProduct({ attributes: { pet: 'dog', size: 'L' } });
-    expect(Object.keys((await facets()).attributes).sort()).toEqual([
-      'ageStage',
-      'material',
-      'pet',
-    ]);
+    await createProduct({ attributes: { storage: 'chilled', size: 'L' } });
+    expect(Object.keys((await facets()).attributes).sort()).toEqual(['origin', 'storage']);
   });
 
   it('returns facets for the whole scope even on a page beyond the results', async () => {
     await seed();
     const f = await facets('?page=9');
-    expect(f.attributes.pet).toHaveLength(2);
+    expect(f.attributes.storage).toHaveLength(2);
+  });
+});
+
+describe('GET /api/v1/products — dietary filter (?diet=)', () => {
+  type DietBody = ListBody & { facets: { diet: { value: string; count: number }[] } };
+  const dietFacet = async (query = '') => bodyOf<DietBody>((await list(query)).res).facets.diet;
+
+  async function seedFood() {
+    await createProduct({
+      name: 'Oat drink',
+      food: { dietary: ['vegan', 'vegetarian', 'lactose-free'] },
+    });
+    await createProduct({ name: 'Cheese', food: { dietary: ['vegetarian'] } });
+    await createProduct({ name: 'Gluten-free bread', food: { dietary: ['vegan', 'gluten-free'] } });
+    await createProduct({ name: 'Sponge' });
+  }
+
+  it('narrows to products that carry the tag', async () => {
+    await seedFood();
+    expect(names((await list('?diet=vegan')).body).sort()).toEqual([
+      'Gluten-free bread',
+      'Oat drink',
+    ]);
+  });
+
+  it('ANDs several tags: both must be on the product', async () => {
+    await seedFood();
+    expect(names((await list('?diet=vegan,gluten-free')).body)).toEqual(['Gluten-free bread']);
+    expect(names((await list('?diet=vegan&diet=vegetarian')).body)).toEqual(['Oat drink']);
+    expect((await list('?diet=vegan,organic')).body.meta.total).toBe(0);
+  });
+
+  it('keeps meta.total in step with the filter', async () => {
+    await seedFood();
+    expect((await list('?diet=vegetarian')).body.meta.total).toBe(2);
+  });
+
+  it('counts each tag over the scope, most common first, ignoring the diet filter itself', async () => {
+    await seedFood();
+    const expected = [
+      { value: 'vegan', count: 2 },
+      { value: 'vegetarian', count: 2 },
+      { value: 'gluten-free', count: 1 },
+      { value: 'lactose-free', count: 1 },
+    ];
+    expect(await dietFacet()).toEqual(expected);
+    // Clicking a tag does not zero the others, so the shopper can switch.
+    expect(await dietFacet('?diet=vegan')).toEqual(expected);
+  });
+
+  it('has an empty facet when nothing in the scope carries a tag', async () => {
+    await createProduct({ name: 'Sponge' });
+    expect(await dietFacet()).toEqual([]);
+  });
+
+  it('rejects a tag that does not exist with 400', async () => {
+    expect((await list('?diet=paleo')).res.status).toBe(400);
   });
 });

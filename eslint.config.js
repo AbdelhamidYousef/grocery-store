@@ -12,6 +12,8 @@ export default tseslint.config(
       '**/node_modules/**',
       '**/playwright-report/**',
       '.playwright-mcp/**',
+      // One-off scripts run by hand with tsx/node; not part of any workspace tsconfig.
+      'tools/**',
     ],
   },
 

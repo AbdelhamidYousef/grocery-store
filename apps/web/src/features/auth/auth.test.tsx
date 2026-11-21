@@ -52,7 +52,7 @@ describe('auth state and guards', () => {
         return new HttpResponse(null, { status: 204 });
       }),
     );
-    const router = renderApp('/c/dogs');
+    const router = renderApp('/c/dairy-eggs');
     await userEvent.click(await screen.findByRole('button', { name: 'Account' }));
     await userEvent.click(screen.getByRole('button', { name: 'Sign out' }));
     await waitFor(() => expect(loggedOut).toBe(true));

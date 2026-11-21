@@ -17,12 +17,12 @@ export const loyalty = {
 
   // Footer note and charity page
   'loyalty.charityNote.text':
-    '(a pretend shelter) has received {amount} so far. Demo only: no money moves.',
-  'loyalty.charity.seoTitle': 'Our shelter',
+    '(a pretend food bank) has received {amount} so far. Demo only: no money moves.',
+  'loyalty.charity.seoTitle': 'Our food bank',
   'loyalty.charity.seoDescription':
-    'Whisker Hollow Rescue, the (fictional) shelter Grocery supports. A demo: no money moves.',
+    'Spreeufer Food Bank, the (fictional) food bank Grocery supports. A demo: no money moves.',
   'loyalty.charity.note':
-    'This is a demo store and the shelter is made up. Donations here are counted, but no money moves anywhere.',
+    'This is a demo store and the food bank is made up. Donations here are counted, but no money moves anywhere.',
   'loyalty.charity.error': 'We could not load the total just now.',
   'loyalty.charity.given': 'Given so far',
   'loyalty.charity.donations': { one: 'from {count} donation', other: 'from {count} donations' },
@@ -61,7 +61,7 @@ export const loyalty = {
   'loyalty.rewards.earnRateOne': 'You earn 1 point per euro spent.',
   'loyalty.rewards.earnRatePercent': 'You earn {percent}% per euro spent.',
   'loyalty.rewards.nextTier': '{points} more earned points to reach {label}.',
-  'loyalty.rewards.topTier': 'You are at the top tier. Good dog!',
+  'loyalty.rewards.topTier': 'You are at the top tier.',
   'loyalty.rewards.spendTitle': 'Spend your points',
   'loyalty.rewards.rewardsError': 'We could not load the rewards.',
   'loyalty.rewards.noRewards': 'No rewards are available right now.',
@@ -74,10 +74,10 @@ export const loyalty = {
   'loyalty.rewards.giveAwayTitle': 'Or give them away',
   'loyalty.rewards.donate.giveTo': 'Give points to',
   'loyalty.rewards.donate.aboutShelter':
-    ', a pretend shelter (1 point = 1 cent; demo only, no money moves).',
+    'a pretend food bank (1 point = 1 cent; demo only, no money moves).',
   'loyalty.rewards.donate.label': 'Points to donate',
   'loyalty.rewards.donate.button': 'Donate',
-  'loyalty.rewards.donate.thanks': 'Thank you! {points} points went to the shelter.',
+  'loyalty.rewards.donate.thanks': 'Thank you! {points} points went to the food bank.',
   'loyalty.rewards.donate.failed': 'We could not donate that.',
   'loyalty.rewards.codesTitle': 'Your codes',
   'loyalty.rewards.codesEmpty': 'Codes you buy with points appear here. Apply one in your cart.',
@@ -134,7 +134,7 @@ export const loyalty = {
     'News and the odd offer. We email a link to confirm first, and every message has a one-click unsubscribe. See the',
   'loyalty.newsletter.privacyLink': 'privacy policy',
   'loyalty.newsletter.email': 'Email',
-  'loyalty.newsletter.pets': 'Which pets do you have?',
+  'loyalty.newsletter.interests': 'Which departments interest you?',
   'loyalty.newsletter.consent':
     'Send me Grocery news and offers. I can unsubscribe with one click at any time.',
   'loyalty.newsletter.consentRequired': 'Please tick the box to subscribe',

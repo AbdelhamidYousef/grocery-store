@@ -1,11 +1,12 @@
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { createElement } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { clearHomeSlots, registerHomeSlot } from '../features/home/slots';
 import * as tracking from '../lib/track';
-import { makeHome } from '../test/fixtures';
+import { makeCard, makeHome, makeList } from '../test/fixtures';
 import { renderApp } from '../test/render';
 import { server, API } from '../test/server';
 
@@ -19,16 +20,16 @@ afterEach(() => {
 });
 
 describe('home page', () => {
-  it('shows the hero, pet tiles with counts, bestsellers, guides and testimonials', async () => {
+  it('shows the hero, department tiles with counts, bestsellers, guides and testimonials', async () => {
     const spy = vi.spyOn(tracking, 'track');
     renderApp('/');
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
       'Groceries at your door in 30 minutes',
     );
-    expect(await screen.findByTestId('hero-carousel')).toBeInTheDocument();
+    expect(screen.getByTestId('home-hero')).toBeInTheDocument();
 
-    const tiles = within(screen.getByTestId('pet-tiles'));
-    expect(tiles.getAllByRole('link')).toHaveLength(6);
+    const tiles = within(screen.getByTestId('department-tiles'));
+    expect(tiles.getAllByRole('link')).toHaveLength(10);
     expect(await tiles.findByText('10 products')).toBeInTheDocument();
 
     const cards = await screen.findAllByTestId('product-card');
@@ -38,9 +39,65 @@ describe('home page', () => {
     expect(spy).toHaveBeenCalledWith({ name: 'view_home' });
   });
 
-  it('keeps the carousel box in place while the page loads', () => {
+  it('shows the admin hero slides as offer cards', async () => {
     renderApp('/');
-    expect(screen.getByTestId('hero-skeleton')).toBeInTheDocument();
+    const offers = within(await screen.findByTestId('featured-offers'));
+    expect(offers.getAllByRole('listitem')).toHaveLength(3);
+    expect(offers.getByRole('link', { name: 'Shop bakery' })).toHaveAttribute('href', '/c/bakery');
+  });
+
+  it('shows deals from the products that carry the Sale badge, and the food bank teaser', async () => {
+    let seen = '';
+    server.use(
+      http.get(`${API}/products`, ({ request }) => {
+        seen = new URL(request.url).search;
+        return HttpResponse.json(makeList([makeCard({ name: 'Cheap milk' })]));
+      }),
+    );
+    renderApp('/');
+    const deals = within(await screen.findByTestId('deals'));
+    expect(deals.getByRole('heading', { name: 'Deals this week' })).toBeInTheDocument();
+    expect(await deals.findByText('Cheap milk')).toBeInTheDocument();
+    expect(new URLSearchParams(seen).get('badge')).toBe('sale');
+    const teaser = await screen.findByTestId('food-bank-teaser');
+    expect(teaser).toHaveTextContent('Spreeufer Food Bank');
+    expect(within(teaser).getByRole('link', { name: 'How it works' })).toHaveAttribute(
+      'href',
+      '/charity',
+    );
+  });
+
+  it('hides the deals section when nothing is on sale', async () => {
+    server.use(http.get(`${API}/products`, () => HttpResponse.json(makeList([]))));
+    renderApp('/');
+    await screen.findByTestId('guides-teaser');
+    expect(screen.queryByTestId('deals')).not.toBeInTheDocument();
+  });
+
+  it('keeps the "Your usuals" placeholder hidden until it is switched on', async () => {
+    renderApp('/');
+    await screen.findByTestId('guides-teaser');
+    expect(screen.queryByTestId('usuals')).not.toBeInTheDocument();
+  });
+
+  it('checks the postcode shape, then links to ?postcode= and nothing more', async () => {
+    const user = userEvent.setup();
+    const router = renderApp('/');
+    const box = within(screen.getByTestId('postcode-form'));
+    await user.type(box.getByLabelText('Your postcode'), '1011');
+    await user.click(box.getByRole('button', { name: 'Check delivery' }));
+    expect(await box.findByText('Enter a 5-digit postcode')).toBeInTheDocument();
+    expect(router.state.location.search).toBe('');
+
+    await user.type(box.getByLabelText('Your postcode'), '5');
+    await user.click(box.getByRole('button', { name: 'Check delivery' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?postcode=10115'));
+    expect(await screen.findByTestId('postcode-saved')).toHaveTextContent('10115');
+  });
+
+  it('prefills the postcode box from the url', () => {
+    renderApp('/?postcode=12043');
+    expect(screen.getByLabelText('Your postcode')).toHaveValue('12043');
   });
 
   it('shows the promo tile only when the API sends one', async () => {
@@ -64,9 +121,11 @@ describe('home page', () => {
 
   it('leaves no empty block for missing optional sections', async () => {
     renderApp('/');
-    await screen.findByTestId('hero-carousel');
+    await screen.findByTestId('featured-offers');
     await screen.findByTestId('guides-teaser');
     await screen.findByTestId('rating-summary');
+    await screen.findByTestId('food-bank-teaser');
+    await screen.findByTestId('deals');
     // No promo, no registered slots (the seasonal one is cleared here): their wrappers are empty
     // and hidden by `empty:hidden`, and nothing else is empty.
     const empty = [...document.querySelectorAll('[data-home-section]')].filter(
@@ -76,18 +135,23 @@ describe('home page', () => {
     expect(empty[0]).toHaveClass('empty:hidden');
   });
 
-  it('renders registered slots in the fixed order: seasonal before guides, the rest after', async () => {
+  it('renders registered slots in the fixed order: seasonal before the deals, usuals after the bestsellers, the rest last', async () => {
     registerHomeSlot({ id: 'newsletter', render: () => createElement('p', null, 'News') });
     registerHomeSlot({ id: 'seasonal', render: () => createElement('p', null, 'Season') });
+    registerHomeSlot({ id: 'usuals', render: () => createElement('p', null, 'Usuals') });
     renderApp('/');
-    await screen.findByTestId('hero-carousel');
+    await screen.findByTestId('featured-offers');
     expect(sections()).toEqual([
-      'shop-by-pet',
-      'bestsellers',
-      'promo',
+      'departments',
       'seasonal',
+      'featured',
+      'deals',
+      'bestsellers',
+      'usuals',
+      'promo',
       'guides',
       'testimonials',
+      'food-bank',
       'newsletter',
     ]);
   });

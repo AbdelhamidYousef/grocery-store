@@ -17,9 +17,10 @@ export const catalog: Record<keyof typeof enNs, Entry> = {
   'catalog.filters.inStock': 'Auf Lager',
   'catalog.filters.inStockOnly': 'Nur lagernde Artikel',
   'catalog.filters.brand': 'Marke',
-  'catalog.filters.health': 'Nach Gesundheitsbedarf einkaufen',
+  'catalog.filters.health': 'Nach Anlass einkaufen',
   'catalog.filters.chipBrand': 'Marke: {name}',
-  'catalog.filters.chipHealth': 'Gesundheitsbedarf: {name}',
+  'catalog.filters.chipHealth': 'Einkaufsanlass: {name}',
+  'catalog.filters.chipDiet': 'Ernährung: {name}',
   'catalog.filters.chipLabel': 'Label: {name}',
   'catalog.filters.chipFacet': '{facet}: {value}',
   'catalog.filters.remove': 'Filter {label} entfernen',
@@ -30,16 +31,12 @@ export const catalog: Record<keyof typeof enNs, Entry> = {
   'catalog.filters.priceRange': 'Preis: {min} - {max}',
   'catalog.filters.priceFrom': 'Preis: ab {min}',
   'catalog.filters.priceUpTo': 'Preis: bis {max}',
-  'catalog.facet.pet': 'Haustier',
-  'catalog.facet.material': 'Material',
-  'catalog.facet.ageStage': 'Lebensphase',
-  'catalog.facet.allAges': 'Alle Altersstufen',
-  'catalog.facet.petDog': 'Hunde',
-  'catalog.facet.petCat': 'Katzen',
-  'catalog.facet.petBird': 'Vögel',
-  'catalog.facet.petFish': 'Fische',
-  'catalog.facet.petSmall': 'Kleintiere',
-  'catalog.facet.petReptile': 'Reptilien',
+  'catalog.facet.storage': 'Lagerung',
+  'catalog.facet.origin': 'Herkunft',
+  'catalog.facet.diet': 'Ernährung',
+  'catalog.facet.storageAmbient': 'Raumtemperatur',
+  'catalog.facet.storageChilled': 'Gekühlt',
+  'catalog.facet.storageFrozen': 'Tiefgekühlt',
 
   // Sort
   'catalog.sort.relevance': 'Beste Treffer',
@@ -65,14 +62,6 @@ export const catalog: Record<keyof typeof enNs, Entry> = {
   'catalog.pagination.prev': 'Zurück',
   'catalog.pagination.next': 'Weiter',
   'catalog.pagination.page': 'Seite {page}',
-
-  // Pet tiles (names of the six pet categories)
-  'catalog.petTile.dogs': 'Hunde',
-  'catalog.petTile.cats': 'Katzen',
-  'catalog.petTile.birds': 'Vögel',
-  'catalog.petTile.fish': 'Fische',
-  'catalog.petTile.smallPets': 'Kleintiere',
-  'catalog.petTile.reptiles': 'Reptilien',
 
   // Product card
   'catalog.card.noImage': 'Kein Bild',
@@ -126,7 +115,7 @@ export const catalog: Record<keyof typeof enNs, Entry> = {
   'catalog.empty.tryWords':
     'Versuche weniger oder andere Wörter. Die Suche findet ganze Wörter, prüfe also die Schreibweise.',
   'catalog.empty.nothingYet':
-    'Hier gibt es noch nichts. Schau dir etwas anderes an, während wir nachfüllen.',
+    'Hier gibt es noch nichts. Schau dir eine andere Abteilung an, während wir nachfüllen.',
   'catalog.empty.clearFilters': 'Filter löschen',
 
   // Pages
@@ -140,10 +129,10 @@ export const catalog: Record<keyof typeof enNs, Entry> = {
   'catalog.brand.loadError': 'Diese Marke konnte nicht geladen werden',
   'catalog.brand.loading': 'Marke wird geladen',
   'catalog.brands.description':
-    'Die Grocery-Hausmarken: Leckereien, Betten, Terrarienzubehör und mehr.',
+    'Die Marken in unserem Sortiment: frisches Gebäck, Milchprodukte, Haushaltsbasics und mehr.',
   'catalog.brands.title': 'Unsere Marken',
   'catalog.brands.intro':
-    'Jede Marke hier ist unsere eigene, von uns erfunden und von einer sehr wählerischen Testgruppe aus Haustieren geprüft.',
+    'Alle Marken in unseren Regalen, von der Bäckerei um die Ecke bis zu unserer eigenen Marke Grocery Basics.',
   'catalog.brands.loadError': 'Die Marken konnten nicht geladen werden.',
   'catalog.collection.loadError': 'Diese Kollektion konnte nicht geladen werden',
   'catalog.collection.loading': 'Kollektion wird geladen',

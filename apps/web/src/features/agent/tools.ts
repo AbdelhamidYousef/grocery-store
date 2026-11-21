@@ -132,7 +132,7 @@ export const searchCatalog = defineTool({
     'price range in cents, in-stock flag). Use get_product for variants and their ids.',
   inputSchema: z.object({
     query: z.string().trim().max(100).optional().describe('Free-text search, e.g. "rope toy".'),
-    category: z.string().trim().max(80).optional().describe('Category slug, e.g. "dog-toys".'),
+    category: z.string().trim().max(80).optional().describe('Category slug, e.g. "cheese".'),
     brand: z.string().trim().max(80).optional().describe('Brand slug.'),
     maxPriceCents: z.number().int().min(0).optional().describe('Upper price bound in cents.'),
     limit: z.number().int().min(1).max(SEARCH_LIMIT_MAX).default(12),

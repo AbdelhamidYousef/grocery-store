@@ -1,16 +1,18 @@
-import { boolean, index, integer, pgTable, text } from 'drizzle-orm/pg-core';
+import { boolean, index, integer, pgTable, text, uuid } from 'drizzle-orm/pg-core';
 
+import { categories } from './categories.ts';
 import { createdAt, id, updatedAt } from './columns.ts';
-import { petSpecies } from './pet-species.ts';
 
-// The featured tile in a mega-menu panel. `pet` null means "any pet": the fallback shown in a
+// The featured tile in a mega-menu panel. `category_id` is the department it belongs to; null means
+// "any department": the fallback shown in a
 // panel that has no promo of its own. Images are files under apps/web/public (or any URL); the
 // alt text is required because the tile's picture carries meaning.
 export const menuPromos = pgTable(
   'menu_promos',
   {
     id: id(),
-    pet: petSpecies('pet'),
+    // CASCADE: a promo for a department that is deleted has nothing left to promote.
+    categoryId: uuid('category_id').references(() => categories.id, { onDelete: 'cascade' }),
     title: text('title').notNull(),
     subtitle: text('subtitle').notNull().default(''),
     imageUrl: text('image_url').notNull(),
@@ -22,5 +24,5 @@ export const menuPromos = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index('menu_promos_pet_idx').on(t.pet, t.active, t.sortOrder)],
+  (t) => [index('menu_promos_category_idx').on(t.categoryId, t.active, t.sortOrder)],
 );

@@ -13,7 +13,7 @@ const renderGrid = (ui: React.ReactElement) =>
 
 describe('ProductGrid', () => {
   it('renders each product as one link with name, price range and a sized image', () => {
-    renderGrid(<ProductGrid products={[makeCard()]} listId="dogs" />);
+    renderGrid(<ProductGrid products={[makeCard()]} listId="dairy-eggs" />);
     const link = screen.getByRole('link', { name: /Rope Tug/ });
     expect(link).toHaveAttribute('href', '/products/rope-tug');
     expect(within(link).getByTestId('price-current')).toHaveTextContent('€10.99 - €18.99');
@@ -27,7 +27,7 @@ describe('ProductGrid', () => {
     renderGrid(
       <ProductGrid
         products={[makeCard(), makeCard({ id: 'p2', slug: 'gone', name: 'Gone', inStock: false })]}
-        listId="dogs"
+        listId="dairy-eggs"
       />,
     );
     expect(screen.getAllByTestId('sold-out-badge')).toHaveLength(1);
@@ -38,7 +38,7 @@ describe('ProductGrid', () => {
     renderGrid(
       <ProductGrid
         products={[makeCard(), makeCard({ id: 'p2', slug: 'b', name: 'B' })]}
-        listId="dogs"
+        listId="dairy-eggs"
         eagerCount={1}
       />,
     );
@@ -49,16 +49,16 @@ describe('ProductGrid', () => {
 
   it('tracks view_item_list once for the list', () => {
     const spy = vi.spyOn(tracking, 'track').mockImplementation(() => undefined);
-    const { rerender } = renderGrid(<ProductGrid products={[makeCard()]} listId="dogs" />);
+    const { rerender } = renderGrid(<ProductGrid products={[makeCard()]} listId="dairy-eggs" />);
     rerender(
       <MemoryRouter>
-        <ProductGrid products={[makeCard()]} listId="dogs" />
+        <ProductGrid products={[makeCard()]} listId="dairy-eggs" />
       </MemoryRouter>,
     );
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledWith({
       name: 'view_item_list',
-      listId: 'dogs',
+      listId: 'dairy-eggs',
       items: [{ id: 'p1', name: 'Rope Tug', price: 1099 }],
     });
     spy.mockRestore();

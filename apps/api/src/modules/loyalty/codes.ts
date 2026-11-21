@@ -27,7 +27,7 @@ export interface PersonalCodeSpec {
   groups?: 1 | 2;
   minSpendCents?: number;
   expiresInDays: number;
-  /** "PAWS", "REF" ... */
+  /** "REWARD", "FRIEND", "WELCOME" */
   prefix: string;
   now?: Date;
 }

@@ -32,7 +32,7 @@ describe('makeLookup', () => {
   const english = {
     a: 'English A',
     b: 'English B',
-    n: { one: '{count} dog', other: '{count} dogs' },
+    n: { one: '{count} dog', other: '{count} dairy-eggs' },
   };
   const lookup = makeLookup([{ a: 'Deutsch A' }, english], english, 'de-DE');
   it('falls back per key to English and never shows a key', () => {
@@ -41,6 +41,6 @@ describe('makeLookup', () => {
     expect(lookup.t('missing')).toBe('missing');
   });
   it('tn fills {count}', () => {
-    expect(lookup.tn('n', 2)).toBe('2 dogs');
+    expect(lookup.tn('n', 2)).toBe('2 dairy-eggs');
   });
 });

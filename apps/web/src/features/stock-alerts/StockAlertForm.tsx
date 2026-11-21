@@ -62,7 +62,7 @@ export function StockAlertForm({ variantId }: { variantId: string }) {
       onSubmit={submit}
       noValidate
       data-testid={TEST_IDS.stockAlertForm}
-      className="flex flex-col gap-2 rounded-card border-2 border-line bg-pet-soft p-4"
+      className="flex flex-col gap-2 rounded-card border-2 border-line bg-dept-soft p-4"
     >
       <p className="font-display font-bold">{t('loyalty.stockAlerts.title')}</p>
       <Input

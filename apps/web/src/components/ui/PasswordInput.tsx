@@ -36,7 +36,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             type="button"
             data-testid="password-toggle"
             onClick={() => setVisible((v) => !v)}
-            className="absolute inset-y-0 right-0 flex min-w-11 items-center rounded-control px-3 text-sm font-semibold text-primary-strong hover:bg-pet-soft"
+            className="absolute inset-y-0 right-0 flex min-w-11 items-center rounded-control px-3 text-sm font-semibold text-primary-strong hover:bg-dept-soft"
           >
             {visible ? t('shell.password.hide') : t('shell.password.show')}
           </button>

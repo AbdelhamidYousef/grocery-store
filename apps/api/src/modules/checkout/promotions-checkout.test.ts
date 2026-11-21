@@ -55,13 +55,13 @@ async function onlyOrder() {
 
 describe('checkout through the promotions engine', () => {
   it('stores the engine total, line discounts and a snapshot, and charges that amount', async () => {
-    await db.insert(discountCodes).values({ code: 'PAWS10', kind: 'percent', value: 10 });
+    await db.insert(discountCodes).values({ code: 'GROCERY10', kind: 'percent', value: 10 });
     const a = await variant(2000);
     const b = await variant(1000);
     const shop = makeShopper(app);
     await shop.addToCart(a);
     await shop.addToCart(b);
-    await shop.call('post', '/cart/code', { code: 'PAWS10' });
+    await shop.call('post', '/cart/code', { code: 'GROCERY10' });
 
     const res = await shop.call('post', '/checkout', body());
     expect(res.status).toBe(200);
@@ -79,7 +79,7 @@ describe('checkout through the promotions engine', () => {
       .select()
       .from(orderPromotions)
       .where(eq(orderPromotions.orderId, order.id));
-    expect(snapshot).toMatchObject([{ type: 'code', label: 'Code PAWS10', cents: 300 }]);
+    expect(snapshot).toMatchObject([{ type: 'code', label: 'Code GROCERY10', cents: 300 }]);
     const created = stripe.calls.filter((c) => c.method === 'create').at(-1);
     expect((created?.args[0] as { amountCents: number }).amountCents).toBe(3290);
   });
@@ -87,11 +87,11 @@ describe('checkout through the promotions engine', () => {
   it('keeps old orders unchanged when the code is edited later', async () => {
     const [code] = await db
       .insert(discountCodes)
-      .values({ code: 'PAWS10', kind: 'percent', value: 10 })
+      .values({ code: 'GROCERY10', kind: 'percent', value: 10 })
       .returning();
     const shop = makeShopper(app);
     await shop.addToCart(await variant(3000));
-    await shop.call('post', '/cart/code', { code: 'PAWS10' });
+    await shop.call('post', '/cart/code', { code: 'GROCERY10' });
     await shop.call('post', '/checkout', body());
 
     await db.update(discountCodes).set({ value: 50 }).where(eq(discountCodes.id, code!.id));
@@ -176,11 +176,11 @@ describe('checkout through the promotions engine', () => {
   });
 
   it('releases the code when an unpaid order is cancelled, and keeps it once paid', async () => {
-    await db.insert(discountCodes).values({ code: 'PAWS10', kind: 'percent', value: 10 });
+    await db.insert(discountCodes).values({ code: 'GROCERY10', kind: 'percent', value: 10 });
     const placeWithCode = async (email: string) => {
       const shop = makeShopper(app);
       await shop.addToCart(await variant(3000));
-      await shop.call('post', '/cart/code', { code: 'PAWS10' });
+      await shop.call('post', '/cart/code', { code: 'GROCERY10' });
       await shop.call('post', '/checkout', body(email));
       const [order] = await db.select().from(orders).where(eq(orders.email, email));
       return order!;

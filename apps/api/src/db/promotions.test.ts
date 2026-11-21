@@ -61,11 +61,11 @@ describe('promotions schema', () => {
   });
 
   it('treats codes case-insensitively', async () => {
-    await db.insert(discountCodes).values({ code: 'PAWS10', kind: 'percent', value: 10 });
+    await db.insert(discountCodes).values({ code: 'GROCERY10', kind: 'percent', value: 10 });
     await expect(
-      db.insert(discountCodes).values({ code: 'paws10', kind: 'percent', value: 5 }),
+      db.insert(discountCodes).values({ code: 'grocery10', kind: 'percent', value: 5 }),
     ).rejects.toThrow();
-    const [row] = await db.select().from(discountCodes).where(eq(discountCodes.code, 'Paws10'));
+    const [row] = await db.select().from(discountCodes).where(eq(discountCodes.code, 'Grocery10'));
     expect(row?.value).toBe(10);
   });
 

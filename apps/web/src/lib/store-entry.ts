@@ -11,7 +11,7 @@ import type { StoreView } from '@store/shared';
 // the data router is given a `basename` of `/<store code>`: every <Link>, <Navigate> and
 // `navigate()` in the app then gets the prefix for free, so no feature file needs to know about
 // store views, and screens added later work without a change. This module decides the basename
-// for the URL the page loaded with, and rewrites old unprefixed URLs (`/c/dogs`) to the
+// for the URL the page loaded with, and rewrites old unprefixed URLs (`/c/bakery`) to the
 // remembered store before the router starts.
 
 export interface EntryUrl {

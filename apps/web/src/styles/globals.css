@@ -55,7 +55,7 @@
   }
 
   ::selection {
-    background: var(--pet-accent);
+    background: var(--dept-accent);
     color: var(--color-ink);
   }
 

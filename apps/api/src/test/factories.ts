@@ -1,3 +1,4 @@
+import type { Nutrition } from '@store/shared';
 import { eq } from 'drizzle-orm';
 
 import { db } from '../db/client.ts';
@@ -88,6 +89,13 @@ export async function createProduct(
     /** Put the product in this category instead of a fresh one. */
     categoryId?: string;
     attributes?: ProductAttributes;
+    /** Food information; leave out for a product that is not food. */
+    food?: {
+      nutrition?: Nutrition | null;
+      ingredients?: string | null;
+      allergens?: string[];
+      dietary?: string[];
+    };
     brandId?: string;
     isEco?: boolean;
     isBestsellerOverride?: boolean;
@@ -115,6 +123,10 @@ export async function createProduct(
         categoryId: category.id,
         status: input.status ?? 'active',
         attributes: input.attributes ?? {},
+        ...(input.food?.nutrition !== undefined && { nutrition: input.food.nutrition }),
+        ...(input.food?.ingredients !== undefined && { ingredients: input.food.ingredients }),
+        ...(input.food?.allergens && { allergens: input.food.allergens }),
+        ...(input.food?.dietary && { dietary: input.food.dietary }),
         ...(input.brandId && { brandId: input.brandId }),
         ...(input.isEco !== undefined && { isEco: input.isEco }),
         ...(input.isBestsellerOverride !== undefined && {
@@ -314,7 +326,7 @@ export async function createReview(
         userId,
         rating: 5,
         title: 'Lovely product',
-        body: 'Exactly what my pet needed and it arrived quickly.',
+        body: 'Exactly what I needed and it arrived quickly.',
         wouldRecommend: true,
         status,
         ...(status !== 'pending' && { moderatedAt: new Date() }),

@@ -1,4 +1,4 @@
-import type { ConstituentKey } from '@store/shared';
+import type { ConstituentKey, Nutrition } from '@store/shared';
 import {
   and,
   asc,
@@ -77,6 +77,16 @@ export async function getCategoryBySlug(slug: string): Promise<CategoryRow[]> {
   );
 }
 
+// The (untranslated) slug of a category's parent: the department a subcategory belongs to.
+export async function parentSlug(parentId: string): Promise<string> {
+  const [row] = await db
+    .select({ slug: categories.slug })
+    .from(categories)
+    .where(eq(categories.id, parentId));
+  if (!row) throw new Error(`category ${parentId} has no row`);
+  return row.slug;
+}
+
 // ---------- product list ----------
 
 export type SortKey =
@@ -101,6 +111,8 @@ export interface ProductFilters {
   brand?: string[];
   /** Health-need tag slugs (OR). */
   tag?: string[];
+  /** Dietary tags (AND: every one must be on the product). */
+  diet?: string[];
   /** Product ids that carry any of the requested badges, resolved by the service. */
   badgeProductIds?: string[];
   /** Collection slug; matches nothing unless that collection is live right now. */
@@ -181,6 +193,7 @@ export interface ProductCardRow {
   name: string;
   attributes: ProductAttributes;
   categorySlug: string;
+  departmentSlug: string;
   minCents: number;
   maxCents: number;
   currency: string;
@@ -363,6 +376,14 @@ function filterConditions(f: ProductFilters, v: ReturnType<typeof variantSummary
       ),
     );
   }
+  if (f.diet) {
+    // `@>` (contains all) on a text[] built from bound parameters, never string-built.
+    const wanted = sql.join(
+      f.diet.map((d) => sql`${d}`),
+      sql`, `,
+    );
+    conds.push(sql`${products.dietary} @> ARRAY[${wanted}]::text[]`);
+  }
   if (f.badgeProductIds) {
     conds.push(f.badgeProductIds.length > 0 ? inArray(products.id, f.badgeProductIds) : sql`false`);
   }
@@ -394,6 +415,7 @@ export async function listProducts(
       name: products.name,
       attributes: products.attributes,
       categorySlug: categories.slug,
+      departmentSlug: sql<string>`coalesce(parent_category.slug, ${categories.slug})`,
       minCents: v.minCents,
       maxCents: v.maxCents,
       currency: v.currency,
@@ -408,6 +430,7 @@ export async function listProducts(
     .from(products)
     .innerJoin(v, eq(v.productId, products.id))
     .innerJoin(categories, eq(categories.id, products.categoryId))
+    .leftJoin(sql`categories parent_category`, sql`parent_category.id = ${categories.parentId}`)
     .leftJoin(brands, eq(brands.id, products.brandId))
     .where(where)
     .orderBy(...orderBy(params.sort, v, params.filters.q, params.filters.collection))
@@ -453,6 +476,7 @@ export interface FacetRows {
   attributes: { key: string; value: string; count: number }[];
   brand: { slug: string; name: string; count: number }[];
   tag: { slug: string; name: string; count: number }[];
+  diet: { value: string; count: number }[];
   /** Every product id in the scope, so the service can count derived badges over it. */
   scopeProductIds: string[];
   price: { min: number; max: number } | null;
@@ -468,7 +492,7 @@ export async function getFacets(
   const v = variantSummary();
   const where = and(...scopeConditions(filters));
 
-  const [attributes, [price], brandRows, tagRows, scopeRows] = await Promise.all([
+  const [attributes, [price], brandRows, tagRows, dietRows, scopeRows] = await Promise.all([
     db
       .select({ key: sql<string>`kv.key`, value: sql<string>`kv.value`, count: count() })
       .from(products)
@@ -504,6 +528,15 @@ export async function getFacets(
       .where(where)
       .groupBy(tags.slug, tags.name)
       .orderBy(desc(count()), asc(tags.name)),
+    // One row per (product, dietary tag), so a vegan gluten-free product counts in both.
+    db
+      .select({ value: sql<string>`d.value`, count: count() })
+      .from(products)
+      .innerJoin(v, eq(v.productId, products.id))
+      .innerJoin(sql`unnest(${products.dietary}) as d(value)`, sql`true`)
+      .where(where)
+      .groupBy(sql`d.value`)
+      .orderBy(desc(count()), sql`d.value`),
     db
       .select({ id: products.id })
       .from(products)
@@ -515,6 +548,7 @@ export async function getFacets(
     attributes,
     brand: brandRows,
     tag: tagRows,
+    diet: dietRows,
     scopeProductIds: scopeRows.map((r) => r.id),
     price:
       price && price.min !== null && price.max !== null ? { min: price.min, max: price.max } : null,
@@ -549,6 +583,10 @@ export interface ProductDetailRows {
     name: string;
     description: string;
     attributes: ProductAttributes;
+    nutrition: Nutrition | null;
+    ingredients: string | null;
+    allergens: string[];
+    dietary: string[];
     isEco: boolean;
     isBestsellerOverride: boolean;
     badgeNewUntil: Date | null;
@@ -581,6 +619,10 @@ export async function getProductBySlug(slug: string): Promise<ProductDetailRows 
         name: products.name,
         description: products.description,
         attributes: products.attributes,
+        nutrition: products.nutrition,
+        ingredients: products.ingredients,
+        allergens: products.allergens,
+        dietary: products.dietary,
         isEco: products.isEco,
         isBestsellerOverride: products.isBestsellerOverride,
         badgeNewUntil: products.badgeNewUntil,

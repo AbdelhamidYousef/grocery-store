@@ -22,7 +22,7 @@ const guide = (over: Partial<AdminGuide> = {}): AdminGuide => ({
   id: 'g1',
   slug: 'choosing-a-leash',
   title: 'Choosing a leash',
-  category: 'Dogs',
+  category: 'Dairy & eggs',
   status: 'published',
   publishedAt: '2026-10-01T10:00:00.000Z',
   updatedAt: '2026-10-02T10:00:00.000Z',
@@ -95,7 +95,7 @@ describe('guides', () => {
     const user = userEvent.setup();
     renderApp('/admin/guides/new');
     await user.type(await screen.findByLabelText('Title'), 'My guide');
-    await user.type(screen.getByLabelText('Category'), 'Dogs');
+    await user.type(screen.getByLabelText('Category'), 'Dairy & eggs');
     await user.type(screen.getByLabelText('Summary'), 'A summary.');
     await user.click(screen.getByTestId('markdown-input'));
     await user.paste('Body text');
@@ -107,7 +107,7 @@ describe('guides', () => {
     expect(seen).toHaveBeenCalledWith(
       expect.objectContaining({
         title: 'My guide',
-        category: 'Dogs',
+        category: 'Dairy & eggs',
         status: 'draft',
         productIds: ['p9'],
         bodyMd: 'Body text',
@@ -128,7 +128,7 @@ describe('guides', () => {
     const user = userEvent.setup();
     renderApp('/admin/guides/new');
     await user.type(await screen.findByLabelText('Title'), 'Dup');
-    await user.type(screen.getByLabelText('Category'), 'Dogs');
+    await user.type(screen.getByLabelText('Category'), 'Dairy & eggs');
     await user.type(screen.getByLabelText('Summary'), 'x');
     await user.click(screen.getByTestId('markdown-input'));
     await user.paste('body');
@@ -355,7 +355,7 @@ describe('homepage content', () => {
       title: 'Hello',
       text: 'World',
       ctaLabel: 'Go',
-      ctaHref: '/c/dogs',
+      ctaHref: '/c/dairy-eggs',
       imageUrl: null,
     };
     server.use(

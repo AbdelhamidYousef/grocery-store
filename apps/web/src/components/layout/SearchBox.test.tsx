@@ -26,7 +26,7 @@ describe('search box', () => {
     expect(box()).toHaveValue('rope');
     await router.navigate('/search?q=ball');
     await waitFor(() => expect(box()).toHaveValue('ball'));
-    await router.navigate('/c/dogs');
+    await router.navigate('/c/dairy-eggs');
     await waitFor(() => expect(box()).toHaveValue(''));
   });
 

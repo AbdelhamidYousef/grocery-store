@@ -9,12 +9,16 @@ import { API, server } from '../test/server';
 
 describe('category page', () => {
   it('shows the category, a result count and the products', async () => {
-    renderApp('/c/dogs');
-    expect(await screen.findByRole('heading', { level: 1, name: 'Dogs' })).toBeInTheDocument();
+    renderApp('/c/dairy-eggs');
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Dairy & eggs' }),
+    ).toBeInTheDocument();
     expect(await screen.findAllByTestId('product-card')).toHaveLength(2);
     expect(screen.getByTestId('result-count')).toHaveTextContent('2 products');
-    expect(screen.getByTestId('page-category')).toHaveAttribute('data-pet', 'dog');
-    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveTextContent('Dogs');
+    expect(screen.getByTestId('page-category')).toHaveAttribute('data-dept', 'dairy-eggs');
+    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveTextContent(
+      'Dairy & eggs',
+    );
   });
 
   it('turns the url into the api request (category, page, sort, filters)', async () => {
@@ -25,13 +29,13 @@ describe('category page', () => {
         return HttpResponse.json(makeList([makeCard()], { total: 60, page: 2 }));
       }),
     );
-    renderApp('/c/dogs?page=2&sort=price_asc&attr.material=cotton%20rope&inStock=true&limit=500');
+    renderApp('/c/dairy-eggs?page=2&sort=price_asc&attr.origin=spain&inStock=true&limit=500');
     await screen.findAllByTestId('product-card');
     const sent = new URLSearchParams(seen);
-    expect(sent.get('category')).toBe('dogs');
+    expect(sent.get('category')).toBe('dairy-eggs');
     expect(sent.get('page')).toBe('2');
     expect(sent.get('sort')).toBe('price_asc');
-    expect(sent.get('attr.material')).toBe('cotton rope');
+    expect(sent.get('attr.origin')).toBe('spain');
     expect(sent.get('inStock')).toBe('true');
     expect(sent.get('limit')).toBe('24');
     expect(screen.getByTestId('result-count')).toHaveTextContent('Showing 25-25 of 60 products');
@@ -41,7 +45,7 @@ describe('category page', () => {
     server.use(
       http.get(`${API}/products`, () => HttpResponse.json(makeList([makeCard()], { total: 60 }))),
     );
-    const router = renderApp('/c/dogs');
+    const router = renderApp('/c/dairy-eggs');
     await screen.findAllByTestId('product-card');
     await userEvent.click(
       within(screen.getByTestId('pagination')).getByRole('link', { name: /Next/ }),
@@ -64,7 +68,7 @@ describe('category page', () => {
         ),
       ),
     );
-    const router = renderApp('/c/dogs?inStock=true&sort=name');
+    const router = renderApp('/c/dairy-eggs?inStock=true&sort=name');
     expect(await screen.findByText('No products match')).toBeInTheDocument();
     await userEvent.click(screen.getByTestId('clear-filters'));
     await waitFor(() => expect(router.state.location.search).toBe(''));
@@ -73,7 +77,7 @@ describe('category page', () => {
 
   it('shows an error with a retry when the list fails', async () => {
     server.use(http.get(`${API}/products`, () => HttpResponse.json({}, { status: 500 })));
-    renderApp('/c/dogs');
+    renderApp('/c/dairy-eggs');
     expect(await within(screen.getByRole('main')).findByRole('alert')).toHaveTextContent(
       'could not load the products',
     );
@@ -86,7 +90,7 @@ describe('category page', () => {
         HttpResponse.json({ ...makeList([], { total: 30 }), data: [] }),
       ),
     );
-    renderApp('/c/dogs?page=99');
+    renderApp('/c/dairy-eggs?page=99');
     expect(await screen.findByText('That page does not exist')).toBeInTheDocument();
   });
 });

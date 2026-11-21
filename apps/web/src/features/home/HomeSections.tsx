@@ -1,23 +1,19 @@
-import type { Testimonial } from '@store/shared';
+import type { HeroSlide, Testimonial } from '@store/shared';
 import { Link } from 'react-router-dom';
 
 import { Skeleton } from '../../components/ui/Skeleton';
 import { useT, type StringKey } from '../../i18n';
 import { useFormat } from '../../i18n/format';
+import { ProductGrid } from '../catalog/ProductGrid';
+import { useProducts } from '../catalog/queries';
 import { GuideCard } from '../guides/GuideCard';
 import { useGuides } from '../guides/queries';
+import { useCharityTotal } from '../loyalty/queries';
 
-import { HERO_BOX } from './HeroCarousel';
 import { useTestimonials } from './queries';
 
-export function HeroSkeleton() {
-  return (
-    <div aria-hidden="true" data-testid="hero-skeleton" className={`bg-primary-soft ${HERO_BOX}`} />
-  );
-}
-
 // Static promises the shop already keeps (free delivery from the seeded standard method, the
-// happy-tail promise); each is a short line so the bar stays one tidy row.
+// freshness promise); each is a short line so the bar stays one tidy row.
 const TRUST: readonly { title: StringKey; text: StringKey }[] = [
   { title: 'shell.home.trust.deliveryTitle', text: 'shell.home.trust.deliveryText' },
   { title: 'shell.home.trust.promiseTitle', text: 'shell.home.trust.promiseText' },
@@ -126,7 +122,7 @@ function TestimonialCard({ t: item }: { t: Testimonial }) {
       <blockquote className="text-ink">{t('shell.home.quote', { quote: item.quote })}</blockquote>
       <p className="mt-auto text-sm text-muted">
         <span className="font-semibold text-ink">{item.name}</span>
-        {t('shell.home.withPet', { pet: item.pet })}
+        {t('shell.home.fromArea', { area: item.area })}
       </p>
     </li>
   );
@@ -141,7 +137,7 @@ export function Testimonials() {
     <section aria-labelledby="home-testimonials-heading" data-testid="testimonials">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
         <h2 id="home-testimonials-heading" className="text-2xl font-bold sm:text-3xl">
-          {t('shell.home.happyTails')}
+          {t('shell.home.testimonialsTitle')}
         </h2>
         <p className="min-h-6 text-muted" data-testid="rating-summary">
           {data?.meta.average != null &&
@@ -166,6 +162,97 @@ export function Testimonials() {
           ))}
         </ul>
       )}
+    </section>
+  );
+}
+
+// The admin's "hero slides" now show as a row of offer cards under the department tiles: title,
+// one line, one button. No rotation and no fixed height, so nothing moves while the page loads.
+export function FeaturedOffers({ slides }: { slides: readonly HeroSlide[] }) {
+  const { t } = useT();
+  if (slides.length === 0) return null;
+  return (
+    <section aria-labelledby="home-featured-heading" data-testid="featured-offers">
+      <h2 id="home-featured-heading" className="mb-5 text-2xl font-bold sm:text-3xl">
+        {t('shell.home.featured')}
+      </h2>
+      <ul className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {slides.map((slide) => (
+          <li
+            key={slide.title}
+            className="flex min-w-0 flex-col gap-2 rounded-card border border-line bg-surface p-5 shadow-card"
+          >
+            <h3 className="break-words font-display text-xl font-bold">{slide.title}</h3>
+            <p className="text-muted">{slide.text}</p>
+            <Link
+              to={slide.ctaHref}
+              className="mt-auto min-h-11 self-start rounded-control pt-2 font-semibold text-primary-strong underline underline-offset-2"
+            >
+              {slide.ctaLabel}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+// "Deals this week": the products that carry the Sale badge right now. Hidden while loading, on
+// error and when nothing is on sale, so it never leaves a hole in the page.
+const DEALS_SHOWN = 4;
+
+export function DealsSection() {
+  const { t } = useT();
+  const { data, isError } = useProducts({ badge: ['sale'], limit: DEALS_SHOWN });
+  if (isError || !data || data.data.length === 0) return null;
+  return (
+    <section aria-labelledby="home-deals-heading" data-testid="deals">
+      <h2 id="home-deals-heading" className="mb-5 text-2xl font-bold sm:text-3xl">
+        {t('shell.home.deals.title')}
+      </h2>
+      <ProductGrid products={data.data} listId="home-deals" />
+    </section>
+  );
+}
+
+// The shop's food bank, with one line about how to help. Hidden until its data arrives.
+export function FoodBankTeaser() {
+  const { t } = useT();
+  const { data } = useCharityTotal();
+  if (!data) return null;
+  return (
+    <section
+      aria-labelledby="home-foodbank-heading"
+      data-testid="food-bank-teaser"
+      className="flex flex-wrap items-center justify-between gap-4 rounded-card bg-accent-soft p-5 sm:p-6"
+    >
+      <div className="min-w-0 max-w-prose">
+        <h2 id="home-foodbank-heading" className="text-2xl font-bold">
+          {t('shell.home.foodBank.title')}
+        </h2>
+        <p className="mt-1 text-ink">
+          {t('shell.home.foodBank.text', { name: data.charity.name })}
+        </p>
+      </div>
+      <Link
+        to="/charity"
+        className="inline-flex min-h-11 items-center rounded-control bg-ink px-5 font-display font-semibold text-surface hover:bg-ink/90"
+      >
+        {t('shell.home.foodBank.link')}
+      </Link>
+    </section>
+  );
+}
+
+// A place for "Your usuals" (the products this shopper reorders). The list needs order history and
+// arrives with the reorder phase, so the slot is registered but switched off (see builtin-slots).
+export function UsualsPlaceholder() {
+  const { t } = useT();
+  return (
+    <section aria-labelledby="home-usuals-heading" data-testid="usuals">
+      <h2 id="home-usuals-heading" className="mb-5 text-2xl font-bold sm:text-3xl">
+        {t('shell.home.usuals.title')}
+      </h2>
     </section>
   );
 }

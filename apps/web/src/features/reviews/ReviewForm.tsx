@@ -22,15 +22,7 @@ import { applyFieldErrors, formErrorMessage } from '../auth/form-errors';
 import { useSubmitReview } from './queries';
 
 type FormValues = z.input<typeof reviewInputSchema>;
-const FIELDS = [
-  'rating',
-  'title',
-  'body',
-  'petAgeMonths',
-  'petWeightG',
-  'sizePurchased',
-  'wouldRecommend',
-] as const;
+const FIELDS = ['rating', 'title', 'body', 'sizePurchased', 'wouldRecommend'] as const;
 const ACCEPT = 'image/jpeg,image/png,image/webp';
 
 // The browser's check is a courtesy (instant feedback); the server re-checks the real bytes.
@@ -44,14 +36,6 @@ export function photoProblem(
   if (file.size > MAX_REVIEW_PHOTO_BYTES) return t('reviews.form.photoSize', { name: file.name });
   return null;
 }
-
-// kg typed by a person -> integer grams for the API. "4.5" -> 4500; empty stays empty.
-export const kgToGrams = (v: unknown): unknown => {
-  if (v === '' || v === null || v === undefined) return undefined;
-  const n =
-    typeof v === 'string' || typeof v === 'number' ? Number(String(v).replace(',', '.')) : NaN;
-  return Number.isFinite(n) ? Math.round(n * 1000) : v;
-};
 
 export function ReviewForm({
   slug,
@@ -108,8 +92,6 @@ export function ReviewForm({
     form.set('title', values.title);
     form.set('body', values.body);
     form.set('wouldRecommend', String(values.wouldRecommend));
-    if (values.petAgeMonths !== undefined) form.set('petAgeMonths', String(values.petAgeMonths));
-    if (values.petWeightG !== undefined) form.set('petWeightG', String(values.petWeightG));
     if (values.sizePurchased) form.set('sizePurchased', values.sizePurchased);
     for (const file of photos) form.append('photos', file);
     try {
@@ -191,31 +173,12 @@ export function ReviewForm({
       />
       <Checkbox label={t('reviews.form.recommend')} {...register('wouldRecommend')} />
 
-      <fieldset className="grid gap-4 sm:grid-cols-3">
-        <legend className="mb-1 text-sm font-semibold">{t('reviews.form.aboutPet')}</legend>
-        <Input
-          label={t('reviews.form.petAge')}
-          type="number"
-          inputMode="numeric"
-          min={0}
-          max={600}
-          error={errors.petAgeMonths?.message}
-          {...register('petAgeMonths')}
-        />
-        <Input
-          label={t('reviews.form.petWeight')}
-          type="text"
-          inputMode="decimal"
-          error={errors.petWeightG?.message}
-          {...register('petWeightG', { setValueAs: kgToGrams })}
-        />
-        <Input
-          label={t('reviews.form.size')}
-          maxLength={40}
-          error={errors.sizePurchased?.message}
-          {...register('sizePurchased')}
-        />
-      </fieldset>
+      <Input
+        label={t('reviews.form.size')}
+        maxLength={40}
+        error={errors.sizePurchased?.message}
+        {...register('sizePurchased')}
+      />
 
       {uploadsEnabled ? (
         <div className="flex flex-col gap-2">

@@ -24,7 +24,8 @@ export const newsletterSubscribers = pgTable(
     tokenHash: text('token_hash'),
     tokenExpiresAt: timestamp('token_expires_at', { withTimezone: true }),
     unsubscribeToken: text('unsubscribe_token').notNull().unique(),
-    pets: jsonb('pets').$type<string[]>().notNull().default([]),
+    // Department slugs the subscriber wants news about; empty means everything.
+    interests: jsonb('interests').$type<string[]>().notNull().default([]),
     userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
     consentText: text('consent_text').notNull(),
     // The store view (and so the language) the person was in; their mail follows it.

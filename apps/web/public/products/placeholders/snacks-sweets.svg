@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Snacks & sweets">
+<rect width="200" height="200" fill="#fce7f3"/>
+<circle cx="100" cy="100" r="62" fill="#f472b6" fill-opacity="0.55"/>
+<g transform="translate(52 52) scale(4)" fill="none" stroke="#9d174d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.500a4.500 4.500 0 1 0 0 9 4.500 4.500 0 0 0 0-9z"/><path d="M7.500 12L3 9v6l4.500-3zM16.500 12L21 9v6l-4.500-3z"/></g>
+</svg>

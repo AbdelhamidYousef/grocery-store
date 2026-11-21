@@ -9,10 +9,10 @@ import { API, server, signedInAs } from '../../test/server';
 
 const promo = (over: Partial<AdminMenuPromo> = {}): AdminMenuPromo => ({
   id: '11111111-1111-4111-8111-111111111111',
-  pet: 'dog',
+  categoryId: 'c1',
   title: 'Walkies',
   subtitle: 'Leads',
-  imageUrl: '/products/dog-toys/x.webp',
+  imageUrl: '/products/cheese/x.webp',
   imageAlt: 'A lead',
   link: '/c/dog-walk',
   sortOrder: 0,
@@ -52,13 +52,16 @@ function serve(initial: AdminMenuPromo[]) {
 }
 
 describe('admin menu promos', () => {
-  it('lists promos in order with their pet and link, and hides inactive ones with a badge', async () => {
-    serve([promo(), promo({ id: '3', title: 'Cats', pet: 'cat', sortOrder: 1, active: false })]);
+  it('lists promos in order with their department and link, and hides inactive ones with a badge', async () => {
+    serve([
+      promo(),
+      promo({ id: '3', title: 'Bakery', categoryId: null, sortOrder: 1, active: false }),
+    ]);
     renderApp('/admin/navigation');
     const rows = await screen.findAllByTestId('admin-promo-row');
     expect(rows).toHaveLength(2);
     expect(rows[0]).toHaveTextContent('Walkies');
-    expect(rows[0]).toHaveTextContent('Dog');
+    expect(rows[0]).toHaveTextContent('Dairy & eggs');
     expect(rows[1]).toHaveTextContent('Hidden');
   });
 
@@ -102,7 +105,7 @@ describe('admin menu promos', () => {
     await waitFor(() =>
       expect(state.created).toMatchObject({
         title: 'Summer sale',
-        pet: null,
+        categoryId: null,
         link: '/collections/summer',
       }),
     );

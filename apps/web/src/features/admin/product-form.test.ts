@@ -140,7 +140,7 @@ describe('product form', () => {
 
   it('rejects an attribute outside the allowed values', () => {
     const form = validForm();
-    form.attributes.pet = 'dragon';
+    form.attributes.storage = 'lukewarm';
     expect(ProductFormSchema.safeParse(form).success).toBe(false);
   });
 
@@ -153,10 +153,10 @@ describe('product form', () => {
       name: 'Rope Tug',
       categoryId: CATEGORY,
       status: 'active',
-      attributes: { pet: 'dog', optionKeys: ['Colour', 'Size'] },
+      attributes: { storage: 'chilled', optionKeys: ['Colour', 'Size'] },
     });
     expect(payload.images).toEqual([
-      { url: '/products/dog-toys/rope-tug-1.webp', alt: 'Rope tug', width: 1200, height: 1200 },
+      { url: '/products/cheese/rope-tug-1.webp', alt: 'Rope tug', width: 1200, height: 1200 },
     ]);
   });
 

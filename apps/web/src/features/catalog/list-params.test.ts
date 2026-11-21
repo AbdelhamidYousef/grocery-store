@@ -7,7 +7,7 @@ const sp = (s: string) => new URLSearchParams(s);
 describe('parseListParams', () => {
   it('reads sort, page, prices, stock and attribute lists from the url', () => {
     const q = parseListParams(
-      sp('sort=price_asc&page=2&minPrice=500&maxPrice=2000&inStock=true&attr.material=a,b'),
+      sp('sort=price_asc&page=2&minPrice=500&maxPrice=2000&inStock=true&attr.origin=a,b'),
     );
     expect(q).toMatchObject({
       sort: 'price_asc',
@@ -15,7 +15,7 @@ describe('parseListParams', () => {
       minPrice: 500,
       maxPrice: 2000,
       inStock: true,
-      attr: { material: ['a', 'b'] },
+      attr: { origin: ['a', 'b'] },
     });
   });
 
@@ -24,11 +24,11 @@ describe('parseListParams', () => {
   });
 
   it('drops invalid values instead of failing', () => {
-    const q = parseListParams(sp('page=abc&sort=bogus&minPrice=9&maxPrice=1&attr.material=wood'));
+    const q = parseListParams(sp('page=abc&sort=bogus&minPrice=9&maxPrice=1&attr.origin=wood'));
     expect(q.page).toBe(1);
     expect(q.sort).toBeUndefined();
     expect(q.minPrice).toBeUndefined();
-    expect(q.attr).toEqual({ material: ['wood'] });
+    expect(q.attr).toEqual({ origin: ['wood'] });
   });
 });
 
@@ -46,30 +46,30 @@ describe('applyListPatch', () => {
   });
 
   it('removes keys set to undefined or an empty attribute list', () => {
-    const next = applyListPatch(sp('minPrice=5&inStock=true&attr.pet=dog,cat'), {
+    const next = applyListPatch(sp('minPrice=5&inStock=true&attr.storage=dog,cat'), {
       minPrice: undefined,
       inStock: false,
-      attr: { pet: [] },
+      attr: { storage: [] },
     });
     expect(next.toString()).toBe('');
   });
 
   it('writes attribute values as one comma list', () => {
-    expect(applyListPatch(sp(''), { attr: { material: ['a', 'b'] } }).get('attr.material')).toBe(
-      'a,b',
-    );
+    expect(applyListPatch(sp(''), { attr: { origin: ['a', 'b'] } }).get('attr.origin')).toBe('a,b');
   });
 });
 
 describe('filters', () => {
   it('clearedFilters keeps only the search query', () => {
-    expect(clearedFilters(sp('q=rope&sort=name&attr.pet=dog&page=2')).toString()).toBe('q=rope');
+    expect(clearedFilters(sp('q=rope&sort=name&attr.storage=dog&page=2')).toString()).toBe(
+      'q=rope',
+    );
   });
 
   it('hasActiveFilters ignores sort and page', () => {
     expect(hasActiveFilters(parseListParams(sp('sort=name&page=2')))).toBe(false);
     expect(hasActiveFilters(parseListParams(sp('inStock=true')))).toBe(true);
-    expect(hasActiveFilters(parseListParams(sp('attr.pet=dog')))).toBe(true);
+    expect(hasActiveFilters(parseListParams(sp('attr.storage=dog')))).toBe(true);
   });
 });
 

@@ -1,15 +1,14 @@
 import {
-  PET_CATEGORY_SLUGS,
-  PET_VALUES,
+  DEPARTMENTS,
   type AdminMenuPromo,
   type AdminMenuPromoInputSchema,
   type AdminMenuPromoUpdateSchema,
-  type NavPet,
+  type NavDepartment,
   type Navigation,
 } from '@store/shared';
 import type { z } from 'zod';
 
-import { notFound } from '../../lib/errors.ts';
+import { notFound, validation } from '../../lib/errors.ts';
 import * as catalogService from '../catalog/service.ts';
 
 import * as repo from './repo.ts';
@@ -18,7 +17,7 @@ const MAX_BRANDS = 8;
 
 const toAdminPromo = (row: repo.MenuPromoRow): AdminMenuPromo => ({
   id: row.id,
-  pet: row.pet,
+  categoryId: row.categoryId,
   title: row.title,
   subtitle: row.subtitle,
   imageUrl: row.imageUrl,
@@ -28,32 +27,32 @@ const toAdminPromo = (row: repo.MenuPromoRow): AdminMenuPromo => ({
   active: row.active,
 });
 
-// One call builds the whole menu: the category tree, the brands per pet and the promos. Nothing in
-// it depends on who is looking, so it is cached publicly (see the router). A pet whose top-level
-// category does not exist (a trimmed-down catalogue) simply has no panel.
+// One call builds the whole menu: the category tree, the brands per department and the promos.
+// Nothing in it depends on who is looking, so it is cached publicly (see the router). A department
+// whose top-level category does not exist (a trimmed-down catalogue) simply has no panel.
 export async function getNavigation(): Promise<Navigation> {
   const [tree, brandRows, promos] = await Promise.all([
     catalogService.getCategoryTree(),
-    repo.brandsByPet(),
+    repo.brandsByDepartment(),
     repo.listActivePromos(),
   ]);
-  const pets: NavPet[] = [];
-  for (const pet of PET_VALUES) {
-    const root = tree.find((c) => c.slug === PET_CATEGORY_SLUGS[pet]);
+  const departments: NavDepartment[] = [];
+  for (const { slug } of DEPARTMENTS) {
+    const root = tree.find((c) => c.slug === slug);
     if (!root) continue;
-    // A pet's own promo first, else the first "any pet" promo, in the editor's order.
-    const promo = promos.find((p) => p.pet === pet) ?? promos.find((p) => p.pet === null) ?? null;
-    pets.push({
-      pet,
+    // The department's own promo first, else the first "any department" promo, in the editor's order.
+    const promo =
+      promos.find((p) => p.categoryId === root.id) ?? promos.find((p) => p.categoryId === null);
+    departments.push({
+      slug: root.slug,
       name: root.name,
-      categorySlug: root.slug,
       categories: root.children.map((c) => ({
         slug: c.slug,
         name: c.name,
         productCount: c.productCount,
       })),
       brands: brandRows
-        .filter((b) => b.pet === pet)
+        .filter((b) => b.department === slug)
         .slice(0, MAX_BRANDS)
         .map((b) => ({ slug: b.slug, name: b.name })),
       promo: promo
@@ -67,7 +66,7 @@ export async function getNavigation(): Promise<Navigation> {
         : null,
     });
   }
-  return { pets };
+  return { departments };
 }
 
 // ---------- admin ----------
@@ -76,9 +75,19 @@ export async function adminListPromos(): Promise<AdminMenuPromo[]> {
   return (await repo.listPromos()).map(toAdminPromo);
 }
 
+const fieldError = (field: string, message: string) =>
+  validation({ formErrors: [], fieldErrors: { [field]: [message] } });
+
+async function assertDepartment(categoryId: string | null | undefined): Promise<void> {
+  if (categoryId && !(await repo.departmentExists(categoryId))) {
+    throw fieldError('categoryId', 'Choose a department (a top-level category)');
+  }
+}
+
 export async function createPromo(
   input: z.output<typeof AdminMenuPromoInputSchema>,
 ): Promise<AdminMenuPromo> {
+  await assertDepartment(input.categoryId);
   // New promos go to the end of the list unless the editor says where.
   const sortOrder = input.sortOrder ?? (await repo.nextSortOrder());
   return toAdminPromo(await repo.insertPromo({ ...input, sortOrder }));
@@ -88,6 +97,7 @@ export async function updatePromo(
   id: string,
   input: z.output<typeof AdminMenuPromoUpdateSchema>,
 ): Promise<AdminMenuPromo> {
+  if (input.categoryId) await assertDepartment(input.categoryId);
   const row = await repo.updatePromo(id, input);
   if (!row) throw notFound('Menu promo not found');
   return toAdminPromo(row);

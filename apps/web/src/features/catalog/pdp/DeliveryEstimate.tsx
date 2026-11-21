@@ -137,7 +137,7 @@ export function DeliveryEstimate() {
     <div
       data-testid={TEST_IDS.deliveryEstimate}
       aria-live="off"
-      className="flex flex-col gap-0.5 rounded-card bg-pet-soft p-3"
+      className="flex flex-col gap-0.5 rounded-card bg-dept-soft p-3"
     >
       <p aria-hidden="true" className="font-semibold">
         {text.visible[0]}

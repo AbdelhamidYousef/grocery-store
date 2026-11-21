@@ -40,15 +40,11 @@ describe('submitting a review', () => {
   it('stores a pending, unverified review for someone who never bought the product', async () => {
     const { product } = await createProduct();
     const { shopper } = await signedIn(app);
-    const res = await shopper.call('post', `/products/${product.slug}/reviews`, {
-      ...review,
-      petAgeMonths: 18,
-      petWeightG: 4500,
-    });
+    const res = await shopper.call('post', `/products/${product.slug}/reviews`, review);
     expect(res.status).toBe(201);
     expect(bodyOf<Created>(res).data).toMatchObject({ status: 'pending', verifiedBuyer: false });
     const [row] = await db.select().from(reviews);
-    expect(row).toMatchObject({ status: 'pending', petAgeMonths: 18, petWeightG: 4500 });
+    expect(row).toMatchObject({ status: 'pending', sizePurchased: null });
   });
 
   it('ignores a verifiedBuyer flag sent by the client', async () => {

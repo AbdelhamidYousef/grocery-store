@@ -19,7 +19,7 @@ export const TOOL_EXAMPLES: Record<string, ToolExample> = {
           slug: 'rope-tug',
           name: 'Rope Tug',
           brand: null,
-          category: 'dog-toys',
+          category: 'cheese',
           priceFrom: money(1099, '€10.99'),
           priceTo: money(1899, '€18.99'),
           inStock: true,

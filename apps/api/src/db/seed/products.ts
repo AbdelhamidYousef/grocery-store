@@ -1,18 +1,7 @@
-import { birdProducts } from './products-bird.ts';
-import { catProducts } from './products-cat.ts';
-import { dogProducts } from './products-dog.ts';
-import { fishProducts } from './products-fish.ts';
-import { reptileProducts } from './products-reptile.ts';
-import { smallProducts } from './products-small.ts';
+import { productSeeds } from './catalogue.ts';
 
-// Plain data on purpose: the catalog reads like a spreadsheet, and the variant matrix, SKUs,
-// prices and images are derived from it in expand.ts. One file per pet keeps each readable. All
-// names are made up; nothing here refers to a real brand, and no live animals are sold.
-export const products = [
-  ...dogProducts,
-  ...catProducts,
-  ...birdProducts,
-  ...fishProducts,
-  ...smallProducts,
-  ...reptileProducts,
-];
+// The catalogue: 120 made-up products in ten departments, read from docs/plan/data/catalogue.json
+// (see catalogue.ts). Plain data on purpose, so it reads like a spreadsheet; the variants, SKUs,
+// prices and images are derived from it in expand.ts. All names are made up; nothing here refers
+// to a real brand.
+export const products = productSeeds;

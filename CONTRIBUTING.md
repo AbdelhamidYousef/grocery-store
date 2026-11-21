@@ -1,6 +1,6 @@
 # Contributing
 
-Pawsome is a portfolio project, so there is no roadmap to join, but fixes and suggestions are welcome as issues or pull requests.
+Grocery is a portfolio project, so there is no roadmap to join, but fixes and suggestions are welcome as issues or pull requests.
 
 ## Set up
 

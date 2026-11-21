@@ -21,7 +21,7 @@ function cart(over: Partial<PriceCartInput> = {}): PriceCartInput {
 
 const pct = (value: number, extra: Partial<PricingCode> = {}): PricingCode => ({
   id: 'c1',
-  code: 'PAWS10',
+  code: 'GROCERY10',
   kind: 'percent',
   value,
   ...extra,

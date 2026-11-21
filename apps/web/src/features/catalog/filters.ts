@@ -7,28 +7,23 @@ import { lookupFor, type StringKey, type TFunction } from '../../i18n';
 const defaultT = lookupFor('en-IE').t;
 
 export const FACET_LABELS: Record<FacetKey, StringKey> = {
-  pet: 'catalog.facet.pet',
-  material: 'catalog.facet.material',
-  ageStage: 'catalog.facet.ageStage',
+  storage: 'catalog.facet.storage',
+  origin: 'catalog.facet.origin',
 };
 
 export const FACET_ORDER: readonly FacetKey[] = FACET_KEYS;
 
-const PET_LABELS: Record<string, StringKey> = {
-  dog: 'catalog.facet.petDog',
-  cat: 'catalog.facet.petCat',
-  bird: 'catalog.facet.petBird',
-  fish: 'catalog.facet.petFish',
-  small: 'catalog.facet.petSmall',
-  reptile: 'catalog.facet.petReptile',
+const STORAGE_LABELS: Record<string, StringKey> = {
+  ambient: 'catalog.facet.storageAmbient',
+  chilled: 'catalog.facet.storageChilled',
+  frozen: 'catalog.facet.storageFrozen',
 };
 
-// Facet values are raw data ("small", "all", "baked meat and oat treats"); this makes them
-// readable without hardcoding which values exist.
+// Facet values are raw data ("chilled", "germany"); this makes them readable without hardcoding
+// which values exist.
 export function formatFacetValue(key: string, value: string, t: TFunction = defaultT): string {
-  const petKey = PET_LABELS[value];
-  if (key === 'pet') return petKey ? t(petKey) : capitalise(value);
-  if (key === 'ageStage' && value === 'all') return t('catalog.facet.allAges');
+  const storageKey = STORAGE_LABELS[value];
+  if (key === 'storage' && storageKey) return t(storageKey);
   return capitalise(value);
 }
 

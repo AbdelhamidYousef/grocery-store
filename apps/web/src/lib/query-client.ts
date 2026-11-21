@@ -154,7 +154,7 @@ export const keys = {
     all: ['reviews'] as const,
     list: (slug: string, params: object) => ['reviews', 'list', slug, params] as const,
   },
-  // The mega-menu data (pets, categories, brands, promos): one cached call.
+  // The mega-menu data (departments, categories, brands, promos): one cached call.
   navigation: ['navigation'] as const,
   categories: {
     all: ['categories'] as const,

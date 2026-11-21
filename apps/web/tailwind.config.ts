@@ -1,7 +1,7 @@
 import type { Config } from 'tailwindcss';
 
 // Tailwind only names the tokens; the values live in src/styles/tokens.css as CSS variables so
-// `data-pet="cat"` on any wrapper re-themes every `pet-*` utility beneath it with no JS.
+// `data-dept="cat"` on any wrapper re-themes every `pet-*` utility beneath it with no JS.
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
@@ -23,10 +23,10 @@ export default {
         },
         success: { DEFAULT: 'var(--color-success)', soft: 'var(--color-success-soft)' },
         danger: { DEFAULT: 'var(--color-danger)', soft: 'var(--color-danger-soft)' },
-        pet: {
-          accent: 'var(--pet-accent)',
-          soft: 'var(--pet-soft)',
-          strong: 'var(--pet-strong)',
+        dept: {
+          accent: 'var(--dept-accent)',
+          soft: 'var(--dept-soft)',
+          strong: 'var(--dept-strong)',
         },
       },
       fontFamily: {

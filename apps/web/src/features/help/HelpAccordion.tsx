@@ -40,7 +40,7 @@ export function HelpAccordion({
                 aria-expanded={expanded}
                 aria-controls={panelId}
                 onClick={() => toggle(hit.slug)}
-                className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left font-display text-lg font-semibold hover:bg-pet-soft"
+                className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left font-display text-lg font-semibold hover:bg-dept-soft"
               >
                 <span className="break-words">{hit.question}</span>
                 <ChevronRightIcon

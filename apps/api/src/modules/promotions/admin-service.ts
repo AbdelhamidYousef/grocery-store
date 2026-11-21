@@ -35,7 +35,7 @@ const toValues = (input: AdminDiscountCodeParsed): repo.CodeValues => ({
   endsAt: input.endsAt ? new Date(input.endsAt) : null,
 });
 
-// The unique index is on the citext column, so "paws10" and "PAWS10" collide here too. Mapping
+// The unique index is on the citext column, so "grocery10" and "GROCERY10" collide here too. Mapping
 // the violation (not only pre-checking) also covers two admins saving the same code at once.
 async function mapDuplicate<T>(work: () => Promise<T>, message: string): Promise<T> {
   try {

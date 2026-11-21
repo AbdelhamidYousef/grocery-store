@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { PET_VALUES } from '../pets.ts';
+import { DEPARTMENT_SLUGS } from '../departments.ts';
 
 import { EmailSchema } from './auth.ts';
 import { DataSchema } from './common.ts';
@@ -17,7 +17,8 @@ export const WELCOME_CODE_DAYS = 30;
 
 export const NewsletterSubscribeSchema = z.object({
   email: EmailSchema,
-  pets: z.array(z.enum(PET_VALUES)).max(PET_VALUES.length).default([]),
+  // The departments the subscriber wants news about; empty means everything.
+  interests: z.array(z.enum(DEPARTMENT_SLUGS)).max(DEPARTMENT_SLUGS.length).default([]),
   // Consent must be an explicit yes: an unticked or missing box is a validation error.
   consent: z.literal(true, { error: 'Please tick the box to subscribe' }),
   // Honeypot, same idea as the contact form.

@@ -1,6 +1,5 @@
 import {
   AdminMenuPromoInputSchema,
-  PET_VALUES,
   type AdminMenuPromo,
   type AdminMenuPromoInput,
 } from '@store/shared';
@@ -24,8 +23,8 @@ import { Skeleton } from '../../components/ui/Skeleton';
 import { useToast } from '../../components/ui/Toast';
 import { keys } from '../../lib/query-client';
 import { FormAlert } from '../auth/AuthCard';
+import { useCategories } from '../catalog/queries';
 import { PromoTile } from '../navigation/PromoTile';
-import { speciesLabel } from '../navigation/species-label';
 
 import { adminErrorMessage } from './errors';
 
@@ -75,7 +74,7 @@ function useDeletePromo() {
 // ----- the form, with a live preview of the tile -----
 
 const empty = {
-  pet: '',
+  categoryId: '',
   title: '',
   subtitle: '',
   imageUrl: '',
@@ -87,13 +86,16 @@ const empty = {
 function PromoForm({ promo, onDone }: { promo: AdminMenuPromo | undefined; onDone: () => void }) {
   const toast = useToast();
   const save = useSavePromo();
-  const [form, setForm] = useState(promo ? { ...promo, pet: promo.pet ?? '' } : empty);
+  const { data: categories } = useCategories();
+  const [form, setForm] = useState(
+    promo ? { ...promo, categoryId: promo.categoryId ?? '' } : empty,
+  );
   const [error, setError] = useState<string | null>(null);
   const set = (key: keyof typeof empty) => (e: { target: { value: string } }) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const parsed = AdminMenuPromoInputSchema.safeParse({
-    pet: form.pet === '' ? null : form.pet,
+    categoryId: form.categoryId === '' ? null : form.categoryId,
     title: form.title,
     subtitle: form.subtitle,
     imageUrl: form.imageUrl,
@@ -131,14 +133,14 @@ function PromoForm({ promo, onDone }: { promo: AdminMenuPromo | undefined; onDon
       <FormAlert message={error} />
       <Select
         label="Shown in"
-        hint="Any pet is the fallback for a panel with no promo of its own."
-        value={form.pet}
-        onChange={set('pet')}
+        hint="Any department is the fallback for a panel with no promo of its own."
+        value={form.categoryId}
+        onChange={set('categoryId')}
       >
-        <option value="">Any pet</option>
-        {PET_VALUES.map((p) => (
-          <option key={p} value={p}>
-            {speciesLabel(p)}
+        <option value="">Any department</option>
+        {(categories ?? []).map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.name}
           </option>
         ))}
       </Select>
@@ -146,7 +148,7 @@ function PromoForm({ promo, onDone }: { promo: AdminMenuPromo | undefined; onDon
       <Input label="Subtitle" value={form.subtitle} onChange={set('subtitle')} maxLength={120} />
       <Input
         label="Image"
-        hint="A path such as /products/dog-toys/braided-tug-rope-1.webp or an https link."
+        hint="A path such as /products/fruit/bananas-1.webp or an https link."
         value={form.imageUrl}
         onChange={set('imageUrl')}
       />
@@ -193,6 +195,9 @@ function PromoForm({ promo, onDone }: { promo: AdminMenuPromo | undefined; onDon
 
 export function NavigationAdmin() {
   const { data: promos, isPending, isError, refetch } = useMenuPromos();
+  const { data: categories } = useCategories();
+  const departmentOf = (id: string | null) =>
+    id ? (categories?.find((c) => c.id === id)?.name ?? 'A department') : 'Any department';
   const patch = usePatchPromo();
   const remove = useDeletePromo();
   const toast = useToast();
@@ -228,8 +233,9 @@ export function NavigationAdmin() {
         <Button onClick={() => setEditing('new')}>New promo</Button>
       </div>
       <p className="max-w-prose text-muted">
-        The featured tile in each pet&apos;s menu panel. A panel shows its own pet&apos;s first
-        active promo (lowest in the list), or the first &quot;Any pet&quot; promo when it has none.
+        The featured tile in each department&apos;s menu panel. A panel shows its own
+        department&apos;s first active promo (lowest in the list), or the first &quot;Any
+        department&quot; promo when it has none.
       </p>
       {isError ? (
         <div role="alert" className="text-danger">
@@ -253,12 +259,12 @@ export function NavigationAdmin() {
                 alt=""
                 width={64}
                 height={40}
-                className="h-10 w-16 shrink-0 rounded-control bg-pet-soft object-cover"
+                className="h-10 w-16 shrink-0 rounded-control bg-dept-soft object-cover"
               />
               <div className="min-w-0 flex-1">
                 <p className="break-words font-semibold">{p.title}</p>
                 <p className="break-words text-sm text-muted">
-                  {p.pet ? speciesLabel(p.pet) : 'Any pet'} &middot; {p.link}
+                  {departmentOf(p.categoryId)} &middot; {p.link}
                 </p>
               </div>
               {!p.active && <Badge tone="neutral">Hidden</Badge>}

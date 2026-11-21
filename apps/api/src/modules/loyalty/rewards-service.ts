@@ -76,7 +76,7 @@ export async function redeem(
       kind: reward.kind === 'free_shipping' ? 'free_shipping' : 'fixed',
       valueCents: reward.valueCents,
       expiresInDays: REWARD_CODE_DAYS,
-      prefix: 'PAWS',
+      prefix: 'REWARD',
     });
     const after = await repo.standing(tx, userId);
     return {

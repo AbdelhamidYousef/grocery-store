@@ -3,7 +3,7 @@
 
 export const discountCodeSeeds = [
   {
-    code: 'PAWS10',
+    code: 'GROCERY10',
     kind: 'percent' as const,
     value: 10,
     minSpendCents: 3000,
@@ -32,16 +32,16 @@ export const bulkTierSeeds = [
   { minCents: 10000, percent: 10 },
 ];
 
-// A free bag of biscuits once the basket reaches EUR 40 (after discounts).
+// A free pack of butter biscuits once the basket reaches EUR 40 (after discounts).
 export const giftRuleSeed = {
   thresholdCents: 4000,
-  variantSku: 'PW-DOG-BISC-PEANUT-200G',
+  variantSku: 'GR-BUTTER-BISCUITS',
 };
 
 // Member prices (step 18.7): about 10% below the regular price, rounded to whole cents with
 // integer maths only. The seed gives them to a handful of ordinary variants (never a trial size).
 export const MEMBER_PRICE_VARIANTS = 8;
-export const MEMBER_MIN_PRICE_CENTS = 500;
+export const MEMBER_MIN_PRICE_CENTS = 100;
 
 export function memberPriceCents(priceCents: number): number {
   // price - round(price * 10%), halves rounded up: (price * 10 + 50) / 100 in integers.

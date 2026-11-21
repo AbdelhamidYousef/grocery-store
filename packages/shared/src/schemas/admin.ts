@@ -1,6 +1,12 @@
 import { z } from 'zod';
 
-import { PetSchema } from '../pets.ts';
+import {
+  ALLERGEN_SLUGS,
+  AllergenSchema,
+  DIETARY_SLUGS,
+  DietarySchema,
+  NutritionSchema,
+} from '../food.ts';
 import { NetUnitSchema } from '../unit-price.ts';
 
 import { OrderSchema, OrderStatusSchema, PaymentStatusSchema } from './checkout.ts';
@@ -208,10 +214,14 @@ export const AdminVariantPricesResponseSchema = DataSchema(
 // become facets).
 export const AdminAttributesSchema = z
   .object({
-    pet: PetSchema,
-    material: z.string().trim().min(1).max(60),
-    ageStage: z.enum(['puppy', 'kitten', 'adult', 'senior', 'all']),
+    storage: z.enum(['ambient', 'chilled', 'frozen']),
+    origin: z.string().trim().min(1).max(60),
     size: z.string().trim().min(1).max(60),
+    // Later phases read these three (sold by weight, best-before window, bottle deposit); G3 only
+    // stores them.
+    soldByWeight: z.boolean(),
+    shelfLifeDays: z.number().int().min(0).max(3650),
+    deposit: z.boolean(),
     optionKeys: z.array(z.string().trim().min(1).max(40)).max(6),
   })
   .partial()
@@ -229,6 +239,11 @@ const ProductFields = {
   isEco: z.boolean(),
   isBestsellerOverride: z.boolean(),
   badgeNewUntil: z.iso.datetime({ offset: true }).nullable(),
+  // Food information; a product that is not food leaves these empty.
+  nutrition: NutritionSchema.nullable(),
+  ingredients: z.string().trim().min(1).max(2000).nullable(),
+  allergens: z.array(AllergenSchema).max(ALLERGEN_SLUGS.length),
+  dietary: z.array(DietarySchema).max(DIETARY_SLUGS.length),
 };
 
 export const AdminProductCreateSchema = z.object({
@@ -239,6 +254,10 @@ export const AdminProductCreateSchema = z.object({
   isEco: ProductFields.isEco.default(false),
   isBestsellerOverride: ProductFields.isBestsellerOverride.default(false),
   badgeNewUntil: ProductFields.badgeNewUntil.default(null),
+  nutrition: ProductFields.nutrition.default(null),
+  ingredients: ProductFields.ingredients.default(null),
+  allergens: ProductFields.allergens.default([]),
+  dietary: ProductFields.dietary.default([]),
   // Generated from the name (with a numeric suffix if taken) unless given.
   slug: z
     .string()
@@ -284,6 +303,10 @@ export const AdminProductSchema = z.object({
   isEco: z.boolean(),
   isBestsellerOverride: z.boolean(),
   badgeNewUntil: z.string().nullable(),
+  nutrition: NutritionSchema.nullable(),
+  ingredients: z.string().nullable(),
+  allergens: z.array(z.string()),
+  dietary: z.array(z.string()),
   tags: z.array(z.object({ id: z.string(), slug: z.string(), name: z.string() })),
   variants: z.array(AdminVariantSchema),
   images: z.array(AdminProductImageSchema),

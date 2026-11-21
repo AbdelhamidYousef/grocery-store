@@ -12,27 +12,27 @@ import { db } from '../../db/client.ts';
 import { homeContent } from '../../db/schema/index.ts';
 
 // What the homepage shows until an admin edits it. Original, generic copy; images are optional
-// (the lead agent adds real ones through the image pipeline).
+// (the owner adds real ones through the image pipeline).
 export const DEFAULT_HERO_SLIDES: HeroSlide[] = [
   {
-    title: 'Happy tails start here',
-    text: 'Colourful, tough and tail-wag-approved supplies for every pet.',
-    ctaLabel: 'Shop dogs',
-    ctaHref: '/c/dogs',
+    title: 'Fresh fruit and veg, today',
+    text: 'Berries, tomatoes and herbs, at your door in 30 minutes.',
+    ctaLabel: 'Shop fruit & veg',
+    ctaHref: '/c/fruit-veg',
     imageUrl: null,
   },
   {
-    title: 'Purr-fect playtime',
-    text: 'Wands, mice and cosy caves for curious cats.',
-    ctaLabel: 'Shop cats',
-    ctaHref: '/c/cats',
+    title: 'Baked this morning',
+    text: 'Rolls, loaves and croissants from the neighbourhood bakery.',
+    ctaLabel: 'Shop bakery',
+    ctaHref: '/c/bakery',
     imageUrl: null,
   },
   {
-    title: 'Little pets, big love',
-    text: 'Hay, hideaways and chews for small friends.',
-    ctaLabel: 'Shop small pets',
-    ctaHref: '/c/small-pets',
+    title: 'Dinner in ten minutes',
+    text: 'Pizza, fish fingers and fries, delivered frozen.',
+    ctaLabel: 'Shop frozen',
+    ctaHref: '/c/frozen',
     imageUrl: null,
   },
 ];

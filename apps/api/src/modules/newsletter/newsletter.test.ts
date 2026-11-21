@@ -25,7 +25,7 @@ beforeEach(async () => {
 const subscribe = (email: string, extra: object = {}) =>
   makeShopper(app).call('post', '/newsletter/subscribe', {
     email,
-    pets: ['dog'],
+    interests: ['bakery'],
     consent: true,
     ...extra,
   });
@@ -51,7 +51,11 @@ describe('subscribing', () => {
     expect(bodyOf(res)).toEqual({ data: { status: 'check_your_inbox' } });
     await outbox.drain();
     const [row] = await db.select().from(newsletterSubscribers);
-    expect(row).toMatchObject({ email: 'pat@example.com', status: 'pending', pets: ['dog'] });
+    expect(row).toMatchObject({
+      email: 'pat@example.com',
+      status: 'pending',
+      interests: ['bakery'],
+    });
     expect(row!.consentText).toContain('unsubscribe');
     expect(transport.sent).toHaveLength(1);
     expect(transport.sent[0]!.subject).toMatch(/Confirm/);
@@ -84,7 +88,7 @@ describe('subscribing', () => {
     await c.shopper.call('post', '/newsletter/subscribe', {
       email: c.user.email,
       consent: true,
-      pets: [],
+      interests: [],
     });
     const [row] = await db.select().from(newsletterSubscribers);
     expect(row!.userId).toBe(c.user.id);
@@ -99,7 +103,7 @@ describe('subscribing', () => {
       makeShopper(limited).call('post', '/newsletter/subscribe', {
         email,
         consent: true,
-        pets: [],
+        interests: [],
       });
     expect((await post('a@example.com')).status).toBe(202);
     expect((await post('b@example.com')).status).toBe(202);

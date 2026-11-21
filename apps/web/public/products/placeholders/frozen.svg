@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Frozen">
+<rect width="200" height="200" fill="#cffafe"/>
+<circle cx="100" cy="100" r="62" fill="#22d3ee" fill-opacity="0.55"/>
+<g transform="translate(52 52) scale(4)" fill="none" stroke="#155e75" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4.500 7.500l15 9M19.500 7.500l-15 9"/><path d="M9.500 4.500L12 7l2.500-2.500M9.500 19.500L12 17l2.500 2.500"/></g>
+</svg>

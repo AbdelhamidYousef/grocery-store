@@ -1,7 +1,7 @@
 export * from './delivery.ts';
 export * from './errors.ts';
 export * from './money.ts';
-export * from './pets.ts';
+export * from './departments.ts';
 export * from './schemas/index.ts';
 export * from './badges.ts';
 export * from './quick-chips.ts';
@@ -12,3 +12,4 @@ export * from './pricing/index.ts';
 export * from './loyalty.ts';
 export * from './stores.ts';
 export * from './plural.ts';
+export * from './food.ts';

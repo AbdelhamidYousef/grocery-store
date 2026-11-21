@@ -34,9 +34,8 @@ describe('formatting', () => {
     expect(centsToInput(undefined)).toBe('');
   });
   it('makes facet values readable', () => {
-    expect(formatFacetValue('pet', 'small')).toBe('Small pets');
-    expect(formatFacetValue('ageStage', 'all')).toBe('All ages');
-    expect(formatFacetValue('material', 'natural rubber')).toBe('Natural rubber');
+    expect(formatFacetValue('storage', 'chilled')).toBe('Chilled');
+    expect(formatFacetValue('origin', 'new zealand')).toBe('New zealand');
   });
   it('offers best match only for a search', () => {
     expect(sortOptions(true)[0]).toBe('relevance');

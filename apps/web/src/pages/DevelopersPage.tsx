@@ -30,7 +30,7 @@ export default function DevelopersPage() {
       <h1 className="font-display text-3xl font-bold sm:text-4xl">{t('content.dev.title')}</h1>
       <p
         role="note"
-        className="mt-3 rounded-control border-2 border-line bg-pet-soft p-3 font-semibold"
+        className="mt-3 rounded-control border-2 border-line bg-dept-soft p-3 font-semibold"
       >
         {t('content.dev.note')}
       </p>
@@ -74,18 +74,18 @@ export default function DevelopersPage() {
                 <summary className="min-h-11 cursor-pointer py-2 font-semibold">
                   {t('content.dev.schema')}
                 </summary>
-                <pre className="overflow-x-auto rounded-control bg-pet-soft p-3 text-sm">
+                <pre className="overflow-x-auto rounded-control bg-dept-soft p-3 text-sm">
                   {json(z.toJSONSchema(tool.inputSchema, { io: 'input' }))}
                 </pre>
               </details>
               {example && (
                 <>
                   <p className="mt-3 font-semibold">{t('content.dev.exampleCall')}</p>
-                  <pre className="overflow-x-auto rounded-control bg-pet-soft p-3 text-sm">
+                  <pre className="overflow-x-auto rounded-control bg-dept-soft p-3 text-sm">
                     {json(example.input)}
                   </pre>
                   <p className="mt-3 font-semibold">{t('content.dev.exampleResult')}</p>
-                  <pre className="overflow-x-auto rounded-control bg-pet-soft p-3 text-sm">
+                  <pre className="overflow-x-auto rounded-control bg-dept-soft p-3 text-sm">
                     {json(example.output)}
                   </pre>
                 </>

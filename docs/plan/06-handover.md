@@ -20,6 +20,12 @@ Written by the build sessions for the owner and the next session. Newest state f
   translation, "Made in" spec), and pet-themed home content: all G3. German UI and emails use "du"; seed
   product and guide texts still say "Sie" (G3). Local DB was reset (`pnpm db:reset`) to pick up `@grocery.test` accounts. Not pushed.
 
+- **G3 in progress** (2026-11-21): G3.1 to G3.3 committed as one (departments replace pets,
+  nutrition/allergens/dietary filters, the 120-product catalogue from `catalogue.json`). Gates green
+  (shared 270, web 920, API 1,377 + 2 skipped; e2e not run yet). Still to do: G3.4 product photos (only apples, bananas, lemons and
+  strawberries have photos; the rest show the department placeholder), G3.5 the rest of the home
+  page (hero is done), G3.6 e2e and phase end, then push.
+
 ## Waiting on you
 
 - Nothing yet.

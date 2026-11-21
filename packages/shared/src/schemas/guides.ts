@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { ProductCardSchema } from './catalog.ts';
 import { DataSchema, PaginatedSchema, PaginationQuerySchema } from './common.ts';
 
-// ---------- pet-care guides (public) ----------
+// ---------- recipes and tips (public) ----------
 
 export const GuideCategorySchema = z.object({
   slug: z.string(),

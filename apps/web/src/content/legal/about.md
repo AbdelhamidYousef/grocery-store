@@ -1,12 +1,12 @@
 ## Who we are
 
-Grocery is a make-believe pet shop. We were dreamed up for a portfolio project, so there is no warehouse, no staff and no parcel on its way to you.
+Grocery is a make-believe quick-delivery shop. We were dreamed up for a portfolio project, so there is no warehouse, no driver and no bag on its way to you.
 
 ## What we pretend to care about
 
-- Toys and treats chosen for how they survive real chewing and zooming.
-- Honest ingredient lists and safe materials.
-- Making things right when a pet is not impressed.
+- Fresh food chosen for how it survives the trip from shelf to door.
+- Honest ingredient lists, with the allergens easy to find.
+- Making things right when something is missing or not fresh.
 
 ## Say hello
 

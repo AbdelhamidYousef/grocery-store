@@ -2,13 +2,15 @@ import { useEffect, type ReactNode } from 'react';
 
 import { Container } from '../components/layout/Container';
 import { Seo } from '../components/Seo';
-import { PetTiles } from '../features/catalog/PetTiles';
+import { DepartmentTiles } from '../features/catalog/DepartmentTiles';
 import { ProductGrid, ProductGridSkeleton } from '../features/catalog/ProductGrid';
 import '../features/home/builtin-slots';
-import { HeroCarousel } from '../features/home/HeroCarousel';
+import { HomeHero } from '../features/home/HomeHero';
 import {
+  DealsSection,
+  FeaturedOffers,
+  FoodBankTeaser,
   GuidesTeaser,
-  HeroSkeleton,
   PromoTile,
   Testimonials,
   TrustBar,
@@ -54,14 +56,20 @@ export default function HomePage() {
 
       <SafetyBanner />
 
-      <h1 className="sr-only">{t('shell.home.h1')}</h1>
-
-      {data ? <HeroCarousel slides={data.heroSlides} /> : <HeroSkeleton />}
+      <HomeHero />
       <TrustBar />
 
-      <Section id="shop-by-pet">
-        <h2 className="mb-5 text-2xl font-bold sm:text-3xl">{t('shell.home.shopByPet')}</h2>
-        <PetTiles />
+      <Section id="departments">
+        <h2 className="mb-5 text-2xl font-bold sm:text-3xl">{t('shell.home.shopByDepartment')}</h2>
+        <DepartmentTiles />
+      </Section>
+
+      {slots.filter((s) => s.id === 'seasonal').map(renderSlot)}
+
+      <Section id="featured">{data ? <FeaturedOffers slides={data.heroSlides} /> : null}</Section>
+
+      <Section id="deals">
+        <DealsSection />
       </Section>
 
       <Section id="bestsellers">
@@ -81,9 +89,9 @@ export default function HomePage() {
         )}
       </Section>
 
-      <Section id="promo">{data?.promoTile ? <PromoTile tile={data.promoTile} /> : null}</Section>
+      {slots.filter((s) => s.id === 'usuals').map(renderSlot)}
 
-      {slots.filter((s) => s.id === 'seasonal').map(renderSlot)}
+      <Section id="promo">{data?.promoTile ? <PromoTile tile={data.promoTile} /> : null}</Section>
 
       <Section id="guides">
         <GuidesTeaser />
@@ -93,7 +101,11 @@ export default function HomePage() {
         <Testimonials />
       </Section>
 
-      {slots.filter((s) => s.id !== 'seasonal').map(renderSlot)}
+      <Section id="food-bank">
+        <FoodBankTeaser />
+      </Section>
+
+      {slots.filter((s) => s.id !== 'seasonal' && s.id !== 'usuals').map(renderSlot)}
     </div>
   );
 }

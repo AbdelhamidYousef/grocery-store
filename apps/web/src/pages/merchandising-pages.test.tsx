@@ -58,7 +58,7 @@ describe('brand page', () => {
             facets: makeFacets({
               brand: [
                 { value: 'scaleby', label: 'Scaleby', count: 3 },
-                { value: 'pawsome', label: 'Pawsome', count: 2 },
+                { value: 'grocery-basics', label: 'Grocery Basics', count: 2 },
               ],
             }),
           }),

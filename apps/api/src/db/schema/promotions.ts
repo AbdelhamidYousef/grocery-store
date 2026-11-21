@@ -28,7 +28,7 @@ export const discountCodes = pgTable(
   'discount_codes',
   {
     id: id(),
-    // citext: "paws10" and "PAWS10" are the same code, for lookup and for the unique index.
+    // citext: "grocery10" and "GROCERY10" are the same code, for lookup and for the unique index.
     code: citext('code').notNull().unique(),
     kind: discountKind('kind').notNull(),
     // percent: whole percent 1..100. fixed: cents. free_shipping: 0.

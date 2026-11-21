@@ -4,7 +4,9 @@ import { useState } from 'react';
 import { Checkbox } from '../../components/ui/Checkbox';
 import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
+import { dietaryLabel, labelLang } from '../../lib/food-labels';
 import { TEST_IDS } from '../../lib/test-ids';
+import { useStore } from '../stores/StoreContext';
 
 import { FACET_ORDER, facetLabel, formatFacetValue } from './filters';
 import type { ListPatch } from './list-params';
@@ -30,6 +32,7 @@ export function FilterPanel({
   testId = TEST_IDS.filters,
 }: FilterPanelProps) {
   const { t } = useT();
+  const lang = labelLang(useStore().locale);
   return (
     <div className="flex flex-col gap-6" data-testid={testId}>
       <Checkbox
@@ -51,7 +54,20 @@ export function FilterPanel({
         />
       )}
 
-      {/* Brand and health need come from their own tables (slug + display name), not from the
+      {/* Dietary needs come from the product's own food fields (the `diet` URL parameter). Several
+          can be on at once and a product must carry all of them. */}
+      {(facets.diet.length >= 1 || (query.diet?.length ?? 0) > 0) && (
+        <FacetGroup
+          facetKey="diet"
+          label={t('catalog.facet.diet')}
+          testId={TEST_IDS.filterDiet}
+          values={facets.diet.map((d) => ({ ...d, label: dietaryLabel(d.value, lang) }))}
+          selected={query.diet ?? []}
+          onChange={(next) => update({ diet: next })}
+        />
+      )}
+
+      {/* Brand and shop-by need come from their own tables (slug + display name), not from the
           attributes jsonb, so they are separate groups with their own URL parameters. */}
       {(facets.brand.length >= 2 || (query.brand?.length ?? 0) > 0) && (
         <FacetGroup
@@ -77,8 +93,8 @@ export function FilterPanel({
       {FACET_ORDER.map((key) => {
         const values = facets.attributes[key] ?? [];
         const selected = query.attr[key] ?? [];
-        // A group with a single value cannot narrow anything (brand is always "Pawsome"; the pet
-        // group on a dog page is always "dog"), so it is noise unless something is selected.
+        // A group with a single value cannot narrow anything (a page of frozen food has only
+        // "frozen" storage), so it is noise unless something is selected.
         if (values.length < 2 && selected.length === 0) return null;
         return (
           <FacetGroup

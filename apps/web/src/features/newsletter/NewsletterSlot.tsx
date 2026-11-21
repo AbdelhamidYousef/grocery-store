@@ -9,7 +9,7 @@ import { NewsletterForm } from './NewsletterForm';
 export function NewsletterSlot() {
   const { t } = useT();
   return (
-    <section aria-labelledby="newsletter-heading" className="bg-pet-soft py-10">
+    <section aria-labelledby="newsletter-heading" className="bg-dept-soft py-10">
       <Container>
         <h2 id="newsletter-heading" className="font-display text-2xl font-bold">
           {t('loyalty.newsletter.slotTitle')}

@@ -16,7 +16,6 @@
     "translations:export": "tsx src/db/seed/translations.ts",
     "db:reset": "tsx src/db/reset.ts",
     "images:process": "tsx scripts/process-images.ts",
-    "images:brief": "tsx scripts/images-brief.ts",
     "coverage": "vitest run --coverage"
   },
   "dependencies": {

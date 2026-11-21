@@ -1,9 +1,9 @@
+import { DEPARTMENTS } from '@store/shared';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, MemoryRouter, RouterProvider, useLocation } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
-import { PETS } from '../../lib/pets';
 import { renderWithProviders } from '../../test/render';
 
 import { AppLayout } from './AppLayout';
@@ -37,38 +37,36 @@ describe('AppLayout', () => {
     expect(skip).toHaveAttribute('href', '#main');
   });
 
-  it('lists the six pets and Brands in the header nav, each pet with its accent', () => {
+  it('lists the ten departments and Brands in the header nav, each department with its accent', () => {
     renderShell();
     const items = within(screen.getByTestId('main-nav')).getAllByRole('listitem');
-    // The pets, then the Brands link (which has no pet accent).
-    expect(items).toHaveLength(PETS.length + 1);
-    expect(items.map((li) => li.getAttribute('data-pet'))).toEqual([
-      'dog',
-      'cat',
-      'bird',
-      'fish',
-      'small-pet',
-      'reptile',
+    // The departments, then the Brands link (which has no department accent).
+    expect(items).toHaveLength(DEPARTMENTS.length + 1);
+    expect(items.map((li) => li.getAttribute('data-dept'))).toEqual([
+      ...DEPARTMENTS.map((d) => d.slug),
       null,
     ]);
-    expect(within(items[5]!).getByRole('link', { name: 'Reptiles' })).toHaveAttribute(
+    expect(within(items[9]!).getByRole('link', { name: 'Personal care & baby' })).toHaveAttribute(
       'href',
-      '/c/reptiles',
+      '/c/personal-care-baby',
     );
-    expect(within(items[6]!).getByRole('link', { name: 'Brands' })).toHaveAttribute(
+    expect(within(items[10]!).getByRole('link', { name: 'Brands' })).toHaveAttribute(
       'href',
       '/brands',
     );
-    expect(within(items[0]!).getByRole('link', { name: 'Dogs' })).toHaveAttribute(
+    expect(within(items[0]!).getByRole('link', { name: 'Fruit & veg' })).toHaveAttribute(
       'href',
-      '/c/dogs',
+      '/c/fruit-veg',
     );
   });
 
   it('marks the current category link', () => {
-    renderShell('/c/cats');
+    renderShell('/c/bakery');
     const nav = screen.getByTestId('main-nav');
-    expect(within(nav).getByRole('link', { name: 'Cats' })).toHaveAttribute('aria-current', 'page');
+    expect(within(nav).getByRole('link', { name: 'Bakery' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
   });
 
   it('has a labelled footer with shop links and a test-mode notice', () => {
@@ -137,8 +135,8 @@ describe('Header', () => {
     renderShell();
     await user.click(screen.getByRole('button', { name: 'Open menu' }));
     const drawer = screen.getByRole('dialog', { name: 'Menu' });
-    await user.click(within(drawer).getByRole('link', { name: 'Birds' }));
-    expect(screen.getByTestId('where')).toHaveTextContent('/c/birds');
+    await user.click(within(drawer).getByRole('link', { name: 'Drinks' }));
+    expect(screen.getByTestId('where')).toHaveTextContent('/c/drinks');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
@@ -150,14 +148,17 @@ describe('Breadcrumbs', () => {
         <Breadcrumbs
           items={[
             { label: 'Home', to: '/' },
-            { label: 'Dogs', to: '/c/dogs' },
+            { label: 'Dairy & eggs', to: '/c/dairy-eggs' },
             { label: 'Rope tug' },
           ]}
         />
       </MemoryRouter>,
     );
     const nav = screen.getByRole('navigation', { name: 'Breadcrumb' });
-    expect(within(nav).getByRole('link', { name: 'Dogs' })).toHaveAttribute('href', '/c/dogs');
+    expect(within(nav).getByRole('link', { name: 'Dairy & eggs' })).toHaveAttribute(
+      'href',
+      '/c/dairy-eggs',
+    );
     expect(within(nav).getByText('Rope tug')).toHaveAttribute('aria-current', 'page');
     expect(within(nav).queryByRole('link', { name: 'Rope tug' })).not.toBeInTheDocument();
   });

@@ -111,7 +111,7 @@ function HeroForm({ slides }: { slides: AdminHomeContent['heroSlides'] }) {
             />
             <Input
               label="Button link"
-              hint="A path like /c/dogs or an https link."
+              hint="A path like /c/bakery or an https link."
               value={d.ctaHref}
               onChange={(e) => edit(i, 'ctaHref', e.target.value)}
               required
@@ -203,7 +203,7 @@ function PromoForm({ promo }: { promo: PromoTile }) {
         />
         <Input
           label="Link"
-          hint="A path like /c/cats or an https link."
+          hint="A path like /c/bakery or an https link."
           value={linkHref}
           onChange={(e) => setLinkHref(e.target.value)}
         />

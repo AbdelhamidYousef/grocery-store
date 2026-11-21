@@ -19,16 +19,16 @@ describe('guides list', () => {
         }),
       ),
       http.get(`${API}/guide-categories`, () =>
-        HttpResponse.json({ data: [{ slug: 'dogs', name: 'Dogs', guideCount: 2 }] }),
+        HttpResponse.json({ data: [{ slug: 'recipes', name: 'Recipes', guideCount: 2 }] }),
       ),
     );
     renderApp('/guides');
     const cards = await screen.findAllByTestId('guide-card');
     expect(cards).toHaveLength(2);
-    expect(cards[0]).toHaveAttribute('href', '/guides/choosing-a-dog-toy');
+    expect(cards[0]).toHaveAttribute('href', '/guides/tomato-pasta-in-fifteen-minutes');
     expect(within(cards[0]!).getByText('3 min read')).toBeInTheDocument();
     const topics = within(await screen.findByRole('navigation', { name: 'Guide topics' }));
-    expect(await topics.findByText(/Dogs/)).toHaveAttribute('href', '/guides?category=dogs');
+    expect(await topics.findByText(/Recipes/)).toHaveAttribute('href', '/guides?category=recipes');
   });
 
   it('sends the category from the URL to the API', async () => {
@@ -39,9 +39,9 @@ describe('guides list', () => {
         return HttpResponse.json({ data: [], meta: { ...meta, total: 0, totalPages: 0 } });
       }),
     );
-    renderApp('/guides?category=cats');
+    renderApp('/guides?category=bakery');
     expect(await screen.findByTestId('empty-state')).toBeInTheDocument();
-    expect(seen).toHaveBeenCalledWith('cats');
+    expect(seen).toHaveBeenCalledWith('bakery');
   });
 });
 
@@ -49,13 +49,13 @@ describe('guide page', () => {
   it('shows the article, linked products as product cards, and related guides', async () => {
     const spy = vi.spyOn(tracking, 'track');
     server.use(
-      http.get(`${API}/guides/choosing-a-dog-toy`, () =>
+      http.get(`${API}/guides/tomato-pasta-in-fifteen-minutes`, () =>
         HttpResponse.json({ data: makeGuideDetail() }),
       ),
     );
-    renderApp('/guides/choosing-a-dog-toy');
+    renderApp('/guides/tomato-pasta-in-fifteen-minutes');
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'How to choose a dog toy' }),
+      await screen.findByRole('heading', { level: 1, name: 'Tomato pasta in 15 minutes' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: 'What to look for' })).toBeInTheDocument();
     expect(
@@ -66,8 +66,8 @@ describe('guide page', () => {
     );
     expect(spy).toHaveBeenCalledWith({
       name: 'view_guide',
-      slug: 'choosing-a-dog-toy',
-      category: 'dogs',
+      slug: 'tomato-pasta-in-fifteen-minutes',
+      category: 'recipes',
     });
     expect(document.head.querySelector('meta[property="og:type"]')).toHaveAttribute(
       'content',

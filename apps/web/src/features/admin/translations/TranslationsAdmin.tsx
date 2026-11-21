@@ -59,7 +59,7 @@ export function TranslationsAdmin() {
             type="button"
             aria-pressed={l === locale}
             onClick={() => set({ locale: l })}
-            className="min-h-11 rounded-control border-2 border-muted px-4 font-semibold aria-pressed:border-primary aria-pressed:bg-pet-soft"
+            className="min-h-11 rounded-control border-2 border-muted px-4 font-semibold aria-pressed:border-primary aria-pressed:bg-dept-soft"
           >
             {l === 'de' ? 'German' : 'French'}
           </button>
@@ -91,7 +91,7 @@ export function TranslationsAdmin() {
             <div key={group.entity} data-testid={`translation-group-${group.entity}`}>
               <h2 className="font-display text-lg font-bold">
                 {ENTITY_LABELS[group.entity]}{' '}
-                <span className="rounded-full bg-pet-soft px-2 py-0.5 text-sm">
+                <span className="rounded-full bg-dept-soft px-2 py-0.5 text-sm">
                   {group.complete}/{group.total} complete
                 </span>
               </h2>

@@ -80,7 +80,7 @@ describe('/account/rewards', () => {
       http.post(`${API}/me/rewards/:id/redeem`, () => {
         balance = 100;
         const code = {
-          code: 'PAWS-ABCD-EFGH',
+          code: 'REWARD-ABCD-EFGH',
           kind: 'fixed',
           value: 500,
           minSpendCents: 0,
@@ -99,7 +99,7 @@ describe('/account/rewards', () => {
     const cards = await screen.findAllByTestId('reward-card');
     const voucher = cards.find((c) => within(c).queryByText('5 euro voucher'))!;
     await userEvent.click(within(voucher).getByRole('button'));
-    expect(await screen.findByTestId('personal-code')).toHaveTextContent('PAWS-ABCD-EFGH');
+    expect(await screen.findByTestId('personal-code')).toHaveTextContent('REWARD-ABCD-EFGH');
     expect(screen.getByTestId('points-balance')).toHaveTextContent('100');
   });
 

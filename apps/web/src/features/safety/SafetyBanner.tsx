@@ -48,7 +48,7 @@ export function SafetyBanner() {
               type="button"
               onClick={() => dismiss(notice.id)}
               aria-label={t('shell.safety.dismissAria', { title: notice.title })}
-              className="inline-flex min-h-11 shrink-0 items-center rounded-control border-2 border-ink bg-surface px-3 font-display font-semibold hover:bg-pet-soft"
+              className="inline-flex min-h-11 shrink-0 items-center rounded-control border-2 border-ink bg-surface px-3 font-display font-semibold hover:bg-dept-soft"
             >
               {t('shell.safety.dismiss')}
             </button>

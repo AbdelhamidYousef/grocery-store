@@ -67,7 +67,7 @@ export async function upsertCategory(tx: Tx, slug: string, name: string): Promis
   const [row] = await tx
     .insert(guideCategories)
     .values({ slug, name })
-    // Keep the existing display name: two admins typing "dogs" and "Dogs" must not rename it.
+    // Keep the existing display name: two admins typing "dairy" and "Dairy" must not rename it.
     .onConflictDoUpdate({ target: guideCategories.slug, set: { slug } })
     .returning({ id: guideCategories.id });
   if (!row) throw new Error('category upsert returned no row');

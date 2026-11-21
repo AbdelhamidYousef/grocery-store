@@ -27,7 +27,7 @@ function setup(path: string) {
 
 describe('StoreSwitcher', () => {
   it('lists every store view and shows the current one', () => {
-    setup('/de-de/c/dogs');
+    setup('/de-de/c/dairy-eggs');
     const select = screen.getByTestId('store-switcher');
     expect(select).toHaveValue('de-de');
     expect(screen.getAllByRole('option').map((o) => o.getAttribute('value'))).toEqual([

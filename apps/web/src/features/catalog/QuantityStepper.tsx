@@ -38,7 +38,7 @@ export function QuantityStepper({
   const clamp = (n: number) =>
     Math.min(max, Math.max(min, Number.isFinite(n) ? Math.trunc(n) : min));
   const button =
-    'flex h-11 w-11 items-center justify-center rounded-control border-2 border-ink font-display text-xl font-bold hover:bg-pet-soft disabled:cursor-not-allowed disabled:border-muted disabled:text-muted disabled:opacity-60';
+    'flex h-11 w-11 items-center justify-center rounded-control border-2 border-ink font-display text-xl font-bold hover:bg-dept-soft disabled:cursor-not-allowed disabled:border-muted disabled:text-muted disabled:opacity-60';
 
   // Applies the draft (clamped; an empty or invalid box falls back to the current value) and
   // leaves draft mode so the box shows the real quantity again.

@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { readFileSync } from 'node:fs';
 
+import { DEPARTMENTS } from '@store/shared';
 import { describe, expect, it } from 'vitest';
 
 // Read from disk, not `?raw`: Vitest runs CSS imports through its CSS pipeline and returns ''.
@@ -18,7 +19,7 @@ function contrast(a: string, b: string): number {
   return (hi! + 0.05) / (lo! + 0.05);
 }
 
-// Reads the variables of one block (":root" or "[data-pet='dog']") out of tokens.css, so the
+// Reads the variables of one block (":root" or "[data-dept='fruit-veg']") out of tokens.css, so the
 // test checks the values that actually ship rather than a copy that could drift.
 function readBlock(selector: string): Record<string, string> {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -29,17 +30,17 @@ function readBlock(selector: string): Record<string, string> {
 }
 
 const root = readBlock(':root');
-const pets = ['dog', 'cat', 'bird', 'fish', 'small-pet', 'reptile'] as const;
+const departments = DEPARTMENTS.map((d) => d.slug);
 const AA_TEXT = 4.5;
 
 describe('design tokens meet WCAG AA for text', () => {
   it('finds every token it relies on', () => {
     expect(Object.keys(root).length).toBeGreaterThan(8);
-    for (const pet of pets) {
-      expect(Object.keys(readBlock(`[data-pet='${pet}']`)).sort()).toEqual([
-        '--pet-accent',
-        '--pet-soft',
-        '--pet-strong',
+    for (const slug of departments) {
+      expect(Object.keys(readBlock(`[data-dept='${slug}']`)).sort()).toEqual([
+        '--dept-accent',
+        '--dept-soft',
+        '--dept-strong',
       ]);
     }
   });
@@ -72,18 +73,28 @@ describe('design tokens meet WCAG AA for text', () => {
     expect(contrast(root[fg]!, root[bg]!)).toBeGreaterThanOrEqual(AA_TEXT);
   });
 
-  describe.each(pets)('pet theme %s', (pet) => {
-    const vars = readBlock(`[data-pet='${pet}']`);
+  describe.each(departments)('department theme %s', (slug) => {
+    const vars = readBlock(`[data-dept='${slug}']`);
     const ink = root['--color-ink']!;
     const pairs: [string, string, string][] = [
-      ['ink on accent', ink, vars['--pet-accent']!],
-      ['ink on soft', ink, vars['--pet-soft']!],
-      ['strong on soft', vars['--pet-strong']!, vars['--pet-soft']!],
-      ['strong on surface', vars['--pet-strong']!, root['--color-surface']!],
-      ['strong on bg', vars['--pet-strong']!, root['--color-bg']!],
+      ['ink on accent', ink, vars['--dept-accent']!],
+      ['ink on soft', ink, vars['--dept-soft']!],
+      ['strong on soft', vars['--dept-strong']!, vars['--dept-soft']!],
+      ['strong on surface', vars['--dept-strong']!, root['--color-surface']!],
+      ['strong on bg', vars['--dept-strong']!, root['--color-bg']!],
     ];
     it.each(pairs)('%s', (_label, fg, bg) => {
       expect(contrast(fg, bg)).toBeGreaterThanOrEqual(AA_TEXT);
     });
+  });
+});
+
+describe('department themes', () => {
+  it('give each of the ten departments its own accent, soft and strong colour', () => {
+    expect(departments).toHaveLength(10);
+    for (const role of ['--dept-accent', '--dept-soft', '--dept-strong']) {
+      const values = departments.map((slug) => readBlock(`[data-dept='${slug}']`)[role]);
+      expect(new Set(values).size, role).toBe(10);
+    }
   });
 });

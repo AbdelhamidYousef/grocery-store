@@ -16,7 +16,7 @@ const renderAt = renderApp;
 describe('routes', () => {
   it.each([
     ['/', 'Groceries at your door in 30 minutes'],
-    ['/c/dogs', 'Dogs'],
+    ['/c/dairy-eggs', 'Dairy & eggs'],
     ['/products/rope-tug', 'Rope Tug'],
     ['/search', 'Search'],
     ['/cart', 'Your cart'],
@@ -43,11 +43,11 @@ describe('routes', () => {
     expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument();
   });
 
-  it('themes the category page with the pet accent', async () => {
-    renderAt('/c/cats');
-    await screen.findByRole('heading', { level: 1, name: 'Cats' });
+  it('themes the category page with its department colours', async () => {
+    renderAt('/c/bakery');
+    await screen.findByRole('heading', { level: 1, name: 'Bakery' });
     const page = screen.getByTestId('page-category');
-    expect(page).toHaveAttribute('data-pet', 'cat');
+    expect(page).toHaveAttribute('data-dept', 'bakery');
   });
 
   it('shows the not-found page for unknown urls, still inside the layout', async () => {
@@ -62,18 +62,18 @@ describe('routes', () => {
     renderAt('/');
     await screen.findByRole('heading', { level: 1 });
     await userEvent.click(
-      within(screen.getByTestId('main-nav')).getByRole('link', { name: 'Cats' }),
+      within(screen.getByTestId('main-nav')).getByRole('link', { name: 'Bakery' }),
     );
-    expect(await screen.findByRole('heading', { level: 1, name: 'Cats' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Bakery' })).toBeInTheDocument();
   });
 
   it('moves focus to main after a client-side navigation', async () => {
     renderAt('/');
     await screen.findByRole('heading', { level: 1 });
     await userEvent.click(
-      within(screen.getByTestId('main-nav')).getByRole('link', { name: 'Cats' }),
+      within(screen.getByTestId('main-nav')).getByRole('link', { name: 'Bakery' }),
     );
-    await screen.findByRole('heading', { level: 1, name: 'Cats' });
+    await screen.findByRole('heading', { level: 1, name: 'Bakery' });
     expect(screen.getByTestId('main')).toHaveFocus();
   });
 

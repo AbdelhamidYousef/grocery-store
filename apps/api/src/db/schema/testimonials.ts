@@ -10,8 +10,8 @@ export const testimonials = pgTable(
   {
     id: id(),
     name: text('name').notNull(),
-    // What the customer shares their home with ("Biscuit the beagle"); shown under the name.
-    pet: text('pet').notNull(),
+    // Where the customer lives (a Berlin district); shown under the name.
+    area: text('area').notNull().default('Berlin'),
     rating: integer('rating').notNull(),
     quote: text('quote').notNull(),
     isFeatured: boolean('is_featured').notNull().default(false),

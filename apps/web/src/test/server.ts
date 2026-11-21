@@ -37,8 +37,8 @@ export const server = setupServer(
     HttpResponse.json({
       data: {
         charity: {
-          slug: 'whisker-hollow-rescue',
-          name: 'Whisker Hollow Rescue',
+          slug: 'spreeufer-food-bank',
+          name: 'Spreeufer Food Bank',
           description: 'Fictional.',
         },
         totalCents: 0,
@@ -110,7 +110,7 @@ export const server = setupServer(
   http.get(`${API}/testimonials`, () =>
     HttpResponse.json({
       data: [
-        { id: 't1', name: 'Mara K.', pet: 'Biscuit the beagle', rating: 5, quote: 'Tough rope.' },
+        { id: 't1', name: 'Mara K.', area: 'Prenzlauer Berg', rating: 5, quote: 'Fresh and fast.' },
       ],
       meta: { count: 6, average: 4.8 },
     }),
@@ -136,15 +136,25 @@ export const server = setupServer(
   http.get(`${API}/categories`, () =>
     HttpResponse.json({
       data: [
-        makeCategory({ slug: 'dogs', name: 'Dogs' }),
-        makeCategory({ id: 'c2', slug: 'cats', name: 'Cats', productCount: 4 }),
+        makeCategory({ slug: 'dairy-eggs', name: 'Dairy & eggs' }),
+        makeCategory({
+          id: 'c2',
+          slug: 'bakery',
+          name: 'Bakery',
+          productCount: 4,
+          departmentSlug: 'bakery',
+        }),
       ],
     }),
   ),
   http.get(`${API}/categories/:slug`, ({ params }) =>
-    params.slug === 'dogs' || params.slug === 'cats'
+    params.slug === 'dairy-eggs' || params.slug === 'bakery'
       ? HttpResponse.json({
-          data: makeCategory({ slug: params.slug, name: params.slug === 'dogs' ? 'Dogs' : 'Cats' }),
+          data: makeCategory({
+            slug: params.slug,
+            departmentSlug: params.slug,
+            name: params.slug === 'dairy-eggs' ? 'Dairy & eggs' : 'Bakery',
+          }),
         })
       : HttpResponse.json(
           { error: { code: 'NOT_FOUND', message: 'Category not found' } },

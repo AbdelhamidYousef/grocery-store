@@ -16,7 +16,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
   return (
     <Dialog open={open} onClose={onClose} title={t('shell.menu')} placement="left">
       <SearchBox idPrefix="drawer" onSearch={onClose} />
-      <nav aria-label={t('shell.shopByPet')} data-testid="mobile-nav">
+      <nav aria-label={t('shell.shopByDepartment')} data-testid="mobile-nav">
         <MobileMenu onNavigate={onClose} />
       </nav>
     </Dialog>

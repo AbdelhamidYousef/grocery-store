@@ -6,7 +6,7 @@ export const cart = {
   'cart.loading': 'Loading your cart',
   'cart.loadError': 'We could not load your cart.',
   'cart.tryAgain': 'Try again',
-  'cart.empty.page': 'Your cart is empty. Time to find something waggy!',
+  'cart.empty.page': 'Your cart is empty. Start with the fruit and veg.',
   'cart.empty.drawer': 'Your cart is empty.',
   'cart.continueShopping': 'Continue shopping',
   'cart.summary.aria': 'Order summary',

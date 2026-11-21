@@ -11,7 +11,6 @@ import { ProductListing } from '../features/catalog/ProductListing';
 import { useCategories, useCategory } from '../features/catalog/queries';
 import { useCanonicalSlug } from '../features/stores/useCanonicalSlug';
 import { useT } from '../i18n';
-import { petBySlug } from '../lib/pets';
 import { TEST_IDS } from '../lib/test-ids';
 
 import NotFoundPage from './NotFoundPage';
@@ -47,9 +46,9 @@ export default function CategoryPage() {
     );
   }
 
-  // A subcategory (Dogs > Toys) takes its parent's colour and shows the parent in the trail.
+  // A subcategory (Dairy & eggs > Cheese) takes its department's colour and shows the parent in
+  // the trail.
   const parent = category.parentId ? tree?.find((n) => n.id === category.parentId) : undefined;
-  const pet = petBySlug(parent?.slug ?? category.slug);
   const crumbs: Crumb[] = [
     { label: t('catalog.page.home'), to: '/' },
     ...(parent ? [{ label: parent.name, to: `/c/${parent.slug}` }] : []),
@@ -62,7 +61,7 @@ export default function CategoryPage() {
   const canonical = `/c/${category.slug}${!variant && query.page > 1 ? `?page=${query.page}` : ''}`;
 
   return (
-    <div data-pet={pet?.accent} data-testid={TEST_IDS.pageCategory}>
+    <div data-dept={category.departmentSlug} data-testid={TEST_IDS.pageCategory}>
       <Seo
         title={category.name}
         {...(category.description && { description: category.description })}
@@ -71,7 +70,7 @@ export default function CategoryPage() {
       />
       <Container className="py-6">
         <Breadcrumbs items={crumbs} />
-        <div className="mt-4 rounded-card bg-pet-soft p-6 text-pet-strong sm:p-8">
+        <div className="mt-4 rounded-card bg-dept-soft p-6 text-dept-strong sm:p-8">
           <h1 className="font-display text-3xl font-bold sm:text-4xl">{category.name}</h1>
           {category.description && (
             <p className="mt-2 max-w-prose text-ink">{category.description}</p>
@@ -85,7 +84,7 @@ export default function CategoryPage() {
                 <li key={child.id}>
                   <Link
                     to={`/c/${child.slug}`}
-                    className="inline-flex min-h-11 items-center rounded-full bg-surface px-4 font-display font-semibold hover:bg-pet-accent"
+                    className="inline-flex min-h-11 items-center rounded-full bg-surface px-4 font-display font-semibold hover:bg-dept-accent"
                   >
                     {child.name}
                     <span className="ml-2 text-sm font-normal text-muted">

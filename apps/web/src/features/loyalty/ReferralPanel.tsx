@@ -45,7 +45,7 @@ export function ReferralPanel() {
         })}
       </p>
       <p
-        className="mt-3 break-all rounded-control bg-pet-soft px-3 py-2 font-mono text-sm"
+        className="mt-3 break-all rounded-control bg-dept-soft px-3 py-2 font-mono text-sm"
         data-testid={TEST_IDS.referralLink}
       >
         {link}

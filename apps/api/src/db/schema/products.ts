@@ -1,4 +1,4 @@
-import type { Pet } from '@store/shared';
+import type { Nutrition } from '@store/shared';
 import { sql } from 'drizzle-orm';
 import {
   boolean,
@@ -26,11 +26,16 @@ export const productKind = pgEnum('product_kind', ['simple', 'bundle']);
 // Niche-specific facts live in jsonb so the table does not change when the shop sells something
 // else. `optionKeys` is the ordered option schema the product page builds its picker from.
 export type ProductAttributes = {
-  pet?: Pet;
-  material?: string;
-  ageStage?: 'puppy' | 'kitten' | 'adult' | 'senior' | 'all';
+  /** How it is kept: a facet on the product list. */
+  storage?: 'ambient' | 'chilled' | 'frozen';
+  /** Country (or region) the product comes from: a facet on the product list. */
+  origin?: string;
   size?: string;
   optionKeys?: string[];
+  // Read by later phases (weighing, best-before dates, bottle deposit); G3 only stores them.
+  soldByWeight?: boolean;
+  shelfLifeDays?: number;
+  deposit?: boolean;
 };
 
 const tsvector = customType<{ data: string }>({
@@ -67,6 +72,20 @@ export const products = pgTable(
     ratingCount: integer('rating_count').notNull().default(0),
     ratingSum: integer('rating_sum').notNull().default(0),
     attributes: jsonb('attributes').$type<ProductAttributes>().notNull().default({}),
+    // Food information (null / empty for a product that is not food). Nutrition is per 100 g or
+    // 100 ml, every nutrient an integer count of tenths of a gram (see shared/food.ts).
+    nutrition: jsonb('nutrition').$type<Nutrition>(),
+    // Allergens are written in capitals inside the text ("WHEAT flour"); the page prints them bold.
+    ingredients: text('ingredients'),
+    // Subsets of the shared ALLERGEN_SLUGS / DIETARY_SLUGS constants (checked at the edges by Zod).
+    allergens: text('allergens')
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    dietary: text('dietary')
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     // Computed by Postgres on every write, so it can never drift from name/description and the
     // app never has to remember to maintain it. Name and description are both NOT NULL, so plain
     // concatenation is safe.
@@ -82,6 +101,8 @@ export const products = pgTable(
     index('products_brand_id_idx').on(t.brandId),
     index('products_search_vector_idx').using('gin', t.searchVector),
     index('products_attributes_idx').using('gin', t.attributes),
+    // `dietary @> '{vegan}'` for the diet filter.
+    index('products_dietary_idx').using('gin', t.dietary),
     // Typo-tolerant and substring search on the name for the autocomplete (needs pg_trgm, created
     // in the migration just before this index).
     index('products_name_trgm_idx').using('gin', sql`${t.name} gin_trgm_ops`),

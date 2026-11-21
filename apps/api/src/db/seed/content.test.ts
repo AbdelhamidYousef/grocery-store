@@ -36,7 +36,7 @@ function contentDir(files: { guides?: Record<string, string>; help?: Record<stri
 const goodGuide = `---
 title: "A guide"
 slug: a-guide
-category: Dogs
+category: Recipes
 summary: "Short."
 products: []
 publishedAt: 2026-03-04
@@ -46,31 +46,29 @@ Body.
 `;
 
 describe('content seed', () => {
-  it('seeds ten guides and twenty help articles, and seeding twice changes nothing', async () => {
+  it('seeds five guides and twenty help articles, and seeding twice changes nothing', async () => {
     await runSeed();
     const first = await contentCounts();
     await runSeed();
     expect(await contentCounts()).toEqual(first);
-    expect(first).toMatchObject({ guides: 10, help: 20, testimonials: 6 });
-    expect(first?.links).toBeGreaterThan(10);
+    expect(first).toMatchObject({ guides: 5, help: 20, testimonials: 6 });
+    expect(first?.links).toBeGreaterThan(15);
   });
 
   it('refreshes a guide in place instead of duplicating it', async () => {
     await runSeed();
-    await db.execute(
-      sql`update guides set title = 'Edited by hand' where slug = 'choosing-a-dog-toy'`,
-    );
+    await db.execute(sql`update guides set title = 'Edited by hand' where slug = 'lunchbox-ideas'`);
     await runSeed();
     const rows = await db.execute<{ title: string }>(
-      sql`select title from guides where slug = 'choosing-a-dog-toy'`,
+      sql`select title from guides where slug = 'lunchbox-ideas'`,
     );
     expect(rows).toHaveLength(1);
-    expect(rows[0]?.title).toBe('How to choose a dog toy');
+    expect(rows[0]?.title).toBe('Five lunchbox ideas for the week');
   });
 
   it('parses front matter, including an unquoted date and the category slug', () => {
     const [guide] = loadContent(contentDir({ guides: { 'a-guide.md': goodGuide } })).guides;
-    expect(guide).toMatchObject({ slug: 'a-guide', categorySlug: 'dogs', bodyMd: 'Body.' });
+    expect(guide).toMatchObject({ slug: 'a-guide', categorySlug: 'recipes', bodyMd: 'Body.' });
     expect(guide?.publishedAt).toEqual(new Date('2026-03-04'));
   });
 

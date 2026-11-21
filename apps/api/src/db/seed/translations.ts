@@ -10,6 +10,9 @@ import { z } from 'zod';
 import { TABLES } from '../../modules/i18n/translations.ts';
 import { db, type Tx } from '../client.ts';
 
+import { bundleSeeds } from './bundles.ts';
+import { deText, slugifyDe } from './catalogue.ts';
+
 // Catalogue translations as data: `translations/<lang>.json`, shaped
 //   { "products": { "<english slug>": { "name", "description", "slug" } }, "categories": {...}, ... }
 // `seedTranslations` upserts them (run it twice and nothing is duplicated); a file can therefore be
@@ -38,10 +41,30 @@ const FileSchema = z.object({
 });
 export type TranslationFile = z.infer<typeof FileSchema>;
 
+// The catalogue's German text (products, departments, brands, kits) comes from the catalogue file
+// itself (`catalogue.json` holds `nameDe` and `descriptionDe`); the JSON next to this file only
+// holds what that file does not: collections and guides.
+function catalogueText(lang: string): TranslationFile {
+  if (lang !== 'de') return {};
+  return {
+    products: {
+      ...deText.products,
+      ...Object.fromEntries(
+        bundleSeeds.map((b) => [
+          b.slug,
+          { name: b.nameDe, description: b.descriptionDe, slug: slugifyDe(b.nameDe) },
+        ]),
+      ),
+    },
+    categories: deText.categories,
+    brands: deText.brands,
+  };
+}
+
 export function loadTranslationFile(lang: string): TranslationFile {
   const path = join(DIR, `${lang}.json`);
-  if (!existsSync(path)) return {};
-  return FileSchema.parse(JSON.parse(readFileSync(path, 'utf8')));
+  const file = existsSync(path) ? FileSchema.parse(JSON.parse(readFileSync(path, 'utf8'))) : {};
+  return { ...file, ...catalogueText(lang) };
 }
 
 /** Upserts every translation of every language file. Unknown slugs or fields are errors. */

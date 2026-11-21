@@ -56,9 +56,9 @@ export const checkout = {
   'checkout.shipping.free': 'Free',
   'checkout.shipping.continue': 'Continue to payment',
   'checkout.shipping.tryAgain': 'Try again',
-  'checkout.roundUp.label': 'Round my total up to the next euro for Whisker Hollow Rescue',
+  'checkout.roundUp.label': 'Round my total up to the next euro for Spreeufer Food Bank',
   'checkout.roundUp.hint':
-    'The extra cents are a separate line on your order. A pretend shelter: no money moves.',
+    'The extra cents are a separate line on your order. A pretend food bank: no money moves.',
 
   // ---------- step 3: payment ----------
   'checkout.payment.pay': 'Pay {amount}',

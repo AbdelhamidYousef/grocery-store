@@ -9,7 +9,7 @@ import {
 } from '../index.ts';
 
 describe('ImageUrlSchema', () => {
-  it.each(['/products/dog/ball.webp', 'https://cdn.example.com/a.png'])('accepts %s', (v) => {
+  it.each(['/products/bakery/toast.webp', 'https://cdn.example.com/a.png'])('accepts %s', (v) => {
     expect(ImageUrlSchema.safeParse(v).success).toBe(true);
   });
 
@@ -27,7 +27,7 @@ describe('ImageUrlSchema', () => {
 
 describe('variant schemas', () => {
   const variant = {
-    sku: 'BALL-S',
+    sku: 'TOAST-500',
     name: 'Small',
     options: { size: 'S' },
     priceCents: 500,
@@ -77,12 +77,12 @@ describe('variant schemas', () => {
 
 describe('product schemas', () => {
   const product = {
-    name: 'Squeaky ball',
-    description: 'Bounces.',
+    name: 'Wholemeal toast',
+    description: 'Sliced wholemeal bread.',
     categoryId: '0b0f6f66-3d3b-4f55-9a43-6d9a0f0d8c11',
     status: 'active',
-    attributes: { pet: 'dog', material: 'rubber' },
-    variants: [{ sku: 'BALL-S', name: 'Small', options: {}, priceCents: 500, weightGrams: 80 }],
+    attributes: { storage: 'ambient', shelfLifeDays: 6 },
+    variants: [{ sku: 'TOAST-500', name: 'Small', options: {}, priceCents: 500, weightGrams: 80 }],
   };
 
   it('accepts a valid product', () => {

@@ -86,9 +86,9 @@ describe('progress bars', () => {
 
 describe('summary', () => {
   const priced = cartWith({
-    code: 'PAWS10',
+    code: 'GROCERY10',
     adjustments: [
-      { type: 'code', refId: 'c1', label: 'Code PAWS10', cents: 110, scope: 'lines' },
+      { type: 'code', refId: 'c1', label: 'Code GROCERY10', cents: 110, scope: 'lines' },
       { type: 'bulk_tier', refId: 't1', label: '5% bulk discount', cents: 55, scope: 'lines' },
     ],
     discountCents: 165,
@@ -107,7 +107,7 @@ describe('summary', () => {
     renderApp('/cart');
     const rows = await screen.findAllByTestId('cart-adjustment');
     expect(rows).toHaveLength(2);
-    expect(rows[0]).toHaveTextContent('Code PAWS10');
+    expect(rows[0]).toHaveTextContent('Code GROCERY10');
     expect(rows[0]).toHaveTextContent('-€1.10');
     expect(rows[1]).toHaveTextContent('5% bulk discount');
   });
@@ -150,17 +150,17 @@ describe('discount code', () => {
       http.get(`${API}/cart`, () => HttpResponse.json({ data: current })),
       http.post(`${API}/cart/code`, async ({ request }) => {
         body = await request.json();
-        current = cartWith({ code: 'PAWS10' });
+        current = cartWith({ code: 'GROCERY10' });
         return HttpResponse.json({ data: current });
       }),
     );
     renderApp('/cart');
     const user = userEvent.setup();
-    await user.type(await screen.findByLabelText('Discount code'), 'paws10');
+    await user.type(await screen.findByLabelText('Discount code'), 'grocery10');
     await user.click(screen.getByRole('button', { name: 'Apply' }));
-    expect(await screen.findByTestId('cart-code-applied')).toHaveTextContent('PAWS10');
-    expect(body).toEqual({ code: 'paws10' });
-    expect(spy).toHaveBeenCalledWith({ name: 'promo_applied', code: 'paws10' });
+    expect(await screen.findByTestId('cart-code-applied')).toHaveTextContent('GROCERY10');
+    expect(body).toEqual({ code: 'grocery10' });
+    expect(spy).toHaveBeenCalledWith({ name: 'promo_applied', code: 'grocery10' });
     expect(screen.queryByLabelText('Discount code')).not.toBeInTheDocument();
   });
 
@@ -187,11 +187,11 @@ describe('discount code', () => {
     renderApp('/cart');
     const user = userEvent.setup();
     const input = await screen.findByLabelText('Discount code');
-    await user.type(input, 'PAWS10');
+    await user.type(input, 'GROCERY10');
     await user.click(screen.getByRole('button', { name: 'Apply' }));
     expect(await screen.findByText('Add €15.00 more to use this code')).toBeVisible();
     expect(input).toHaveAttribute('aria-invalid', 'true');
-    expect(spy).toHaveBeenCalledWith({ name: 'code_failed', code: 'PAWS10' });
+    expect(spy).toHaveBeenCalledWith({ name: 'code_failed', code: 'GROCERY10' });
   });
 
   it('rejects an empty code without a request', async () => {
@@ -210,7 +210,7 @@ describe('discount code', () => {
   });
 
   it('removes an applied code', async () => {
-    let current = cartWith({ code: 'PAWS10' });
+    let current = cartWith({ code: 'GROCERY10' });
     server.use(
       http.get(`${API}/cart`, () => HttpResponse.json({ data: current })),
       http.delete(`${API}/cart/code`, () => {
@@ -219,7 +219,7 @@ describe('discount code', () => {
       }),
     );
     renderApp('/cart');
-    await userEvent.click(await screen.findByRole('button', { name: 'Remove code PAWS10' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Remove code GROCERY10' }));
     expect(await screen.findByLabelText('Discount code')).toBeVisible();
     await waitFor(() => expect(screen.queryByTestId('cart-code-applied')).not.toBeInTheDocument());
   });
@@ -227,7 +227,7 @@ describe('discount code', () => {
   it('shows the not-stackable notice next to the applied code', async () => {
     serveCart(
       cartWith({
-        code: 'PAWS10',
+        code: 'GROCERY10',
         adjustments: [
           {
             type: 'bulk_tier',
@@ -242,7 +242,7 @@ describe('discount code', () => {
     );
     renderApp('/cart');
     expect(await screen.findByTestId('cart-code-notice')).toHaveTextContent(
-      'Your 10% bulk discount saves more than PAWS10, so we used that.',
+      'Your 10% bulk discount saves more than GROCERY10, so we used that.',
     );
   });
 });

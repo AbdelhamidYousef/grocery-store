@@ -1,4 +1,4 @@
-import type { ProductSort } from '@store/shared';
+import { DEPARTMENTS, type ProductSort } from '@store/shared';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -8,9 +8,9 @@ import { Dialog } from '../../components/ui/Dialog';
 import { Select } from '../../components/ui/Select';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { UnitPriceNote } from '../../components/ui/UnitPrice';
-import { useT, type StringKey } from '../../i18n';
-import { PETS } from '../../lib/pets';
+import { useT } from '../../i18n';
 import { TEST_IDS } from '../../lib/test-ids';
+import { departmentName } from '../navigation/department-names';
 import { useStore } from '../stores/StoreContext';
 
 import { AppliedFilters } from './AppliedFilters';
@@ -33,10 +33,6 @@ interface ProductListingProps {
   collection?: string;
   /** Set on brand pages: the brand is the page, so it is fixed and its facet is hidden. */
   brand?: string;
-  /**
-   * Where the active pet may pre-filter this list: 'any' (search) or the pet attribute value of
-   * the category page ('dog'). Left out on brand and collection pages, which are curated lists.
-   */
 }
 
 // The listing shared by /c/:slug and /search: reads the URL, asks the API, and renders the
@@ -117,6 +113,7 @@ export function ProductListing({ listId, category, q, collection, brand }: Produ
     (query.minPrice !== undefined || query.maxPrice !== undefined ? 1 : 0) +
     (query.brand?.length ?? 0) +
     (query.tag?.length ?? 0) +
+    (query.diet?.length ?? 0) +
     (query.badge?.length ?? 0) +
     Object.values(query.attr).reduce((n, v) => n + v.length, 0);
 
@@ -125,9 +122,9 @@ export function ProductListing({ listId, category, q, collection, brand }: Produ
       <aside aria-label={t('catalog.list.filters')} className="hidden lg:block">
         {/* Deliberately NOT sticky and NOT a scroll box. The sidebar used to be
             `sticky max-h-[100vh-10rem] overflow-y-auto`; on a 1280x800 laptop that box ended
-            between the "Age stage" heading and its checkboxes, so the heading looked like an
+            between the "Dietary" heading and its checkboxes, so the heading looked like an
             empty group and the options sat behind an invisible inner scroll. Now the page scrolls
-            the whole sidebar (the long material list already scrolls in its own small box). */}
+            the whole sidebar (a long list already scrolls in its own small box). */}
         <div className="pr-2">
           <h2 className="mb-4 font-display text-xl font-bold">{t('catalog.list.filters')}</h2>
           <FilterPanel facets={facets} query={query} currency={currency} update={update} />
@@ -242,15 +239,6 @@ interface EmptyStateProps {
   firstPageHref: string;
 }
 
-const PET_NAMES: Record<string, StringKey> = {
-  dogs: 'catalog.petTile.dogs',
-  cats: 'catalog.petTile.cats',
-  birds: 'catalog.petTile.birds',
-  fish: 'catalog.petTile.fish',
-  'small-pets': 'catalog.petTile.smallPets',
-  reptiles: 'catalog.petTile.reptiles',
-};
-
 function EmptyState({ q, filtered, pageOutOfRange, onClear, firstPageHref }: EmptyStateProps) {
   const { t } = useT();
   return (
@@ -288,13 +276,13 @@ function EmptyState({ q, filtered, pageOutOfRange, onClear, firstPageHref }: Emp
           )}
           {!filtered && (
             <ul className="flex flex-wrap justify-center gap-2">
-              {PETS.map((pet) => (
-                <li key={pet.slug} data-pet={pet.accent}>
+              {DEPARTMENTS.map((dept) => (
+                <li key={dept.slug} data-dept={dept.slug}>
                   <Link
-                    to={`/c/${pet.slug}`}
-                    className="inline-flex min-h-11 items-center rounded-full bg-pet-soft px-4 font-display font-semibold text-pet-strong"
+                    to={`/c/${dept.slug}`}
+                    className="inline-flex min-h-11 items-center rounded-full bg-dept-soft px-4 font-display font-semibold text-dept-strong"
                   >
-                    {PET_NAMES[pet.slug] ? t(PET_NAMES[pet.slug] as StringKey) : pet.name}
+                    {departmentName(t, dept)}
                   </Link>
                 </li>
               ))}

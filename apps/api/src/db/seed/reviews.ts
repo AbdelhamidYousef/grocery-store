@@ -6,8 +6,8 @@ import { reviewPhotos, reviews, users } from '../schema/index.ts';
 import type { ProductSeed } from './expand.ts';
 import { imageRowsFor } from './images.ts';
 
-// Phase 17 demo content: about 60 invented reviews spread over 22 products (mixed ratings, some
-// pending or rejected, some with pet details or a photo). Everything is
+// Phase 17 demo content: 60 invented reviews spread over 30 products (mixed ratings, some
+// pending or rejected, some with a photo). Everything is
 // generated deterministically from a fixed seed, so every run (and every machine) gets the same
 // rows and the seed stays idempotent. No real person or brand: reviewers are made-up names on the
 // reserved `.test` domain.
@@ -49,30 +49,41 @@ function rng(seed: number): () => number {
 
 // Phrases are shared on purpose: the topic chips only show words that three different reviews use.
 const POSITIVE = [
-  'Really well made and the stitching feels sturdy.',
-  'Easy to clean, I just rinse it and it looks new again.',
+  'Really fresh and it arrived quickly.',
   'Great value for the price, I would buy it again.',
-  'It arrived quickly and was packed carefully.',
+  'Packed carefully and still cold when it arrived.',
   'The quality is much better than I expected.',
-  'Soft and comfortable, and it still looks great after weeks of use.',
-  'Honestly the best purchase we made this year.',
+  'Tastes great and the pack size is just right.',
+  'Honestly the best shop we have tried this year.',
+  'Easy to order and the delivery was on time.',
 ];
 const MIXED = [
-  'Decent quality for the price, though the size runs a little small.',
-  'It does the job but I expected it to feel more sturdy.',
-  'Good idea and easy to clean, but it took a while to arrive.',
+  'Decent quality for the price, though the pack is a little small.',
+  'It does the job but I expected it to taste better.',
+  'Good idea and easy to order, but it took a while to arrive.',
 ];
 const NEGATIVE = [
-  'Disappointed, it started to wear out after only a few weeks.',
-  'The size was smaller than the photos suggest and it felt flimsy.',
+  'Disappointed, it was not as fresh as I hoped.',
+  'The pack was smaller than the photo suggests and it was not good value.',
 ];
-const PET_LINES: Record<string, string[]> = {
-  dog: ['My dog loves it and hasn’t put it down.', 'Our puppy took to it straight away.'],
-  cat: ['My cat claimed it within minutes.', 'Both of our cats fight over it.'],
-  bird: ['My parrot is curious about it every morning.', 'The budgies took to it quickly.'],
-  fish: ['The fish settled in nicely and the water stayed clear.'],
-  'small-pet': ['My guinea pigs are using it every day.', 'The rabbit hops straight to it.'],
-  reptile: ['My gecko uses it daily and seems very comfortable.'],
+// One department-specific line per review, so the text reads like the product it is about.
+const DEPARTMENT_LINES: Record<string, string[]> = {
+  'fruit-veg': ['Ripe the day it arrived.', 'Lasted the whole week in the fridge.'],
+  bakery: ['Still soft on the inside and crisp outside.', 'Even better toasted the next day.'],
+  'dairy-eggs': [
+    'Cold and well packed, not a crack in the eggs.',
+    'Tastes like it comes from a farm.',
+  ],
+  'meat-fish': ['Looked and smelled fresh, cooked beautifully.', 'Good cut and sensible portion.'],
+  pantry: [
+    'A staple we now order every week.',
+    'Does what it says and costs less than the supermarket.',
+  ],
+  frozen: ['Arrived completely frozen.', 'No ice crystals, the packaging held up.'],
+  drinks: ['Cold and fizzy, just right.', 'Heavy bottles carried to the door, thank you.'],
+  'snacks-sweets': ['Gone within a day in our house.', 'A good snack for the price.'],
+  household: ['Works well and does not smell too strong.', 'Good value for a big pack.'],
+  'personal-care-baby': ['Gentle and no skin trouble.', 'Exactly the brand I look for.'],
 };
 const TITLES: Record<'good' | 'mixed' | 'bad', string[]> = {
   good: ['Love it', 'Great buy', 'Exactly what we needed', 'Worth every cent', 'Highly recommend'],
@@ -81,16 +92,8 @@ const TITLES: Record<'good' | 'mixed' | 'bad', string[]> = {
 };
 const REJECT_REASONS = ['Contains a link to another shop', 'Not about this product'];
 
-const WEIGHT_G: Record<string, [number, number]> = {
-  dog: [3_000, 38_000],
-  cat: [2_500, 7_000],
-  bird: [30, 1_200],
-  'small-pet': [300, 2_000],
-  reptile: [20, 4_000],
-};
-
 export const SEEDED_REVIEW_TARGET = 60;
-const PRODUCT_COUNT = 22;
+const PRODUCT_COUNT = 30;
 
 export async function seedReviews(
   tx: Tx,
@@ -140,9 +143,17 @@ export async function seedReviews(
   );
 
   // ---- reviews ----
-  const step = Math.floor(products.length / PRODUCT_COUNT);
-  const chosen = Array.from({ length: PRODUCT_COUNT }, (_, i) => products[i * step]!);
-  const counts = [3, 2, 4, 3, 2, 3, 4, 2, 3, 3, 2, 4, 3, 2, 3, 4, 2, 3, 3, 2, 4, 3]; // sums to 64 -> cut to 60
+  // The first four products have real photos (a review may carry one); the rest are spread evenly.
+  const photoProducts = 4;
+  const step = Math.floor((products.length - photoProducts) / (PRODUCT_COUNT - photoProducts));
+  const chosen = [
+    ...products.slice(0, photoProducts),
+    ...Array.from(
+      { length: PRODUCT_COUNT - photoProducts },
+      (_, i) => products[photoProducts + i * step]!,
+    ),
+  ];
+  const counts = Array.from({ length: PRODUCT_COUNT }, () => 2); // 30 x 2 = 60
   const pick = <T>(list: readonly T[]): T => list[Math.floor(rand() * list.length)]!;
 
   let total = 0;
@@ -155,15 +166,13 @@ export async function seedReviews(
       const rating = roll < 0.45 ? 5 : roll < 0.75 ? 4 : roll < 0.87 ? 3 : roll < 0.95 ? 2 : 1;
       const tone = rating >= 4 ? 'good' : rating === 3 ? 'mixed' : 'bad';
       const sentences = [
-        pick(PET_LINES[product.pet] ?? PET_LINES.dog!),
+        pick(DEPARTMENT_LINES[product.department] ?? POSITIVE),
         pick(tone === 'good' ? POSITIVE : tone === 'mixed' ? MIXED : NEGATIVE),
         ...(tone === 'good' && rand() < 0.6 ? [pick(POSITIVE)] : []),
       ];
       const s = rand();
       // Mostly approved; a few waiting, a couple turned down.
       const status = s < 0.78 ? 'approved' : s < 0.92 ? 'pending' : 'rejected';
-      const weight = WEIGHT_G[product.pet];
-      const withPet = rand() < 0.5 && weight !== undefined;
       const helpful = status === 'approved' ? Math.floor(rand() * rand() * 15) : 0;
       const createdAt = new Date(now.getTime() - Math.floor(1 + rand() * 180) * DAY);
 
@@ -178,8 +187,6 @@ export async function seedReviews(
           // Seeded reviews carry the flag without an order: the demo has no purchase history to
           // point at (real ones get `order_id` from the paid order, see reviews/service.ts).
           verifiedBuyer: rand() < 0.6,
-          petAgeMonths: withPet ? 3 + Math.floor(rand() * 150) : null,
-          petWeightG: withPet ? weight[0] + Math.floor(rand() * (weight[1] - weight[0])) : null,
           wouldRecommend: rating >= 3 ? true : rand() < 0.2,
           status,
           rejectReason: status === 'rejected' ? pick(REJECT_REASONS) : null,
@@ -194,7 +201,7 @@ export async function seedReviews(
         const agg = approvedByProduct.get(pid) ?? { count: 0, sum: 0 };
         approvedByProduct.set(pid, { count: agg.count + 1, sum: agg.sum + rating });
         const image = imageRowsFor(product)[0];
-        if (rand() < 0.2 && image && !image.url.endsWith('.svg')) {
+        if (rand() < 0.6 && image && !image.url.endsWith('.svg')) {
           await tx.insert(reviewPhotos).values({ reviewId: row.id, path: image.url, position: 0 });
         }
       }

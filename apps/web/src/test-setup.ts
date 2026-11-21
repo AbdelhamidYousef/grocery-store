@@ -14,7 +14,7 @@ configure({ asyncUtilTimeout: 5000 });
 
 // Vitest globals are off, so Testing Library cannot register its own cleanup; do it here.
 afterEach(cleanup);
-// Guest pets live in module memory and localStorage; one test must not see another's.
+// Some state lives in module memory and localStorage; one test must not see another's.
 
 // One msw server for the whole suite: components fetch through the real api/ layer and the
 // network is answered by test/server.ts.

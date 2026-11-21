@@ -10,16 +10,21 @@ describe('Seo', () => {
   it('sets title, description, canonical and robots, and removes them on unmount', () => {
     document.title = 'Before';
     const { unmount } = render(
-      <Seo title="Dogs" description="Dog stuff" canonical="https://x.test/c/dogs" noindex />,
+      <Seo
+        title="Dairy & eggs"
+        description="Dog stuff"
+        canonical="https://x.test/c/dairy-eggs"
+        noindex
+      />,
     );
-    expect(document.title).toBe('Dogs | Grocery');
+    expect(document.title).toBe('Dairy & eggs | Grocery');
     expect(document.head.querySelector('meta[name="description"]')).toHaveAttribute(
       'content',
       'Dog stuff',
     );
     expect(document.head.querySelector('link[rel="canonical"]')).toHaveAttribute(
       'href',
-      'https://x.test/c/dogs',
+      'https://x.test/c/dairy-eggs',
     );
     expect(document.head.querySelector('meta[name="robots"]')).toHaveAttribute(
       'content',
@@ -58,10 +63,10 @@ describe('Seo', () => {
 
 describe('Seo alternates', () => {
   it('adds the store prefix to a root-relative canonical and hreflang links for every store', () => {
-    const { unmount } = render(<Seo title="Dogs" canonical="/c/dogs?page=2" />);
+    const { unmount } = render(<Seo title="Dairy & eggs" canonical="/c/dairy-eggs?page=2" />);
     expect(document.head.querySelector('link[rel="canonical"]')).toHaveAttribute(
       'href',
-      '/c/dogs?page=2',
+      '/c/dairy-eggs?page=2',
     );
     const alternates = [...document.head.querySelectorAll('link[rel="alternate"][hreflang]')];
     expect(alternates.map((l) => l.getAttribute('hreflang'))).toEqual([
@@ -73,7 +78,11 @@ describe('Seo alternates', () => {
       alternates.map(
         (l) => new URL(l.getAttribute('href')!).pathname + new URL(l.getAttribute('href')!).search,
       ),
-    ).toEqual(['/de-en/c/dogs?page=2', '/de-de/c/dogs?page=2', '/de-en/c/dogs?page=2']);
+    ).toEqual([
+      '/de-en/c/dairy-eggs?page=2',
+      '/de-de/c/dairy-eggs?page=2',
+      '/de-en/c/dairy-eggs?page=2',
+    ]);
     unmount();
     expect(document.head.querySelector('link[rel="alternate"][hreflang]')).toBeNull();
   });
@@ -82,7 +91,7 @@ describe('Seo alternates', () => {
     const { unmount } = render(
       <>
         <Seo title="A" canonical="/cart" noindex />
-        <Seo title="B" canonical="https://x.test/c/dogs" />
+        <Seo title="B" canonical="https://x.test/c/dairy-eggs" />
         <Seo title="C" canonical="/only-here" alternates={false} />
       </>,
     );

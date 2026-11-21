@@ -23,7 +23,7 @@ export function Gallery({ images, selectedId, onSelect, soldOut = false }: Galle
   if (!selected) {
     return (
       <div
-        className="flex aspect-square items-center justify-center rounded-card bg-pet-soft text-pet-strong"
+        className="flex aspect-square items-center justify-center rounded-card bg-dept-soft text-dept-strong"
         data-testid={TEST_IDS.gallery}
       >
         {t('catalog.gallery.noImage')}
@@ -35,7 +35,7 @@ export function Gallery({ images, selectedId, onSelect, soldOut = false }: Galle
     <div data-testid={TEST_IDS.gallery} className="flex flex-col gap-3">
       {/* Fixed square box + width/height: swapping images never moves the page. The main image
           is the likely largest-contentful-paint element, so it loads eagerly with high priority. */}
-      <div className="aspect-square overflow-hidden rounded-card bg-pet-soft shadow-card">
+      <div className="aspect-square overflow-hidden rounded-card bg-dept-soft shadow-card">
         <img
           key={selected.id}
           data-testid={TEST_IDS.galleryMain}

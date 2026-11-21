@@ -45,7 +45,7 @@ export function AdminLayout() {
                 <NavLink
                   to={link.to}
                   end={link.end}
-                  className="flex min-h-11 items-center rounded-full border-2 border-line px-4 font-display font-semibold hover:bg-pet-soft aria-[current=page]:border-primary aria-[current=page]:bg-primary-soft aria-[current=page]:text-primary-strong md:rounded-control"
+                  className="flex min-h-11 items-center rounded-full border-2 border-line px-4 font-display font-semibold hover:bg-dept-soft aria-[current=page]:border-primary aria-[current=page]:bg-primary-soft aria-[current=page]:text-primary-strong md:rounded-control"
                 >
                   {link.label}
                 </NavLink>

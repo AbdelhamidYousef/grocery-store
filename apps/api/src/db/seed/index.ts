@@ -21,10 +21,9 @@ import {
   shippingMethods as shippingTable,
   tags as tagsTable,
   users,
-  variantConstituents,
 } from '../schema/index.ts';
 
-import { HOUSE_BRAND, brands } from './brands.ts';
+import { brands } from './brands.ts';
 import { seedBundles } from './bundles.ts';
 import { categories } from './categories.ts';
 import { seedCharity } from './charity.ts';
@@ -146,7 +145,7 @@ export async function runSeed(now = new Date()) {
           const id = categoryId.get(p.categorySlug);
           if (!id) throw new Error(`unknown category ${p.categorySlug} on ${p.slug}`);
           return {
-            brandId: brandId.get(p.brand ?? HOUSE_BRAND) ?? null,
+            brandId: p.brand ? (brandId.get(p.brand) ?? null) : null,
             isEco: p.eco ?? false,
             isBestsellerOverride: p.bestseller ?? false,
             // Spread over the past year so the derived "New" badge shows on a handful of
@@ -160,11 +159,17 @@ export async function runSeed(now = new Date()) {
             categoryId: id,
             status: 'active' as const,
             attributes: {
-              pet: p.pet,
-              material: p.material,
-              ageStage: p.ageStage,
+              ...(p.storage && { storage: p.storage }),
+              ...(p.origin && { origin: p.origin }),
               optionKeys: p.axes.map((a) => a.key),
+              soldByWeight: p.soldByWeight,
+              shelfLifeDays: p.shelfLifeDays,
+              deposit: p.deposit,
             },
+            nutrition: p.nutrition,
+            ingredients: p.ingredients,
+            allergens: p.allergens,
+            dietary: p.dietary,
           };
         }),
       )
@@ -176,6 +181,10 @@ export async function runSeed(now = new Date()) {
           categoryId: excluded('category_id'),
           status: excluded('status'),
           attributes: excluded('attributes'),
+          nutrition: excluded('nutrition'),
+          ingredients: excluded('ingredients'),
+          allergens: excluded('allergens'),
+          dietary: excluded('dietary'),
           brandId: excluded('brand_id'),
           isEco: excluded('is_eco'),
           isBestsellerOverride: excluded('is_bestseller_override'),
@@ -302,8 +311,8 @@ export async function runSeed(now = new Date()) {
       products
         .filter((p) => {
           if (c.membership === 'eco') return p.eco === true;
-          if (c.membership === 'under-10')
-            return expandVariants(p).some((v) => !v.isTrial && v.priceCents < 1000);
+          if (c.membership === 'under-2')
+            return expandVariants(p).some((v) => !v.isTrial && v.priceCents < 200);
           return p.collections?.includes(c.slug) ?? false;
         })
         .map((p, position) => ({
@@ -331,17 +340,11 @@ export async function runSeed(now = new Date()) {
       }),
     );
 
-    // ---- product page content (phase 16): specs, FAQs, constituents.
+    // ---- product page content (phase 16): specs and FAQs.
     // Replaced wholesale for the seeded products, so a re-seed gives the same rows. ----
     const seededIds = [...productId.values()];
     await tx.delete(productSpecs).where(inArray(productSpecs.productId, seededIds));
     await tx.delete(productFaqs).where(inArray(productFaqs.productId, seededIds));
-    await tx.delete(variantConstituents).where(
-      inArray(
-        variantConstituents.variantId,
-        variantRows.map((v) => v.id),
-      ),
-    );
     for (const p of products) {
       const id = productId.get(p.slug);
       if (!id) throw new Error(`product ${p.slug} was not inserted`);
@@ -352,17 +355,6 @@ export async function runSeed(now = new Date()) {
       await tx
         .insert(productFaqs)
         .values(pdp.faqs.map((f, sortOrder) => ({ productId: id, ...f, sortOrder })));
-      if (pdp.constituents) {
-        const values = Object.entries(pdp.constituents);
-        const ids = expandVariants(p).map((v) => variantId.get(v.sku) ?? '');
-        await tx
-          .insert(variantConstituents)
-          .values(
-            ids.flatMap((variant) =>
-              values.map(([key, valueBp]) => ({ variantId: variant, key, valueBp })),
-            ),
-          );
-      }
       await tx
         .update(productsTable)
         .set({

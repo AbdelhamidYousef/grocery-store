@@ -15,7 +15,7 @@ export const de: Record<EmailKey, TextEntry> = {
   'order.subtotal': 'Zwischensumme',
   'order.shipping': 'Versand ({method})',
   'order.discount': 'Rabatt',
-  'order.donation': 'Spende an Whisker Hollow Rescue (Demo)',
+  'order.donation': 'Spende an Spreeufer Food Bank (Demo)',
   'order.total': 'Gesamtsumme',
   'order.shippingTo': 'Lieferadresse:',
   'order.deliveringTo': 'Wir liefern an:',
@@ -144,7 +144,7 @@ export const de: Record<EmailKey, TextEntry> = {
     'Du erhältst diese Nachricht, weil du ein betroffenes Produkt bei Grocery gekauft hast.',
   'review.subject': 'Deine Bewertung von {product} ist veröffentlicht',
   'review.l1':
-    'Danke für deine Bewertung von {product}. Sie hat unsere Prüfung bestanden und steht jetzt auf der Produktseite, wo sie anderen Tierhaltern bei der Auswahl hilft.',
+    'Danke für deine Bewertung von {product}. Sie hat unsere Prüfung bestanden und steht jetzt auf der Produktseite, wo sie anderen Kundinnen und Kunden bei der Auswahl hilft.',
   'review.see': 'Hier ansehen: {url}',
   'review.link': 'Deine Bewertung ansehen',
   'review.preheader': 'Deine Bewertung von {product} ist veröffentlicht.',

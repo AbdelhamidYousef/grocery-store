@@ -46,7 +46,7 @@ export function WishlistHeart({
       data-testid={TEST_IDS.wishlistHeart}
       disabled={busy}
       onClick={toggle}
-      className={`flex min-h-11 min-w-11 items-center justify-center rounded-full bg-surface/90 text-primary-strong shadow-card hover:bg-pet-soft disabled:opacity-60 ${className}`}
+      className={`flex min-h-11 min-w-11 items-center justify-center rounded-full bg-surface/90 text-primary-strong shadow-card hover:bg-dept-soft disabled:opacity-60 ${className}`}
     >
       <HeartIcon filled={!!saved} />
     </button>

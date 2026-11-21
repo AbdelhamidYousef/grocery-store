@@ -36,7 +36,7 @@ const row = () => within(screen.getByRole('list', { name: 'Quick filters' }));
 describe('quick filter chips', () => {
   it('lists the chips in the order the API sent them, with their counts', async () => {
     serve();
-    renderApp('/c/dogs');
+    renderApp('/c/dairy-eggs');
     await screen.findAllByTestId('product-card');
     const labels = row()
       .getAllByRole('button')
@@ -48,7 +48,7 @@ describe('quick filter chips', () => {
   it('toggles each kind through the url and shows it as pressed and as a removable chip', async () => {
     const asked: string[] = [];
     serve((q) => asked.push(q));
-    const router = renderApp('/c/dogs');
+    const router = renderApp('/c/dairy-eggs');
     await screen.findAllByTestId('product-card');
 
     await userEvent.click(row().getByRole('button', { name: /On sale/ }));
@@ -73,7 +73,7 @@ describe('quick filter chips', () => {
 
   it('round-trips: a url with filters loads pressed chips', async () => {
     serve();
-    renderApp('/c/dogs?brand=bigco&badge=new');
+    renderApp('/c/dairy-eggs?brand=bigco&badge=new');
     await screen.findAllByTestId('product-card');
     expect(row().getByRole('button', { name: /Bigco/ })).toHaveAttribute('aria-pressed', 'true');
     expect(row().getByRole('button', { name: /^New/ })).toHaveAttribute('aria-pressed', 'true');
@@ -88,7 +88,7 @@ describe('quick filter chips', () => {
   });
 
   it('shows no row when the API sent no chips', async () => {
-    renderApp('/c/dogs');
+    renderApp('/c/dairy-eggs');
     await screen.findAllByTestId('product-card');
     expect(screen.queryByRole('list', { name: 'Quick filters' })).not.toBeInTheDocument();
   });

@@ -266,7 +266,7 @@ export function AnalyticsDashboard() {
                   key={report}
                   href={analyticsCsvUrl(report, from, to, currency)}
                   download
-                  className="inline-flex min-h-11 items-center rounded-control border-2 border-line px-4 font-display font-semibold hover:bg-pet-soft"
+                  className="inline-flex min-h-11 items-center rounded-control border-2 border-line px-4 font-display font-semibold hover:bg-dept-soft"
                 >
                   {label}
                 </a>

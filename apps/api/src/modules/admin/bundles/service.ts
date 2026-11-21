@@ -153,7 +153,6 @@ export async function createBundle(input: CreateInput): Promise<AdminBundle> {
           brandId: first.brandId,
           status: 'active',
           kind: 'bundle',
-          attributes: first.attributes.pet ? { pet: first.attributes.pet } : {},
         })
         .returning({ id: products.id });
       if (!product) throw new Error('product insert returned no row');

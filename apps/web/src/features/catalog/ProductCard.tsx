@@ -11,7 +11,6 @@ import { UnitPrice } from '../../components/ui/UnitPrice';
 import { useT } from '../../i18n';
 import { useFormat } from '../../i18n/format';
 import { productSrcSet } from '../../lib/images';
-import { accentForPetAttribute } from '../../lib/pets';
 import { TEST_IDS } from '../../lib/test-ids';
 import { RatingStars } from '../reviews/RatingStars';
 import { WishlistHeart } from '../wishlist/WishlistHeart';
@@ -52,14 +51,14 @@ export function ProductCard({
   const more = product.swatches.length - shown.length;
 
   return (
-    <li data-pet={accentForPetAttribute(product.attributes.pet)} className="min-w-0">
+    <li data-dept={product.departmentSlug} className="min-w-0">
       <div className="group relative flex h-full flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card transition-transform hover:-translate-y-0.5">
         <Link
           to={`/products/${product.slug}`}
           data-testid={TEST_IDS.productCard}
           className="flex flex-1 flex-col"
         >
-          <div className="relative aspect-square bg-pet-soft">
+          <div className="relative aspect-square bg-dept-soft">
             {image ? (
               <img
                 src={image.url}
@@ -73,7 +72,7 @@ export function ProductCard({
                 className={`h-full w-full object-cover ${product.inStock ? '' : 'opacity-60'}`}
               />
             ) : (
-              <div className="flex h-full items-center justify-center text-pet-strong" aria-hidden>
+              <div className="flex h-full items-center justify-center text-dept-strong" aria-hidden>
                 {t('catalog.card.noImage')}
               </div>
             )}
@@ -119,20 +118,20 @@ export function ProductCard({
                   regularCents={product.price.minCents}
                   currency={product.price.currency}
                   from={product.price.minCents !== product.price.maxCents}
-                  className="text-pet-strong"
+                  className="text-dept-strong"
                 />
               ) : product.sale ? (
                 <SalePrice
                   sale={product.sale}
                   currency={product.price.currency}
-                  className="text-pet-strong"
+                  className="text-dept-strong"
                 />
               ) : (
                 <Price
                   cents={product.price.minCents}
                   maxCents={product.price.maxCents}
                   currency={product.price.currency}
-                  className="text-pet-strong"
+                  className="text-dept-strong"
                 />
               )}
               <UnitPrice unitPrice={product.unitPrice} currency={product.price.currency} />
@@ -169,7 +168,7 @@ export function ProductCard({
                   aria-hidden="true"
                   style={{ backgroundColor: s.hex }}
                   className={`size-5 rounded-full border border-ink/30 ${
-                    active === s.color ? 'ring-2 ring-pet-strong ring-offset-1' : ''
+                    active === s.color ? 'ring-2 ring-dept-strong ring-offset-1' : ''
                   }`}
                 />
               </button>

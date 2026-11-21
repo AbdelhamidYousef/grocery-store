@@ -43,10 +43,11 @@ export function makeCard(overrides: Partial<ProductCard> = {}): ProductCard {
     id: 'p1',
     slug: 'rope-tug',
     name: 'Rope Tug',
-    categorySlug: 'dog-toys',
+    categorySlug: 'cheese',
+    departmentSlug: 'dairy-eggs',
     image: {
       id: 'i1',
-      url: '/products/dog-toys/rope-tug-1.webp',
+      url: '/products/cheese/rope-tug-1.webp',
       alt: 'A braided rope tug toy',
       width: 1200,
       height: 1200,
@@ -54,7 +55,7 @@ export function makeCard(overrides: Partial<ProductCard> = {}): ProductCard {
     },
     price: { minCents: 1099, maxCents: 1899, currency: 'EUR' },
     inStock: true,
-    attributes: { pet: 'dog', material: 'cotton rope', ageStage: 'all' },
+    attributes: { storage: 'chilled', origin: 'spain' },
     brand: null,
     badges: [],
     unitPrice: null,
@@ -70,15 +71,15 @@ export function makeCard(overrides: Partial<ProductCard> = {}): ProductCard {
 export function makeFacets(overrides: Partial<Facets> = {}): Facets {
   return {
     attributes: {
-      pet: [{ value: 'dog', count: 2 }],
-      material: [
-        { value: 'cotton rope', count: 1 },
-        { value: 'natural rubber', count: 1 },
+      storage: [{ value: 'chilled', count: 2 }],
+      origin: [
+        { value: 'spain', count: 1 },
+        { value: 'germany', count: 1 },
       ],
-      ageStage: [{ value: 'all', count: 2 }],
     },
     brand: [],
     tag: [],
+    diet: [],
     badge: [],
     price: { min: 799, max: 1899 },
     ...overrides,
@@ -113,13 +114,14 @@ export function makeList(
 export function makeCategory(overrides: Partial<CategoryNode> = {}): CategoryNode {
   return {
     id: 'c1',
-    slug: 'dogs',
-    name: 'Dogs',
-    description: 'Toys, beds, treats and walkies gear for dogs of every size.',
+    slug: 'dairy-eggs',
+    name: 'Dairy & eggs',
+    description: 'Toys, beds, treats and walkies gear for dairy-eggs of every size.',
     parentId: null,
     sortOrder: 0,
+    departmentSlug: 'dairy-eggs',
     accentColor: '#F59E0B',
-    icon: 'dog',
+    icon: 'milk',
     productCount: 10,
     children: [],
     ...overrides,
@@ -172,12 +174,14 @@ export function makeProduct(overrides: Partial<ProductDetail> = {}): ProductDeta
     slug: 'rope-tug',
     name: 'Rope Tug',
     description: 'A sturdy braided tug for happy games.',
-    category: { slug: 'dog-toys', name: 'Toys' },
+    category: { slug: 'cheese', name: 'Toys' },
     breadcrumb: [
-      { slug: 'dogs', name: 'Dogs' },
-      { slug: 'dog-toys', name: 'Toys' },
+      { slug: 'dairy-eggs', name: 'Dairy & eggs' },
+      { slug: 'cheese', name: 'Toys' },
     ],
-    attributes: { pet: 'dog', material: 'cotton rope', ageStage: 'all' },
+    departmentSlug: 'dairy-eggs',
+    attributes: { storage: 'chilled', origin: 'spain' },
+    food: null,
     brand: null,
     tags: [],
     badges: [],
@@ -188,7 +192,7 @@ export function makeProduct(overrides: Partial<ProductDetail> = {}): ProductDeta
     images: [
       {
         id: 'i1',
-        url: '/products/dog-toys/rope-tug-1.webp',
+        url: '/products/cheese/rope-tug-1.webp',
         alt: 'Rope tug, front',
         width: 1200,
         height: 1200,
@@ -196,7 +200,7 @@ export function makeProduct(overrides: Partial<ProductDetail> = {}): ProductDeta
       },
       {
         id: 'i2',
-        url: '/products/dog-toys/rope-tug-2.webp',
+        url: '/products/cheese/rope-tug-2.webp',
         alt: 'Rope tug, in use',
         width: 1200,
         height: 1200,
@@ -252,7 +256,7 @@ export function makeCartItem(overrides: Partial<WebCartItem> = {}): WebCartItem 
     productSlug: 'rope-tug',
     variantName: 'Small',
     sku: 'PW-ROPE-S',
-    imageUrl: '/products/dog-toys/rope-tug-1.webp',
+    imageUrl: '/products/cheese/rope-tug-1.webp',
     imageAlt: 'A braided rope tug toy',
     unitPriceCents: 1099,
     quantity: 1,
@@ -341,7 +345,7 @@ export function makeOrder(overrides: Partial<Order> = {}): Order {
         productName: 'Rope Tug',
         variantName: 'Small',
         sku: 'PW-ROPE-S',
-        imageUrl: '/products/dog-toys/rope-tug-1.webp',
+        imageUrl: '/products/cheese/rope-tug-1.webp',
         unitPriceCents: 1099,
         quantity: 2,
         lineTotalCents: 2198,
@@ -360,7 +364,7 @@ export function makeOrderSummary(overrides: Partial<OrderSummary> = {}): OrderSu
     totalCents: 2689,
     currency: 'EUR',
     itemCount: 2,
-    thumbnails: ['/products/dog-toys/rope-tug-1.webp'],
+    thumbnails: ['/products/cheese/rope-tug-1.webp'],
     placedAt: '2026-10-31T10:00:00.000Z',
     createdAt: '2026-10-31T09:59:00.000Z',
     ...overrides,
@@ -396,13 +400,13 @@ export function makeAdminRow(overrides: Partial<AdminProductRow> = {}): AdminPro
     slug: 'rope-tug',
     name: 'Rope Tug',
     status: 'active',
-    categoryName: 'Dog toys',
+    categoryName: 'Cheese',
     variantCount: 3,
     minPriceCents: 1099,
     maxPriceCents: 1899,
     currency: 'EUR',
     availableStock: 12,
-    imageUrl: '/products/dog-toys/rope-tug-1.webp',
+    imageUrl: '/products/cheese/rope-tug-1.webp',
     updatedAt: '2026-10-30T10:00:00.000Z',
     ...overrides,
   };
@@ -442,16 +446,20 @@ export function makeAdminProduct(overrides: Partial<AdminProduct> = {}): AdminPr
     name: 'Rope Tug',
     description: 'A sturdy braided tug for happy games.',
     status: 'active',
-    category: { id: CATEGORY_UUID, slug: 'dog-toys', name: 'Dog toys' },
+    category: { id: CATEGORY_UUID, slug: 'cheese', name: 'Cheese' },
     attributes: {
-      pet: 'dog',
-      material: 'cotton rope',
+      storage: 'chilled',
+      origin: 'spain',
       optionKeys: ['Colour', 'Size'],
     },
     brandId: null,
     isEco: false,
     isBestsellerOverride: false,
     badgeNewUntil: null,
+    nutrition: null,
+    ingredients: null,
+    allergens: [],
+    dietary: [],
     tags: [],
     variants: [
       makeAdminVariant(),
@@ -460,7 +468,7 @@ export function makeAdminProduct(overrides: Partial<AdminProduct> = {}): AdminPr
     images: [
       {
         id: 'i1',
-        url: '/products/dog-toys/rope-tug-1.webp',
+        url: '/products/cheese/rope-tug-1.webp',
         alt: 'Rope tug',
         width: 1200,
         height: 1200,
@@ -592,11 +600,11 @@ export function makeBrand(overrides: Partial<Brand> = {}): Brand {
 
 export function makeGuideCard(overrides: Partial<GuideCard> = {}): GuideCard {
   return {
-    slug: 'choosing-a-dog-toy',
-    title: 'How to choose a dog toy',
+    slug: 'tomato-pasta-in-fifteen-minutes',
+    title: 'Tomato pasta in 15 minutes',
     summary: 'Tug, fetch or chew.',
     coverUrl: null,
-    category: { slug: 'dogs', name: 'Dogs' },
+    category: { slug: 'recipes', name: 'Recipes' },
     publishedAt: '2026-03-04T00:00:00.000Z',
     readingMinutes: 3,
     ...overrides,
@@ -635,19 +643,19 @@ export function makeAdminCollection(overrides: Partial<AdminCollection> = {}): A
 export function makeGuideDetail(overrides: Partial<GuideDetail> = {}): GuideDetail {
   return {
     ...makeGuideCard(),
-    bodyMd: 'Dogs play in **different** ways.\n\n## What to look for\n\n- Start small',
+    bodyMd: 'Leaves wilt in **different** ways.\n\n## What to look for\n\n- Start small',
     products: [makeCard()],
-    related: [makeGuideCard({ slug: 'first-week-with-a-puppy', title: 'First week' })],
+    related: [makeGuideCard({ slug: 'keep-herbs-and-salad-fresh', title: 'Keep herbs fresh' })],
     ...overrides,
   };
 }
 
 export function makeHero(over: Partial<HeroSlide> = {}): HeroSlide {
   return {
-    title: 'Happy tails start here',
-    text: 'Colourful, tough supplies for every pet.',
-    ctaLabel: 'Shop dogs',
-    ctaHref: '/c/dogs',
+    title: 'Fresh fruit and veg, today',
+    text: 'Berries, tomatoes and herbs, at your door in 30 minutes.',
+    ctaLabel: 'Shop fruit & veg',
+    ctaHref: '/c/fruit-veg',
     imageUrl: null,
     ...over,
   };
@@ -657,11 +665,11 @@ export function makeHome(over: Partial<HomeResponse> = {}): HomeResponse {
   return {
     heroSlides: [
       makeHero(),
-      makeHero({ title: 'Purr-fect playtime', ctaLabel: 'Shop cats', ctaHref: '/c/cats' }),
+      makeHero({ title: 'Baked this morning', ctaLabel: 'Shop bakery', ctaHref: '/c/bakery' }),
       makeHero({
-        title: 'Little pets, big love',
-        ctaLabel: 'Shop small',
-        ctaHref: '/c/small-pets',
+        title: 'Dinner in ten minutes',
+        ctaLabel: 'Shop frozen',
+        ctaHref: '/c/frozen',
       }),
     ],
     promoTile: null,
@@ -672,35 +680,33 @@ export function makeHome(over: Partial<HomeResponse> = {}): HomeResponse {
 
 export function makeNavigation(): Navigation {
   const brands = [
-    { slug: 'burrow-and-biscuit', name: 'Burrow & Biscuit' },
-    { slug: 'pawsome', name: 'Pawsome' },
+    { slug: 'meadowbrook', name: 'Meadowbrook Dairy' },
+    { slug: 'grocery-basics', name: 'Grocery Basics' },
   ];
   return {
-    pets: [
+    departments: [
       {
-        pet: 'dog',
-        name: 'Dogs',
-        categorySlug: 'dogs',
+        slug: 'dairy-eggs',
+        name: 'Dairy & eggs',
         categories: [
-          { slug: 'dog-toys', name: 'Toys', productCount: 20 },
-          { slug: 'dog-beds', name: 'Beds & Housing', productCount: 9 },
+          { slug: 'milk-cream', name: 'Milk & cream', productCount: 3 },
+          { slug: 'cheese', name: 'Cheese', productCount: 3 },
         ],
         brands,
         promo: {
-          title: 'Walkies, sorted',
-          subtitle: 'Leads and more.',
-          imageUrl: '/products/dog-toys/braided-tug-rope-1.webp',
-          imageAlt: 'A lead',
-          link: '/c/dog-walk',
+          title: 'From farms near Berlin',
+          subtitle: 'Milk, yoghurt and eggs.',
+          imageUrl: '/products/placeholders/dairy-eggs.svg',
+          imageAlt: 'A milk bottle',
+          link: '/brands/meadowbrook',
         },
       },
       {
-        pet: 'cat',
-        name: 'Cats',
-        categorySlug: 'cats',
+        slug: 'bakery',
+        name: 'Bakery',
         categories: [
-          { slug: 'cat-scratch', name: 'Scratch posts', productCount: 4 },
-          { slug: 'cat-toys', name: 'Toys', productCount: 11 },
+          { slug: 'bread', name: 'Bread', productCount: 4 },
+          { slug: 'rolls-pretzels', name: 'Rolls & pretzels', productCount: 4 },
         ],
         brands,
         promo: null,
@@ -717,8 +723,6 @@ export function makeReview(overrides: Partial<Review> = {}): Review {
     body: 'My beagle has not managed to destroy it yet, and it has been a month.',
     verifiedBuyer: true,
     authorName: 'Ada L.',
-    petAgeMonths: 30,
-    petWeightG: 11_500,
     sizePurchased: 'M',
     wouldRecommend: true,
     helpfulCount: 2,

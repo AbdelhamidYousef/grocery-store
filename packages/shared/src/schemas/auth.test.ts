@@ -16,6 +16,6 @@ describe('NewPasswordSchema', () => {
   });
 
   it('rejects a common password whatever its case', () => {
-    expect(NewPasswordSchema.safeParse('ILoveMyDog1').success).toBe(false);
+    expect(NewPasswordSchema.safeParse('ILoveFood123').success).toBe(false);
   });
 });

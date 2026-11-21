@@ -1,10 +1,8 @@
-import type { NetUnit, Pet } from '@store/shared';
+import type { NetUnit, Nutrition } from '@store/shared';
 
 import type { ProductAttributes } from '../schema/products.ts';
 
-// Pure functions only (no database), so the shape of the catalog can be unit-tested quickly.
-
-export type { Pet };
+// Pure functions only (no database), so the shape of the catalogue can be unit-tested quickly.
 
 export type OptionValue = {
   value: string;
@@ -24,23 +22,26 @@ export type OptionAxis = { key: string; values: OptionValue[] };
 export type ProductSeed = {
   slug: string;
   name: string;
-  // Short uppercase code used inside SKUs: PW-DOG-ROPE-RED-L.
+  nameDe: string;
+  // The slug in capitals; the SKU is "GR-" plus it, followed by any option values.
   code: string;
+  // The subcategory (leaf) the product sits in.
   categorySlug: string;
-  pet: Pet;
-  material: string;
-  ageStage: NonNullable<ProductAttributes['ageStage']>;
+  // The top-level department (its slug is also the accent of the card and of the placeholder).
+  department: string;
   description: string;
-  // One-sentence picture of the default colour variant; feeds alt text and the image brief.
+  descriptionDe: string;
+  // One-sentence picture of the product; feeds alt text and the image brief.
   look: string;
   basePriceCents: number;
   baseWeightGrams: number;
+  // Only where a product really comes in options (pack sizes); the catalogue has none yet.
   axes: OptionAxis[];
   // Shows a strike-through price on every variant.
   onSale?: boolean;
-  // Slug from brands.ts; the house brand when left out.
+  // Slug from brands.ts; no brand (loose fruit and vegetables) when left out.
   brand?: string;
-  // Health-need tag slugs from tags.ts.
+  // "Shop by need" tag slugs from tags.ts.
   tags?: string[];
   // Slugs of manual/seasonal collections the product belongs to (order = order in the file).
   collections?: string[];
@@ -49,10 +50,21 @@ export type ProductSeed = {
   bestseller?: boolean;
   // Created within the last month, so the derived "New" badge shows on a few products.
   isNew?: boolean;
-  // Unit of the net amounts on the option values; grams unless the product is a liquid.
+  // Net contents of the single pack, when it is a weight or volume (a count has none).
   netUnit?: NetUnit;
-  // Net contents for a product with no pack axis (a 100 g bag sold in one size).
   net?: number;
+  // Later phases read these three (weighing, best-before dates, bottle deposit); stored in
+  // `attributes` for now, with no behaviour yet.
+  soldByWeight: boolean;
+  shelfLifeDays: number;
+  deposit: boolean;
+  storage?: NonNullable<ProductAttributes['storage']>;
+  origin?: string;
+  // Food information; null / empty for a product that is not food.
+  nutrition: Nutrition | null;
+  ingredients: string | null;
+  allergens: string[];
+  dietary: string[];
 };
 
 export type VariantSeed = {
@@ -69,121 +81,7 @@ export type VariantSeed = {
   swatchHex: string | null;
 };
 
-const titleCase = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-
-// ---- Option axis builders, so product data stays short and readable ----
-
-// Swatch dots on the product card. A colour without an entry here fails the seed test, so a new
-// colour name cannot ship without a visible dot.
-export const COLOR_HEX: Record<string, string> = {
-  orange: '#F97316',
-  blue: '#3B82F6',
-  green: '#22C55E',
-  grey: '#9CA3AF',
-  cream: '#FEF3C7',
-  yellow: '#FACC15',
-  pink: '#F472B6',
-  teal: '#14B8A6',
-  sand: '#D6C3A1',
-  slate: '#64748B',
-  sage: '#9CAF88',
-  red: '#EF4444',
-  purple: '#8B5CF6',
-  black: '#1F2937',
-  white: '#F9FAFB',
-  brown: '#92400E',
-  navy: '#1E3A8A',
-  mint: '#6EE7B7',
-  coral: '#FB7185',
-  lavender: '#C4B5FD',
-  terracotta: '#C2623F',
-  olive: '#7C8B3A',
-  blush: '#FBCFE8',
-  clear: '#E0F2FE',
-  lilac: '#D8B4FE',
-  lime: '#A3E635',
-  mustard: '#CA8A04',
-  natural: '#E7D9B8',
-  plum: '#7E22CE',
-  sky: '#7DD3FC',
-};
-
-export const colors = (values: string[]): OptionAxis => ({
-  key: 'color',
-  values: values.map((v) => ({ value: v, label: titleCase(v) })),
-});
-
-const SIZE_LABELS = { S: 'Small', M: 'Medium', L: 'Large' } as const;
-const SIZE_WEIGHT = { S: 1, M: 1.5, L: 2.2 } as const;
-
-// `step` is the extra price per size step: M costs +step, L costs +2 * step.
-export const sizes = (step: number, which: ('S' | 'M' | 'L')[] = ['S', 'M', 'L']): OptionAxis => ({
-  key: 'size',
-  values: which.map((s) => ({
-    value: s,
-    label: SIZE_LABELS[s],
-    priceDeltaCents: step * (s === 'S' ? 0 : s === 'M' ? 1 : 2),
-    weightFactor: SIZE_WEIGHT[s],
-  })),
-});
-
-export const choice = (key: string, values: string[]): OptionAxis => ({
-  key,
-  values: values.map((v) => ({ value: v, label: titleCase(v) })),
-});
-
-// Net grams from a pack value such as "150g" or "2kg"; null when the value is a count ("4x").
-function netFromValue(value: string): number | undefined {
-  const m = /^(\d+)(g|kg)$/.exec(value);
-  return m ? Number(m[1]) * (m[2] === 'kg' ? 1000 : 1) : undefined;
-}
-
-// Two pack sizes: the bigger one costs `extraCents` more and weighs `weightFactor` times as much.
-// Net amounts come from the value ("150g") unless `nets` gives them (counted packs). `trial` adds
-// a third, sample-sized value at an absolute price.
-export const packs = (
-  small: { value: string; label: string },
-  large: { value: string; label: string },
-  extraCents: number,
-  weightFactor: number,
-  opts: {
-    nets?: [number, number];
-    trial?: { amount: number; priceCents: number };
-  } = {},
-): OptionAxis => {
-  const smallNet = opts.nets?.[0] ?? netFromValue(small.value);
-  const largeNet = opts.nets?.[1] ?? netFromValue(large.value);
-  const values: OptionValue[] = [
-    { ...small, priceDeltaCents: 0, weightFactor: 1, ...(smallNet && { netAmount: smallNet }) },
-    {
-      ...large,
-      priceDeltaCents: extraCents,
-      weightFactor,
-      ...(largeNet && { netAmount: largeNet }),
-    },
-  ];
-  if (opts.trial) {
-    values.push({
-      value: 'trial',
-      label: `${opts.trial.amount} g sample`,
-      isTrial: true,
-      absolutePriceCents: opts.trial.priceCents,
-      netAmount: opts.trial.amount,
-    });
-  }
-  return { key: 'pack', values };
-};
-
 // ---- Expansion ----
-
-const PET_SKU: Record<Pet, string> = {
-  dog: 'DOG',
-  cat: 'CAT',
-  bird: 'BIRD',
-  fish: 'FISH',
-  small: 'SMALL',
-  reptile: 'REPT',
-};
 
 /** Cartesian product of the option axes, in axis order (first axis varies slowest). */
 export function expandVariants(product: ProductSeed): VariantSeed[] {
@@ -200,18 +98,11 @@ export function expandVariants(product: ProductSeed): VariantSeed[] {
     const factor = combo.reduce((acc, v) => acc * (v.weightFactor ?? 1), 1);
     const netAmount =
       combo.find((v) => v.netAmount !== undefined)?.netAmount ?? product.net ?? null;
-    const colour = product.axes.findIndex((a) => a.key === 'color');
-    const colourName = colour >= 0 ? combo[colour]?.value : undefined;
     const options = Object.fromEntries(
       product.axes.map((axis, i) => [axis.key, combo[i]?.value ?? '']),
     );
     return {
-      sku: [
-        'PW',
-        PET_SKU[product.pet],
-        product.code,
-        ...combo.map((v) => v.value.toUpperCase()),
-      ].join('-'),
+      sku: ['GR', product.code, ...combo.map((v) => v.value.toUpperCase())].join('-'),
       name: combo.length === 0 ? 'Standard' : combo.map((v) => v.label).join(' · '),
       options,
       priceCents,
@@ -227,26 +118,23 @@ export function expandVariants(product: ProductSeed): VariantSeed[] {
       netAmount,
       netUnit: netAmount === null ? null : (product.netUnit ?? 'g'),
       isTrial: trialValue !== undefined,
-      swatchHex: colourName ? (COLOR_HEX[colourName] ?? null) : null,
+      swatchHex: null,
     };
   });
 }
 
 export function imageRows(product: ProductSeed) {
-  // Products with many variants get a second "detail" image; simple ones get one.
-  const count = expandVariants(product).length >= 6 ? 2 : 1;
-  return Array.from({ length: count }, (_, i) => {
-    const n = i + 1;
-    return {
-      n,
-      url: `/products/${product.categorySlug}/${product.slug}-${n}.webp`,
-      alt:
-        n === 1 ? product.look : `Close-up of the ${product.name} showing its ${product.material}`,
+  // One photo per product (a grocery shelf does not need a detail shot).
+  return [
+    {
+      n: 1,
+      url: `/products/${product.categorySlug}/${product.slug}-1.webp`,
+      alt: product.look,
       width: 1200,
       height: 1200,
-      sortOrder: i,
-    };
-  });
+      sortOrder: 0,
+    },
+  ];
 }
 
 /**
@@ -255,8 +143,8 @@ export function imageRows(product: ProductSeed) {
  * sold-out product and one low-stock variant to stay put.
  */
 export const FORCED_STOCK: Readonly<Record<string, number>> = {
-  'PW-FISH-LED': 0, // the whole product is sold out
-  'PW-BIRD-BELL-GREEN': 3, // low stock (below the default alert of 5)
+  'GR-FROZEN-PRAWNS': 0, // the whole product is sold out
+  'GR-MATJES-HERRING': 3, // low stock (below the default alert of 5)
 };
 
 /** Small seeded PRNG (mulberry32): "random" stock that is identical on every run. */

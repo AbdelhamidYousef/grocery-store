@@ -15,16 +15,16 @@ async function detail(slug: string) {
 
 describe('GET /api/v1/products/:slug', () => {
   it('returns the full product with variants, images, attributes, optionKeys and breadcrumb', async () => {
-    const dogs = await createCategory({ slug: 'dogs', name: 'Dogs' });
-    const toys = await createCategory({ slug: 'dog-toys', name: 'Toys', parentId: dogs.id });
+    const dairy = await createCategory({ slug: 'dairy-eggs', name: 'Dairy & eggs' });
+    const cheese = await createCategory({ slug: 'cheese', name: 'Cheese', parentId: dairy.id });
     const { variants } = await createProduct({
       slug: 'rope',
       name: 'Rope',
       description: 'A rope.',
-      categoryId: toys.id,
+      categoryId: cheese.id,
       attributes: {
-        pet: 'dog',
-        material: 'cotton',
+        storage: 'chilled',
+        origin: 'spain',
         optionKeys: ['color', 'size'],
       },
       variants: [
@@ -50,12 +50,12 @@ describe('GET /api/v1/products/:slug', () => {
       slug: 'rope',
       name: 'Rope',
       description: 'A rope.',
-      category: { slug: 'dog-toys', name: 'Toys' },
+      category: { slug: 'cheese', name: 'Cheese' },
       breadcrumb: [
-        { slug: 'dogs', name: 'Dogs' },
-        { slug: 'dog-toys', name: 'Toys' },
+        { slug: 'dairy-eggs', name: 'Dairy & eggs' },
+        { slug: 'cheese', name: 'Cheese' },
       ],
-      attributes: { pet: 'dog', material: 'cotton' },
+      attributes: { storage: 'chilled', origin: 'spain' },
       optionKeys: ['color', 'size'],
       price: { minCents: 500, maxCents: 900, currency: 'EUR' },
       inStock: true,
@@ -70,10 +70,10 @@ describe('GET /api/v1/products/:slug', () => {
   });
 
   it('has a one-item breadcrumb for a top-level category', async () => {
-    const dogs = await createCategory({ slug: 'dogs', name: 'Dogs' });
-    await createProduct({ slug: 'bone', categoryId: dogs.id });
+    const dairy = await createCategory({ slug: 'dairy-eggs', name: 'Dairy & eggs' });
+    await createProduct({ slug: 'bone', categoryId: dairy.id });
     const { data } = await detail('bone');
-    expect(data.breadcrumb).toEqual([{ slug: 'dogs', name: 'Dogs' }]);
+    expect(data.breadcrumb).toEqual([{ slug: 'dairy-eggs', name: 'Dairy & eggs' }]);
   });
 
   it('exposes availability and low stock as booleans and never the raw count', async () => {
@@ -131,5 +131,46 @@ describe('GET /api/v1/products/:slug', () => {
     const res = await request(app).get(`/api/v1/products/${slug}`);
     expect(res.status).toBe(404);
     expect(errorOf(res).code).toBe('NOT_FOUND');
+  });
+});
+
+describe('GET /api/v1/products/:slug: food information', () => {
+  it('returns nutrition in tenths of a gram, ingredients, allergens and dietary tags', async () => {
+    await createProduct({
+      slug: 'rye-loaf',
+      food: {
+        nutrition: {
+          energyKj: 960,
+          energyKcal: 230,
+          fat: 12,
+          saturates: 2,
+          carbs: 440,
+          sugars: 30,
+          fibre: 60,
+          protein: 70,
+          salt: 11,
+        },
+        ingredients: 'Rye flour, water, WHEAT flour, salt.',
+        allergens: ['gluten'],
+        dietary: ['vegan', 'vegetarian'],
+      },
+    });
+    const { data } = bodyOf<{ data: ProductDetail }>(
+      await request(app).get('/api/v1/products/rye-loaf'),
+    );
+    expect(data.food).toEqual({
+      nutrition: expect.objectContaining({ fat: 12, carbs: 440, salt: 11 }) as object,
+      ingredients: 'Rye flour, water, WHEAT flour, salt.',
+      allergens: ['gluten'],
+      dietary: ['vegan', 'vegetarian'],
+    });
+  });
+
+  it('returns null food for a product that is not food', async () => {
+    await createProduct({ slug: 'sponge' });
+    const { data } = bodyOf<{ data: ProductDetail }>(
+      await request(app).get('/api/v1/products/sponge'),
+    );
+    expect(data.food).toBeNull();
   });
 });

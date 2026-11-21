@@ -90,6 +90,7 @@ export const TEST_IDS = {
   brandCard: 'brand-card',
   filterBrand: 'filter-brand',
   filterHealth: 'filter-health-need',
+  filterDiet: 'filter-diet',
   resultCount: 'result-count',
   pagination: 'pagination',
   emptyState: 'empty-state',

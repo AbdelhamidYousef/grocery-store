@@ -21,7 +21,7 @@ function BuyAgainRow({ item }: { item: import('@store/shared').BuyAgainItem }) {
     >
       <Link
         to={`/products/${item.slug}`}
-        className="h-20 w-20 shrink-0 overflow-hidden rounded-control bg-pet-soft"
+        className="h-20 w-20 shrink-0 overflow-hidden rounded-control bg-dept-soft"
       >
         {item.image && (
           <img

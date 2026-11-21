@@ -71,7 +71,7 @@ function DonateBox({ balance }: { balance: number }) {
       <p>
         {t('loyalty.rewards.donate.giveTo')}{' '}
         <Link to="/charity" className="font-semibold text-primary-strong underline">
-          {total?.charity.name ?? 'Whisker Hollow Rescue'}
+          {total?.charity.name ?? 'Spreeufer Food Bank'}
         </Link>
         {t('loyalty.rewards.donate.aboutShelter')}
       </p>
@@ -164,7 +164,7 @@ export function RewardsSection() {
       )}
 
       {data && (
-        <div className="mt-4 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-card bg-pet-soft p-4">
+        <div className="mt-4 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-card bg-dept-soft p-4">
           <div>
             <p className="text-sm text-muted">{t('loyalty.rewards.balance')}</p>
             <p className="font-display text-4xl font-bold" data-testid={TEST_IDS.pointsBalance}>

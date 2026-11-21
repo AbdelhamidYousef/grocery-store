@@ -27,15 +27,15 @@ describe('ProductListQuerySchema', () => {
   });
 
   it('parses attr.<key> into a record of arrays', () => {
-    expect(parse({ 'attr.material': 'plush,rubber', 'attr.pet': 'dog' }).attr).toEqual({
-      material: ['plush', 'rubber'],
-      pet: ['dog'],
+    expect(parse({ 'attr.storage': 'chilled,frozen', 'attr.origin': 'berlin' }).attr).toEqual({
+      storage: ['chilled', 'frozen'],
+      origin: ['berlin'],
     });
   });
 
   it('treats a repeated parameter like a comma list', () => {
-    expect(parse({ 'attr.material': ['plush', 'rubber,cotton'] }).attr).toEqual({
-      material: ['plush', 'rubber', 'cotton'],
+    expect(parse({ 'attr.storage': ['chilled', 'frozen,ambient'] }).attr).toEqual({
+      storage: ['chilled', 'frozen', 'ambient'],
     });
   });
 
@@ -53,7 +53,7 @@ describe('ProductListQuerySchema', () => {
     ['negative price', { minPrice: '-1' }],
     ['inStock that is not true/false', { inStock: 'yes' }],
     ['min above max', { minPrice: '900', maxPrice: '100' }],
-    ['empty attribute value', { 'attr.material': ',' }],
+    ['empty attribute value', { 'attr.storage': ',' }],
     ['attribute key with odd characters', { 'attr.a b': 'x' }],
   ])('rejects %s', (_name, query) => {
     expect(() => parse(query)).toThrow();
@@ -66,5 +66,16 @@ describe('ProductListQuerySchema', () => {
 
   it('ignores unknown parameters', () => {
     expect(parse({ utm_source: 'x' })).not.toHaveProperty('utm_source');
+  });
+});
+
+describe('diet filter', () => {
+  it('reads a comma list or a repeated parameter', () => {
+    expect(parse({ diet: 'vegan,gluten-free' }).diet).toEqual(['vegan', 'gluten-free']);
+    expect(parse({ diet: ['vegan', 'organic'] }).diet).toEqual(['vegan', 'organic']);
+  });
+
+  it('rejects a tag that does not exist', () => {
+    expect(ProductListQuerySchema.safeParse({ diet: 'paleo' }).success).toBe(false);
   });
 });

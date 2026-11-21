@@ -33,7 +33,9 @@ describe('GET /home', () => {
     await db.insert(homeContent).values([
       {
         key: 'hero_slides',
-        value: [{ title: 'Edited', text: 't', ctaLabel: 'Go', ctaHref: '/c/dogs', imageUrl: null }],
+        value: [
+          { title: 'Edited', text: 't', ctaLabel: 'Go', ctaHref: '/c/bakery', imageUrl: null },
+        ],
       },
       {
         key: 'promo_tile',
@@ -65,9 +67,9 @@ describe('GET /home', () => {
 describe('GET /testimonials', () => {
   it('returns featured quotes and the rating over all of them', async () => {
     await db.insert(testimonials).values([
-      { name: 'A', pet: 'a', rating: 5, quote: 'q1', isFeatured: true },
-      { name: 'B', pet: 'b', rating: 4, quote: 'q2', isFeatured: true },
-      { name: 'C', pet: 'c', rating: 4, quote: 'q3', isFeatured: false },
+      { name: 'A', area: 'a', rating: 5, quote: 'q1', isFeatured: true },
+      { name: 'B', area: 'b', rating: 4, quote: 'q2', isFeatured: true },
+      { name: 'C', area: 'c', rating: 4, quote: 'q3', isFeatured: false },
     ]);
     const res = await request(app).get('/api/v1/testimonials');
     const body = bodyOf<{ data: { name: string }[]; meta: { count: number; average: number } }>(

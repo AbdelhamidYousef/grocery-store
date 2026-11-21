@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 //  - The order is fixed by HOME_SLOT_IDS, not by who registers first, so import order cannot
 //    shuffle the page.
 //  - A slot nobody registered (or one that says it is not enabled) renders nothing at all.
-export const HOME_SLOT_IDS = ['seasonal', 'recently-viewed', 'newsletter'] as const;
+export const HOME_SLOT_IDS = ['seasonal', 'usuals', 'recently-viewed', 'newsletter'] as const;
 export type HomeSlotId = (typeof HOME_SLOT_IDS)[number];
 
 export interface HomeSlot {

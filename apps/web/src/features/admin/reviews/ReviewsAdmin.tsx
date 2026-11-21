@@ -11,7 +11,7 @@ import { useToast } from '../../../components/ui/Toast';
 import { cn } from '../../../lib/cn';
 import { formatDate } from '../../../lib/format';
 import { FormAlert } from '../../auth/AuthCard';
-import { petContextLine } from '../../reviews/format';
+import { reviewContextLine } from '../../reviews/format';
 import { RatingStars } from '../../reviews/RatingStars';
 import { adminErrorMessage } from '../errors';
 
@@ -173,7 +173,7 @@ function ReviewRow({
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const context = petContextLine(review);
+  const context = reviewContextLine(review);
 
   const fail = (e: unknown) => setError(adminErrorMessage(e));
 

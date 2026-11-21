@@ -39,7 +39,7 @@ export async function subscribe(
   if (input.website) return; // honeypot: look like success, store and send nothing
   const now = deps.now ?? new Date();
   const email = input.email.trim().toLowerCase();
-  const pets = [...new Set(input.pets ?? [])];
+  const interests = [...new Set(input.interests ?? [])];
 
   await db.transaction(async (tx) => {
     const [existing] = await tx
@@ -54,7 +54,7 @@ export async function subscribe(
       status: 'pending' as const,
       tokenHash: hashToken(token),
       tokenExpiresAt: new Date(now.getTime() + NEWSLETTER_CONFIRM_HOURS * HOUR_MS),
-      pets,
+      interests,
       consentText: NEWSLETTER_CONSENT_TEXT,
       storeView: currentStore().code,
       ...(input.userId && { userId: input.userId }),
@@ -160,7 +160,7 @@ export async function unsubscribe(token: string, now = new Date()): Promise<void
   if (!row) throw notFound('This unsubscribe link is not valid');
 }
 
-/** A subscriber who may be sent marketing mail (pet interests): confirmed and not unsubscribed. */
+/** A subscriber who may be sent marketing mail (department interests): confirmed and not unsubscribed. */
 export async function findConfirmedByEmail(run: typeof db | Tx, email: string) {
   const [row] = await run
     .select()

@@ -7,9 +7,10 @@ import { TEST_IDS } from '../../../lib/test-ids';
 
 import { DeliveryPanel } from './DeliveryPanel';
 import { FaqAccordion } from './FaqAccordion';
+import { NutritionPanel } from './NutritionPanel';
 import { SpecsPanel } from './SpecsPanel';
 
-export const TAB_IDS = ['description', 'specs', 'delivery'] as const;
+export const TAB_IDS = ['description', 'nutrition', 'specs', 'delivery'] as const;
 export type ProductTabId = (typeof TAB_IDS)[number];
 
 // Which tabs this product has. A tab with nothing to show is left out (a product with no specs
@@ -20,7 +21,13 @@ export function availableTabs(
 ): ProductTabId[] {
   const hasSpecs =
     product.specs.length > 0 || product.faqs.length > 0 || (variant?.constituents.length ?? 0) > 0;
-  return ['description', ...(hasSpecs ? (['specs'] as const) : []), 'delivery'];
+  return [
+    'description',
+    // Only food has nutrition, ingredients and allergens; a sponge has no such tab.
+    ...(product.food ? (['nutrition'] as const) : []),
+    ...(hasSpecs ? (['specs'] as const) : []),
+    'delivery',
+  ];
 }
 
 // The tab lives in the URL hash (#specs), so a link opens that tab and Back does not step
@@ -32,6 +39,7 @@ export function tabFromHash(hash: string, available: readonly ProductTabId[]): P
 
 const LABELS: Record<ProductTabId, StringKey> = {
   description: 'pdp.tabs.description',
+  nutrition: 'pdp.tabs.nutrition',
   specs: 'pdp.tabs.specs',
   delivery: 'pdp.tabs.delivery',
 };
@@ -58,6 +66,9 @@ export function ProductTabs({
         {attributes}
       </div>
     ),
+    nutrition: product.food ? (
+      <NutritionPanel food={product.food} unit={variant?.netUnit === 'ml' ? 'ml' : 'g'} />
+    ) : null,
     specs: (
       <>
         <SpecsPanel

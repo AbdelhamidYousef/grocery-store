@@ -59,9 +59,9 @@ export const checkout: Record<keyof typeof enNs, Entry> = {
   'checkout.shipping.free': 'Kostenlos',
   'checkout.shipping.continue': 'Weiter zur Zahlung',
   'checkout.shipping.tryAgain': 'Erneut versuchen',
-  'checkout.roundUp.label': 'Meine Summe für Whisker Hollow Rescue auf den nächsten Euro aufrunden',
+  'checkout.roundUp.label': 'Meine Summe für Spreeufer Food Bank auf den nächsten Euro aufrunden',
   'checkout.roundUp.hint':
-    'Die zusätzlichen Cent erscheinen als eigene Zeile in deiner Bestellung. Ein erfundenes Tierheim: Es fließt kein Geld.',
+    'Die zusätzlichen Cent erscheinen als eigene Zeile in deiner Bestellung. Eine erfundene Tafel: Es fließt kein Geld.',
 
   // ---------- step 3: payment ----------
   'checkout.payment.pay': '{amount} bezahlen',

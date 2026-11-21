@@ -165,7 +165,7 @@ describe('help articles', () => {
 
 describe('testimonials', () => {
   it('creates, updates and deletes one, with the rating kept between 1 and 5', async () => {
-    const body = { name: 'Mara', pet: 'Biscuit', rating: 5, quote: 'Great!', isFeatured: true };
+    const body = { name: 'Mara', area: 'Neukölln', rating: 5, quote: 'Great!', isFeatured: true };
     const created = data<{ id: string }>(await admin.call('post', '/admin/testimonials', body));
     const updated = await admin.call('put', `/admin/testimonials/${created.id}`, {
       ...body,

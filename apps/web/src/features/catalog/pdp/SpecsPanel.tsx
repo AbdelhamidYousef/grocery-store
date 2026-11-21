@@ -37,7 +37,7 @@ export function SpecsPanel({
                 <tr key={s.label}>
                   <th
                     scope="row"
-                    className="w-2/5 py-2 pr-4 align-top font-semibold text-pet-strong"
+                    className="w-2/5 py-2 pr-4 align-top font-semibold text-dept-strong"
                   >
                     {s.label}
                   </th>
@@ -62,7 +62,7 @@ export function SpecsPanel({
             <tbody className="divide-y divide-line">
               {constituents.map((c) => (
                 <tr key={c.key}>
-                  <th scope="row" className="w-2/5 py-2 pr-4 font-semibold text-pet-strong">
+                  <th scope="row" className="w-2/5 py-2 pr-4 font-semibold text-dept-strong">
                     {t(LABELS[c.key])}
                   </th>
                   <td className="py-2">

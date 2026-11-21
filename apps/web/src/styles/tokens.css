@@ -3,11 +3,11 @@
  * only points at them, and src/styles/tokens.test.ts parses this very file to check WCAG AA.
  * Change a colour here and the contrast test tells you if a text pairing broke.
  *
- * Naming: --color-<role>. "ink" is text, "surface" is a card, "bg" is the page. Each pet theme
- * defines three roles so any component can be themed with `data-pet` on a wrapper:
- *   --pet-accent  bright fill (badges, tiles, icons). Text on it is always ink.
- *   --pet-soft    pastel tint for backgrounds. Sits next to the pastel product photos.
- *   --pet-strong  dark shade of the hue, for text and borders on white, bg or soft.
+ * Naming: --color-<role>. "ink" is text, "surface" is a card, "bg" is the page. Each department
+ * theme defines three roles so any component can be themed with `data-dept` on a wrapper:
+ *   --dept-accent  bright fill (badges, tiles, icons). Text on it is always ink.
+ *   --dept-soft    pastel tint for backgrounds. Sits next to the pastel product photos.
+ *   --dept-strong  dark shade of the hue, for text and borders on white, bg or soft.
  */
 :root {
   --color-ink: #13221a;
@@ -34,10 +34,10 @@
   --color-danger: #b91c1c;
   --color-danger-soft: #fee2e2;
 
-  /* Default pet theme (no data-pet) is the brand green. The per-pet themes below go in G3. */
-  --pet-accent: var(--color-primary-bright);
-  --pet-soft: var(--color-primary-soft);
-  --pet-strong: var(--color-primary-strong);
+  /* Default theme (no data-dept) is the brand green; the ten department themes are below. */
+  --dept-accent: var(--color-primary-bright);
+  --dept-soft: var(--color-primary-soft);
+  --dept-strong: var(--color-primary-strong);
 
   --radius-control: 0.75rem;
   --radius-card: 1.25rem;
@@ -47,38 +47,62 @@
   --font-body: 'Nunito Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
-[data-pet='dog'] {
-  --pet-accent: #fbbf24;
-  --pet-soft: #fef3c7;
-  --pet-strong: #92400e;
+[data-dept='fruit-veg'] {
+  --dept-accent: #a3e635;
+  --dept-soft: #ecfccb;
+  --dept-strong: #3f6212;
 }
 
-[data-pet='cat'] {
-  --pet-accent: #a78bfa;
-  --pet-soft: #ede9fe;
-  --pet-strong: #6d28d9;
+[data-dept='bakery'] {
+  --dept-accent: #fbbf24;
+  --dept-soft: #fef3c7;
+  --dept-strong: #92400e;
 }
 
-[data-pet='bird'] {
-  --pet-accent: #2dd4bf;
-  --pet-soft: #ccfbf1;
-  --pet-strong: #0f766e;
+[data-dept='dairy-eggs'] {
+  --dept-accent: #7dd3fc;
+  --dept-soft: #e0f2fe;
+  --dept-strong: #075985;
 }
 
-[data-pet='fish'] {
-  --pet-accent: #38bdf8;
-  --pet-soft: #e0f2fe;
-  --pet-strong: #0369a1;
+[data-dept='meat-fish'] {
+  --dept-accent: #fb7185;
+  --dept-soft: #ffe4e6;
+  --dept-strong: #9f1239;
 }
 
-[data-pet='reptile'] {
-  --pet-accent: #34d399;
-  --pet-soft: #d1fae5;
-  --pet-strong: #065f46;
+[data-dept='pantry'] {
+  --dept-accent: #fb923c;
+  --dept-soft: #ffedd5;
+  --dept-strong: #9a3412;
 }
 
-[data-pet='small-pet'] {
-  --pet-accent: #a3e635;
-  --pet-soft: #ecfccb;
-  --pet-strong: #3f6212;
+[data-dept='frozen'] {
+  --dept-accent: #22d3ee;
+  --dept-soft: #cffafe;
+  --dept-strong: #155e75;
+}
+
+[data-dept='drinks'] {
+  --dept-accent: #2dd4bf;
+  --dept-soft: #ccfbf1;
+  --dept-strong: #0f766e;
+}
+
+[data-dept='snacks-sweets'] {
+  --dept-accent: #f472b6;
+  --dept-soft: #fce7f3;
+  --dept-strong: #9d174d;
+}
+
+[data-dept='household'] {
+  --dept-accent: #818cf8;
+  --dept-soft: #e0e7ff;
+  --dept-strong: #3730a3;
+}
+
+[data-dept='personal-care-baby'] {
+  --dept-accent: #c084fc;
+  --dept-soft: #f3e8ff;
+  --dept-strong: #6b21a8;
 }

@@ -57,7 +57,7 @@ describe('agent tool registry', () => {
 describe('search_catalog', () => {
   it('accepts filters and rejects a limit above 24', () => {
     const s = searchCatalog.inputSchema;
-    expect(s.safeParse({ query: 'rope', category: 'dog-toys', maxPriceCents: 2000 }).success).toBe(
+    expect(s.safeParse({ query: 'rope', category: 'cheese', maxPriceCents: 2000 }).success).toBe(
       true,
     );
     expect(s.safeParse({ limit: 25 }).success).toBe(false);

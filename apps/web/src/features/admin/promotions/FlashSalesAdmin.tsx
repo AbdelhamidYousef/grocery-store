@@ -181,7 +181,7 @@ function SaleForm({ sale, onDone }: { sale: AdminFlashSale | undefined; onDone: 
       <FormAlert message={serverError} />
       <Input
         label="Sale name"
-        hint="Shown in the banner, like “Weekend Woof”"
+        hint="Shown in the banner, like “Weekend Fresh”"
         value={form.name}
         onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
         error={errors.name}

@@ -79,7 +79,7 @@ export function Dialog({
               aria-label={t('shell.close')}
               data-testid="dialog-close"
               onClick={() => ref.current?.close()}
-              className="-m-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:bg-pet-soft"
+              className="-m-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:bg-dept-soft"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden="true">
                 <path

@@ -51,7 +51,7 @@ describe('error states', () => {
         return failure();
       }),
     );
-    renderApp('/c/dogs');
+    renderApp('/c/dairy-eggs');
     expect(await screen.findByText('We could not load this category')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Try again' }));
     await screen.findByText('We could not load this category');

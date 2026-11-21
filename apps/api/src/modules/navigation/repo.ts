@@ -1,27 +1,30 @@
-import type { Pet } from '@store/shared';
-import { and, asc, count, desc, eq, sql } from 'drizzle-orm';
+import { asc, count, desc, eq, sql } from 'drizzle-orm';
 
 import { db } from '../../db/client.ts';
-import { brands, menuPromos, products } from '../../db/schema/index.ts';
+import { brands, categories, menuPromos, products } from '../../db/schema/index.ts';
 import { variantSummary } from '../catalog/repo.ts';
 
 export type MenuPromoRow = typeof menuPromos.$inferSelect;
 export type MenuPromoValues = Omit<typeof menuPromos.$inferInsert, 'id'>;
 
-// Brands that sell something buyable for each pet, biggest first, in one grouped query for all
-// pets (the menu needs six lists; six queries would be six round trips on a cache miss).
-export async function brandsByPet(): Promise<
-  { pet: Pet; slug: string; name: string; n: number }[]
+// Brands that sell something buyable in each department, biggest first, in one grouped query for
+// all departments (the menu needs ten lists; ten queries would be ten round trips on a cache
+// miss). A product counts for the top-level category of its own category: a subcategory's parent,
+// or the category itself when it is already top-level.
+export async function brandsByDepartment(): Promise<
+  { department: string; slug: string; name: string; n: number }[]
 > {
   const v = variantSummary();
-  const pet = sql<Pet>`${products.attributes}->>'pet'`;
+  const department = sql<string>`coalesce(parent.slug, ${categories.slug})`;
   const rows = await db
-    .select({ pet, slug: brands.slug, name: brands.name, n: count() })
+    .select({ department, slug: brands.slug, name: brands.name, n: count() })
     .from(products)
     .innerJoin(v, eq(v.productId, products.id))
     .innerJoin(brands, eq(brands.id, products.brandId))
-    .where(and(eq(products.status, 'active'), sql`${products.attributes} ? 'pet'`))
-    .groupBy(pet, brands.slug, brands.name)
+    .innerJoin(categories, eq(categories.id, products.categoryId))
+    .leftJoin(sql`categories parent`, sql`parent.id = ${categories.parentId}`)
+    .where(eq(products.status, 'active'))
+    .groupBy(department, brands.slug, brands.name)
     .orderBy(desc(count()), asc(brands.name));
   return rows;
 }
@@ -69,4 +72,13 @@ export async function deletePromo(id: string): Promise<boolean> {
     .where(eq(menuPromos.id, id))
     .returning({ id: menuPromos.id });
   return rows.length > 0;
+}
+
+// A promo belongs to a department: a top-level category (no parent).
+export async function departmentExists(categoryId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: categories.id })
+    .from(categories)
+    .where(sql`${categories.id} = ${categoryId} and ${categories.parentId} is null`);
+  return row !== undefined;
 }

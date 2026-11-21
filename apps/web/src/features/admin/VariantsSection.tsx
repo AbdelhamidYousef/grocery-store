@@ -165,7 +165,7 @@ export function VariantsSection({ product }: { product: AdminProduct }) {
                       {Object.keys(v.options).length > 0 && ` (${formatOptions(v.options)})`}
                     </span>
                     {v.isDefault && (
-                      <Badge tone="pet" className="mt-1">
+                      <Badge tone="dept" className="mt-1">
                         Opens first
                       </Badge>
                     )}

@@ -50,7 +50,7 @@ export function Header({
           aria-expanded={menuOpen}
           data-testid="mobile-nav-button"
           onClick={() => setMenuOpen(true)}
-          className="flex min-h-11 min-w-11 items-center justify-center rounded-control hover:bg-pet-soft lg:hidden"
+          className="flex min-h-11 min-w-11 items-center justify-center rounded-control hover:bg-dept-soft lg:hidden"
         >
           <MenuIcon />
         </button>
@@ -78,7 +78,7 @@ export function Header({
             to="/wishlist"
             aria-label={t('shell.header.wishlist')}
             data-testid="wishlist-link"
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-control hover:bg-pet-soft"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-control hover:bg-dept-soft"
           >
             <HeartIcon />
           </Link>
@@ -90,7 +90,7 @@ export function Header({
               aria-haspopup="dialog"
               data-testid={TEST_IDS.miniCartButton}
               onClick={onOpenCart}
-              className="relative flex min-h-11 min-w-11 items-center justify-center rounded-control hover:bg-pet-soft"
+              className="relative flex min-h-11 min-w-11 items-center justify-center rounded-control hover:bg-dept-soft"
             >
               {cartIcon}
             </button>
@@ -99,7 +99,7 @@ export function Header({
               to="/cart"
               aria-label={cartLabel}
               data-testid="cart-link"
-              className="relative flex min-h-11 min-w-11 items-center justify-center rounded-control hover:bg-pet-soft"
+              className="relative flex min-h-11 min-w-11 items-center justify-center rounded-control hover:bg-dept-soft"
             >
               {cartIcon}
             </Link>
@@ -108,7 +108,7 @@ export function Header({
       </Container>
 
       <nav
-        aria-label={t('shell.shopByPet')}
+        aria-label={t('shell.shopByDepartment')}
         className="relative hidden border-t border-line lg:block"
       >
         <Container>

@@ -212,11 +212,11 @@ export async function seedContent(
       });
   }
 
-  // ---- testimonials: no natural key, so add only the ones whose (name, pet) is missing ----
+  // ---- testimonials: no natural key, so add only the ones whose (name, area) is missing ----
   const existing = await tx
-    .select({ name: testimonials.name, pet: testimonials.pet })
+    .select({ name: testimonials.name, area: testimonials.area })
     .from(testimonials);
-  const have = new Set(existing.map((t) => `${t.name}|${t.pet}`));
-  const fresh = testimonialSeeds.filter((t) => !have.has(`${t.name}|${t.pet}`));
+  const have = new Set(existing.map((t) => `${t.name}|${t.area}`));
+  const fresh = testimonialSeeds.filter((t) => !have.has(`${t.name}|${t.area}`));
   if (fresh.length > 0) await tx.insert(testimonials).values(fresh);
 }

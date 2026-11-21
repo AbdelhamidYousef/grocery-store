@@ -13,7 +13,7 @@ export function BundlePanel({ bundle, currency }: { bundle: BundleDetail; curren
     <section
       aria-labelledby="bundle-heading"
       data-testid={TEST_IDS.bundlePanel}
-      className="flex flex-col gap-2 rounded-card bg-pet-soft p-3"
+      className="flex flex-col gap-2 rounded-card bg-dept-soft p-3"
     >
       <h2 id="bundle-heading" className="font-display text-lg font-bold">
         {t('pdp.bundle.heading')}

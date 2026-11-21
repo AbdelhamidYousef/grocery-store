@@ -39,7 +39,7 @@ export function AdminVariantPicker({
                 type="button"
                 aria-label={`Remove ${v.label}`}
                 onClick={() => onChange(selected.filter((x) => x.id !== v.id))}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full font-bold hover:bg-pet-soft"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full font-bold hover:bg-dept-soft"
               >
                 &times;
               </button>

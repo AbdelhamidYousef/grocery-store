@@ -132,7 +132,7 @@ describe('admin order detail', () => {
     serveOrder(
       makeAdminOrderDetail({
         promotions: [
-          { type: 'code', label: 'PAWS10', cents: 380 },
+          { type: 'code', label: 'GROCERY10', cents: 380 },
           { type: 'gift', label: 'Free gift: Peanut Crunch Biscuits', cents: 0 },
         ],
       }),
@@ -140,7 +140,7 @@ describe('admin order detail', () => {
     renderApp(`/admin/orders/${NUMBER}`);
     const list = await screen.findByTestId('admin-order-promotions');
     expect(within(list).getAllByRole('listitem')).toHaveLength(2);
-    expect(list).toHaveTextContent('PAWS10: -€3.80');
+    expect(list).toHaveTextContent('GROCERY10: -€3.80');
     expect(list).toHaveTextContent('Free gift: Peanut Crunch Biscuits: no charge');
   });
 

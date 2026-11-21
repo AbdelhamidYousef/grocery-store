@@ -1,10 +1,10 @@
+import { DEPARTMENTS } from '@store/shared';
 import { Link } from 'react-router-dom';
 
 import { CharityTotalNote } from '../../features/loyalty/CharityTotalNote';
-import { petName } from '../../features/navigation/pet-names';
+import { departmentName } from '../../features/navigation/department-names';
 import { StoreSwitcher } from '../../features/stores/StoreSwitcher';
 import { useT, type StringKey, type TFunction } from '../../i18n';
-import { PETS } from '../../lib/pets';
 import { track } from '../../lib/track';
 import { Logo } from '../Logo';
 
@@ -28,11 +28,8 @@ interface FooterGroup {
 // simply shows the guides page's empty state instead of breaking. `slug` is the URL, the label
 // is translated at render.
 const GUIDE_TOPICS = [
-  { slug: 'dogs', key: 'shell.footer.topicDogs' },
-  { slug: 'cats', key: 'shell.footer.topicCats' },
-  { slug: 'birds', key: 'shell.footer.topicBirds' },
-  { slug: 'fish', key: 'shell.footer.topicFish' },
-  { slug: 'small-pets', key: 'shell.footer.topicSmallPets' },
+  { slug: 'recipes', key: 'shell.footer.topicRecipes' },
+  { slug: 'tips', key: 'shell.footer.topicTips' },
 ] as const;
 
 const LEGAL_KEYS: Record<string, StringKey> = {
@@ -52,7 +49,7 @@ function buildGroups(t: TFunction): FooterGroup[] {
       id: 'Shop',
       title: t('shell.footer.shop'),
       links: [
-        ...PETS.map((pet) => ({ label: petName(t, pet), to: `/c/${pet.slug}` })),
+        ...DEPARTMENTS.map((dept) => ({ label: departmentName(t, dept), to: `/c/${dept.slug}` })),
         { label: t('shell.footer.brands'), to: '/brands' },
       ],
     },

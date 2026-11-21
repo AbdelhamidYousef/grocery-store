@@ -3,11 +3,10 @@ import type { Entry } from '../types';
 
 export const content: Record<keyof typeof enNs, Entry> = {
   // Guides
-  'content.guides.title': 'Ratgeber zur Tierpflege',
-  'content.guides.seoDescription':
-    'Kurze, freundliche Ratgeber für Halter von Hunden, Katzen, Vögeln, Fischen und Kleintieren.',
+  'content.guides.title': 'Rezepte und Tipps',
+  'content.guides.seoDescription': 'Kurze Rezepte und Küchentipps für den Alltag.',
   'content.guides.intro':
-    'Kurze, freundliche Lektüre für glücklichere Tiere. Geschrieben für einen Demo-Shop, also versteh sie als Inspiration und frag bei Sorgen deine Tierarztpraxis.',
+    'Kurze, freundliche Lektüre für die Küche. Geschrieben für einen Demo-Shop, also versteh sie als Inspiration.',
   'content.guides.topics': 'Ratgeber-Themen',
   'content.guides.all': 'Alle Ratgeber',
   'content.guides.list': 'Ratgeber',
@@ -55,7 +54,7 @@ export const content: Record<keyof typeof enNs, Entry> = {
   'content.legal.notice':
     'Demo-Shop, fiktives Unternehmen. Dieser Text ist ein Beispiel und stellt keine Rechtsberatung dar.',
   'content.legal.about.title': 'Über Grocery',
-  'content.legal.about.description': 'Wer hinter diesem Demo-Tiershop steckt.',
+  'content.legal.about.description': 'Wer hinter diesem Demo-Shop steckt.',
   'content.legal.shipping.title': 'Versand',
   'content.legal.shipping.description': 'Lieferoptionen, Preise und Zeiten.',
   'content.legal.returns.title': 'Rücksendung und Widerruf',

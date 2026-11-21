@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Personal care & baby">
+<rect width="200" height="200" fill="#f3e8ff"/>
+<circle cx="100" cy="100" r="62" fill="#c084fc" fill-opacity="0.55"/>
+<g transform="translate(52 52) scale(4)" fill="none" stroke="#6b21a8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3.500 4 6 7 6 10.500a6 6 0 0 1-12 0C6 10 8.500 7 12 3z"/><path d="M9.500 14a2.500 2.500 0 0 0 2 2.500"/></g>
+</svg>

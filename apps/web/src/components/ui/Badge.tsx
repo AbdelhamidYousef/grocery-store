@@ -2,20 +2,20 @@ import type { HTMLAttributes } from 'react';
 
 import { cn } from '../../lib/cn';
 
-export type BadgeTone = 'neutral' | 'primary' | 'success' | 'danger' | 'pet';
+export type BadgeTone = 'neutral' | 'primary' | 'success' | 'danger' | 'dept';
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   tone?: BadgeTone;
 }
 
 // Every tone pairs a dark text colour with a tint, checked in styles/tokens.test.ts.
-// `pet` follows the nearest `data-pet` wrapper.
+// `dept` follows the nearest `data-dept` wrapper.
 const tones: Record<BadgeTone, string> = {
   neutral: 'bg-bg text-ink border border-line',
   primary: 'bg-primary-soft text-primary-strong',
   success: 'bg-success-soft text-success',
   danger: 'bg-danger-soft text-danger',
-  pet: 'bg-pet-soft text-pet-strong',
+  dept: 'bg-dept-soft text-dept-strong',
 };
 
 export function Badge({ tone = 'neutral', className, ...rest }: BadgeProps) {

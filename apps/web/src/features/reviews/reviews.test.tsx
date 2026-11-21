@@ -18,8 +18,6 @@ const reviews = [
     id: 'r2',
     title: 'Fine',
     verifiedBuyer: false,
-    petAgeMonths: null,
-    petWeightG: null,
   }),
 ];
 const served = (list = makeReviewList(reviews, { topics: [{ topic: 'rope', count: 4 }] })) =>
@@ -65,9 +63,7 @@ describe('reviews section on the product page', () => {
     const cards = await within(section).findAllByTestId('review-card');
     expect(cards).toHaveLength(2);
     expect(within(cards[0]!).getByText('Verified buyer')).toBeInTheDocument();
-    expect(
-      within(cards[0]!).getByText('Pet age 2 years 6 months, weighs 11.5 kg, bought size M'),
-    ).toBeInTheDocument();
+    expect(within(cards[0]!).getByText('bought size M')).toBeInTheDocument();
     expect(within(cards[1]!).queryByText('Verified buyer')).not.toBeInTheDocument();
   });
 
@@ -187,23 +183,22 @@ describe('review form', () => {
     );
     const form = await openForm();
     await userEvent.click(within(form).getByLabelText('4 stars'));
-    await userEvent.type(within(form).getByLabelText('Title'), 'Great tug');
+    await userEvent.type(within(form).getByLabelText('Title'), 'Great loaf');
     await userEvent.type(
       within(form).getByLabelText('Your review'),
-      'My dog plays with it every day and it is still in one piece.',
+      'The rolls were still warm and the box arrived on time.',
     );
-    await userEvent.type(within(form).getByLabelText('Pet weight (kg)'), '4.5');
-    await userEvent.type(within(form).getByLabelText('Pet age (months)'), '18');
-    const file = new File([new Uint8Array([1, 2, 3])], 'dog.jpg', { type: 'image/jpeg' });
+    await userEvent.type(within(form).getByLabelText('Size you bought'), 'Large');
+    const file = new File([new Uint8Array([1, 2, 3])], 'loaf.jpg', { type: 'image/jpeg' });
     await userEvent.upload(within(form).getByLabelText(/Photos/), file);
-    expect(within(form).getByAltText('Preview of dog.jpg')).toBeInTheDocument();
+    expect(within(form).getByAltText('Preview of loaf.jpg')).toBeInTheDocument();
     await userEvent.click(within(form).getByRole('button', { name: 'Submit review' }));
 
     expect(await screen.findByTestId('review-pending')).toHaveTextContent('waiting for approval');
     const body = received as unknown as FormData;
     expect(body.get('rating')).toBe('4');
-    expect(body.get('petWeightG')).toBe('4500');
-    expect(body.get('petAgeMonths')).toBe('18');
+    expect(body.get('sizePurchased')).toBe('Large');
+    expect(body.has('petAgeMonths')).toBe(false);
     expect(body.get('wouldRecommend')).toBe('true');
     // msw's FormData parser hands files back as generic blobs, so check there is one and its size.
     expect((body.getAll('photos')[0] as Blob).size).toBe(3);
@@ -252,10 +247,10 @@ describe('review form', () => {
     );
     const form = await openForm();
     await userEvent.click(within(form).getByLabelText('5 stars'));
-    await userEvent.type(within(form).getByLabelText('Title'), 'Great tug');
+    await userEvent.type(within(form).getByLabelText('Title'), 'Great loaf');
     await userEvent.type(
       within(form).getByLabelText('Your review'),
-      'My dog plays with it every day and it is still in one piece.',
+      'The rolls were still warm and the box arrived on time.',
     );
     await userEvent.click(within(form).getByRole('button', { name: 'Submit review' }));
     expect(

@@ -23,7 +23,7 @@ async function counts() {
   return rows[0];
 }
 
-// Each run hashes the demo passwords with argon2 and writes ~125 products, ~450 variants and their
+// Each run hashes the demo passwords with argon2 and writes 120 products, ~125 variants and their
 // joins; on a busy machine that is several seconds, and a test that times out keeps running into the
 // next one's truncate, so the limit is generous rather than tight.
 vi.setConfig({ testTimeout: 60_000 });
@@ -35,10 +35,11 @@ describe('seed', () => {
     await runSeed();
     expect(await counts()).toEqual(first);
     expect(first).toMatchObject({
-      categories: 31,
-      // 125 catalogue products plus the three kits.
-      products: 128,
-      brands: 6,
+      // 10 departments and their 31 subcategories.
+      categories: 41,
+      // 120 catalogue products plus the three kits.
+      products: 123,
+      brands: 8,
       tags: 6,
       collections: 5,
       // 3 demo logins, the 14 invented reviewers (phase 17) and the returns demo customer (phase 22).
@@ -93,30 +94,30 @@ describe('seed', () => {
     }
   });
 
-  it('gives every product a brand and links collections and tags', async () => {
+  it('brands every product except the loose fruit and vegetables, and links collections and tags', async () => {
     await runSeed();
     const rows = await db.execute<{ unbranded: number; eco: number; empty: number }>(sql`
       select
         (select count(*)::int from products where brand_id is null) as unbranded,
-        (select count(*)::int from collection_products cp join collections c on c.id = cp.collection_id where c.slug = 'eco-picks') as eco,
+        (select count(*)::int from collection_products cp join collections c on c.id = cp.collection_id where c.slug = 'organic-picks') as eco,
         (select count(*)::int from collections c where not exists (select 1 from collection_products cp where cp.collection_id = c.id)) as empty`);
-    expect(rows[0]).toEqual({ unbranded: 0, eco: rows[0]?.eco, empty: 0 });
+    expect(rows[0]).toEqual({ unbranded: 10, eco: rows[0]?.eco, empty: 0 });
     expect(rows[0]?.eco).toBeGreaterThan(0);
   });
 
   it('keeps a seasonal collection live right now and refreshes its window on re-seed', async () => {
-    await runSeed(new Date('2026-10-31T12:00:00Z'));
+    await runSeed(new Date('2026-09-01T12:00:00Z'));
     const [row] = await db.execute<{ starts_at: Date; ends_at: Date }>(
-      sql`select starts_at, ends_at from collections where slug = 'halloween'`,
+      sql`select starts_at, ends_at from collections where slug = 'bbq-season'`,
     );
-    expect(new Date(String(row?.starts_at)).toISOString()).toBe('2026-10-01T00:00:00.000Z');
-    expect(new Date(String(row?.ends_at)).toISOString()).toBe('2026-11-03T00:00:00.000Z');
+    expect(new Date(String(row?.starts_at)).toISOString()).toBe('2026-05-01T00:00:00.000Z');
+    expect(new Date(String(row?.ends_at)).toISOString()).toBe('2026-09-16T00:00:00.000Z');
     // After the season ended the next re-seed moves it to next year.
-    await runSeed(new Date('2026-12-01T00:00:00Z'));
+    await runSeed(new Date('2026-10-01T00:00:00Z'));
     const [next] = await db.execute<{ starts_at: Date }>(
-      sql`select starts_at from collections where slug = 'halloween'`,
+      sql`select starts_at from collections where slug = 'bbq-season'`,
     );
-    expect(new Date(String(next?.starts_at)).toISOString()).toBe('2027-10-01T00:00:00.000Z');
+    expect(new Date(String(next?.starts_at)).toISOString()).toBe('2027-05-01T00:00:00.000Z');
   });
 
   it('keeps every trial size well stocked', async () => {
@@ -139,7 +140,7 @@ describe('seed', () => {
 });
 
 describe('seed: product page content', () => {
-  it('seeds specs, FAQs and constituents, once', async () => {
+  it('seeds specs and FAQs, once', async () => {
     await runSeed();
     const read = async () =>
       (
@@ -147,7 +148,6 @@ describe('seed: product page content', () => {
           select
             (select count(*)::int from product_specs) as specs,
             (select count(*)::int from product_faqs) as faqs,
-            (select count(*)::int from variant_constituents) as constituents,
             (select count(*)::int from products p where
                not exists (select 1 from product_specs s where s.product_id = p.id)) as without_specs`)
       )[0];
@@ -155,9 +155,28 @@ describe('seed: product page content', () => {
     await runSeed();
     expect(await read()).toEqual(first);
     expect(first?.without_specs).toBe(0);
-    // Constituents come in sixes (five percentages and kcal) per variant of a fed product.
-    expect((first?.constituents ?? 0) % 6).toBe(0);
-    expect(first?.constituents).toBeGreaterThan(100);
+  });
+
+  it('seeds food information on food products only', async () => {
+    await runSeed();
+    const [row] = await db.execute<{
+      food: number;
+      non_food: number;
+      stray: number;
+      bold: number;
+      vegan: number;
+    }>(sql`select
+      (select count(*)::int from products where nutrition is not null and ingredients is not null) as food,
+      (select count(*)::int from products where nutrition is null) as non_food,
+      (select count(*)::int from products where nutrition is null
+        and (cardinality(allergens) > 0 or cardinality(dietary) > 0)) as stray,
+      (select count(*)::int from products where ingredients ~ '[A-Z]{3,}') as bold,
+      (select count(*)::int from products where dietary @> '{vegan}') as vegan`);
+    expect(row?.food).toBeGreaterThan(90);
+    expect(row?.non_food).toBeGreaterThan(15);
+    expect(row?.stray).toBe(0);
+    expect(row?.bold).toBeGreaterThan(20); // allergens are written in capitals
+    expect(row?.vegan).toBe(57);
   });
 });
 
@@ -186,8 +205,8 @@ describe('seeded reviews (phase 17)', () => {
     expect(first.approved).toBeGreaterThan(35);
     expect(first.pending).toBeGreaterThanOrEqual(3);
     expect(first.rejected).toBeGreaterThanOrEqual(1);
-    expect(first.photos).toBeGreaterThanOrEqual(3);
-    expect(first.products_rated).toBeGreaterThan(10);
+    expect(first.photos).toBeGreaterThanOrEqual(1);
+    expect(first.products_rated).toBeGreaterThan(15);
     await runSeed();
     expect(await q()).toEqual(first);
   });

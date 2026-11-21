@@ -6,9 +6,11 @@ import {
   badgeSlug,
   buildQuickChips,
   unitPriceCents,
+  type AllergenSlug,
   type Badge,
   type Category,
   type CategoryNode,
+  type DietarySlug,
   type Facets,
   type ProductDetail,
   type ProductCard,
@@ -31,10 +33,15 @@ import { getBadgeIndex, type BadgeIndex } from './badge-index.ts';
 import * as bundlesRepo from './bundles-repo.ts';
 import * as repo from './repo.ts';
 
-function toCategory(row: repo.CategoryRow, productCount = row.productCount): Category {
+function toCategory(
+  row: repo.CategoryRow,
+  department: string,
+  productCount = row.productCount,
+): Category {
   return {
     id: row.id,
     slug: row.slug,
+    departmentSlug: department,
     name: row.name,
     description: row.description,
     parentId: row.parentId,
@@ -46,10 +53,17 @@ function toCategory(row: repo.CategoryRow, productCount = row.productCount): Cat
 }
 
 // A parent's own count is nearly always 0 (products live in leaf categories), so what a shopper
-// wants to see next to "Dogs" is the total of its children plus anything attached directly.
-function toNode(row: repo.CategoryRow, children: repo.CategoryRow[]): CategoryNode {
+// wants to see next to "Dairy & eggs" is the total of its children plus anything attached directly.
+function toNode(
+  row: repo.CategoryRow,
+  children: repo.CategoryRow[],
+  department: string = row.slug,
+): CategoryNode {
   const total = children.reduce((sum, c) => sum + c.productCount, row.productCount);
-  return { ...toCategory(row, total), children: children.map((c) => toCategory(c)) };
+  return {
+    ...toCategory(row, department, total),
+    children: children.map((c) => toCategory(c, department)),
+  };
 }
 
 // Names, descriptions and slugs in the store view's language (English fields where a translation
@@ -94,10 +108,13 @@ export async function getCategory(slugFromUrl: string): Promise<CategoryNode> {
   const rows = await repo.getCategoryBySlug(slug);
   const self = rows.find((r) => r.slug === slug);
   if (!self) throw notFound('Category not found');
+  // A subcategory belongs to its parent's department; a top-level category is its own.
+  const department = self.parentId ? await repo.parentSlug(self.parentId) : self.slug;
   const [node] = await translateNodes([
     toNode(
       self,
       rows.filter((r) => r.parentId === self.id),
+      department,
     ),
   ]);
   return node as CategoryNode;
@@ -142,6 +159,7 @@ function toCard(
     slug: row.slug,
     name: row.name,
     categorySlug: row.categorySlug,
+    departmentSlug: row.departmentSlug,
     image: image
       ? {
           id: image.id,
@@ -189,6 +207,7 @@ function toFilters(query: ProductListQuery, index: BadgeIndex): repo.ProductFilt
     ...(query.inStock !== undefined && { inStock: query.inStock }),
     ...(query.brand !== undefined && { brand: query.brand }),
     ...(query.tag !== undefined && { tag: query.tag }),
+    ...(query.diet !== undefined && { diet: query.diet }),
     ...(query.collection !== undefined && { collection: query.collection }),
     ...(badgeIds !== undefined && { badgeProductIds: badgeIds }),
     attr: query.attr,
@@ -225,6 +244,7 @@ async function getFacets(query: ProductListQuery, index: BadgeIndex): Promise<Fa
       rows.brand.map((b) => ({ value: b.slug, label: b.name, count: b.count })),
     ),
     tag: rows.tag.map((t) => ({ value: t.slug, label: t.name, count: t.count })),
+    diet: rows.diet,
     badge: [...badgeCounts]
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .map(([badge, count]) => ({ value: badgeSlug(badge), label: badge, count })),
@@ -413,6 +433,20 @@ const CONSTITUENT_ORDER: readonly string[] = CONSTITUENT_KEYS;
 const sortConstituents = <T extends { key: string }>(list: T[]): T[] =>
   [...list].sort((a, b) => CONSTITUENT_ORDER.indexOf(a.key) - CONSTITUENT_ORDER.indexOf(b.key));
 
+// Nutrition, ingredients, allergens and dietary tags, or null when the product carries none of it
+// (a sponge). An empty allergen list on a food is meaningful ("contains none"), so a product is
+// food when ANY of the four is present.
+function foodOf(p: repo.ProductDetailRows['product']): ProductDetail['food'] {
+  const isFood = p.nutrition !== null || p.ingredients !== null || p.dietary.length > 0;
+  if (!isFood) return null;
+  return {
+    nutrition: p.nutrition,
+    ingredients: p.ingredients,
+    allergens: p.allergens as AllergenSlug[],
+    dietary: p.dietary as DietarySlug[],
+  };
+}
+
 export async function getProduct(
   slugFromUrl: string,
   viewer: Viewer = GUEST,
@@ -453,9 +487,11 @@ export async function getProduct(
   // A sample size must not set the "from" price of the product.
   const sellable = variants.filter((v) => !v.isTrial);
   const prices = (sellable.length > 0 ? sellable : variants).map((v) => v.priceCents);
-  const { optionKeys = [], ...publicAttributes } = rows.product.attributes;
+  const { optionKeys = [], storage, origin, size } = rows.product.attributes;
   const attributes: ProductDetail['attributes'] = {
-    ...publicAttributes,
+    ...(storage && { storage }),
+    ...(origin && { origin }),
+    ...(size && { size }),
     ...(rows.brand && { brand: rows.brand.name }),
   };
   const badges = (await getBadgeIndex()).get(rows.product.id) ?? [];
@@ -485,7 +521,9 @@ export async function getProduct(
     description: pick(tr, 'description', rows.product.description),
     category,
     breadcrumb: parent ? [parent, category] : [category],
+    departmentSlug: rows.parent?.slug ?? rows.category.slug,
     attributes,
+    food: foodOf(rows.product),
     brand,
     tags: rows.tags,
     badges,

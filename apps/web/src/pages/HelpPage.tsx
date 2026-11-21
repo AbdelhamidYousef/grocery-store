@@ -23,7 +23,7 @@ const TOPIC_KEYS: Record<HelpTopic, StringKey> = {
 };
 
 const tab =
-  'inline-flex min-h-11 items-center rounded-full border-2 border-line px-4 font-display font-semibold hover:bg-pet-soft aria-[current=page]:border-primary aria-[current=page]:bg-primary-soft aria-[current=page]:text-primary-strong';
+  'inline-flex min-h-11 items-center rounded-full border-2 border-line px-4 font-display font-semibold hover:bg-dept-soft aria-[current=page]:border-primary aria-[current=page]:bg-primary-soft aria-[current=page]:text-primary-strong';
 
 // The query and topic live in the URL (`/help?q=refund&topic=returns`): a search can be shared,
 // reloaded and walked with Back. The box keeps its own text and writes the URL after a pause, so

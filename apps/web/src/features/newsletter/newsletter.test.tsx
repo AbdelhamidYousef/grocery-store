@@ -7,7 +7,7 @@ import { renderApp } from '../../test/render';
 import { API, server } from '../../test/server';
 
 describe('newsletter sign-up', () => {
-  it('needs the consent box, then sends email, pets and consent', async () => {
+  it('needs the consent box, then sends email, interests and consent', async () => {
     const bodies: Record<string, unknown>[] = [];
     server.use(
       http.post(`${API}/newsletter/subscribe`, async ({ request }) => {
@@ -19,7 +19,7 @@ describe('newsletter sign-up', () => {
     renderApp('/newsletter');
     const form = await screen.findByTestId('newsletter-form');
     await user.type(form.querySelector('input[type="email"]')!, 'pat@example.com');
-    await user.click(screen.getByLabelText('Dogs'));
+    await user.click(screen.getByLabelText('Dairy & eggs'));
     await user.click(screen.getByRole('button', { name: /subscribe/i }));
     expect(await screen.findByText('Please tick the box to subscribe')).toBeInTheDocument();
     expect(bodies).toHaveLength(0);
@@ -27,7 +27,11 @@ describe('newsletter sign-up', () => {
     await user.click(screen.getByLabelText(/Send me Grocery news/));
     await user.click(screen.getByRole('button', { name: /subscribe/i }));
     expect(await screen.findByTestId('newsletter-done')).toHaveTextContent('confirmation link');
-    expect(bodies[0]).toMatchObject({ email: 'pat@example.com', pets: ['dog'], consent: true });
+    expect(bodies[0]).toMatchObject({
+      email: 'pat@example.com',
+      interests: ['dairy-eggs'],
+      consent: true,
+    });
   });
 });
 

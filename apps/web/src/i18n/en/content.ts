@@ -2,11 +2,10 @@ import type { Dictionary } from '../types';
 
 export const content = {
   // Guides
-  'content.guides.title': 'Pet-care guides',
-  'content.guides.seoDescription':
-    'Short, friendly guides for dog, cat, bird, fish and small pet owners.',
+  'content.guides.title': 'Recipes and tips',
+  'content.guides.seoDescription': 'Short recipes and kitchen tips for everyday cooking.',
   'content.guides.intro':
-    'Short, friendly reads for happier pets. Written for a demo store, so treat them as inspiration and ask your vet about anything that worries you.',
+    'Short, friendly reads for the kitchen. Written for a demo store, so treat them as inspiration.',
   'content.guides.topics': 'Guide topics',
   'content.guides.all': 'All guides',
   'content.guides.list': 'Guides',
@@ -54,7 +53,7 @@ export const content = {
   'content.legal.notice':
     'Demo store, fictional company. This text is an example and is not legal advice.',
   'content.legal.about.title': 'About Grocery',
-  'content.legal.about.description': 'Who is behind this demo pet shop.',
+  'content.legal.about.description': 'Who is behind this demo shop.',
   'content.legal.shipping.title': 'Shipping',
   'content.legal.shipping.description': 'Delivery options, prices and times.',
   'content.legal.returns.title': 'Returns and withdrawal',

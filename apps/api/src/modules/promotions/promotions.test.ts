@@ -117,14 +117,14 @@ describe('priced cart', () => {
 describe('POST /cart/code', () => {
   it('applies a valid code case-insensitively and DELETE removes it', async () => {
     await createShippingMethods();
-    await code({ code: 'PAWS10' });
+    await code({ code: 'GROCERY10' });
     const shop = makeShopper(app);
     await shop.addToCart(await variant(3000));
 
-    const res = await shop.call('post', '/cart/code', { code: 'paws10' });
+    const res = await shop.call('post', '/cart/code', { code: 'grocery10' });
     expect(res.status).toBe(200);
     let pricing = pricingOf(res);
-    expect(pricing.code).toBe('PAWS10');
+    expect(pricing.code).toBe('GROCERY10');
     expect(pricing.discountCents).toBe(300);
 
     pricing = pricingOf(await shop.call('delete', '/cart/code'));

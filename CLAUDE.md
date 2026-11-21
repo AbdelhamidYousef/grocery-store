@@ -23,7 +23,7 @@ starts, then keep `docs/plan/04-decisions-log.md`, `05-build-journal.md` and `06
 - Nothing paid, ever, and no card on any sign-up. Free-tier sign-ups are approved; say when one happens.
 - Git: commit locally per step; push at phase ends to his personal GitHub (`gh_y33`), as approved in
   `work/KICKOFF.md` (2026-11-14), which also approves the public deploy. Conventional commits, scoped.
-- Images: Gemini in the Playwright browser, the same pipeline as Pawsome (`pnpm images:brief` / `images:process`).
+- Images: Gemini in the Playwright browser, the same pipeline as Pawsome (prompts in `docs/plan/data/image-grids.json`, `tools/crop-grids.mjs`, `pnpm images:process`).
 - The portfolio story is **logistics** (areas, slots, expiry, weight, substitutions): don't redo what Pawsome already shows.
 - Shared-engine fixes from Pawsome: `git fetch pawsome` then cherry-pick; never merge Pawsome wholesale.
 

@@ -43,9 +43,11 @@ export interface ListPatch {
   minPrice?: number | undefined;
   maxPrice?: number | undefined;
   inStock?: boolean | undefined;
-  /** Selected brand / health-need slugs; an empty array removes the filter. */
+  /** Selected brand / shop-by-need slugs; an empty array removes the filter. */
   brand?: string[] | undefined;
   tag?: string[] | undefined;
+  /** Selected dietary tags (`vegan`, `gluten-free`); an empty array removes the filter. */
+  diet?: string[] | undefined;
   /** Selected badge slugs (`sale`, `new`); an empty array removes the filter. */
   badge?: string[] | undefined;
   /** key -> selected values; an empty array removes the filter. */
@@ -66,7 +68,7 @@ export function applyListPatch(current: URLSearchParams, patch: ListPatch): URLS
     if (value === undefined || value === false || (key === 'page' && value === 1)) next.delete(key);
     else next.set(key, String(value));
   }
-  for (const key of ['brand', 'tag', 'badge'] as const) {
+  for (const key of ['brand', 'tag', 'diet', 'badge'] as const) {
     const values = patch[key];
     if (values === undefined) continue;
     if (values.length === 0) next.delete(key);
@@ -94,6 +96,7 @@ export function hasActiveFilters(query: ProductListQuery): boolean {
     query.inStock === true ||
     (query.brand?.length ?? 0) > 0 ||
     (query.tag?.length ?? 0) > 0 ||
+    (query.diet?.length ?? 0) > 0 ||
     (query.badge?.length ?? 0) > 0 ||
     Object.keys(query.attr).length > 0
   );

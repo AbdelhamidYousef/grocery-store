@@ -19,7 +19,7 @@ export const en = {
   'order.subtotal': 'Subtotal',
   'order.shipping': 'Shipping ({method})',
   'order.discount': 'Discount',
-  'order.donation': 'Donation to Whisker Hollow Rescue (demo)',
+  'order.donation': 'Donation to Spreeufer Food Bank (demo)',
   'order.total': 'Total',
   'order.shippingTo': 'Shipping to:',
   'order.deliveringTo': 'Delivering to:',
@@ -148,7 +148,7 @@ export const en = {
   'safety.reason': 'You are receiving this because you bought an affected product from Grocery.',
   'review.subject': 'Your review of {product} is live',
   'review.l1':
-    'Thank you for reviewing {product}! Your review has passed our check and is now on the product page, where it helps other pet owners choose.',
+    'Thank you for reviewing {product}. Your review has passed our check and is now on the product page, where it helps other shoppers choose.',
   'review.see': 'See it here: {url}',
   'review.link': 'See your review',
   'review.preheader': 'Your review of {product} is live.',

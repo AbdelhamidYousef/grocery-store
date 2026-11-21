@@ -9,7 +9,7 @@ import { StockAlertForm } from '../stock-alerts/StockAlertForm';
 import { QuantityStepper } from './QuantityStepper';
 
 // The API only says "available" (never the stock number: that is business data), so the stepper
-// cannot know the true limit. 10 is a sane per-line cap for a pet shop; the cart (phase 7) is
+// cannot know the true limit. 10 is a sane per-line cap for groceries; the cart (phase 7) is
 // where the server enforces the real stock and answers OUT_OF_STOCK.
 export const MAX_QUANTITY = 10;
 

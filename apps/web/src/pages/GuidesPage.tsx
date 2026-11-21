@@ -14,9 +14,9 @@ import { TEST_IDS } from '../lib/test-ids';
 const PAGE_SIZE = 9;
 
 const tab =
-  'inline-flex min-h-11 items-center rounded-full border-2 border-line px-4 font-display font-semibold hover:bg-pet-soft aria-[current=page]:border-primary aria-[current=page]:bg-primary-soft aria-[current=page]:text-primary-strong';
+  'inline-flex min-h-11 items-center rounded-full border-2 border-line px-4 font-display font-semibold hover:bg-dept-soft aria-[current=page]:border-primary aria-[current=page]:bg-primary-soft aria-[current=page]:text-primary-strong';
 
-// Category and page live in the URL (`?category=dogs&page=2`), so a filtered list can be linked,
+// Category and page live in the URL (`?category=recipes&page=2`), so a filtered list can be linked,
 // reloaded and walked with Back.
 export default function GuidesPage() {
   const [params] = useSearchParams();

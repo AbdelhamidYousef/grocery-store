@@ -91,7 +91,7 @@ export function Tabs({ label, tabs, selectedId, onSelect, className, panelClassN
                 tabIndex={isSelected ? 0 : -1}
                 onClick={() => onSelect(tab.id)}
                 className={cn(
-                  '-mb-0.5 min-h-11 whitespace-nowrap border-b-4 px-4 font-display font-semibold hover:bg-pet-soft',
+                  '-mb-0.5 min-h-11 whitespace-nowrap border-b-4 px-4 font-display font-semibold hover:bg-dept-soft',
                   isSelected
                     ? 'border-primary text-primary-strong'
                     : 'border-transparent text-muted hover:text-ink',

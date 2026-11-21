@@ -30,7 +30,7 @@ const SUGGESTIONS: Suggestions = {
       currency: 'EUR',
     },
   ],
-  categories: [{ slug: 'dog-chews', name: 'Dog Chews', parentName: 'Dogs' }],
+  categories: [{ slug: 'dog-chews', name: 'Dog Chews', parentName: 'Dairy & eggs' }],
   brands: [{ slug: 'chewco', name: 'ChewCo' }],
 };
 

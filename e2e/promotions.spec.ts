@@ -7,7 +7,7 @@ import { ADMIN, api, uniqueEmail } from './helpers';
 // the admin order detail, and member prices.
 //
 // Seeded rules this relies on: gift Peanut Crunch Biscuits from EUR 40.00, tiers 5% from EUR 75 and
-// 10% from EUR 100, code PAWS10 (10%, min EUR 30).
+// 10% from EUR 100, code GROCERY10 (10%, min EUR 30).
 //
 // Independence from the other specs (they run in parallel workers on the same database):
 //   - every test builds its own cart (a cart is per browser context, so nothing is shared);
@@ -76,22 +76,22 @@ test.describe('gift progress', () => {
 
 test.describe('code against a bulk tier', () => {
   test('the better one wins and the cart says why', async ({ page }) => {
-    // 2 x 37.90 = 75.80: tier 5% saves 3.79, PAWS10 saves 7.58, so the code wins.
+    // 2 x 37.90 = 75.80: tier 5% saves 3.79, GROCERY10 saves 7.58, so the code wins.
     await page.goto('/');
     await addApi(page, BED, BED_SKU, 2);
     await page.goto('/cart');
-    await page.getByLabel('Discount code').fill('paws10');
+    await page.getByLabel('Discount code').fill('grocery10');
     await page.getByRole('button', { name: 'Apply' }).click();
 
     const applied = page.getByTestId('cart-code-applied');
-    await expect(applied).toContainText('PAWS10');
+    await expect(applied).toContainText('GROCERY10');
     const adjustments = page.getByTestId('cart-adjustment');
     await expect(adjustments).toHaveCount(1);
-    await expect(adjustments.first()).toContainText('PAWS10');
+    await expect(adjustments.first()).toContainText('GROCERY10');
     await expect(adjustments.first()).toContainText('€7.58');
     await expect(page.getByTestId('cart-code-notice')).toHaveCount(0);
 
-    // 3 x 37.90 = 113.70: tier 10% and PAWS10 both save 11.37; a tie goes to the tier, which needs
+    // 3 x 37.90 = 113.70: tier 10% and GROCERY10 both save 11.37; a tie goes to the tier, which needs
     // no code, and the cart explains the choice.
     await line(page)
       .first()
@@ -99,13 +99,13 @@ test.describe('code against a bulk tier', () => {
       .click();
     await expect(adjustments).toHaveCount(1);
     await expect(adjustments.first()).toContainText('€11.37');
-    await expect(adjustments.first()).not.toContainText('PAWS10');
+    await expect(adjustments.first()).not.toContainText('GROCERY10');
     await expect(adjustments.first()).toContainText('10%');
     await expect(page.getByTestId('cart-code-notice')).toContainText(
-      /saves more than PAWS10, so we used that/,
+      /saves more than GROCERY10, so we used that/,
     );
     // The code stays on the cart: removing items later can make it the better one again.
-    await expect(applied).toContainText('PAWS10');
+    await expect(applied).toContainText('GROCERY10');
 
     const combine = page.getByTestId('cart-discounts-combine');
     await combine.getByText('How discounts combine').click();

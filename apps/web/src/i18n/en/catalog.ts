@@ -16,9 +16,10 @@ export const catalog = {
   'catalog.filters.inStock': 'In stock',
   'catalog.filters.inStockOnly': 'In stock only',
   'catalog.filters.brand': 'Brand',
-  'catalog.filters.health': 'Shop by health need',
+  'catalog.filters.health': 'Shop by need',
   'catalog.filters.chipBrand': 'Brand: {name}',
-  'catalog.filters.chipHealth': 'Health need: {name}',
+  'catalog.filters.chipHealth': 'Shop by need: {name}',
+  'catalog.filters.chipDiet': 'Dietary: {name}',
   'catalog.filters.chipLabel': 'Label: {name}',
   'catalog.filters.chipFacet': '{facet}: {value}',
   'catalog.filters.remove': 'Remove filter {label}',
@@ -29,16 +30,12 @@ export const catalog = {
   'catalog.filters.priceRange': 'Price: {min} - {max}',
   'catalog.filters.priceFrom': 'Price: from {min}',
   'catalog.filters.priceUpTo': 'Price: up to {max}',
-  'catalog.facet.pet': 'Pet',
-  'catalog.facet.material': 'Material',
-  'catalog.facet.ageStage': 'Age stage',
-  'catalog.facet.allAges': 'All ages',
-  'catalog.facet.petDog': 'Dogs',
-  'catalog.facet.petCat': 'Cats',
-  'catalog.facet.petBird': 'Birds',
-  'catalog.facet.petFish': 'Fish',
-  'catalog.facet.petSmall': 'Small pets',
-  'catalog.facet.petReptile': 'Reptiles',
+  'catalog.facet.storage': 'Storage',
+  'catalog.facet.origin': 'Origin',
+  'catalog.facet.diet': 'Dietary',
+  'catalog.facet.storageAmbient': 'Ambient',
+  'catalog.facet.storageChilled': 'Chilled',
+  'catalog.facet.storageFrozen': 'Frozen',
 
   // Sort
   'catalog.sort.relevance': 'Best match',
@@ -64,14 +61,6 @@ export const catalog = {
   'catalog.pagination.prev': 'Prev',
   'catalog.pagination.next': 'Next',
   'catalog.pagination.page': 'Page {page}',
-
-  // Pet tiles (names of the six pet categories)
-  'catalog.petTile.dogs': 'Dogs',
-  'catalog.petTile.cats': 'Cats',
-  'catalog.petTile.birds': 'Birds',
-  'catalog.petTile.fish': 'Fish',
-  'catalog.petTile.smallPets': 'Small Pets',
-  'catalog.petTile.reptiles': 'Reptiles',
 
   // Product card
   'catalog.card.noImage': 'No image',
@@ -122,7 +111,7 @@ export const catalog = {
   'catalog.empty.tryWords':
     'Try fewer or different words. Search matches whole words, so check the spelling.',
   'catalog.empty.nothingYet':
-    'There is nothing here yet. Have a look at another pet while we restock.',
+    'There is nothing here yet. Have a look at another department while we restock.',
   'catalog.empty.clearFilters': 'Clear filters',
 
   // Pages
@@ -135,10 +124,11 @@ export const catalog = {
   'catalog.category.subcategories': 'Subcategories',
   'catalog.brand.loadError': 'We could not load this brand',
   'catalog.brand.loading': 'Loading brand',
-  'catalog.brands.description': 'The Grocery house brands: bakes, beds, habitat gear and more.',
+  'catalog.brands.description':
+    'The brands we stock: fresh bakes, dairy, household basics and more.',
   'catalog.brands.title': 'Our brands',
   'catalog.brands.intro':
-    'Every brand here is our own, made up by us and tested by a very fussy panel of pets.',
+    'All the brands on our shelves, from the neighbourhood bakery to our own Grocery Basics label.',
   'catalog.brands.loadError': 'We could not load the brands.',
   'catalog.collection.loadError': 'We could not load this collection',
   'catalog.collection.loading': 'Loading collection',

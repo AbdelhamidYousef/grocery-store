@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { collections, windowDates } from './collections.ts';
-import { COLOR_HEX, expandVariants } from './expand.ts';
+import { expandVariants } from './expand.ts';
 import type { ProductSeed } from './expand.ts';
 import { products } from './products.ts';
 import { SeedValidationError, validateSeed } from './schema.ts';
@@ -18,11 +18,17 @@ describe('seed validation', () => {
     ['a price in euros instead of cents', bad({ basePriceCents: 8.99 }), 'basePriceCents'],
     ['a slug with a space', bad({ slug: 'bad slug' }), 'slug'],
     ['a missing description', bad({ description: '' }), 'description'],
-    ['an unknown pet', bad({ pet: 'dragon' as never }), 'pet'],
+    ['a department the category is not in', bad({ department: 'frozen' }), 'is not in frozen'],
+    ['food without ingredients', bad({ ingredients: null }), 'food needs both'],
+    ['an allergen that is not one of the 14', bad({ allergens: ['gluten-ish'] }), 'allergens'],
     ['an unknown category', bad({ categorySlug: 'nope' }), 'unknown category'],
     ['an unknown brand', bad({ brand: 'acme' }), 'unknown brand'],
     ['an unknown tag', bad({ tags: ['vibes'] }), 'unknown tag'],
-    ['a computed collection named on a product', bad({ collections: ['eco-picks'] }), 'collection'],
+    [
+      'a computed collection named on a product',
+      bad({ collections: ['organic-picks'] }),
+      'collection',
+    ],
     ['a duplicate slug', good, 'duplicate slug'],
   ])('rejects %s, naming the product', (_name, product, fragment) => {
     const list = fragment === 'duplicate slug' ? [good, good] : [product];
@@ -34,22 +40,17 @@ describe('seed validation', () => {
 describe('seed variant facts', () => {
   const variants = products.flatMap((p) => expandVariants(p).map((v) => ({ p, v })));
 
-  it('has a swatch for every colour and only colour variants carry one', () => {
-    for (const { p, v } of variants) {
-      const colour = v.options.color;
-      if (colour) {
-        expect(COLOR_HEX[colour], `${p.slug} ${colour}`).toMatch(/^#[0-9A-F]{6}$/i);
-        expect(v.swatchHex).toBe(COLOR_HEX[colour]);
-      } else expect(v.swatchHex).toBeNull();
-    }
+  it('has no colour swatches (groceries have no colour options)', () => {
+    for (const { v } of variants) expect(v.swatchHex).toBeNull();
   });
 
-  it('pairs net amount with unit and prices samples as trial variants', () => {
+  it('pairs net amount with unit and prices samples as free trial variants', () => {
     for (const { v } of variants) {
       expect(v.netAmount === null).toBe(v.netUnit === null);
       if (v.isTrial) {
         expect(v.options.pack).toBe('trial');
         expect(v.netAmount).toBeLessThanOrEqual(60);
+        expect(v.priceCents).toBe(0);
         expect(v.compareAtPriceCents).toBeNull();
       }
     }
@@ -65,13 +66,13 @@ describe('seed variant facts', () => {
 });
 
 describe('windowDates', () => {
-  const halloween = collections.find((c) => c.slug === 'halloween')?.window;
-  const christmas = collections.find((c) => c.slug === 'christmas')?.window;
-  if (!halloween || !christmas) throw new Error('missing window');
+  const bbq = collections.find((c) => c.slug === 'bbq-season')?.window;
+  const christmas = collections.find((c) => c.slug === 'christmas-baking')?.window;
+  if (!bbq || !christmas) throw new Error('missing window');
 
   it('covers the whole last day of the window', () => {
-    const { endsAt } = windowDates(halloween, new Date('2026-10-31T00:00:00Z'));
-    expect(endsAt.toISOString()).toBe('2026-11-03T00:00:00.000Z');
+    const { endsAt } = windowDates(bbq, new Date('2026-09-15T00:00:00Z'));
+    expect(endsAt.toISOString()).toBe('2026-09-16T00:00:00.000Z');
   });
   it('uses next year once this year is over', () => {
     expect(windowDates(christmas, new Date('2026-12-28T00:00:00Z')).startsAt.getUTCFullYear()).toBe(

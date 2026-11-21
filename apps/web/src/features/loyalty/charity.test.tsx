@@ -12,8 +12,8 @@ const total = (totalCents: number, donations = 3) =>
     HttpResponse.json({
       data: {
         charity: {
-          slug: 'whisker-hollow-rescue',
-          name: 'Whisker Hollow Rescue',
+          slug: 'spreeufer-food-bank',
+          name: 'Spreeufer Food Bank',
           description: 'A fictional shelter.',
         },
         totalCents,
@@ -36,7 +36,7 @@ describe('charity', () => {
     renderApp('/help');
     const footer = await screen.findByTestId('footer');
     const note = await within(footer).findByTestId('charity-total');
-    expect(note).toHaveTextContent('Whisker Hollow Rescue');
+    expect(note).toHaveTextContent('Spreeufer Food Bank');
     expect(note).toHaveTextContent('€5.00');
     expect(note).toHaveTextContent('Demo only');
   });

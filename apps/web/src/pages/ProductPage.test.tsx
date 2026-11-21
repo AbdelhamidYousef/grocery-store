@@ -15,12 +15,16 @@ describe('product page', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Rope Tug' })).toBeInTheDocument();
     expect(screen.getByTestId('price-current')).toHaveTextContent('€10.99');
     const crumbs = within(screen.getByRole('navigation', { name: 'Breadcrumb' }));
-    expect(crumbs.getByRole('link', { name: 'Dogs' })).toHaveAttribute('href', '/c/dogs');
-    expect(crumbs.getByRole('link', { name: 'Toys' })).toHaveAttribute('href', '/c/dog-toys');
+    expect(crumbs.getByRole('link', { name: 'Dairy & eggs' })).toHaveAttribute(
+      'href',
+      '/c/dairy-eggs',
+    );
+    expect(crumbs.getByRole('link', { name: 'Toys' })).toHaveAttribute('href', '/c/cheese');
     expect(screen.getByText('A sturdy braided tug for happy games.')).toBeInTheDocument();
     const attrs = within(screen.getByTestId('product-attributes'));
-    expect(attrs.getByText('Material')).toBeInTheDocument();
-    expect(attrs.getByText('Cotton rope')).toBeInTheDocument();
+    expect(attrs.getByText('Storage')).toBeInTheDocument();
+    expect(attrs.getByText('Chilled')).toBeInTheDocument();
+    expect(attrs.getByText('Origin')).toBeInTheDocument();
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ name: 'view_item' }));
     expect(document.title).toBe('Rope Tug | Grocery');
     spy.mockRestore();

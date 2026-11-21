@@ -40,7 +40,7 @@ export function GuidesList() {
         <div className="relative mt-4 overflow-x-auto rounded-card border border-line">
           <table className="w-full min-w-[34rem] text-left" data-testid={TEST_IDS.adminTable}>
             <caption className="sr-only">Guides</caption>
-            <thead className="bg-pet-soft">
+            <thead className="bg-dept-soft">
               <tr>
                 <th scope="col" className="p-3">
                   Title

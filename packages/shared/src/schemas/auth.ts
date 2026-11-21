@@ -73,14 +73,9 @@ const COMMON_PASSWORDS = new Set([
   'master12345',
   'hello12345',
   'hello123456',
-  'pawsome123',
-  'pawsome1234',
   'grocery123',
   'grocery1234',
-  'ilovemydog',
-  'ilovemycat',
-  'ilovemydog1',
-  'ilovemycat1',
+  'ilovefood123',
 ]);
 
 export const PASSWORD_MIN_LENGTH = 10;

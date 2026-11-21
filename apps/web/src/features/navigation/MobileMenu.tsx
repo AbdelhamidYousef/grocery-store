@@ -1,40 +1,40 @@
+import { DEPARTMENTS, departmentBySlug } from '@store/shared';
 import { useId, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 
-import { ChevronDownIcon, PetGlyph } from '../../components/icons';
+import { ChevronDownIcon, DepartmentGlyph } from '../../components/icons';
 import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
-import { PETS } from '../../lib/pets';
 
+import { departmentName } from './department-names';
 import { MAX_MENU_CATEGORIES } from './MegaMenu';
-import { petName } from './pet-names';
 import { PromoTile } from './PromoTile';
 import { useNavigation } from './queries';
 
 const rowClass =
-  'flex min-h-12 w-full items-center gap-3 rounded-control px-3 text-left font-display text-lg font-semibold hover:bg-pet-soft';
+  'flex min-h-12 w-full items-center gap-3 rounded-control px-3 text-left font-display text-lg font-semibold hover:bg-dept-soft';
 const subLink =
-  'flex min-h-11 items-center rounded-control px-3 hover:bg-pet-soft aria-[current=page]:bg-pet-soft';
+  'flex min-h-11 items-center rounded-control px-3 hover:bg-dept-soft aria-[current=page]:bg-dept-soft';
 
-// The same menu inside the mobile drawer: one accordion level per pet. The drawer itself is a
+// The same menu inside the mobile drawer: one accordion level per department. The drawer itself is a
 // modal <dialog> (focus trap, Escape and scroll lock come from it); every row is 44 px or more.
 export function MobileMenu({ onNavigate }: { onNavigate: () => void }) {
   const { t } = useT();
   const { data } = useNavigation();
-  const [openPet, setOpenPet] = useState<string | null>(null);
+  const [openDept, setOpenDept] = useState<string | null>(null);
   const baseId = useId();
-  const pets = data?.pets ?? [];
+  const departments = data?.departments ?? [];
 
-  if (pets.length === 0) {
+  if (departments.length === 0) {
     return (
       <ul className="flex flex-col gap-1">
-        {PETS.map((pet) => (
-          <li key={pet.slug} data-pet={pet.accent}>
-            <NavLink to={`/c/${pet.slug}`} onClick={onNavigate} className={rowClass}>
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-pet-accent text-ink">
-                <PetGlyph icon={pet.icon} width={22} height={22} />
+        {DEPARTMENTS.map((dept) => (
+          <li key={dept.slug} data-dept={dept.slug}>
+            <NavLink to={`/c/${dept.slug}`} onClick={onNavigate} className={rowClass}>
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-dept-accent text-ink">
+                <DepartmentGlyph icon={dept.icon} width={22} height={22} />
               </span>
-              {petName(t, pet)}
+              {departmentName(t, dept)}
             </NavLink>
           </li>
         ))}
@@ -49,25 +49,23 @@ export function MobileMenu({ onNavigate }: { onNavigate: () => void }) {
 
   return (
     <ul className="flex flex-col gap-1">
-      {pets.map((entry) => {
-        const meta = PETS.find(
-          (p) => p.accent === (entry.pet === 'small' ? 'small-pet' : entry.pet),
-        );
-        const open = openPet === entry.pet;
-        const panelId = `${baseId}-${entry.pet}`;
+      {departments.map((entry) => {
+        const meta = departmentBySlug(entry.slug);
+        const open = openDept === entry.slug;
+        const panelId = `${baseId}-${entry.slug}`;
         return (
-          <li key={entry.pet} data-pet={meta?.accent}>
+          <li key={entry.slug} data-dept={entry.slug}>
             <button
               type="button"
               aria-expanded={open}
               aria-controls={panelId}
               data-testid="mobile-menu-button"
-              onClick={() => setOpenPet(open ? null : entry.pet)}
+              onClick={() => setOpenDept(open ? null : entry.slug)}
               className={rowClass}
             >
               {meta && (
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pet-accent text-ink">
-                  <PetGlyph icon={meta.icon} width={22} height={22} />
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-dept-accent text-ink">
+                  <DepartmentGlyph icon={meta.icon} width={22} height={22} />
                 </span>
               )}
               <span className="min-w-0 flex-1">{entry.name}</span>
@@ -89,7 +87,7 @@ export function MobileMenu({ onNavigate }: { onNavigate: () => void }) {
                   ))}
                   <li>
                     <Link
-                      to={`/c/${entry.categorySlug}`}
+                      to={`/c/${entry.slug}`}
                       onClick={onNavigate}
                       className={`${subLink} font-semibold text-primary-strong`}
                     >

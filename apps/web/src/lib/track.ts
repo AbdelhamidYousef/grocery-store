@@ -21,7 +21,7 @@ export type AnalyticsEvent =
   | { name: 'footer_link'; group: string; label: string | null }
   | { name: 'withdrawal_submitted'; orderNumber: string }
   | { name: 'contact_sent'; topic: string }
-  | { name: 'newsletter_subscribe'; pets: number }
+  | { name: 'newsletter_subscribe'; interests: number }
   | { name: 'stock_alert_created' }
   | { name: 'wishlist_add'; productId: string }
   | { name: 'reorder'; added: number; skipped: number }

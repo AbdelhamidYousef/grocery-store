@@ -83,5 +83,5 @@ test('reptiles are in the shop and themed', async ({ page }) => {
     .click();
   await expect(page).toHaveURL(/\/c\/reptiles$/);
   await expect(page.getByRole('heading', { level: 1, name: 'Reptiles' })).toBeVisible();
-  await expect(page.locator('[data-pet="reptile"]').first()).toBeVisible();
+  await expect(page.locator('[data-dept="reptile"]').first()).toBeVisible();
 });

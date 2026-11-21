@@ -309,8 +309,8 @@ export function SearchCombobox({ idPrefix, onSearch }: SearchComboboxProps) {
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => pick(option)}
                         className={cn(
-                          'flex min-h-11 cursor-pointer items-center gap-3 rounded-control px-3 py-1 hover:bg-pet-soft',
-                          active === index && 'bg-pet-soft ring-2 ring-ink',
+                          'flex min-h-11 cursor-pointer items-center gap-3 rounded-control px-3 py-1 hover:bg-dept-soft',
+                          active === index && 'bg-dept-soft ring-2 ring-ink',
                         )}
                       >
                         {option.image && (

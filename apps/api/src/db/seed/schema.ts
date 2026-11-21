@@ -1,4 +1,4 @@
-import { PetSchema, NetUnitSchema } from '@store/shared';
+import { AllergenSchema, DietarySchema, NetUnitSchema, NutritionSchema } from '@store/shared';
 import { z } from 'zod';
 
 import { BrandSeedSchema, brands } from './brands.ts';
@@ -25,14 +25,14 @@ const OptionValueSchema = z.object({
 export const SeedProductSchema = z.object({
   slug,
   name: z.string().min(3).max(120),
-  code: z.string().regex(/^[A-Z0-9]{2,10}$/, 'upper-case letters and digits'),
+  nameDe: z.string().min(2).max(120),
+  code: z.string().regex(/^[A-Z0-9]+(?:-[A-Z0-9]+)*$/, 'upper-case letters, digits, dashes'),
   categorySlug: slug,
-  pet: PetSchema,
-  material: z.string().min(2),
-  ageStage: z.enum(['puppy', 'kitten', 'adult', 'senior', 'all']),
-  description: z.string().min(40).max(600),
+  department: slug,
+  description: z.string().min(20).max(600),
+  descriptionDe: z.string().min(20).max(600),
   look: z.string().min(20),
-  basePriceCents: z.number().int().min(50).max(100_000),
+  basePriceCents: z.number().int().min(20).max(100_000),
   baseWeightGrams: z.number().int().positive(),
   axes: z
     .array(
@@ -51,6 +51,15 @@ export const SeedProductSchema = z.object({
   isNew: z.boolean().optional(),
   netUnit: NetUnitSchema.optional(),
   net: z.number().int().positive().optional(),
+  soldByWeight: z.boolean(),
+  shelfLifeDays: z.number().int().min(0),
+  deposit: z.boolean(),
+  storage: z.enum(['ambient', 'chilled', 'frozen']).optional(),
+  origin: z.string().min(2).optional(),
+  nutrition: NutritionSchema.nullable(),
+  ingredients: z.string().nullable(),
+  allergens: z.array(AllergenSchema),
+  dietary: z.array(DietarySchema),
 });
 
 export class SeedValidationError extends Error {}
@@ -66,7 +75,9 @@ export function validateSeed(products: readonly ProductSeed[]): readonly Product
   const listedCollections = new Set(
     collections.filter((c) => c.membership === 'listed').map((c) => c.slug),
   );
-  const leaves = new Set(categories.flatMap((c) => c.children.map((child) => child.slug)));
+  const leaves = new Map(
+    categories.flatMap((c) => c.children.map((child) => [child.slug, c.slug] as const)),
+  );
   const seen = new Set<string>();
 
   for (const p of products) {
@@ -83,6 +94,14 @@ export function validateSeed(products: readonly ProductSeed[]): readonly Product
     if (seen.has(p.slug)) fail('duplicate slug');
     seen.add(p.slug);
     if (!leaves.has(p.categorySlug)) fail(`unknown category ${p.categorySlug}`);
+    if (leaves.get(p.categorySlug) !== p.department)
+      fail(`${p.categorySlug} is not in ${p.department}`);
+    // Food has an ingredients line; a product that is not food has no food information at all.
+    const food = p.nutrition !== null || p.ingredients !== null;
+    if (food && (p.nutrition === null || p.ingredients === null))
+      fail('food needs both nutrition and ingredients');
+    if (!food && (p.allergens.length > 0 || p.dietary.length > 0))
+      fail('a product that is not food has no allergens or dietary tags');
     if (p.brand && !brandSlugs.has(p.brand)) fail(`unknown brand ${p.brand}`);
     for (const t of p.tags ?? []) if (!tagSlugs.has(t)) fail(`unknown tag ${t}`);
     for (const c of p.collections ?? [])

@@ -309,6 +309,20 @@
       "when": 1794690109243,
       "tag": "0043_store_views_de",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1794695363879,
+      "tag": "0044_departments_replace_pets",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1794695382075,
+      "tag": "0045_food_information",
+      "breakpoints": true
     }
   ]
 }

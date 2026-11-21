@@ -89,7 +89,8 @@ export type AdminHelpInput = z.input<typeof AdminHelpInputSchema>;
 export const AdminTestimonialSchema = z.object({
   id: z.string(),
   name: z.string(),
-  pet: z.string(),
+  // Where the customer lives (a Berlin district), shown under the name.
+  area: z.string(),
   rating: z.number().int().min(1).max(5),
   quote: z.string(),
   isFeatured: z.boolean(),
@@ -100,7 +101,7 @@ export const AdminTestimonialResponseSchema = DataSchema(AdminTestimonialSchema)
 
 export const AdminTestimonialInputSchema = z.object({
   name: requiredText(80),
-  pet: requiredText(80),
+  area: requiredText(80),
   rating: z.number().int().min(1).max(5),
   quote: requiredText(400),
   isFeatured: z.boolean().default(false),

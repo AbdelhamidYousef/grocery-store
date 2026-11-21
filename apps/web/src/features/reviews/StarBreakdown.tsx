@@ -37,8 +37,8 @@ export function StarBreakdown({
               })}
               onClick={() => onPick(pressed ? undefined : stars)}
               className={cn(
-                'flex min-h-9 w-full items-center gap-3 rounded-control px-2 text-sm hover:bg-pet-soft',
-                pressed && 'bg-pet-soft font-semibold',
+                'flex min-h-9 w-full items-center gap-3 rounded-control px-2 text-sm hover:bg-dept-soft',
+                pressed && 'bg-dept-soft font-semibold',
               )}
             >
               <span className="w-12 shrink-0 text-left" aria-hidden="true">

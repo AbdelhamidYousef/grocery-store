@@ -1,7 +1,5 @@
 import { z } from 'zod';
 
-import { PetSchema } from '../pets.ts';
-
 import { DataSchema } from './common.ts';
 
 // ---------- mega-menu (phase 15) ----------
@@ -15,21 +13,20 @@ export const NavPromoSchema = z.object({
 });
 export type NavPromo = z.infer<typeof NavPromoSchema>;
 
-export const NavPetSchema = z.object({
-  pet: PetSchema,
-  // The pet's top-level category (`/c/<categorySlug>`): what "See all" links to.
+export const NavDepartmentSchema = z.object({
+  // The department's top-level category slug (`/c/<slug>`): what "See all" links to.
+  slug: z.string(),
   name: z.string(),
-  categorySlug: z.string(),
   categories: z.array(
     z.object({ slug: z.string(), name: z.string(), productCount: z.number().int().min(0) }),
   ),
-  // Brands that sell something for this pet, biggest first.
+  // Brands that sell something in this department, biggest first.
   brands: z.array(z.object({ slug: z.string(), name: z.string() })),
   promo: NavPromoSchema.nullable(),
 });
-export type NavPet = z.infer<typeof NavPetSchema>;
+export type NavDepartment = z.infer<typeof NavDepartmentSchema>;
 
-export const NavigationSchema = z.object({ pets: z.array(NavPetSchema) });
+export const NavigationSchema = z.object({ departments: z.array(NavDepartmentSchema) });
 export type Navigation = z.infer<typeof NavigationSchema>;
 export const NavigationResponseSchema = DataSchema(NavigationSchema);
 
@@ -50,8 +47,8 @@ const ImageUrlSchema = z
   .regex(/^(\/(?!\/)\S+|https:\/\/\S+)$/, 'Use a path like /products/x.webp or an https link');
 
 const AdminMenuPromoBase = z.object({
-  // null = shown in every panel that has no promo of its own.
-  pet: PetSchema.nullable(),
+  // The department's top-level category id; null = shown in every panel that has no promo of its own.
+  categoryId: z.uuid().nullable(),
   title: z.string().trim().min(1, 'Required').max(60),
   subtitle: z.string().trim().max(120),
   imageUrl: ImageUrlSchema,
@@ -78,7 +75,7 @@ export type AdminMenuPromoUpdate = z.input<typeof AdminMenuPromoUpdateSchema>;
 
 export const AdminMenuPromoSchema = z.object({
   id: z.string(),
-  pet: PetSchema.nullable(),
+  categoryId: z.string().nullable(),
   title: z.string(),
   subtitle: z.string(),
   imageUrl: z.string(),

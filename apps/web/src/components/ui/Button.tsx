@@ -15,8 +15,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variants: Record<ButtonVariant, string> = {
   primary: 'bg-primary text-surface hover:bg-primary-hover',
-  secondary: 'bg-surface text-ink border-2 border-ink hover:bg-pet-soft',
-  ghost: 'bg-transparent text-ink hover:bg-pet-soft',
+  secondary: 'bg-surface text-ink border-2 border-ink hover:bg-dept-soft',
+  ghost: 'bg-transparent text-ink hover:bg-dept-soft',
   danger: 'bg-danger text-surface hover:brightness-90',
 };
 

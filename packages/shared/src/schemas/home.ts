@@ -21,7 +21,8 @@ export type HomeResponse = z.infer<typeof HomeResponseSchema>['data'];
 export const TestimonialSchema = z.object({
   id: z.string(),
   name: z.string(),
-  pet: z.string(),
+  // Where the customer lives (a Berlin district), shown under the name.
+  area: z.string(),
   rating: z.number().int().min(1).max(5),
   quote: z.string(),
 });
