@@ -200,6 +200,24 @@ describe('POST /internal/jobs/run', () => {
     expect(bodyOf<Out>(second).data.outcomes.every((o) => o.status === 'skipped')).toBe(true);
   });
 
+  it('re-runs a named job in the same period with force, but only with a name', async () => {
+    const call = (body: object) =>
+      request(app()).post('/api/v1/internal/jobs/run').set('X-Jobs-Secret', SECRET).send(body);
+    expect(
+      bodyOf<Out>(await call({ name: 'activate-sales' }).expect(200)).data.outcomes[0],
+    ).toMatchObject({
+      status: 'ran',
+    });
+    expect(
+      bodyOf<Out>(await call({ name: 'activate-sales' }).expect(200)).data.outcomes[0],
+    ).toMatchObject({
+      status: 'skipped',
+    });
+    const forced = await call({ name: 'activate-sales', force: true }).expect(200);
+    expect(bodyOf<Out>(forced).data.outcomes[0]).toMatchObject({ status: 'ran' });
+    await call({ force: true }).expect(400);
+  });
+
   it('runs one named job and 404s an unknown name', async () => {
     const res = await request(app())
       .post('/api/v1/internal/jobs/run')

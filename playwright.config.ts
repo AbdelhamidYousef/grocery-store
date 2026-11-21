@@ -21,6 +21,9 @@ try {
 // the workers start so the tests (which send it) and the API (which checks it) agree. `||=` also
 // replaces the empty value a copied .env.example carries.
 process.env.TEST_HOOK_SECRET ||= 'e2e-test-hook-secret-not-a-real-secret';
+// The jobs endpoint (POST /internal/jobs/run) exists only with a secret; the e2e suite runs jobs through it
+// (in the API process, with `force`) instead of spawning the job CLI, which is slow and flaky under load.
+process.env.JOBS_SECRET ||= 'e2e-jobs-secret-not-a-real-secret';
 
 const API_PORT = process.env.E2E_API_PORT ?? '3101';
 const WEB_PORT = process.env.E2E_WEB_PORT ?? '5274';
@@ -55,6 +58,7 @@ export default defineConfig({
         SMTP_URL: process.env.SMTP_URL || 'smtp://127.0.0.1:1026',
         PORT: API_PORT,
         TEST_HOOK_SECRET: process.env.TEST_HOOK_SECRET,
+        JOBS_SECRET: process.env.JOBS_SECRET,
         // The CSRF check compares the browser's Origin with this.
         WEB_ORIGIN,
         // Checkout fills the cart and pays more than the 300/min default allows when specs run

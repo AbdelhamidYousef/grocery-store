@@ -3,13 +3,21 @@ import { timingSafeEqual } from 'node:crypto';
 import { Router as ExpressRouter, type RequestHandler, type Router } from 'express';
 import { z } from 'zod';
 
-import { jobs, runDueJobs, runJob } from '../../jobs/runner.ts';
+import { env } from '../../config/env.ts';
+import { forgetRun, jobs, runDueJobs, runJob } from '../../jobs/runner.ts';
 import { AppError, notFound, unauthenticated } from '../../lib/errors.ts';
 import type { PaymentGateway } from '../../lib/stripe.ts';
 import { valid, validate } from '../../lib/validate.ts';
 import type { Outbox } from '../mail/outbox.ts';
 
-const BodySchema = z.object({ name: z.string().min(1).max(80).optional() }).default({});
+const BodySchema = z
+  .object({
+    name: z.string().min(1).max(80).optional(),
+    // Run the named job again although it already ran this period (the e2e suite and manual
+    // re-runs). Refused in production: a period's claim is what keeps a job from running twice.
+    force: z.boolean().optional(),
+  })
+  .default({});
 
 const safeEqual = (a: string, b: string): boolean => {
   const x = Buffer.from(a);
@@ -42,6 +50,13 @@ export function createJobsRouter(opts: {
     const ctx = { now: new Date(), log: req.log, gateway: opts.payments, outbox: opts.outbox };
     if (body.name && !jobs.some((j) => j.name === body.name)) {
       throw new AppError('NOT_FOUND', `Unknown job "${body.name}"`);
+    }
+    if (body.force) {
+      if (!body.name) throw new AppError('VALIDATION_ERROR', 'force needs the name of a job');
+      if (env.NODE_ENV === 'production') {
+        throw new AppError('VALIDATION_ERROR', 'force is not allowed in production');
+      }
+      await forgetRun(body.name, ctx.now);
     }
     const outcomes = body.name ? [await runJob(body.name, ctx)] : await runDueJobs(ctx);
     res.json({ data: { outcomes } });

@@ -516,3 +516,32 @@ only the tests that assert the payment row or refund a paid order changed (payme
 capture first, which is also the real order of things; `deliveredOrder` captures).
 Learn: model the provider's state machine in the fake (authorised, then captured), not just its answers; the
 bug a fake that says "ok" to everything hides is the capture of something never authorised.
+
+### G6.5: phase end (e2e)
+New spec `e2e/weight-expiry.spec.ts`: the test makes its own short-dated stock (an admin stock increase with
+`bestBefore` tomorrow, Berlin day), then a customer sees "Best before at least ..." and the offer ("3 packs ...
+30 % off") on the product page, adds the offer with its own button and the seeded bananas ("about 500 g",
+"/kg"), the cart marks the short-dated line and says "Final price after weighing", the simulated card pays,
+the confirmation says "We hold up to ... and charge what your bag weighs", the admin types 940 g in
+"Capture now", and the customer's account order shows "Final bill" and "Weighed: 940 g". The flaky "back in
+stock" spec is fixed at its cause: it waited for a mail through two `pnpm` spawns (a package manager, tsx and a
+fresh database connection each, seconds under load) with a 60 s poll. The job now runs inside the running API
+through `POST /internal/jobs/run` with `force: true` (refused in production; the e2e API gets a `JOBS_SECRET`
+from `playwright.config.ts`), and the Mailpit poll is 20 s: the spec takes about 2 s and no longer depends on
+machine load. The jobs endpoint also gained a test for `force`.
+Surprise: nothing in the new e2e needed a retry; the weight of the phase was in the API suite, not the browser.
+Learn: a test that shells out to start another process measures the machine, not the product; call the code
+that is already running.
+
+### Quiz: Phase G6
+1. Stock rows carry `inventory.quantity` and also batches. Why must every change to one move the other in the
+   same transaction and under the same lock, and which single test helper would catch a write path that forgets?
+2. A cart holds 2 short-dated packs, a second shopper's unpaid order holds 2 more, and the store has 3 packs
+   within two days of their date. Why is the offer counted (units in short batches minus held units) instead of
+   stored as a second reserved number, and where exactly does the count have to run for two checkouts not to
+   both win the last pack?
+3. The card is authorised for 2.17 EUR for bananas that were estimated at 1.89 EUR. After packing they weigh
+   enough to cost 3.10 EUR. What is captured, why is a capture above the authorised amount refused BEFORE Stripe
+   is called, and what stops two "Capture now" clicks (or the capture job and a click) from taking the money twice?
+4. An order is authorised but not yet captured and the customer cancels. Why is the intent cancelled instead of
+   refunded, what does the payment row end up as, and what happens if the money was captured a second earlier?

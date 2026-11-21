@@ -383,7 +383,8 @@ test.describe('orders', () => {
 
     await page.getByRole('button', { name: 'Cancel order' }).click();
     const dialog = page.getByRole('dialog');
-    await expect(dialog).toContainText('refunded');
+    // The card was only held (manual capture), so cancelling releases the hold: nothing to refund.
+    await expect(dialog).toContainText('hold on the customer card is released');
     await expect(dialog).toContainText('cannot be undone');
 
     // Backing out changes nothing.

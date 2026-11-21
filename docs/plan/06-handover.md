@@ -45,18 +45,27 @@ Written by the build sessions for the owner and the next session. Newest state f
   and passes alone). A database migrated from G4 needs `pnpm db:migrate && pnpm db:seed` for slots and fees. Not pushed.
   Tests that check out through the API use `makeShopper(...).pickSlot()` / the auto-pick before `POST /checkout`
   (`autoSlot: false` for the delivery rule tests); e2e uses `pickSlot` in `e2e/helpers.ts`.
-- **G6 in progress** (weight and expiry): G6.1 done: stock batches with best-before dates, first expired first
-  out, `write-off-expired` job, food returns written off (migration 0051; `modules/stock/batches.ts` is the only
-  writer; `expectBatchInvariant()` in `test/stock.ts` guards sum(batches) = `inventory.quantity`). G6.2 done: best-before
-  on the PDP and the 30 % short-dated offer (migration 0052; `stock/short-dated.ts` counts it; shelf on home and
-  department pages; one cart line per variant). G6.3 done: items sold by weight (migration 0053; `shared/weight.ts`
-  owns every weighed-money rule; weighed items have no short-dated offer). G6.4 done: manual capture (migration
-  0054; checkout authorises total + 15 % of weighed lines; `checkout/capture.ts` has `capturePayment`, `finalizeOrder`
-  and the hourly `capture-overdue`; admin "Capture now"; cancelling an authorised order cancels the intent;
-  `payments.capture_method` keeps the automatic path for old orders; slots 6 days ahead).
+- **G6 done** (2026-11-21): weight and expiry. Stock batches with best-before dates and first-expired-first-out
+  (migration 0051; `modules/stock/batches.ts` is the only writer, `expectBatchInvariant()` in `test/stock.ts` guards
+  sum(batches) = `inventory.quantity`; food returns are written off, the daily `write-off-expired` job clears
+  expired packs); best-before on the product page and the 30 % short-dated offer (migration 0052; counted in
+  `stock/short-dated.ts`, one cart line per variant, "Short-dated deals" shelf on home and department pages);
+  items sold by weight (migration 0053; `shared/weight.ts` owns every weighed-money rule); manual capture
+  (migration 0054): checkout authorises total + 15 % of the weighed lines, the `requires_capture` webhook secures
+  the order, `checkout/capture.ts` has `capturePayment` (422 above the hold, key `capture:<order>`, recorded once),
+  `finalizeOrder` and the hourly `capture-overdue`, admin "Capture now", cancelling an authorised order cancels the
+  intent, `payments.capture_method` keeps the automatic path for old orders; slots go 6 days ahead. The flaky e2e
+  "back in stock" spec is fixed (the job runs in the API through `POST /internal/jobs/run` with `force`, which is
+  refused in production). Gates green: shared 291, web 988, API 1,520 + 3 skipped, e2e 78 + 1 skipped. A database
+  migrated from G5 needs `pnpm db:migrate && pnpm db:seed` (batches, weighed variants). Not pushed.
+  Paid orders are only AUTHORISED until captured: tests that refund or return a paid order capture it first
+  (`captureOrder` / `deliveredOrder` in `test/orders.ts`); `simulate` turns "the shopper paid" into the
+  authorisation event for a manual-capture order.
 - **Open follow-ups** (small, not blocking):
+  - Admin product and variant forms cannot yet create or edit a weighed variant (price per kg, nominal grams): only the seed sets them (G6.3).
+  - Picking (G8) should call `finalizeOrder` with the packed grams; until then the admin "Capture now" and the overdue job do.
+  - The e2e API now needs a `JOBS_SECRET` (set by `playwright.config.ts`); a hand-started e2e server without it makes the back-in-stock spec fail with 404.
   - Reseed before the first public deploy: a database migrated from G3 has identical shelves in every store (`pnpm db:reset`).
-  - e2e "back in stock" fails under full-suite load (it waits for a mail through two `pnpm` spawns) and passes alone; give it a longer timeout or call the job in-process.
   - The `release-slot-holds` cadence is 5 minutes: a scheduler that calls `POST /internal/jobs/run` hourly only runs it hourly, which is harmless (holds expire by themselves).
   - Express availability and slot status depend on the time of day (Berlin), so a spec must never assert "express is on".
 

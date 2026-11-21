@@ -131,6 +131,9 @@ test('a delivered order is returned, approved, received, refunded and restocked'
   await buyer.goto(`/account/orders/${number}`);
   await expect(buyer.getByRole('button', { name: 'Return items' })).toHaveCount(0);
 
+  // Packing takes the money (the card was only held until now): a return refunds what was taken.
+  const captured = await api(admin.page, 'POST', `/admin/orders/${number}/capture`, {});
+  expect(captured.status, JSON.stringify(captured.body)).toBe(200);
   for (const to of ['processing', 'shipped', 'delivered']) {
     const moved = await api(admin.page, 'POST', `/admin/orders/${number}/transition`, { to });
     expect(moved.status, JSON.stringify(moved.body)).toBe(200);

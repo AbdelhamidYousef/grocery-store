@@ -1,5 +1,3 @@
-import { execFileSync } from 'node:child_process';
-
 import { expect, test, type Browser, type Page } from '@playwright/test';
 
 import { ADMIN, api, register, restock, uniqueEmail, pickSlot } from './helpers';
@@ -11,7 +9,7 @@ import { ADMIN, api, register, restock, uniqueEmail, pickSlot } from './helpers'
 //   2. a paid order earns points ("+N" in the ledger), the next order redeems them at the checkout
 //      points box and ticks the round-up checkbox;
 //   3. the wishlist share link opens logged out and stops working when sharing is switched off;
-//   4. a sold-out "email me when back" alert, an admin restock and the job CLI sending the mail.
+//   4. a sold-out "email me when back" alert, an admin restock and the job (run in the API through the jobs endpoint) sending the mail.
 //
 // Mail is read from Mailpit (docker compose); without it the mail steps skip themselves, loudly.
 // Every test uses its own unique address, and buys products no other spec buys (checkout.spec
@@ -49,10 +47,26 @@ async function mailText(to: string, subject: RegExp): Promise<string> {
         text = full.Text;
         return true;
       },
-      { timeout: 60_000, message: `mail to ${to} matching ${String(subject)} in Mailpit` },
+      // The job now runs in-process and queues the mail at once; 20 s is for a slow SMTP hop only.
+      { timeout: 20_000, message: `mail to ${to} matching ${String(subject)} in Mailpit` },
     )
     .toBe(true);
   return text;
+}
+
+// Runs one job inside the API process through the internal jobs endpoint (`force`: it may already have
+// run this hour). This replaced two `pnpm ... job run` spawns, whose start-up (a package manager, tsx,
+// a fresh database connection) took long enough under a loaded machine to miss the mail's window.
+async function runJobNow(page: Page, name: string): Promise<{ status: string }> {
+  const res = await api<{ data: { outcomes: { status: string }[] } }>(
+    page,
+    'POST',
+    '/internal/jobs/run',
+    { name, force: true },
+    { 'X-Jobs-Secret': process.env.JOBS_SECRET ?? '' },
+  );
+  expect(res.status, JSON.stringify(res.body)).toBe(200);
+  return res.body.data.outcomes[0] ?? { status: 'none' };
 }
 
 // Every run buys these; without a restock the dev database runs dry after a few runs.
@@ -270,7 +284,7 @@ test('wishlist: the share link opens logged out and dies when sharing stops', as
   await guest.context.close();
 });
 
-test('back in stock: alert signup, admin restock, the job CLI sends the mail', async ({ page }) => {
+test('back in stock: alert signup, admin restock, the job sends the mail', async ({ page }) => {
   test.skip(!(await mailpitUp()), '!!! Mailpit is unreachable: the alert mail cannot be checked.');
   const slug = 'spaetzle-500g'; // no other spec buys or restocks it
   const login = await api(page, 'POST', '/auth/login', ADMIN);
@@ -304,22 +318,14 @@ test('back in stock: alert signup, admin restock, the job CLI sends the mail', a
     await expect(page.getByTestId('stock-alert-done')).toContainText(email);
 
     // Nothing is sent while it is still sold out.
-    execFileSync('pnpm', ['--filter', '@store/api', 'job', 'run', 'send-stock-alerts', '--force'], {
-      stdio: 'pipe',
-    });
-    await page.waitForTimeout(500);
+    expect(await runJobNow(page, 'send-stock-alerts')).toMatchObject({ status: 'ran' });
     const none = await fetch(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`);
     expect(((await none.json()) as { messages: unknown[] }).messages).toHaveLength(0);
 
     // Admin restocks (0 to above 0 marks the alert due); the job sends it.
     await api(page, 'POST', '/auth/login', ADMIN);
     await setStock(20);
-    const out = execFileSync(
-      'pnpm',
-      ['--filter', '@store/api', 'job', 'run', 'send-stock-alerts', '--force'],
-      { stdio: 'pipe' },
-    ).toString();
-    expect(out).toContain('"status":"ran"');
+    expect(await runJobNow(page, 'send-stock-alerts')).toMatchObject({ status: 'ran' });
     const mail = await mailText(email, /Back in stock/);
     expect(mail).toMatch(/\/products\/spaetzle-500g\?variant=/);
     expect(mail).toMatch(/\/stock-alerts\/cancel\?token=/);
