@@ -5,4 +5,4 @@ question: "How long does delivery take?"
 order: 1
 ---
 
-Standard delivery takes 3 to 5 working days and express takes 1 to 2 working days. This is a demo store, so no parcel is really sent.
+You choose a one-hour slot at checkout, today or up to six days ahead. Where the area allows it, express arrives within 30 minutes. This is a demo shop, so no bag is really delivered.

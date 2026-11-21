@@ -107,9 +107,9 @@ export const de: Record<EmailKey, TextEntry> = {
   'return.approved.l1':
     'Gute Nachrichten: Deine Rücksendung {ref} zur Bestellung {order} ist genehmigt.',
   'return.approved.l2':
-    'So schickst du es zurück: Verpacke {list} wenn möglich in der Originalverpackung, schreib {ref} auf das Paket und schick es an Grocery Returns, Lindenstraße 1, 10115 Berlin (eine erfundene Adresse: Dies ist ein fiktiver Shop).',
+    'So schickst du es zurück: Verpacke {list} wenn möglich in der Originalverpackung, schreib {ref} auf das Päckchen und schick es an Grocery Returns, Lindenstraße 1, 10115 Berlin (eine erfundene Adresse: Dies ist ein fiktiver Shop).',
   'return.approved.l3':
-    'Sobald das Paket angekommen und geprüft ist, erstatten wir dir den Betrag und schreiben dir erneut.',
+    'Sobald die Rücksendung angekommen und geprüft ist, erstatten wir dir den Betrag und schreiben dir erneut.',
   'return.rejected.subject': 'Zu deiner Rücksendung {ref}',
   'return.rejected.heading': 'Wir konnten diese Rücksendung nicht annehmen',
   'return.rejected.l1':
@@ -117,7 +117,7 @@ export const de: Record<EmailKey, TextEntry> = {
   'return.rejected.reason': 'Grund: {reason}',
   'return.rejected.noReason': 'Schreib uns, wenn du mehr wissen möchtest.',
   'return.received.subject': 'Wir haben deine Rücksendung {ref} erhalten',
-  'return.received.heading': 'Dein Paket ist angekommen',
+  'return.received.heading': 'Deine Rücksendung ist angekommen',
   'return.received.l1': 'Deine Rücksendung {ref} zur Bestellung {order} ist angekommen: {list}.',
   'return.received.l2':
     'Wir bereiten deine Erstattung von {money} vor. Sobald sie veranlasst ist, erhältst du eine weitere E-Mail.',

@@ -70,7 +70,7 @@ export const pdp: Record<keyof typeof enNs, Entry> = {
   'pdp.delivery.heading': 'Lieferung',
   'pdp.delivery.shipIntro':
     'Wir liefern in Zeitfenstern von einer Stunde aus dem Laden, der deine Bestellung packt, oder mit Express innerhalb von 30 Minuten. Du wählst die Zeit an der Kasse und siehst den genauen Preis, bevor du bezahlst. Preise und Lieferzeiten findest du auf der Seite',
-  'pdp.delivery.shipLink': 'Versand',
+  'pdp.delivery.shipLink': 'Lieferseite',
   'pdp.delivery.shipOutro': '.',
   'pdp.delivery.cutoffNote':
     'Ein Zeitfenster kannst du bis 60 Minuten vor Beginn buchen. Wir halten es 15 Minuten für dich frei, während du bezahlst.',

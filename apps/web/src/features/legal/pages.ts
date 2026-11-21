@@ -34,7 +34,7 @@ export const LEGAL_PAGES: readonly LegalPageDef[] = [
     path: 'shipping',
     titleKey: 'content.legal.shipping.title',
     descriptionKey: 'content.legal.shipping.description',
-    title: 'Shipping',
+    title: 'Delivery',
     description: 'Delivery options, prices and times.',
     body: shipping,
   },

@@ -32,7 +32,7 @@ describe('confirmation page', () => {
 
     const status = await screen.findByTestId('confirmation-status');
     await waitFor(() => expect(status).toHaveAttribute('data-state', 'paid'));
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('your order is paid');
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Your payment is secured.');
     expect(screen.getByTestId('confirmation-order-number')).toHaveTextContent(NUMBER);
 
     const summary = await screen.findByTestId('order-summary');

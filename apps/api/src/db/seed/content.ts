@@ -37,6 +37,8 @@ export const GuideFrontMatterSchema = z
   })
   .strict();
 
+const RETIRED_HELP_SLUGS = ['which-countries-do-you-ship-to', 'my-parcel-is-late'];
+
 export const HelpFrontMatterSchema = z
   .object({
     slug: slugField,
@@ -211,6 +213,10 @@ export async function seedContent(
         },
       });
   }
+
+  // Articles whose slug changed when the copy went from parcels to grocery delivery: a re-seed
+  // would otherwise keep the old ones next to the new.
+  await tx.delete(helpArticles).where(inArray(helpArticles.slug, RETIRED_HELP_SLUGS));
 
   // ---- testimonials: no natural key, so add only the ones whose (name, area) is missing ----
   const existing = await tx

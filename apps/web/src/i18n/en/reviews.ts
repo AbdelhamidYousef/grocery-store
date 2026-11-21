@@ -59,7 +59,7 @@ export const reviews = {
   'reviews.form.photoType': '{name}: use a JPEG, PNG or WebP image',
   'reviews.form.photoSize': '{name}: each photo can be at most 3 MB',
   'reviews.form.photoMax': 'You can attach up to {max} photos',
-  'reviews.form.thanks': 'Thank you! Your review is waiting for approval.',
+  'reviews.form.thanks': 'Thank you. Your review is waiting for approval.',
   'reviews.form.thanksNote':
     'We check every review before it appears on the page, usually within a couple of days.',
   'reviews.form.thanksVerified':

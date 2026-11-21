@@ -65,7 +65,7 @@ export const cart = {
 
   // ---------- progress bars ----------
   'cart.progress.giftLabel': 'Progress to a free gift',
-  'cart.progress.giftReached': 'You get a free gift!',
+  'cart.progress.giftReached': 'You get a free gift.',
   'cart.progress.giftRemaining': 'Spend {amount} more for a free gift',
   'cart.progress.shippingLabel': 'Progress to free delivery',
   'cart.progress.shippingReached': 'You get free delivery.',

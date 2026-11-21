@@ -125,6 +125,11 @@ export function DetailsStep({
           </option>
         ))}
       </Select>
+      <p className="-mt-2 text-sm">
+        <Link to="/delivery" className="font-semibold text-primary-strong underline">
+          {t('delivery.page.title')}
+        </Link>
+      </p>
       <Input
         label={t('checkout.details.phone')}
         type="tel"

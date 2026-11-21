@@ -32,12 +32,12 @@ export const en = {
 
   // ----- order confirmation -----
   'confirm.subject': 'Your Grocery order {number} is confirmed',
-  'confirm.thanks': 'Thank you for your order, {name}!',
+  'confirm.thanks': 'Thank you for your order, {name}.',
   'confirm.paid': 'Order {number} is paid and we are getting it ready.',
   'confirm.willEmail': "We'll email you again when it ships.",
   'confirm.follow': 'Follow your order any time: {url}',
   'confirm.preheader': 'Order {number} is confirmed.',
-  'confirm.heading': 'Thank you for your order!',
+  'confirm.heading': 'Thank you for your order.',
   'confirm.intro': 'Hi {name}, order {number} is paid and we are getting it ready.',
   'confirm.track': 'Track your order',
   'confirm.trackNote': '(you will need the email address you ordered with).',
@@ -113,7 +113,7 @@ export const en = {
   'return.approved.heading': 'Your return is approved',
   'return.approved.l1': 'Good news: your return {ref} for order {order} is approved.',
   'return.approved.l2':
-    'How to send it back: pack {list} in the original packaging if you can, write {ref} on the parcel, and post it to Grocery Returns, Lindenstrasse 1, 10115 Berlin (a made-up address: this is a fictional shop).',
+    'How to send it back: pack {list} in the original packaging if you can, write {ref} on the package, and post it to Grocery Returns, Lindenstrasse 1, 10115 Berlin (a made-up address: this is a fictional shop).',
   'return.approved.l3':
     'When it arrives and we have checked it, we refund you and send another email.',
   'return.rejected.subject': 'About your return {ref}',
@@ -122,7 +122,7 @@ export const en = {
   'return.rejected.reason': 'Reason: {reason}',
   'return.rejected.noReason': 'Write to us if you would like to know more.',
   'return.received.subject': 'We received your return {ref}',
-  'return.received.heading': 'Your parcel arrived',
+  'return.received.heading': 'Your return arrived',
   'return.received.l1': 'Your return {ref} for order {order} has arrived: {list}.',
   'return.received.l2':
     'We are preparing your refund of {money}. You will get one more email when it is sent.',
@@ -150,7 +150,7 @@ export const en = {
   'news.confirm.preheader': 'Confirm your address to get your welcome code',
   'news.confirm.heading': 'Confirm your subscription',
   'news.welcome.subject': 'Welcome to Grocery: {percent}% off your first order',
-  'news.welcome.l1': 'You are in. Thank you for subscribing!',
+  'news.welcome.l1': 'You are in. Thank you for subscribing.',
   'news.welcome.code': 'Your welcome code: {code}',
   'news.welcome.terms': {
     one: '{percent}% off your first order, one use, valid for {count} day.',
@@ -199,7 +199,7 @@ export const en = {
   'review.see': 'See it here: {url}',
   'review.link': 'See your review',
   'review.preheader': 'Your review of {product} is live.',
-  'review.heading': 'Thank you for your review!',
+  'review.heading': 'Thank you for your review.',
 } as const satisfies Record<string, TextEntry>;
 
 export type EmailKey = keyof typeof en;

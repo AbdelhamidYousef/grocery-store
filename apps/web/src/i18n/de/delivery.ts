@@ -41,7 +41,7 @@ export const delivery: Record<keyof typeof enNs, Entry> = {
   'delivery.page.seo':
     'Die Berliner Bezirke, in die Grocery liefert, und der Laden, der sie packt.',
   'delivery.page.lead':
-    'Wir liefern innerhalb Berlins aus vier kleinen Läden, die nur versenden: keine Laufkundschaft. Deine Postleitzahl entscheidet, welcher Laden deine Bestellung packt, und was du kaufen kannst, hängt von seinen Regalen ab.',
+    'Wir liefern innerhalb Berlins aus vier kleinen Läden, die nur ausliefern: keine Laufkundschaft. Deine Postleitzahl entscheidet, welcher Laden deine Bestellung packt, und was du kaufen kannst, hängt von seinen Regalen ab.',
   'delivery.page.store': 'Gepackt bei {name}, {street}, {postalCode} Berlin',
   'delivery.page.postcodes': 'Postleitzahlen',
   'delivery.page.loading': 'Liefergebiete werden geladen',

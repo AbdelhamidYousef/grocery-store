@@ -50,7 +50,7 @@ describe('progress bars', () => {
       cartWith({ progress: { freeShipping: null, gift: progress(100, 0), nextTier: null } }),
     );
     renderApp('/cart');
-    expect(await screen.findByText('You get a free gift!')).toBeVisible();
+    expect(await screen.findByText('You get a free gift.')).toBeVisible();
     expect(screen.getByRole('progressbar', { name: 'Progress to a free gift' })).toHaveAttribute(
       'aria-valuenow',
       '100',

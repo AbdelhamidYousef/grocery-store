@@ -69,7 +69,7 @@ export const pdp = {
   'pdp.delivery.heading': 'Delivery',
   'pdp.delivery.shipIntro':
     'We deliver in one-hour slots from the store that packs your order, or within 30 minutes with express. You pick the time at checkout and see the exact price before you pay. Read the',
-  'pdp.delivery.shipLink': 'shipping page',
+  'pdp.delivery.shipLink': 'delivery page',
   'pdp.delivery.shipOutro': 'for prices and times.',
   'pdp.delivery.cutoffNote':
     'A slot can be booked until 60 minutes before it starts. We hold it for 15 minutes while you check out.',

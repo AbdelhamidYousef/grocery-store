@@ -37,15 +37,15 @@ export const checkout: Record<keyof typeof enNs, Entry> = {
   'checkout.details.city': 'Stadt',
   'checkout.details.region': 'Region (optional)',
   'checkout.details.country': 'Land',
-  'checkout.details.countryHint': 'Wir liefern innerhalb Europas.',
+  'checkout.details.countryHint': 'Wir liefern nur in Berlin.',
   'checkout.details.phone': 'Telefon (optional)',
   'checkout.details.phoneHint': 'Nur für den Zusteller.',
   'checkout.details.saveAddress': 'Diese Adresse in meinem Konto speichern',
   'checkout.details.continue': 'Weiter zur Lieferzeit',
 
   // ---------- step 2: shipping ----------
-  'checkout.shipping.loading': 'Versandoptionen werden geladen',
-  'checkout.shipping.loadError': 'Wir konnten die Versandoptionen nicht laden.',
+  'checkout.shipping.loading': 'Lieferzeiten werden geladen',
+  'checkout.shipping.loadError': 'Wir konnten die Lieferzeiten nicht laden.',
   'checkout.shipping.free': 'Kostenlos',
   'checkout.shipping.continue': 'Weiter zur Zahlung',
   'checkout.shipping.tryAgain': 'Erneut versuchen',
@@ -102,8 +102,9 @@ export const checkout: Record<keyof typeof enNs, Entry> = {
   'checkout.confirmation.pending.title': 'Deine Zahlung wird bestätigt…',
   'checkout.confirmation.pending.body':
     'Das dauert meist nur wenige Sekunden. Bitte lass diese Seite geöffnet.',
-  'checkout.confirmation.paid.title': 'Danke, deine Bestellung ist bezahlt.',
-  'checkout.confirmation.paid.body': 'Eine Bestätigung ist unterwegs zu deiner E-Mail-Adresse.',
+  'checkout.confirmation.paid.title': 'Danke. Deine Zahlung ist gesichert.',
+  'checkout.confirmation.paid.body':
+    'Den Endbetrag buchen wir ab, wenn wir deine Tüte packen. Eine Bestätigung ist unterwegs zu deiner E-Mail-Adresse.',
   'checkout.confirmation.timeout.title': 'Wir bestätigen deine Zahlung noch',
   'checkout.confirmation.timeout.body':
     'Es dauert länger als gewöhnlich, was passieren kann, wenn der Zahlungsanbieter uns langsam benachrichtigt. Bitte zahle nicht erneut. Du musst hier nicht warten: Sobald die Zahlung bestätigt ist, erhältst du eine E-Mail, und du kannst jederzeit auf diese Seite zurückkehren, um nachzusehen.',
@@ -126,11 +127,11 @@ export const checkout: Record<keyof typeof enNs, Entry> = {
   'checkout.confirmation.continueShopping': 'Weiter einkaufen',
   'checkout.confirmation.yourOrder': 'Deine Bestellung',
   'checkout.confirmation.delivery': 'Lieferung',
-  'checkout.confirmation.shippingMethod': 'Versandart',
+  'checkout.confirmation.shippingMethod': 'Lieferung',
   'checkout.confirmation.contact': 'Kontakt',
 
   // ---------- messages from outside (Zod rules in @store/shared) ----------
   'msg.checkout.required': 'Pflichtfeld',
   'msg.checkout.emailInvalid': 'Ungültige E-Mail-Adresse',
-  'msg.checkout.countryUnsupported': 'In dieses Land liefern wir nicht',
+  'msg.checkout.countryUnsupported': 'Wir liefern nur in Berlin',
 };

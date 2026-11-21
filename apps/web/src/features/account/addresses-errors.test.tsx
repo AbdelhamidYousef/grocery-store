@@ -47,12 +47,14 @@ describe('addresses page failures', () => {
       ),
     );
     renderApp('/account/addresses');
-    const button = await screen.findByRole('button', { name: 'Make default shipping' });
+    const button = await screen.findByRole('button', { name: 'Make default delivery address' });
     await userEvent.click(button);
-    expect(await screen.findByText('Default shipping address updated')).toBeInTheDocument();
+    expect(await screen.findByText('Default delivery address updated')).toBeInTheDocument();
 
     refuse = true;
-    await userEvent.click(await screen.findByRole('button', { name: 'Make default shipping' }));
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Make default delivery address' }),
+    );
     expect(await screen.findByText('Address is locked')).toBeInTheDocument();
   });
 

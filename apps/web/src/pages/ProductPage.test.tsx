@@ -380,7 +380,7 @@ describe('product tabs', () => {
   it('links the delivery tab to the shipping and returns pages', async () => {
     renderApp('/products/rope-tug#delivery');
     await screen.findByRole('tab', { name: 'Delivery & returns' });
-    expect(screen.getByRole('link', { name: 'shipping page' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'delivery page' })).toHaveAttribute(
       'href',
       '/shipping',
     );

@@ -1,8 +1,8 @@
 ---
 slug: how-much-is-shipping
 topic: shipping
-question: "How much does shipping cost?"
+question: "How much does delivery cost?"
 order: 0
 ---
 
-Standard shipping is 4.90 EUR plus a small amount per kilogram, and it is free for orders over 49.00 EUR. Express costs 9.90 EUR plus a per-kilogram amount.
+A slot costs 2.99 EUR, plus 1.00 EUR for slots that start between 17:00 and 20:00. It is free when your goods come to 49.00 EUR or more. Express costs 4.99 EUR and is never free. Neukölln pays 0.50 EUR more. The minimum order is 15.00 EUR of goods.

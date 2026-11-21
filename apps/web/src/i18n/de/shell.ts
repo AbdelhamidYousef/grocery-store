@@ -56,7 +56,7 @@ export const shell: Record<keyof typeof enNs, Entry> = {
   'shell.footer.withdraw': 'Vertrag widerrufen',
   'shell.footer.topicRecipes': 'Rezepte',
   'shell.footer.topicTips': 'Tipps',
-  'shell.footer.legalShipping': 'Versand',
+  'shell.footer.legalShipping': 'Lieferung',
   'shell.footer.legalReturns': 'Rücksendung und Widerruf',
   'shell.footer.legalAbout': 'Über Grocery',
   'shell.footer.legalAccessibility': 'Erklärung zur Barrierefreiheit',

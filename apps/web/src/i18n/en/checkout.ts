@@ -34,15 +34,15 @@ export const checkout = {
   'checkout.details.city': 'City',
   'checkout.details.region': 'Region (optional)',
   'checkout.details.country': 'Country',
-  'checkout.details.countryHint': 'We ship inside Europe.',
+  'checkout.details.countryHint': 'We deliver in Berlin only.',
   'checkout.details.phone': 'Phone (optional)',
   'checkout.details.phoneHint': 'Only for the courier.',
   'checkout.details.saveAddress': 'Save this address to my account',
   'checkout.details.continue': 'Continue to delivery time',
 
   // ---------- step 2: shipping ----------
-  'checkout.shipping.loading': 'Loading shipping options',
-  'checkout.shipping.loadError': 'We could not load the shipping options.',
+  'checkout.shipping.loading': 'Loading delivery times',
+  'checkout.shipping.loadError': 'We could not load the delivery times.',
   'checkout.shipping.free': 'Free',
   'checkout.shipping.continue': 'Continue to payment',
   'checkout.shipping.tryAgain': 'Try again',
@@ -85,7 +85,7 @@ export const checkout = {
   'checkout.summary.free': 'Free',
   'checkout.summary.total': 'Total',
   'checkout.summary.totalPending': 'Confirmed at payment',
-  'checkout.address.shippingTo': 'Shipping to',
+  'checkout.address.shippingTo': 'Delivering to',
 
   // ---------- errors from placing the order ----------
   'checkout.error.cartChanged':
@@ -99,8 +99,9 @@ export const checkout = {
   'checkout.confirmation.pending.title': 'Confirming your payment…',
   'checkout.confirmation.pending.body':
     'This usually takes a few seconds. Please keep this page open.',
-  'checkout.confirmation.paid.title': 'Thank you, your order is paid!',
-  'checkout.confirmation.paid.body': 'A confirmation is on its way to your email.',
+  'checkout.confirmation.paid.title': 'Thank you. Your payment is secured.',
+  'checkout.confirmation.paid.body':
+    'We take the final amount when we pack your bag. A confirmation is on its way to your email.',
   'checkout.confirmation.timeout.title': 'We are still confirming your payment',
   'checkout.confirmation.timeout.body':
     'It is taking longer than usual, which can happen when the payment provider is slow to tell us. Please do not pay again. You do not need to wait here: you will get an email as soon as the payment is confirmed, and you can come back to this page to check.',
@@ -121,11 +122,11 @@ export const checkout = {
   'checkout.confirmation.continueShopping': 'Continue shopping',
   'checkout.confirmation.yourOrder': 'Your order',
   'checkout.confirmation.delivery': 'Delivery',
-  'checkout.confirmation.shippingMethod': 'Shipping method',
+  'checkout.confirmation.shippingMethod': 'Delivery',
   'checkout.confirmation.contact': 'Contact',
 
   // ---------- messages from outside (Zod rules in @store/shared) ----------
   'msg.checkout.required': 'Required',
   'msg.checkout.emailInvalid': 'Invalid email address',
-  'msg.checkout.countryUnsupported': 'We do not ship to this country',
+  'msg.checkout.countryUnsupported': 'We deliver in Berlin only',
 } satisfies Dictionary;

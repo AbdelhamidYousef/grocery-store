@@ -73,7 +73,7 @@ test.describe('gift progress', () => {
     // + 6.99 = 42.95: over the threshold.
     await addApi(page, OIL, OIL_SKU, 1);
     await page.reload();
-    await expect(bar).toContainText('You get a free gift!');
+    await expect(bar).toContainText('You get a free gift.');
     await expect(progress).toHaveAttribute('aria-valuenow', '100');
     const gift = page.getByTestId('cart-gift-line');
     await expect(gift).toBeVisible();

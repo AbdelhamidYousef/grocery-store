@@ -1,6 +1,6 @@
 ## Returns in 30 days
 
-You can send back unused items within 30 days of delivery. Food, treats and anything hygiene-sensitive must be sealed and unopened.
+You can send back unused items within 30 days of delivery. Food and anything hygiene-sensitive must be sealed and unopened.
 
 ## How it works
 

@@ -38,7 +38,7 @@ export const delivery = {
   'delivery.page.title': 'Where we deliver',
   'delivery.page.seo': 'The Berlin areas Grocery delivers to, and the store that packs each one.',
   'delivery.page.lead':
-    'We deliver inside Berlin from four small stores that only ship: no walk-in shoppers. Your postcode decides which store packs your order, and what you can buy depends on its shelves.',
+    'We deliver inside Berlin from four small stores that only deliver: no walk-in shoppers. Your postcode decides which store packs your order, and what you can buy depends on its shelves.',
   'delivery.page.store': 'Packed at {name}, {street}, {postalCode} Berlin',
   'delivery.page.postcodes': 'Postcodes',
   'delivery.page.loading': 'Loading the delivery areas',

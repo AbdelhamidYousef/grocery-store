@@ -93,7 +93,7 @@ describe('charity', () => {
     expect(button).toBeDisabled();
     await userEvent.type(within(form).getByLabelText('Points to donate'), '200');
     await userEvent.click(button);
-    expect(await screen.findByText(/Thank you! 200 points/)).toBeInTheDocument();
+    expect(await screen.findByText(/Thank you. 200 points/)).toBeInTheDocument();
     expect(await screen.findByTestId('points-balance')).toHaveTextContent('300');
   });
 });

@@ -78,7 +78,7 @@ export const loyalty: Record<keyof typeof enNs, Entry> = {
     ', eine erfundene Tafel (1 Punkt = 1 Cent; nur Demo, es fließt kein Geld).',
   'loyalty.rewards.donate.label': 'Zu spendende Punkte',
   'loyalty.rewards.donate.button': 'Spenden',
-  'loyalty.rewards.donate.thanks': 'Danke! {points} Punkte gingen an die Tafel.',
+  'loyalty.rewards.donate.thanks': 'Danke. {points} Punkte gingen an die Tafel.',
   'loyalty.rewards.donate.failed': 'Das konnte nicht gespendet werden.',
   'loyalty.rewards.codesTitle': 'Deine Codes',
   'loyalty.rewards.codesEmpty':

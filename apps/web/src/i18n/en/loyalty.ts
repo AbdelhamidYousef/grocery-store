@@ -77,7 +77,7 @@ export const loyalty = {
     'a pretend food bank (1 point = 1 cent; demo only, no money moves).',
   'loyalty.rewards.donate.label': 'Points to donate',
   'loyalty.rewards.donate.button': 'Donate',
-  'loyalty.rewards.donate.thanks': 'Thank you! {points} points went to the food bank.',
+  'loyalty.rewards.donate.thanks': 'Thank you. {points} points went to the food bank.',
   'loyalty.rewards.donate.failed': 'We could not donate that.',
   'loyalty.rewards.codesTitle': 'Your codes',
   'loyalty.rewards.codesEmpty': 'Codes you buy with points appear here. Apply one in your cart.',

@@ -52,7 +52,7 @@ export const shell = {
   'shell.footer.withdraw': 'Withdraw from contract',
   'shell.footer.topicRecipes': 'Recipes',
   'shell.footer.topicTips': 'Tips',
-  'shell.footer.legalShipping': 'Shipping',
+  'shell.footer.legalShipping': 'Delivery',
   'shell.footer.legalReturns': 'Returns and withdrawal',
   'shell.footer.legalAbout': 'About Grocery',
   'shell.footer.legalAccessibility': 'Accessibility statement',

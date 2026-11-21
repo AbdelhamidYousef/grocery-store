@@ -192,7 +192,12 @@ describe('checkout page', () => {
     expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
     await user.click(tabs[1]!);
     expect(tabs[1]).toHaveAttribute('aria-selected', 'true');
-    expect(await openSlots()).toHaveLength(1);
+    // The fixture's slots are relative to the clock, so the second day holds one open slot in the
+    // morning and three in the evening: count it from the same data instead of assuming one.
+    const secondDay = makeSlotsData().days[1]!;
+    expect(await openSlots()).toHaveLength(
+      secondDay.slots.filter((slot) => slot.status === 'open').length,
+    );
   });
 
   it('tells the shopper when a slot filled up in the meantime and keeps the picker', async () => {

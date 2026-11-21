@@ -44,7 +44,7 @@ describe('order history list', () => {
     expect(rows[0]).toHaveTextContent('2 items');
     expect(rows[0]).toHaveTextContent('€26.89');
     expect(rows[0]!.querySelectorAll('img')).toHaveLength(1);
-    expect(within(rows[1]!).getByTestId('order-status-badge')).toHaveTextContent('Shipped');
+    expect(within(rows[1]!).getByTestId('order-status-badge')).toHaveTextContent('On the way');
     expect(rows[1]).toHaveTextContent('1 item');
     expect(rows[1]!.querySelectorAll('img')).toHaveLength(0);
   });

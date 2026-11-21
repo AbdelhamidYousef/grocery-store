@@ -55,6 +55,19 @@ describe('content seed', () => {
     expect(first?.links).toBeGreaterThan(15);
   });
 
+  it('drops the help articles whose slug was retired (a re-seed keeps no parcel answers)', async () => {
+    await db.execute(sql`
+      insert into help_articles (slug, topic, question, answer_md, sort_order)
+      values ('which-countries-do-you-ship-to', 'shipping', 'Which countries?', 'Europe.', 99)`);
+    await runSeed();
+    const rows = await db.execute<{ n: number }>(
+      sql`select count(*)::int as n from help_articles where slug = 'which-countries-do-you-ship-to'`,
+    );
+    expect(rows[0]?.n).toBe(0);
+    const left = await contentCounts();
+    expect(left?.help).toBe(20);
+  });
+
   it('refreshes a guide in place instead of duplicating it', async () => {
     await runSeed();
     await db.execute(sql`update guides set title = 'Edited by hand' where slug = 'lunchbox-ideas'`);
