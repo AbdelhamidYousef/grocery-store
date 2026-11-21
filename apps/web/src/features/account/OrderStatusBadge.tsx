@@ -6,11 +6,18 @@ import { TEST_IDS } from '../../lib/test-ids';
 
 import { STATUS_KEY, STATUS_TONE } from './order-status';
 
-export function OrderStatusBadge({ status }: { status: OrderStatus }) {
+// `captured`: the money was really taken (only a paid order can be both secured and charged).
+export function OrderStatusBadge({
+  status,
+  captured = false,
+}: {
+  status: OrderStatus;
+  captured?: boolean;
+}) {
   const { t } = useT();
   return (
     <Badge tone={STATUS_TONE[status]} data-testid={TEST_IDS.orderStatusBadge} data-status={status}>
-      {t(STATUS_KEY[status])}
+      {t(status === 'paid' && captured ? 'account.status.charged' : STATUS_KEY[status])}
     </Badge>
   );
 }

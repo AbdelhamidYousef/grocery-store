@@ -40,7 +40,7 @@ describe('order history list', () => {
     const rows = await screen.findAllByTestId('order-row');
     expect(rows).toHaveLength(2);
     expect(rows[0]).toHaveAttribute('href', '/account/orders/PW-2026-000123');
-    expect(within(rows[0]!).getByTestId('order-status-badge')).toHaveTextContent('Paid');
+    expect(within(rows[0]!).getByTestId('order-status-badge')).toHaveTextContent('Payment secured');
     expect(rows[0]).toHaveTextContent('2 items');
     expect(rows[0]).toHaveTextContent('€26.89');
     expect(rows[0]!.querySelectorAll('img')).toHaveLength(1);
@@ -156,10 +156,10 @@ describe('order detail', () => {
     expect(within(page).getByRole('heading', { level: 2 })).toHaveTextContent(
       'Order PW-2026-000123',
     );
-    expect(within(page).getByTestId('order-status-badge')).toHaveTextContent('Paid');
+    expect(within(page).getByTestId('order-status-badge')).toHaveTextContent('Payment secured');
     const steps = within(page).getAllByTestId('order-timeline-step');
     expect(steps.map((s) => s.getAttribute('data-status'))).toEqual(['pending_payment', 'paid']);
-    expect(steps[1]).toHaveTextContent('Payment confirmed');
+    expect(steps[1]).toHaveTextContent('Payment secured');
     expect(within(page).getByTestId('order-summary')).toHaveTextContent('Rope Tug');
     expect(within(page).getByTestId('order-total')).toHaveTextContent('€26.89');
     expect(within(page).getByTestId('order-address')).toHaveTextContent('1 Bone Street');

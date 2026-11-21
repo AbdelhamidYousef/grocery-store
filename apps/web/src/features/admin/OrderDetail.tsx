@@ -10,7 +10,10 @@ import { TEST_IDS } from '../../lib/test-ids';
 
 import {
   formatWhen,
+  deliveryKindLabel,
   ORDER_STATUS_LABEL,
+  orderStatusLabel,
+  PAYMENT_STATUS_LABEL,
   ORDER_STATUS_TONE,
   stripePaymentUrl,
 } from './order-status';
@@ -65,7 +68,7 @@ function Body({ detail }: { detail: AdminOrderDetail }) {
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h2 className="font-display text-xl font-bold">{order.number}</h2>
           <Badge tone={ORDER_STATUS_TONE[order.status]} data-testid={TEST_IDS.adminOrderStatus}>
-            {ORDER_STATUS_LABEL[order.status]}
+            {orderStatusLabel(order.status, order.capturedCents)}
           </Badge>
         </div>
         <p className="mt-1 text-sm text-muted">Placed {formatWhen(order.placedAt)}</p>
@@ -136,7 +139,7 @@ function Body({ detail }: { detail: AdminOrderDetail }) {
         <dl className="ml-auto grid w-full max-w-xs grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm">
           <dt>Subtotal</dt>
           <dd className="text-right">{money(totals.subtotalCents)}</dd>
-          <dt>Delivery ({order.shippingMethod.name})</dt>
+          <dt>Delivery ({deliveryKindLabel(order.shippingMethod)})</dt>
           <dd className="text-right">{money(totals.shippingCents)}</dd>
           {totals.discountCents > 0 && (
             <>
@@ -207,7 +210,7 @@ function Body({ detail }: { detail: AdminOrderDetail }) {
             {payment ? (
               <>
                 <p>
-                  {payment.status.replace('_', ' ')},{' '}
+                  {PAYMENT_STATUS_LABEL[payment.status]},{' '}
                   {formatMoney(payment.amountCents, payment.currency)}
                 </p>
                 {order.capturedCents !== null && (

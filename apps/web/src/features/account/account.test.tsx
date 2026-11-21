@@ -95,7 +95,7 @@ describe('account area', () => {
     const cards = await screen.findAllByTestId('address-card');
     expect(cards).toHaveLength(2);
     expect(within(cards[0]!).getByText('Default delivery address')).toBeInTheDocument();
-    expect(within(cards[0]!).getByText('Default billing')).toBeInTheDocument();
+    expect(within(cards[0]!).getByText('Default billing address')).toBeInTheDocument();
     expect(
       within(cards[1]!).getByRole('button', { name: 'Make default delivery address' }),
     ).toBeVisible();

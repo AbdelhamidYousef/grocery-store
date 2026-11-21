@@ -79,7 +79,7 @@ export function OrderDetail() {
         className="mt-3 flex flex-wrap items-center gap-3 font-display text-2xl font-bold"
       >
         <span className="break-all">{t('account.order.title', { number: order.number })}</span>
-        <OrderStatusBadge status={order.status} />
+        <OrderStatusBadge status={order.status} captured={order.capturedCents !== null} />
       </h2>
       <p className="mt-1 text-muted">
         {t('account.order.placed', { date: fmt.date(order.placedAt ?? order.createdAt, true) })}

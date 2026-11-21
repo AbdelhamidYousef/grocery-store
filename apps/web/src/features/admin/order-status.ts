@@ -1,16 +1,38 @@
-import type { OrderStatus } from '@store/shared';
+import type { OrderStatus, PaymentStatus } from '@store/shared';
 
 import type { BadgeTone } from '../../components/ui/Badge';
 
 export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   pending_payment: 'Pending payment',
-  paid: 'Paid',
+  paid: 'Payment secured',
   processing: 'Processing',
   shipped: 'Shipped',
   delivered: 'Delivered',
   cancelled: 'Cancelled',
   refunded: 'Refunded',
 };
+
+// A paid order whose money was really taken reads "Charged"; the plain label says the card is only held.
+export function orderStatusLabel(status: OrderStatus, capturedCents: number | null): string {
+  return status === 'paid' && capturedCents !== null ? 'Charged' : ORDER_STATUS_LABEL[status];
+}
+
+// The payment row in the admin's own words: "authorized" is a hold, "succeeded" is money taken.
+export const PAYMENT_STATUS_LABEL: Record<PaymentStatus, string> = {
+  requires_payment: 'Waiting for payment',
+  processing: 'Processing',
+  authorized: 'Held on the card',
+  succeeded: 'Charged',
+  failed: 'Failed',
+  refunded: 'Refunded',
+};
+
+// "Delivery (Delivery in your slot)" read twice: the two kinds are named by what they are.
+export function deliveryKindLabel(method: { code: string; name: string }): string {
+  if (method.code === 'slot') return 'slot';
+  if (method.code === 'express') return 'express';
+  return method.name;
+}
 
 export const ORDER_STATUS_TONE: Record<OrderStatus, BadgeTone> = {
   pending_payment: 'neutral',
@@ -25,7 +47,7 @@ export const ORDER_STATUS_TONE: Record<OrderStatus, BadgeTone> = {
 // What each button says. The wording is the action ("Mark shipped"), not the state it leads to.
 export const TRANSITION_LABEL: Record<OrderStatus, string> = {
   pending_payment: 'Back to pending payment',
-  paid: 'Mark paid',
+  paid: 'Mark payment secured',
   processing: 'Start processing',
   shipped: 'Mark shipped',
   delivered: 'Mark delivered',

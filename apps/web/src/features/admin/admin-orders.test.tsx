@@ -34,7 +34,7 @@ describe('admin order list', () => {
     renderApp('/admin/orders');
     const rows = await screen.findAllByTestId('admin-row');
     expect(rows).toHaveLength(2);
-    expect(rows[0]).toHaveTextContent('Paid');
+    expect(rows[0]).toHaveTextContent('Payment secured');
     expect(rows[0]).toHaveTextContent('42.97');
     expect(rows[1]).toHaveTextContent('Shipped');
     expect(screen.getByRole('link', { name: NUMBER })).toHaveAttribute(
@@ -114,7 +114,7 @@ describe('admin order detail', () => {
     serveOrder();
     renderApp(`/admin/orders/${NUMBER}`);
     expect(await screen.findByRole('heading', { name: NUMBER })).toBeInTheDocument();
-    expect(screen.getByTestId('admin-order-status')).toHaveTextContent('Paid');
+    expect(screen.getByTestId('admin-order-status')).toHaveTextContent('Payment secured');
     expect(screen.getByText('Squeaky Duck')).toBeInTheDocument();
     expect(screen.getAllByText(/1 Bone Street/)[0]).toHaveTextContent('Sam Rivers');
     expect(screen.getByText('Same as shipping')).toBeInTheDocument();
@@ -124,7 +124,7 @@ describe('admin order detail', () => {
     );
     const steps = within(screen.getByTestId('admin-timeline')).getAllByRole('listitem');
     expect(steps).toHaveLength(2);
-    expect(steps[1]).toHaveTextContent('Pending payment to Paid');
+    expect(steps[1]).toHaveTextContent('Pending payment to Payment secured');
     expect(steps[1]).toHaveTextContent('by stripe');
   });
 
