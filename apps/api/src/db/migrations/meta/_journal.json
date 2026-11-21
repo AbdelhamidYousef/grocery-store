@@ -330,6 +330,13 @@
       "when": 1795239230086,
       "tag": "0046_gr_numbers_drop_review_size",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1795239959881,
+      "tag": "0047_delivery_areas_stores",
+      "breakpoints": true
     }
   ]
 }

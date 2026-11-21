@@ -249,3 +249,17 @@ placeholder by its prefix, so the placeholder rename failed it until the whiteli
 Learn: a default that lives in the database (the order number) is changed with a migration, never in
 code alone, and old rows keep the value they were born with.
 
+### G4.2: areas, stores and postcodes (API)
+Three tables (`delivery_areas`, `dark_stores`, `postcodes`; migration 0047), four Berlin areas with one
+dark store each and 34 real postcodes. `GET /delivery/postcodes/:code` and `GET /delivery/areas` are
+public and cached; a new `deliveryContext` middleware (next to the store-view one) reads `X-Postcode`
+and puts `{postcode, served, area, storeId}` on the request, falling back to Mitte. The ids of the
+areas and stores are fixed, not random: the migration, the seed and the test setup all create the same
+four stores, and a fixed id means they agree without a lookup. The migration creates the stores itself
+(not only the seed) because G4.3's migration copies stock to them on a database that was never
+reseeded. Surprise: the API tests truncate every table before each test, which also empties the
+reference data, so the test setup re-inserts it (same function as the seed) and clears the lookup
+cache.
+Learn: a lookup table beats a rule ("10xxx is Mitte") because real areas are not ranges; Neukölln and
+Kreuzberg interleave in the 12xxx and 10xxx blocks.
+

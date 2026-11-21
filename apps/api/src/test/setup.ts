@@ -2,7 +2,9 @@ import { sql } from 'drizzle-orm';
 import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
 
 import { closeDb, db } from '../db/client.ts';
+import { seedDelivery } from '../db/seed/delivery.ts';
 import { clearBadgeCache } from '../modules/catalog/badge-index.ts';
+import { clearDeliveryCache } from '../modules/delivery/areas.ts';
 import { clearTopicCache } from '../modules/reviews/service.ts';
 
 import { settlePending } from './pending.ts';
@@ -31,6 +33,10 @@ beforeAll(async () => {
 beforeEach(async () => {
   await db.execute(sql.raw(`truncate table ${tables.join(', ')} restart identity cascade`));
   await db.execute(sql`alter sequence order_number_seq restart with 1`);
+  // Reference data, not test data: the areas, stores and postcodes are there in every test (fixed ids),
+  // as they are in a real database after the migration and seed.
+  await seedDelivery(db);
+  clearDeliveryCache();
   // The badge index is cached for a minute in production; a new test must not see the last one's.
   clearBadgeCache();
   clearTopicCache();

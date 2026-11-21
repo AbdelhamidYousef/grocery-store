@@ -13,3 +13,4 @@ export * from './loyalty.ts';
 export * from './stores.ts';
 export * from './plural.ts';
 export * from './food.ts';
+export * from './areas.ts';

@@ -26,7 +26,8 @@ Written by the build sessions for the owner and the next session. Newest state f
   slugs), the department bar overflow, the free-sample picker labels, leftover pet copy. Gates green:
   shared 270, web 923, API 1,378 + 2 skipped, e2e 75 + 1 skipped. Pushed at the phase end.
 - **G4 in progress** (2026-11-21): G4.1 done (order numbers `GR-`, review size field dropped; migration
-  0046). Next G4.2 areas and stores. Not pushed.
+  0046); G4.2 done (areas, dark stores, postcodes, `X-Postcode` delivery context; migration 0047,
+  `/api/v1/delivery/*`). Next G4.3 stock per store. Not pushed.
 - **Open follow-ups** (small, not blocking):
   - e2e "back in stock" missed its mail once under full-suite load (passed on re-run).
 

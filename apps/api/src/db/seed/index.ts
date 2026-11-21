@@ -30,6 +30,7 @@ import { categories } from './categories.ts';
 import { seedCharity } from './charity.ts';
 import { collections, windowDates } from './collections.ts';
 import { loadContent, seedContent } from './content.ts';
+import { seedDelivery } from './delivery.ts';
 import { FORCED_STOCK, expandVariants, stockLevels } from './expand.ts';
 import { seedHomeContent } from './home.ts';
 import { imageRowsFor } from './images.ts';
@@ -374,6 +375,7 @@ export async function runSeed(now = new Date()) {
     }
 
     // ---- kits (phase 16): built from the seeded products above ----
+    await seedDelivery(tx);
     await seedBundles(tx);
 
     // ---- guides, help articles, testimonials (after products: guides link to them) ----
