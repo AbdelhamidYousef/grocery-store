@@ -205,7 +205,9 @@ test.describe('stock', () => {
     await page.goto(`/admin/products/${product.id}`);
     await page.getByRole('button', { name: `Adjust stock for ${product.sku}-1` }).click();
     const dialog = page.getByTestId('admin-stock-form');
-    await expect(dialog).toContainText('reserved by unpaid orders 3');
+    // The per-store table shows the reservation on the store the guest's postcode (10115) maps to.
+    const mitteRow = dialog.getByTestId('admin-stock-stores').getByRole('row', { name: /Mitte/ });
+    await expect(mitteRow.getByRole('cell').nth(1)).toHaveText('3');
     await dialog.getByLabel('Units on hand').fill('2');
     await dialog.getByRole('button', { name: 'Save stock' }).click();
     await expect(dialog.getByRole('alert')).toContainText(/reserved/i);

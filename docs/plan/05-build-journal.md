@@ -305,7 +305,21 @@ only shows from `sm` up. Learn: state that must be on every request but changes 
 postcode) belongs in a plain module the fetch layer reads, with React only mirroring it; a hook the fetch
 layer would have to ask can be a render behind.
 
-### Quiz: Phase G4 (so far)
+### G4.5: phase end (e2e)
+The e2e suite had been written for one Pawsome postcode that happens to be a served Mitte one (10115),
+so the checkout specs needed no port and the `GR-` matchers were already right. One spec failed, and
+it was a spec problem, not an app bug: the admin stock dialog used to say "reserved by unpaid orders 3"
+in a hint, and since G4.3 that number sits in the per-store table (one row per store), so the spec now
+reads the Mitte row's Reserved cell. New spec `e2e/delivery-areas.spec.ts`: no postcode, the prawns
+are sold out (Mitte); enter 12045 in the hero, the hero names Neukölln and the chip says "Deliver to
+12045"; the prawns can be added to the cart; checkout to a Neukölln address succeeds and the admin
+inventory call shows the reservation on Neukölln and none new on Mitte. The spec raises Neukölln's
+shelf first, as the older specs do, so repeated runs never use it up. Surprise: the chip shows the
+postcode only (the area name is in the hero result), which is by design for the phone header.
+Learn: when a feature moves a number from a sentence into a table, the spec that read the sentence
+fails with a puzzling text dump; read the received text before blaming the app.
+
+### Quiz: Phase G4
 1. Why does checkout take the store from the delivery address and not from the header?
 2. Migration 0048 copies every stock row to all four stores. What would break if it only moved the rows
    to Mitte and left the others empty? And why do old reservations stay on Mitte?
