@@ -32,6 +32,8 @@ Written by the build sessions for the owner and the next session. Newest state f
   ...", checkout postcode check; EN + DE). Checkout needs a served Berlin postcode (422 otherwise). New
   e2e spec `delivery-areas.spec.ts`. Gates green: shared 282, web 950, API 1,416 + 2 skipped, e2e 76 + 1 skipped.
   A database migrated from G3 needs `pnpm db:reset` to get varied shelves. Not pushed yet.
+- **G5 in progress** (2026-11-21): G5.1 done: shared `slots.ts` (Berlin-zone rules and labels), migration 0049
+  (`delivery_slots`, store hours/capacity/riders), `generate-slots` job and seed. Not pushed.
 - **Open follow-ups** (small, not blocking):
   - Reseed before the first public deploy: a database migrated from G3 has identical shelves in every store (`pnpm db:reset`).
   - e2e "back in stock" missed its mail once under full-suite load (passed on re-run).

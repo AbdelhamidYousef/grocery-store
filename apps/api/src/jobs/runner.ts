@@ -9,6 +9,7 @@ import { db } from '../db/client.ts';
 import { jobRuns } from '../db/schema/index.ts';
 import type { PaymentGateway } from '../lib/stripe.ts';
 import { sweepOrphanUploads } from '../lib/upload-refs.ts';
+import { generateSlots } from '../modules/delivery/slot-generation.ts';
 import type { Outbox } from '../modules/mail/outbox.ts';
 import { syncFlashSales } from '../modules/promotions/service.ts';
 import { sendDueAlerts } from '../modules/stock-alerts/service.ts';
@@ -176,6 +177,15 @@ registerJob({
   name: 'send-stock-alerts',
   every: 'hourly',
   run: (ctx) => sendDueAlerts({ outbox: ctx.outbox, log: ctx.log }),
+});
+
+// Delivery slots (phase G5): the next 7 days for every active store. Idempotent, so a second run in
+// the same day (or the seed's own run) creates nothing. Daily is enough: a day's slots all exist
+// before the day starts, and the horizon only moves at midnight Berlin time.
+registerJob({
+  name: 'generate-slots',
+  every: 'daily',
+  run: (ctx) => generateSlots(db, ctx.now),
 });
 
 // Review photos nobody references any more (phase 17): removed after 24 h. Relative

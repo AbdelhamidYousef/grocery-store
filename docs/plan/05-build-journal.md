@@ -326,3 +326,22 @@ fails with a puzzling text dump; read the received text before blaming the app.
 3. `const availableOf = sql...` sat at module level and showed the wrong store. Why, and what fixes it?
 4. The admin product list showed 8 variants for a product with 2. Which join caused it?
 
+
+## Phase G5: delivery slots
+
+### G5.1: slot model and generation
+`packages/shared/src/slots.ts` holds the rules (`SHOP_ZONE = 'Europe/Berlin'`, 1-hour slots, bookable until
+60 minutes before the start, 7 days, 15-minute hold, 30-minute express) and pure helpers: a day's slot
+starts from a store's opening hours, the day keys of the horizon, "is the store open now", and the labels
+("Today 14:00–15:00", "Heute", "Morgen" from `Intl.RelativeTimeFormat`, so no dictionary). Migration 0049
+adds `delivery_slots` (unique store + start, capacity > 0) and the store columns `opens_at`, `closes_at`,
+`slot_capacity`, `express_riders`. The `generate-slots` job (daily, in the job runner, also run by the
+seed) inserts the next 7 days per active store with `ON CONFLICT DO NOTHING`. Tests include the two
+change days: 2027-03-28 (23 hours, 08:00 is still 08:00) and 2026-10-25 (25 hours), and an overnight
+store whose windows add up to 5 and 7 real hours.
+Surprise: a wall time that does not exist (02:30 in spring) or exists twice (02:30 in autumn) needs a
+rule; ours lands an hour later / on the second occurrence, and a test pins it, although a store never
+opens at those hours. The 5-minute job cadence the next step needs is not in the runner yet (hourly and
+daily only); it arrives with G5.2.
+Learn: build time from wall-clock parts in the zone and convert once at the end; adding 3,600,000 ms to
+"08:00" works until the one day a year it does not.

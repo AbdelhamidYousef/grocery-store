@@ -344,6 +344,13 @@
       "when": 1795240775242,
       "tag": "0048_stock_per_dark_store",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1795243978501,
+      "tag": "0049_delivery_slots",
+      "breakpoints": true
     }
   ]
 }

@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url';
 
 import { and, eq, inArray, ne, sql } from 'drizzle-orm';
 
+import { generateSlots } from '../../modules/delivery/slot-generation.ts';
 import { closeDb, db } from '../client.ts';
 import {
   brands as brandsTable,
@@ -383,6 +384,7 @@ export async function runSeed(now = new Date()) {
 
     // ---- kits (phase 16): built from the seeded products above ----
     await seedDelivery(tx);
+    await generateSlots(tx, new Date());
     await seedBundles(tx);
 
     // ---- guides, help articles, testimonials (after products: guides link to them) ----

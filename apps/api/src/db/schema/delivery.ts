@@ -1,4 +1,16 @@
-import { boolean, char, pgTable, text, uuid } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import {
+  boolean,
+  char,
+  check,
+  integer,
+  pgTable,
+  text,
+  time,
+  timestamp,
+  unique,
+  uuid,
+} from 'drizzle-orm/pg-core';
 
 import { createdAt, id, updatedAt } from './columns.ts';
 
@@ -25,10 +37,41 @@ export const darkStores = pgTable('dark_stores', {
     .notNull()
     .unique()
     .references(() => deliveryAreas.id, { onDelete: 'restrict' }),
+  // Opening hours in the shop's zone (Europe/Berlin), local wall-clock times. Slots are built from
+  // them and express delivery is offered only inside them.
+  opensAt: time('opens_at').notNull().default('08:00'),
+  closesAt: time('closes_at').notNull().default('22:00'),
+  // How many orders one delivery slot of this store takes.
+  slotCapacity: integer('slot_capacity').notNull().default(8),
+  // Express orders the store takes per 30 minutes (one per free rider).
+  expressRiders: integer('express_riders').notNull().default(2),
   active: boolean('active').notNull().default(true),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
+
+// A one-hour delivery window of a store with a fixed capacity. Whether it is full is never stored:
+// it is counted from live holds and booked orders (see the slots module).
+export const deliverySlots = pgTable(
+  'delivery_slots',
+  {
+    id: id(),
+    storeId: uuid('store_id')
+      .notNull()
+      .references(() => darkStores.id, { onDelete: 'cascade' }),
+    startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
+    endsAt: timestamp('ends_at', { withTimezone: true }).notNull(),
+    capacity: integer('capacity').notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    // Also the lookup index for "the slots of a store from time X".
+    unique('delivery_slots_store_starts_key').on(t.storeId, t.startsAt),
+    check('delivery_slots_capacity_check', sql`${t.capacity} > 0`),
+    check('delivery_slots_window_check', sql`${t.endsAt} > ${t.startsAt}`),
+  ],
+);
 
 // A lookup table, not a rule ("10xxx is Mitte"): real areas are not ranges. Seeded, never edited
 // in the UI.
