@@ -205,3 +205,35 @@ long-name outlier (longest "Quark, 40 percent fat in dry matter"). It found thre
 Learn: a sweep that measures the same thing on every page (width, broken images, longest name) finds
 the outliers that a look at one page misses; the German menu bug only shows when the store view
 changes.
+
+### G3.5: quick-commerce home
+Most of the home was built with G3.1 to G3.3 (hero with the postcode box, department tiles, seasonal
+strip, featured offers, deals, bestsellers, recipes, reviews, food-bank teaser, newsletter). Measuring
+every section at 1280 and 375 px found the outliers: on a phone the department tiles were 878 px
+tall (big cards, 2 by 5), now compact rows at 442 px; the German tiles had no product counts
+(looked up by the translated category slug, now by `departmentSlug`, with a test); and the
+Christmas strip opened with lemons, because the seed stored a listed collection in catalogue order.
+It now keeps the written order, so the strip opens with flour, sugar, butter and cream.
+
+### G3.6: phase end
+The e2e specs still used Pawsome's pets (38 of 76 failed). `catalog.spec.ts` was ported by hand
+first, which found one more app bug: the free-sample picker showed raw values, "Trial" before
+"Full"; it now says "Pack: Full size / Free sample" in both languages. The other 13 specs were
+ported by one helper agent (one, because e2e runs share a database and ports), and the result was
+reviewed and re-run here. Features that no longer exist were replaced in kind, not dropped: the
+carousel test checks the postcode hero, the pet-weight review field became the recommendation.
+Gates green: shared 270, web 923, API 1,378 + 2 skipped, e2e 75 + 1 skipped (real Stripe, needs
+keys). Known flaky: the back-in-stock mail missed its 60 s window once under full-suite load and
+passed alone and in the next full run.
+Learn: an end-to-end suite written against one catalogue is a list of everything the shop promises;
+porting it is where leftover bugs surface (the picker labels), so read each failure before changing
+the test.
+
+### Quiz: Phase G3
+1. Migration 0044 replaces `menu_promos.pet` with `category_id`. Why add, backfill and drop in one
+   migration instead of dropping the old column first?
+2. Nutrition is stored in tenths of a gram as integers. What goes wrong with floats, and which other
+   value in the shop follows the same rule?
+3. The German menu came back empty. What did the code compare, what should it have compared, and
+   why does `/c/fruit-veg` still work in the German store?
+4. Why were the product photos generated as 2×2 grids, and what is the cost of that choice?

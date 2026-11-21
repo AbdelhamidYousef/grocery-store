@@ -20,13 +20,17 @@ Written by the build sessions for the owner and the next session. Newest state f
   translation, "Made in" spec), and pet-themed home content: all G3. German UI and emails use "du"; seed
   product and guide texts still say "Sie" (G3). Local DB was reset (`pnpm db:reset`) to pick up `@grocery.test` accounts. Not pushed.
 
-- **G3 in progress** (2026-11-21): G3.1 to G3.3 committed as one (departments replace pets,
-  nutrition/allergens/dietary filters, the 120-product catalogue from `catalogue.json`). Gates green
-  (shared 270, web 920, API 1,377 + 2 skipped; e2e not run yet). G3.4 done the same day: all 120
-  products have photos; the QA sweep fixed the German menu (was empty), the department bar
-  overflow at 1280 px, and leftover pet copy (gates green: shared 270, web 920, API 1,378 + 2
-  skipped). Still to do: G3.5 the rest of the home page (hero is
-  done), G3.6 e2e and phase end, then push.
+- **G3 done** (2026-11-21): ten departments replace the pet axis; nutrition, ingredients, the 14 EU
+  allergens and dietary filters; 120 grocery products from `catalogue.json`, all with generated
+  photos; the quick-commerce home. QA fixes on the way: the German menu and tile counts (translated
+  slugs), the department bar overflow, the free-sample picker labels, leftover pet copy. Gates green:
+  shared 270, web 923, API 1,378 + 2 skipped, e2e 75 + 1 skipped. Pushed at the phase end.
+- **Open follow-ups** (small, not blocking):
+  - Order numbers still start with `PW-` (`apps/api/src/db/schema/orders.ts`); shoppers see them in
+    the confirmation and emails. Needs a migration; e2e specs match `PW-` too.
+  - The review form asks "Size you bought" but nothing shows it (`reviews.size` string unused). For
+    groceries the field can go.
+  - e2e "back in stock" missed its mail once under full-suite load (passed on re-run).
 
 ## Waiting on you
 
