@@ -915,3 +915,34 @@ Learn: when the scheduler's resolution is coarser than a job's cadence, the job 
 job and let the database claim decide who runs, so one trigger serves them all. Also: a CI file is documentation of the project's
 ports and services, and it rots silently when nothing runs it; re-read it each time a port or a service changes.
 
+
+### G10.3: deploy
+The shop is live at https://grocery-store-bice-two.vercel.app: one Vercel project `grocery-store` (root `apps/web`, static build plus the
+Express function on the same origin, auto-deploys on push to `main` through the Vercel GitHub app), its own free Neon project
+`grocery-store` in AWS Frankfurt (migrated and seeded on 2026-11-21 from a fresh database, so per-store stock and batches are varied and
+no `db:reset` was needed), and the Pawsome Stripe test sandbox with a new restricted test key `grocery-store` (no payouts or
+transfers) and its own webhook endpoint for the five events the checkout needs (`payment_intent.succeeded`, `.payment_failed`,
+`.canceled`, `.amount_capturable_updated`, `charge.refunded`). GitHub Actions has the variable `API_URL` and the secret `JOBS_SECRET`;
+a manual run of `jobs.yml` succeeded against the live API. Emails are skipped on the demo (no `RESEND_API_KEY`).
+Smoke test (live, real Stripe test card 4242): postcode 10115, 2 pasta night kits, slot Sun 22 Nov 11:00 to 12:00 held, total 23.36 EUR
+(20.12 goods + 0.25 bags + 2.99 delivery) authorised, the webhook arrived, order GR-2026-000132 confirmed. `/api/v1/health` is ok and
+postcode 12045 resolves to Neukölln.
+Hiccups, one line each: the Vercel CLI now demands two-factor authentication on the account, so the project was created through the
+dashboard's own API from a signed-in browser; the Stripe sandbox issues restricted keys, hence the `fix(config): accept restricted Stripe
+test keys` commit; GitHub asked for an email code (sudo mode) before it let the Vercel app's repository access change.
+Found by the smoke test and fixed in G11.1: the confirmation said "your order is paid!" for money that is only held, and the checkout
+hint still said "We ship inside Europe".
+Learn: a deploy is not finished until the real journey has run on it: the webhook, the cookie origin and the job trigger only exist
+there. Also: a restricted key is the safer default, so the code should accept every test-key prefix the provider can issue.
+
+### Quiz: Phase G10
+1. The jobs workflow calls the API every 5 minutes, but `capture-overdue` is an hourly job and `generate-slots` a daily one. Say who
+   decides that each runs once in its period, what happens when GitHub delays a run by 8 minutes, and why a late `release-slot-holds`
+   can never over-book a slot.
+2. The deploy uses a restricted Stripe key and the webhook lists `payment_intent.amount_capturable_updated`. Which event secures an
+   order whose card is only authorised, what would the order page show if that endpoint were missing, and why must the API still refuse
+   `rk_live_` keys?
+3. Vercel runs the Express app as a function with `ENABLE_JOBS=false` and `UPLOADS_ENABLED=false`. Name what each switch replaces or
+   turns off, and why the database, not the function's memory, has to hold the answer to "did this job already run this hour?".
+4. The journey spec places the order through the API and pays through the simulated webhook, while the live smoke test used card 4242.
+   Say what each one proves that the other cannot.

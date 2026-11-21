@@ -145,6 +145,11 @@ Written by the build sessions for the owner and the next session. Newest state f
   Paid orders are only AUTHORISED until captured: tests that refund or return a paid order capture it first
   (`captureOrder` / `deliveredOrder` in `test/orders.ts`); `simulate` turns "the shopper paid" into the
   authorisation event for a manual-capture order.
+- **G10 done** (2026-11-21): the journey spec and edge specs, CI with Mailpit and the e2e job, `jobs.yml` every 5 minutes, and the live
+  deploy at **https://grocery-store-bice-two.vercel.app** (Vercel project `grocery-store` on the owner's account, own Neon project in
+  Frankfurt, Pawsome's Stripe sandbox with a restricted key and its own webhook, GitHub variable `API_URL` and secret `JOBS_SECRET`).
+  Smoke test passed on 2026-11-21 (order GR-2026-000132 on card 4242, authorised, webhook arrived, confirmed). Emails are skipped on
+  the demo (no `RESEND_API_KEY`). `docs/DEPLOYMENT.md` describes the setup. Every push to `main` redeploys.
 - **Open follow-ups** (small, not blocking):
   - (Closed before G9.1) The admin status button refuses "shipped" for a manual-capture order and points to the packer view; admin variant forms create and edit weighed variants (price per kg and nominal grams; the unit price is derived).
   - The admin "Capture now" and the overdue job stay as a safety net beside dispatch (which captures with the packed grams).
