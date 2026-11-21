@@ -54,6 +54,7 @@ jobs:
       NODE_ENV: test
       DATABASE_URL: postgres://grocery:grocery@localhost:5432/grocery_test
       DATABASE_URL_TEST: postgres://grocery:grocery@localhost:5432/grocery_test
+      # The dev web port (see .env.example); the API tests only compare it with the Origin they send.
       WEB_ORIGIN: http://localhost:5174
       LOG_LEVEL: silent
     steps:
@@ -87,12 +88,27 @@ jobs:
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
+      # Mailpit catches the shop's email (the API sends to smtp://127.0.0.1:1026, the e2e port, which
+      # is what docker compose maps locally); the specs that read mail ask its HTTP API on 8026.
+      mailpit:
+        image: axllent/mailpit:latest
+        ports:
+          - 1026:1025
+          - 8026:8025
+        options: >-
+          --health-cmd "/mailpit readyz"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     env:
-      # The e2e API runs as NODE_ENV=test on its own ports (playwright.config.ts starts it) and
-      # reads the seeded database below. No Stripe key: it boots the fake payment gateway and the
-      # specs pay through POST /test/webhooks/simulate.
+      # `playwright test` starts the API (NODE_ENV=test, port 3101) and `vite preview` (port 5274)
+      # itself (playwright.config.ts) and sets their WEB_ORIGIN, TEST_HOOK_SECRET and JOBS_SECRET
+      # (throwaway defaults: the specs run the job runner through POST /internal/jobs/run and pay
+      # through POST /test/webhooks/simulate with them). The API reads the seeded database below. No
+      # Stripe key: it boots the fake payment gateway.
       DATABASE_URL: postgres://grocery:grocery@localhost:5432/grocery
-      WEB_ORIGIN: http://localhost:5273
+      SMTP_URL: smtp://127.0.0.1:1026
+      MAILPIT_URL: http://localhost:8026
       LOG_LEVEL: warn
       E2E_WEB_MODE: preview
       # Optional. Unset secrets and variables evaluate to an empty string, which the API and the
@@ -110,6 +126,8 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Migrations first, then the seed (stores, areas, products, stock per store and the next 7 days
+      # of delivery slots): the specs buy from this data.
       - run: pnpm db:migrate
       - run: pnpm db:seed
       # The production bundle (VITE_ variables are baked in here); `vite preview` serves it.

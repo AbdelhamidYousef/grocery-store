@@ -879,3 +879,39 @@ open slot is today" is a spec about the clock: ask for the first open slot where
 4. The wishlist became the default list "Saved" without rewriting any row. Which two column defaults did the migration rely on, which
    unique constraint had to change and into what, and what would break if the old `/wishlist` routes still looked a user's list up
    by `user_id` alone?
+
+## Phase G10: testing, CI and deploy
+
+### G10.1: the journey spec
+`e2e/grocery-journey.spec.ts` tells the whole story in one test: the postcode in the hero names the area; the basket gets a short-dated
+yoghurt (through its offer), loose bananas and six bottles with deposit, topped up to the 15.00 minimum; the checkout holds the first
+open slot (looking through the day tabs); the order is placed and paid on the simulated gateway, and the confirmation says "We hold up
+to"; in the packer view the bananas are weighed (940 g), the plain lines found, and the yoghurt recorded as missing (0 of 1) with the
+server's closest match as replacement; the shopper rejects the swap on the order page; "Bag packed" and "Hand to rider" capture once;
+tracking says "On the way"; and the account's final bill shows the weighed line, the bottle deposit, the bags and the delivery as lines,
+a captured amount below the hold, and no trace of the rejected replacement. The new `e2e/delivery-edges.spec.ts` adds the two edge cases
+that were not covered: an address in an unserved postcode stops on the postcode field before any slot (and the API answers 422
+`POSTCODE_NOT_SERVED`), and express either shows its button or one of the two reasons, while the API names `no_postcode` without a
+postcode, whatever the hour. "Slot full is disabled" (`delivery-slots.spec.ts`) and "below the minimum" (`basket-rules.spec.ts`) already
+existed and were left alone. No assertion depends on the time of day and no spec asserts that express is on.
+Surprise: the packer's replacement list in the shortfall dialog is capped, and after many e2e runs the dev database holds dozens of
+products of the same subcategory, so a spec cannot choose "its" neighbour from the radio list: it takes "Closest match" and reads the
+replacement's name from the order afterwards. Also, a killed Playwright run left its API on 3101 behind, and the next run failed with
+"Failed to fetch": check `ss -ltnp` before trusting a red run.
+Learn: an end-to-end test should ask the system what happened (the new order line) instead of assuming which fixture it will pick, and
+a journey spec owns its data (its own product, its own shopper) so it can run in any order, at any hour, any number of times.
+
+### G10.2: grocery jobs and e2e in CI
+The workflow had gone stale in two small ways: the e2e job set a web origin on 5273 (Pawsome's port; the config starts the web on 5274
+and sets the API's origin itself), and it had no Mailpit, so the specs that read mail skipped their assertions in CI while running
+locally. It now starts Mailpit as a service container (SMTP 1026 and HTTP 8026, the same host ports compose maps) and passes
+`SMTP_URL` and `MAILPIT_URL`. `JOBS_SECRET` and `TEST_HOOK_SECRET` need no CI secret: `playwright.config.ts` sets throwaway defaults
+before it starts the API and the workers, and CI overrides nothing. The order is: install, migrate, seed (the slots), build the web
+bundle, install chromium, `pnpm e2e`. `jobs.yml` ran hourly, too slow for the simulated delivery and the hold clean-up: the runner
+claims one run per period per job (a five-minute bucket, an hour, a day), so calling it every 5 minutes (the minimum GitHub cron) is
+safe and runs each job at its own cadence; a public repo's Actions minutes are free. The comment about Render was replaced (we deploy on
+Vercel, which runs nothing in the background).
+Learn: when the scheduler's resolution is coarser than a job's cadence, the job is late by design; pick the trigger from the fastest
+job and let the database claim decide who runs, so one trigger serves them all. Also: a CI file is documentation of the project's
+ports and services, and it rots silently when nothing runs it; re-read it each time a port or a service changes.
+

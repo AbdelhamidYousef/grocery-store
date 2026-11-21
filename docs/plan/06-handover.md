@@ -133,6 +133,15 @@ Written by the build sessions for the owner and the next session. Newest state f
   a replacement carries no deposit; the shipping-method price columns are unused; the e2e suite uses up today's delivery slots when
   run many times in a row (it now looks for the first open slot on any day).
 
+- **G10.1 done** (2026-11-21, G10 in progress): `e2e/grocery-journey.spec.ts` (postcode to final bill, with a refused swap) and
+  `e2e/delivery-edges.spec.ts` (unserved postcode at checkout, express reason). No app bugs found. Gates green: shared 338, web 1,048,
+  API 1,663 + 3 skipped, e2e 86 + 1 skipped. Heavy machine load (load average 30) makes parallel e2e time out in a few specs: they pass on a re-run.
+- **G10.2 done** (2026-11-21): `ci.yml` matches the project (Mailpit service on 1026/8026 for the e2e job, e2e ports and secrets come
+  from `playwright.config.ts`, migrate + seed + preview build + chromium before `pnpm e2e`); `jobs.yml` calls the runner every 5 minutes
+  (`*/5 * * * *`), which serves the five-minute jobs (simulated delivery, slot-hold clean-up) and claims the hourly and daily ones.
+  Not run on Actions (cannot from here); the commands were run locally in the same order. The API now also accepts restricted Stripe
+  test keys (`rk_test_`) next to `sk_test_`; live keys are still refused.
+
   Paid orders are only AUTHORISED until captured: tests that refund or return a paid order capture it first
   (`captureOrder` / `deliveredOrder` in `test/orders.ts`); `simulate` turns "the shopper paid" into the
   authorisation event for a manual-capture order.

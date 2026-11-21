@@ -41,7 +41,7 @@ GitHub Actions (hourly) ──► POST /api/v1/internal/jobs/run
 1. dashboard.stripe.com > sign up (free). Stay in **test mode** (sandbox); no business details are
    needed.
 2. **Developers > API keys**: the publishable key (`pk_test_...`) and the secret key
-   (`sk_test_...`). The API refuses to boot with a live key.
+   (`sk_test_...`, or a restricted `rk_test_...` key, which is safer: no payouts or transfers). The API refuses to boot with a live key.
 3. Webhook endpoint (after step 3 gives you the URL), in the dashboard or with the API:
    URL `https://<vercel-domain>/api/v1/webhooks/stripe`, events `payment_intent.succeeded`,
    `payment_intent.payment_failed`, `payment_intent.canceled`, `charge.refunded`. Keep its signing
@@ -61,7 +61,7 @@ GitHub Actions (hourly) ──► POST /api/v1/internal/jobs/run
    | `DATABASE_URL`                | Neon **pooled** URL                                     |
    | `WEB_ORIGIN`                  | the production URL, e.g. `https://<project>.vercel.app` |
    | `COOKIE_SECRET`               | 32+ random characters                                   |
-   | `STRIPE_SECRET_KEY`           | `sk_test_...`                                           |
+   | `STRIPE_SECRET_KEY`           | `sk_test_...` or `rk_test_...` (restricted)             |
    | `STRIPE_WEBHOOK_SECRET`       | `whsec_...`                                             |
    | `STRIPE_PUBLISHABLE_KEY`      | `pk_test_...`                                           |
    | `VITE_STRIPE_PUBLISHABLE_KEY` | `pk_test_...` (read at build time by the web app)       |
