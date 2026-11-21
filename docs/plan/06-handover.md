@@ -121,6 +121,17 @@ Written by the build sessions for the owner and the next session. Newest state f
   CRUD, items with quantity, `POST /me/lists/:id/add-to-cart` that reports what could not go in), the old wishlist routes and share
   links unchanged (they act on the default list), web Account > Lists and "Add to list" on the product page. A database migrated from
   G8 needs `pnpm db:migrate`.
+- **G9 done** (2026-11-21): basket rules and repeat shopping. Minimum order 15.00, delivery fee by slot (2.99, peak +1.00,
+  express 4.99 never free, outer area +0.50, free slot from 49.00 of goods), bags (0.25 per 8 units or "No bags, use boxes"),
+  bottle deposit per variant, all from the one shared `basketTotals` (cart, checkout, snapshot, emails, authorisation, capture);
+  your usuals (in at least 2 of the last 10 orders, in stock at the store) and "Reorder last basket"; named shopping lists on top of
+  the wishlist ("Saved" is the default list). Migrations 0059 and 0060. The admin order page no longer offers "Mark shipped" for an
+  authorised order (it links to the packer view). `/delivery` states the rules. New e2e spec `basket-rules.spec.ts`; the older specs
+  top baskets up with `reachMinimum` and ship through `shipThroughPacker`. Gates green: shared 338, web 1,048, API 1,663 + 3 skipped,
+  e2e 83 + 1 skipped. A database migrated from G8 needs `pnpm db:migrate && pnpm db:seed`. Not pushed (the lead pushes at the phase
+  end). Open: a returned line does not refund its bottle deposit (a return refunds goods and, when everything comes back, delivery);
+  a replacement carries no deposit; the shipping-method price columns are unused; the e2e suite uses up today's delivery slots when
+  run many times in a row (it now looks for the first open slot on any day).
 
   Paid orders are only AUTHORISED until captured: tests that refund or return a paid order capture it first
   (`captureOrder` / `deliveredOrder` in `test/orders.ts`); `simulate` turns "the shopper paid" into the

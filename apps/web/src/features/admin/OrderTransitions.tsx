@@ -1,5 +1,6 @@
 import type { AdminOrderDetail, OrderStatus } from '@store/shared';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import { Button } from '../../components/ui/Button';
 import { Dialog } from '../../components/ui/Dialog';
@@ -73,8 +74,27 @@ export function OrderTransitions({ detail }: { detail: AdminOrderDetail }) {
     );
   }
 
+  // An order whose card is only authorised is shipped from the packer view, which charges the packed
+  // amount and hands the bag to the rider; the status buttons would skip all that.
+  const viaPacker =
+    detail.order.authorizedCents !== null &&
+    detail.order.capturedCents === null &&
+    (detail.order.status === 'paid' || detail.order.status === 'processing');
+
   return (
     <div className="flex flex-col gap-3" data-testid={TEST_IDS.adminTransition}>
+      {viaPacker && (
+        <p data-testid="admin-via-packer">
+          To ship this order, pack it and hand it to the rider in the{' '}
+          <Link
+            to={`/admin/picking?order=${encodeURIComponent(detail.order.number)}`}
+            className="font-semibold text-primary-strong underline"
+          >
+            packer view
+          </Link>
+          : that charges the card for what was packed.
+        </p>
+      )}
       <FormAlert message={error} />
       <Textarea
         label="Note (optional)"

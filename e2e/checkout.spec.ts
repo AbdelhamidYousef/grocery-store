@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { register, restock, uniqueEmail } from './helpers';
+import { reachMinimum, register, restock, restockFiller, uniqueEmail } from './helpers';
 
 // Two ways to pay, one UI:
 //
@@ -77,6 +77,7 @@ test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(async ({ browser, baseURL }) => {
   await restock(browser, baseURL, [PRODUCT, 'kitchen-sponges-6']);
+  await restockFiller(browser, baseURL);
 });
 const PRODUCT = 'glass-cleaner';
 
@@ -116,7 +117,14 @@ async function driveToPayment(page: Page, email: string | null): Promise<string>
   await expect(page.getByTestId('checkout-summary').getByTestId('order-total')).toContainText(
     'Confirmed at payment',
   );
-  await slots.and(page.locator('[data-status=open]')).first().click();
+  // Today may have no place left (the dev database keeps the bookings of earlier runs, and a slot closes
+  // an hour before it starts): look through the day tabs for the first open one.
+  const open = page.locator('[data-testid=delivery-slot][data-status=open]');
+  const tabs = page.getByRole('tab');
+  for (let i = 0; i < (await tabs.count()) && (await open.count()) === 0; i++) {
+    await tabs.nth(i).click();
+  }
+  await open.first().click();
   await expect(page.getByTestId('delivery-hold')).toContainText(/Held for 1[45]:\d\d/);
   await page.getByTestId('checkout-continue-payment').click();
 
@@ -222,6 +230,8 @@ test.describe('simulated payment (fake gateway + /test/webhooks/simulate)', () =
     page,
   }) => {
     await addToCart(page, 'glass-cleaner');
+    await reachMinimum(page);
+    await page.goto('/cart');
     await payAndVerify(page, uniqueEmail(), {
       slug: 'glass-cleaner',
       name: 'Glass cleaner',
@@ -233,6 +243,7 @@ test.describe('simulated payment (fake gateway + /test/webhooks/simulate)', () =
     await register(page, email);
     await expect(page).toHaveURL(/\/account$/);
     await addToCart(page, 'kitchen-sponges-6');
+    await reachMinimum(page);
 
     await page.goto('/checkout');
     await expect(page.getByTestId('checkout-email')).toHaveValue(email);

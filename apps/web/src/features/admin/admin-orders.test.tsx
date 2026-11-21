@@ -189,6 +189,30 @@ describe('admin order detail', () => {
     expect(screen.queryByRole('button', { name: 'Start processing' })).not.toBeInTheDocument();
   });
 
+  it('points an authorised order to the packer view instead of offering "Mark shipped"', async () => {
+    const base = makeAdminOrderDetail({ allowedNext: ['cancelled'] }, 'processing');
+    serveOrder(
+      makeAdminOrderDetail(
+        { allowedNext: ['cancelled'], order: { ...base.order, authorizedCents: 5000 } },
+        'processing',
+      ),
+    );
+    renderApp(`/admin/orders/${NUMBER}`);
+    const hint = await screen.findByTestId('admin-via-packer');
+    expect(within(hint).getByRole('link', { name: 'packer view' })).toHaveAttribute(
+      'href',
+      `/admin/picking?order=${NUMBER}`,
+    );
+    expect(screen.queryByRole('button', { name: 'Mark shipped' })).not.toBeInTheDocument();
+  });
+
+  it('shows no packer hint for an order that was charged in full at checkout', async () => {
+    serveOrder(makeAdminOrderDetail({ allowedNext: ['shipped', 'cancelled'] }, 'processing'));
+    renderApp(`/admin/orders/${NUMBER}`);
+    expect(await screen.findByRole('button', { name: 'Mark shipped' })).toBeInTheDocument();
+    expect(screen.queryByTestId('admin-via-packer')).not.toBeInTheDocument();
+  });
+
   it('asks for confirmation before a cancel and sends nothing until it is given', async () => {
     let calls = 0;
     serveOrder();

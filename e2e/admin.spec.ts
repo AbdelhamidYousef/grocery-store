@@ -1,6 +1,6 @@
 import { expect, test, type Browser, type Page } from '@playwright/test';
 
-import { ADMIN, api, register, uniqueEmail, pickSlot } from './helpers';
+import { ADMIN, api, pickSlot, register, shipThroughPacker, uniqueEmail } from './helpers';
 
 // The back office, end to end: the guard, stock, product creation, the order lifecycle (with the
 // customer's own view and the shipped email in Mailpit) and the phone layout.
@@ -85,7 +85,7 @@ async function createProduct(
 
 // Fills the cart through the API and starts checkout: the order exists, its units are reserved,
 // nothing is paid yet.
-async function placeOrder(page: Page, email: string, variantId: string, quantity = 1) {
+async function placeOrder(page: Page, email: string, variantId: string, quantity = 2) {
   await page.goto('/');
   const add = await api(page, 'POST', '/cart/items', { variantId, quantity });
   expect(add.status, JSON.stringify(add.body)).toBeLessThan(300);
@@ -322,14 +322,17 @@ test.describe('orders', () => {
     await expect(page.getByTestId('admin-order-status')).toContainText('Paid');
     // No "Mark paid" button: only Stripe can pay an order.
     await expect(page.getByRole('button', { name: 'Mark paid' })).toHaveCount(0);
+    await page.getByLabel('Note (optional)').fill('Packed with care');
     await page.getByRole('button', { name: 'Start processing' }).click();
     await expect(page.getByTestId('admin-order-status')).toContainText('Processing');
-    // The note box is cleared when the move is confirmed; wait for that before typing the next one.
     await expect(
       page.getByTestId('toast').filter({ hasText: 'Order is now processing' }),
     ).toBeVisible();
-    await page.getByLabel('Note (optional)').fill('Packed with care');
-    await page.getByRole('button', { name: 'Mark shipped' }).click();
+    // The card is only authorised: no "Mark shipped" button, a pointer to the packer view instead.
+    await expect(page.getByRole('button', { name: 'Mark shipped' })).toHaveCount(0);
+    await expect(page.getByTestId('admin-via-packer')).toContainText('packer view');
+    await shipThroughPacker(page, orderNumber);
+    await page.reload();
     await expect(page.getByTestId('admin-order-status')).toContainText('Shipped');
     await expect(page.getByTestId('admin-timeline')).toContainText('Packed with care');
 

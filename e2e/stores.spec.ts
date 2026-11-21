@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { restock } from './helpers';
+import { restock, restockFiller } from './helpers';
 
 // Store views, slice 1: the URL prefix. (The switcher and, later, strings and currency extend
 // this file.)
@@ -92,6 +92,7 @@ test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(async ({ browser, baseURL }) => {
   await restock(browser, baseURL, [PRODUCT]);
+  await restockFiller(browser, baseURL);
 });
 
 // Browser-side fetch (the page's own cookies and Origin), with the store view header the web client
@@ -121,6 +122,30 @@ async function api<T>(
     },
     { store, method, path, body, hookSecret: process.env.TEST_HOOK_SECRET ?? '', postcode },
   );
+}
+
+// Since G9 an order needs 15.00 of goods: tops the cart up with glass bin bags (1.49) in this store view.
+async function reachMinimum(page: Page, store: string): Promise<void> {
+  const cart = await api<{ data: { pricing: { bill: { goodsCents: number } } } }>(
+    page,
+    store,
+    'GET',
+    '/cart',
+  );
+  const gap = 1500 - cart.body.data.pricing.bill.goodsCents;
+  if (gap <= 0) return;
+  const product = await api<{ data: { variants: { id: string; priceCents: number }[] } }>(
+    page,
+    store,
+    'GET',
+    '/products/bin-bags-20',
+  );
+  const variant = product.body.data.variants[0]!;
+  const added = await api(page, store, 'POST', '/cart/items', {
+    variantId: variant.id,
+    quantity: Math.ceil(gap / variant.priceCents),
+  });
+  expect(added.status, JSON.stringify(added.body)).toBe(200);
 }
 
 // Since G5 an order needs a delivery time: hold the first open slot of Mitte (10115) through the API.
@@ -168,6 +193,7 @@ async function buyIn(
   await page.goto(`/${store}/products/${PRODUCT}`);
   await page.getByTestId('add-to-cart').click();
   await expect(page.getByTestId('toast')).toBeVisible();
+  await reachMinimum(page, store);
   await pickSlot(page, store);
   const res = await api<{ data: { orderNumber: string } }>(page, store, 'POST', '/checkout', {
     email,

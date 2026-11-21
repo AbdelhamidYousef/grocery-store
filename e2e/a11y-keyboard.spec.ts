@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { api, uniqueEmail } from './helpers';
+import { api, reachMinimum, restockFiller, uniqueEmail } from './helpers';
 
 // The whole purchase with the keyboard as the only input: skip link, add to cart, the cart drawer
 // (focus trapped inside, Escape closes, focus handed back to its button), the checkout steps (focus
@@ -58,8 +58,9 @@ async function hasFocusIndicator(page: Page): Promise<boolean> {
   });
 }
 
-test('buy a product with the keyboard only', async ({ page }) => {
+test('buy a product with the keyboard only', async ({ page, browser, baseURL }) => {
   test.setTimeout(90_000);
+  await restockFiller(browser, baseURL);
   const email = uniqueEmail();
 
   // --- skip link: first Tab stop, jumps past the header ---
@@ -87,6 +88,10 @@ test('buy a product with the keyboard only', async ({ page }) => {
   await expect(page.getByTestId('add-to-cart')).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(page.getByTestId('toast').filter({ hasText: /^Added 1 x/ })).toBeVisible();
+  // The checkout button of the drawer needs the 15.00 minimum order: top the cart up, then reload so the
+  // page shows it (the keyboard path of the add button is what was checked above).
+  await reachMinimum(page);
+  await page.reload();
 
   // --- the cart drawer: a real modal ---
   const cartButton = page.getByTestId('mini-cart-button');
@@ -135,6 +140,13 @@ test('buy a product with the keyboard only', async ({ page }) => {
   // --- shipping step: focus follows to the new step instead of falling onto <body> ---
   await expect(page.getByRole('heading', { name: 'Delivery time', exact: true })).toBeFocused();
   await expect(page.getByTestId('delivery-slot').first()).toBeVisible();
+  // Today can be used up by earlier runs and closes hour by hour: show the first day that has a place
+  // (a pointer click on the tab; the keyboard path below starts from there).
+  const openSlots = page.locator('[data-testid=delivery-slot]:not([disabled])');
+  const dayTabs = page.getByTestId('delivery-day-tab');
+  for (let i = 0; i < (await dayTabs.count()) && (await openSlots.count()) === 0; i++) {
+    await dayTabs.nth(i).click();
+  }
   // An open slot is a button: Tab reaches it, it shows focus, and Enter holds it.
   await tabTo(page, '[data-testid=delivery-slot]:not([disabled])');
   expect(await hasFocusIndicator(page), 'the delivery slot shows focus').toBe(true);

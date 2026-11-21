@@ -42,7 +42,8 @@ async function plainProduct(page: Page) {
           sku,
           name: 'Standard',
           options: {},
-          priceCents: 500,
+          // Two packs plus the bananas reach the 15.00 minimum order on their own.
+          priceCents: 800,
           weightGrams: 500,
           stock: 20,
           isDefault: true,

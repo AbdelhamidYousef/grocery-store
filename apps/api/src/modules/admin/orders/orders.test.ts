@@ -130,7 +130,8 @@ describe('POST /admin/orders/:number/transition', () => {
       actor: 'admin:boss@grocery.test',
       note: 'Packing now',
     });
-    expect(data.allowedNext).toEqual(['shipped', 'cancelled']);
+    // An authorised (manual capture) order ships through the packer view: no "shipped" button.
+    expect(data.allowedNext).toEqual(['cancelled']);
   });
 
   it('refuses "shipped" for an authorised (manual capture) order and points to the packer view', async () => {

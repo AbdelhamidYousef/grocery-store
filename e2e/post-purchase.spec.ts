@@ -1,6 +1,6 @@
 import { expect, test, type Browser, type Page } from '@playwright/test';
 
-import { ADMIN, api, register, uniqueEmail, pickSlot } from './helpers';
+import { ADMIN, api, pickSlot, register, shipThroughPacker, uniqueEmail } from './helpers';
 
 // After the sale, end to end: a delivered order is returned, approved, received (stock back) and
 // refunded (simulated payment gateway, NODE_ENV=test), and the analytics page shows non-zero figures.
@@ -132,12 +132,12 @@ test('a delivered order is returned, approved, received, refunded and restocked'
   await expect(buyer.getByRole('button', { name: 'Return items' })).toHaveCount(0);
 
   // Packing takes the money (the card was only held until now): a return refunds what was taken.
-  const captured = await api(admin.page, 'POST', `/admin/orders/${number}/capture`, {});
-  expect(captured.status, JSON.stringify(captured.body)).toBe(200);
-  for (const to of ['processing', 'shipped', 'delivered']) {
-    const moved = await api(admin.page, 'POST', `/admin/orders/${number}/transition`, { to });
-    expect(moved.status, JSON.stringify(moved.body)).toBe(200);
-  }
+  // The bag goes through the packer (found, packed, handed to the rider = captured and shipped).
+  await shipThroughPacker(admin.page, number);
+  const delivered = await api(admin.page, 'POST', `/admin/orders/${number}/transition`, {
+    to: 'delivered',
+  });
+  expect(delivered.status, JSON.stringify(delivered.body)).toBe(200);
 
   // The customer asks to return both units.
   await buyer.reload();

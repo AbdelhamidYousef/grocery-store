@@ -1,6 +1,15 @@
 import { expect, test, type Browser, type Page } from '@playwright/test';
 
-import { ADMIN, api, register, restock, uniqueEmail, pickSlot } from './helpers';
+import {
+  ADMIN,
+  api,
+  pickSlot,
+  reachMinimum,
+  register,
+  restock,
+  restockFiller,
+  uniqueEmail,
+} from './helpers';
 
 // Phase G6, end to end on the simulated gateway (NODE_ENV=test API, fake Stripe): a short-dated pack
 // and a loose-by-weight item are bought, the card is only HELD ("up to X"), the admin captures the
@@ -86,6 +95,7 @@ test('buy a weighed item and a short-dated pack: held at checkout, captured afte
   baseURL,
 }) => {
   await restock(browser, baseURL, ['bananas']);
+  await restockFiller(browser, baseURL);
   const admin = await adminSession(browser);
   const yoghurt = await shortDatedProduct(admin.page);
 
@@ -108,6 +118,8 @@ test('buy a weighed item and a short-dated pack: held at checkout, captured afte
   await expect(shop.getByTestId('weight-line')).toContainText('about 500 g');
   await expect(shop.getByTestId('weight-line')).toContainText('/kg');
   await shop.getByTestId('add-to-cart').click();
+  await expect(shop.getByTestId('toast').first()).toBeVisible();
+  await reachMinimum(shop); // the 15.00 minimum order
 
   // The cart marks both and promises the hold.
   await shop.goto('/cart');

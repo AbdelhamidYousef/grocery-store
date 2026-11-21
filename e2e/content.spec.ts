@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { api, restock, uniqueEmail, pickSlot } from './helpers';
+import { api, pickSlot, reachMinimum, restock, restockFiller, uniqueEmail } from './helpers';
 
 // Phase 20 (content and trust), end to end: homepage hero and sections, guides, help centre, order tracking,
 // withdrawal and the cookie notice. Guides and help articles come from the seeded database.
@@ -24,6 +24,7 @@ const NOT_FOUND = 'We could not find an order with that number and email.';
 // Every run buys two; without a restock the dev database runs dry after enough runs.
 test.beforeAll(async ({ browser, baseURL }) => {
   await restock(browser, baseURL, [PRODUCT]);
+  await restockFiller(browser, baseURL);
 });
 
 // Buys one item and returns the paid order's number and the email it was placed with. Skips the
@@ -33,6 +34,7 @@ async function paidOrder(page: Page): Promise<{ orderNumber: string; email: stri
   await page.goto(`/products/${PRODUCT}`);
   await page.getByTestId('add-to-cart').click();
   await expect(page.getByTestId('toast').filter({ hasText: /^Added 1 x/ })).toBeVisible();
+  await reachMinimum(page);
 
   await pickSlot(page);
   const placed = await api<{ data: { orderNumber: string } }>(page, 'POST', '/checkout', {

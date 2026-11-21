@@ -124,3 +124,85 @@ export async function restock(
     await context.close();
   }
 }
+
+// Since G9 a basket under 15.00 of goods cannot be placed. Tops the page's cart up with `slug` (a plain,
+// well-stocked pack that no spec counts stock of: bin bags at 1.49 by default) until the goods reach the minimum. Call it AFTER
+// the spec's own lines are in the cart and BEFORE anything reads the cart's totals or places the order.
+// `targetCents` is a higher goal for a basket a discount will cut (a 10 % code needs 16.67 to stay at 15.00).
+export async function reachMinimum(
+  page: Page,
+  slug = 'bin-bags-20',
+  postcode?: string,
+  targetCents = 1500,
+): Promise<void> {
+  const headers: Record<string, string> = postcode ? { 'X-Postcode': postcode } : {};
+  const product = await api<{ data: { variants: { id: string; priceCents: number }[] } }>(
+    page,
+    'GET',
+    `/products/${slug}`,
+    undefined,
+    headers,
+  );
+  const variant = product.body.data.variants[0]!;
+  // A signed-in shopper may pay a member price below the list price, so the gap is measured on the
+  // cart's own bill after each top-up (twice is enough: the member discount is about 10 %).
+  for (let round = 0; round < 4; round++) {
+    const cart = await api<{ data: { pricing: { bill: { goodsCents: number } } } }>(
+      page,
+      'GET',
+      '/cart',
+      undefined,
+      headers,
+    );
+    const gap = targetCents - cart.body.data.pricing.bill.goodsCents;
+    if (gap <= 0) return;
+    const added = await api(
+      page,
+      'POST',
+      '/cart/items',
+      { variantId: variant.id, quantity: Math.ceil(gap / variant.priceCents) },
+      headers,
+    );
+    expect(added.status, JSON.stringify(added.body)).toBe(200);
+  }
+  throw new Error(`the cart did not reach ${targetCents} of goods`);
+}
+
+// Ships a paid order the way the shop does: every line found, the bag packed, the bag handed to the
+// rider (which captures the card). The admin's status button does not offer "shipped" for an order whose
+// card is only authorised. Lines sold by weight need grams: pass them by order item product name.
+export async function shipThroughPacker(
+  admin: Page,
+  orderNumber: string,
+  grams: Record<string, number> = {},
+): Promise<void> {
+  const detail = await api<{
+    data: {
+      order: { items: { id: string; productName: string; pricePerKgCents: number | null }[] };
+    };
+  }>(admin, 'GET', `/admin/orders/${orderNumber}`);
+  for (const item of detail.body.data.order.items) {
+    const body =
+      item.pricePerKgCents === null
+        ? { action: 'found' }
+        : { action: 'weigh', grams: grams[item.productName] ?? 500 };
+    const picked = await api(
+      admin,
+      'POST',
+      `/admin/orders/${orderNumber}/items/${item.id}/pick`,
+      body,
+    );
+    expect(picked.status, JSON.stringify(picked.body)).toBe(200);
+  }
+  const packed = await api(admin, 'POST', `/admin/orders/${orderNumber}/pack`);
+  expect(packed.status, JSON.stringify(packed.body)).toBe(200);
+  const dispatched = await api(admin, 'POST', `/admin/orders/${orderNumber}/dispatch`);
+  expect(dispatched.status, JSON.stringify(dispatched.body)).toBe(200);
+}
+
+// The filler of `reachMinimum` is used by many specs at once, each adding about ten packs: give it a shelf
+// big enough that two specs never take the last packs from each other (a cart line is clamped to the
+// stock when it is read, which would silently shrink the basket under the minimum).
+export async function restockFiller(browser: Browser, baseURL: string | undefined): Promise<void> {
+  await restock(browser, baseURL, ['bin-bags-20'], 2000);
+}

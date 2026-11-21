@@ -81,7 +81,13 @@ test('a slot with no place left is disabled in the picker, and the picked slot i
     // An open slot of the first day can be picked: the hold countdown shows and payment unlocks.
     await page.getByTestId('delivery-day-tab').first().click();
     await expect(page.getByTestId('checkout-continue-payment')).toBeDisabled();
-    await page.locator('[data-testid=delivery-slot][data-status=open]').first().click();
+    // (Today can be used up by earlier runs and closes hour by hour: go on to the first day with a place.)
+    const open = page.locator('[data-testid=delivery-slot][data-status=open]');
+    const dayTabs = page.getByTestId('delivery-day-tab');
+    for (let i = 0; i < (await dayTabs.count()) && (await open.count()) === 0; i++) {
+      await dayTabs.nth(i).click();
+    }
+    await open.first().click();
     await expect(page.getByTestId('delivery-hold')).toContainText(/Held for 1[45]:\d\d/);
     await expect(page.getByTestId('checkout-continue-payment')).toBeEnabled();
     // The server says the same: the cart carries a held slot.

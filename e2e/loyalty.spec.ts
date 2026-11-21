@@ -1,6 +1,15 @@
 import { expect, test, type Browser, type Page } from '@playwright/test';
 
-import { ADMIN, api, register, restock, uniqueEmail, pickSlot } from './helpers';
+import {
+  ADMIN,
+  api,
+  pickSlot,
+  reachMinimum,
+  register,
+  restock,
+  restockFiller,
+  uniqueEmail,
+} from './helpers';
 
 // Phase 19 (loyalty and retention), end to end, on the simulated gateway (NODE_ENV=test API with
 // /test/webhooks/simulate):
@@ -77,6 +86,7 @@ test.beforeAll(async ({ browser, baseURL }) => {
     'laundry-liquid-1-5l',
     'dishwasher-tabs-30',
   ]);
+  await restockFiller(browser, baseURL);
 });
 
 async function addToCart(page: Page, slug: string): Promise<void> {
@@ -171,6 +181,7 @@ test('newsletter: confirm from the inbox, get the welcome code, use it once', as
 
   // First order: the code takes 10% off.
   await addToCart(page, 'fabric-softener-1l');
+  await reachMinimum(page, undefined, undefined, 2000); // 10 % off must still leave 15.00 of goods
   await page.goto('/cart');
   await page.getByLabel('Discount code').fill(code!);
   await page.getByRole('button', { name: 'Apply' }).click();
@@ -201,6 +212,7 @@ test('points: a paid order earns them, the next order spends some and rounds up'
 
   // The cart promises N points; the same number lands in the ledger once the order is paid.
   await addToCart(page, 'laundry-liquid-1-5l');
+  await reachMinimum(page); // the 15.00 minimum order
   await page.goto('/cart');
   const promise = (await page.getByTestId('earn-points').first().textContent()) ?? '';
   const earned = Number(promise.match(/Earn (\d+) point/)?.[1]);
@@ -214,6 +226,7 @@ test('points: a paid order earns them, the next order spends some and rounds up'
 
   // Next order: the shipping step offers the points box and the round-up checkbox.
   await addToCart(page, 'dishwasher-tabs-30');
+  await reachMinimum(page);
   await page.goto('/checkout');
   await page.getByTestId('checkout-email').fill(email);
   await page.getByLabel('Full name').fill(ADDRESS.fullName);

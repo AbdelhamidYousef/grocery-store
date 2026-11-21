@@ -844,4 +844,38 @@ Learn: when a feature is "the same thing, several of them", look for the unique 
 `unique(user_id)`. Replace it with a partial index for the special row (the default) instead of a new table, and the defaults of the
 new columns do the data migration. And a number input that saves needs a commit moment (Enter, blur), never a request per keystroke.
 
-### Quiz: Phase G9 (placeholder, completed at G9.4)
+### G9.4: phase end (admin button, e2e)
+Two things the e2e exposed. First, the admin order screen offered "Mark shipped" for an order whose card is only authorised, and
+the API (since the G9 fix commit) answers 409: a button that can only fail is a bug. `getOrderDetail` now leaves `shipped` out of
+`allowedNext` when the order carries an authorisation (`authorizedCents` not null), and the page says "To ship this order, pack it and
+hand it to the rider in the packer view" with a link to `/admin/picking?order=<number>` while it is paid or processing and nothing is
+captured; an old order charged in full keeps the button. Second, 14 of the 80 older e2e specs bought baskets under 15.00 or
+shipped by hand. They now top the basket up through one helper (`reachMinimum`: a plain pack no spec counts stock of, `bin-bags-20`, on
+a shelf of 2000 raised once per spec; it measures the gap on the cart's own bill because a signed-in shopper pays member prices) and
+ship through the packer (`shipThroughPacker`: found, packed, handed to the rider, which captures). New spec `basket-rules.spec.ts`: the
+cart under the minimum says "Add 12.02 more", the checkout button is off and the server answers 422 `BELOW_MINIMUM_ORDER` with the
+same number, and the way opens at 15.00; the deposit and bag lines, free delivery from 49.00 and "No bags, use boxes" persisting
+across a reload; a named list created in the account, filled, put in the basket with the sold-out line reported.
+Surprise: running the whole suite four times in an hour used up TODAY's delivery slots in the dev database (8 places each, held
+and booked by earlier runs), and the UI specs that click the first open slot of the first tab started to fail in the evening. They now
+look through the day tabs for the first open slot. The first fix of the filler (glass cleaner) had also made two specs fight over its
+stock arithmetic; a dedicated filler product and a big shelf ended that.
+Learn: a rule that blocks an action (a minimum, a fee) must be added to the test tooling at the same time as to the product: a helper
+in each layer (API test shopper, e2e `reachMinimum`) and a list of every spec that now needs it. And an e2e spec that assumes "the first
+open slot is today" is a spec about the clock: ask for the first open slot wherever it is.
+
+### Quiz: Phase G9
+1. A basket has 14.00 of goods, 8 returnable bottles (0.25 deposit each) and a discount code of 10 % that would be valid from 12.00.
+   Say what the bill shows, which of its parts count towards the 15.00 minimum, the 49.00 free-delivery threshold and the discount,
+   and what the server answers when this basket is checked out. Then say what changes with 1.00 more of goods and what with a second
+   bottle.
+2. The checkout authorises the card for a basket with 2 bags, a 2.99 slot, 1.50 of deposit and 30.00 of goods, of which 8.00 are
+   loose fruit. Work out what is authorised and why exactly that much; then the packer finds 1 of 3 bottles (0.50 each, 0.25
+   deposit) and the fruit weighs 10 % more than estimated: what does `finalAmountCents` charge, which part can never exceed the hold,
+   and which lines of the bill never shrink when something is missing?
+3. "Your usuals" is built from the last 10 orders. A shopper has 11 paid orders; milk is in orders 1 and 11, bread in 4 and 7, jam in
+   7 only. List the usuals and their order, say what happens when the bread is sold out at the shopper's store, and why the list
+   counts orders and not quantities.
+4. The wishlist became the default list "Saved" without rewriting any row. Which two column defaults did the migration rely on, which
+   unique constraint had to change and into what, and what would break if the old `/wishlist` routes still looked a user's list up
+   by `user_id` alone?

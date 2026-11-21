@@ -95,7 +95,11 @@ export async function getOrderDetail(number: string): Promise<AdminOrderDetail> 
       at: h.createdAt.toISOString(),
     })),
     promotions: promotions.map((p) => ({ type: p.type, label: p.label, cents: p.cents })),
-    allowedNext: [...requestableNext(order.status)],
+    // A card that is only authorised ships through the packer view (pack, capture, hand to the rider):
+    // "shipped" by hand would skip the capture, so the button is not offered (the transition refuses it too).
+    allowedNext: requestableNext(order.status).filter(
+      (to) => !(to === 'shipped' && order.authorizedCents !== null),
+    ),
   };
 }
 
