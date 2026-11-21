@@ -150,6 +150,12 @@ Written by the build sessions for the owner and the next session. Newest state f
   Frankfurt, Pawsome's Stripe sandbox with a restricted key and its own webhook, GitHub variable `API_URL` and secret `JOBS_SECRET`).
   Smoke test passed on 2026-11-21 (order GR-2026-000132 on card 4242, authorised, webhook arrived, confirmed). Emails are skipped on
   the demo (no `RESEND_API_KEY`). `docs/DEPLOYMENT.md` describes the setup. Every push to `main` redeploys.
+- **G11 done** (2026-11-21): QA sweep at 1280 and 375 px in both languages; fixed the German product page (reviews and
+  recommendations answered 404 under the translated slug), the confirmation wording (payment is secured, final amount at packing),
+  the Berlin-only wording everywhere (checkout hint, help, shipping page, labels, emails) and exclamation marks in system text.
+  README case study with Mermaid diagrams and live screenshots, `CREDITS.md` complete. Gates green: shared 338, web 1,048, API 1,665
+  + 3 skipped, e2e 86 + 1 skipped (under heavy machine load one journey spec timed out once and passed on re-run). **Project
+  complete** apart from the items below. Not pushed (the lead pushes; every push redeploys).
 - **Open follow-ups** (small, not blocking):
   - (Closed before G9.1) The admin status button refuses "shipped" for a manual-capture order and points to the packer view; admin variant forms create and edit weighed variants (price per kg and nominal grams; the unit price is derived).
   - The admin "Capture now" and the overdue job stay as a safety net beside dispatch (which captures with the packed grams).
@@ -160,4 +166,8 @@ Written by the build sessions for the owner and the next session. Newest state f
 
 ## Waiting on you
 
-- Nothing yet.
+- Run `pnpm db:seed` against Neon (direct URL, through the shell) once after the push: the live help centre still shows the old
+  parcel answers until then (the seed also drops the two retired articles).
+- Optional: a `RESEND_API_KEY` if you want real emails on the demo; a real Lighthouse run on the live site (no tool for it here).
+- Open follow-ups: German product pages show origin and "good for" tags in English (free text in the catalogue); help articles and
+  legal pages are English only; the `Default billing` and "Paid" order badge wording is still Pawsome's.

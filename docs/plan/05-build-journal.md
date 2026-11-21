@@ -946,3 +946,49 @@ there. Also: a restricted key is the safer default, so the code should accept ev
    turns off, and why the database, not the function's memory, has to hold the answer to "did this job already run this hour?".
 4. The journey spec places the order through the API and pays through the simulated webhook, while the live smoke test used card 4242.
    Say what each one proves that the other cannot.
+
+## Phase G11: polish and README
+
+### G11.1: QA sweep
+Pages measured with the browser tools at 1280 and 375 px, English and German (home, department, product with a weighed and a short-dated
+item, cart, the delivery page, the legal and help pages), counting for each: the document width against the viewport, sections far taller
+than the screen, words over 28 characters, images without alt, controls without a label or a name, headings, and repeated cards (29
+cards on a department page, 302 to 340 px tall). No page is wider than its viewport, no section is taller than about two screens, and
+no label breaks its box. The repo has no axe helper and the browser tools cannot load a script from a CDN, so the accessibility
+check was the structural one above plus the e2e roles; a real Lighthouse run is left open.
+Found and fixed, one commit per group:
+- `fix(api)`: on the German product page the reviews and recommendations answered 404, because the page asks for them with the
+  translated slug (`erdbeeren`) and only the product route resolved it. The reviews, recommendations and substitutes routes now resolve
+  it too, with a test. This was invisible to every English test and to the e2e (both use English slugs).
+- `fix(copy)`: the confirmation said "your order is paid!" for money that is only held, and the checkout hint said "We ship inside
+  Europe". The confirmation now says "Thank you. Your payment is secured." and that the final amount is taken when the bag is packed
+  (EN, DE); the hint says "We deliver in Berlin only" with a link to the delivery page. A search of the web app, the emails, the help
+  articles and the legal pages found more parcel-era text: the shipping page (4.90 EUR, 3 to 5 working days, "the checkout lists the
+  countries"), three help answers, "Shipping method", "Shipped", "Versandart", "only ship" on the delivery page, "your parcel arrived" in a return
+  mail, and a handful of exclamation marks in confirmations and emails. All rewritten from the real rules (slot 2.99, peak +1.00, free
+  from 49.00, express 4.99, Neukölln +0.50, minimum 15.00). The seed now drops the two help articles whose slug changed, so a re-seed
+  does not leave the old answers beside the new ones (test). A slot-picker test that failed after 17:00 (its fixture is relative to the
+  clock) now counts the open slots from the same data.
+Left open (small): German product pages show the origin country and the "good for" tags in English ("Spain", "Breakfast"), because
+those are free text in the catalogue; the help articles and legal pages exist in English only; the live help centre needs
+`pnpm db:seed` against Neon to show the new answers (a push does not seed).
+Learn: a copied project keeps its old wording in places no search for the old brand name finds (a price in a help article, a "parcel"
+in a mail); search for the old business model's words (ship, parcel, working days, countries), not only for its name. And test the
+second language through the real URL, not only through the labels: a translated slug is a different route.
+
+### G11.2: README and case study
+`README.md` is now a case study: the live link and the test card, six real screenshots from the live demo (the nine old ones were
+Pawsome's and are gone), the five logistics questions each with its decision and a Mermaid diagram (postcode to area to store, slot
+hold lifecycle, authorise to capture, FEFO batches), the decisions with their costs, the stack, what was reused from Pawsome, tests and
+local setup. `CREDITS.md` did not exist yet although the G3 journal promised it: it now lists the brand, the generated photos
+(all 120 with their grid and quadrant, from `image-grids.json`), fonts, software and services.
+
+### Quiz: Phase G11
+1. The German product page showed "The reviews could not be loaded" while the English one worked. Say which request failed, why the
+   English tests could not see it, and what the fix resolves before it touches the database.
+2. The confirmation used to say the order was paid. With manual capture, say what has really happened to the money when the shopper
+   sees the page, which webhook event put the order there, and when the final amount is taken.
+3. A search for "Pawsome" in the web app found nothing, yet a shopper could still read "3 to 5 working days". Name two other words
+   you would search for in a copied project, and why the brand name is the weakest search term.
+4. The README says holds "expire by themselves" and that jobs run every 5 minutes. Explain, for a reader who has not seen the code,
+   why a job that runs late cannot over-book a slot.
