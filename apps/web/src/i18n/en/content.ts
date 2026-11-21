@@ -116,7 +116,7 @@ export const content = {
   'content.dev.try2Before': 'Open',
   'content.dev.try2After': ', set it to Enabled and relaunch.',
   'content.dev.try3':
-    "Open this store and ask the browser's agent to find a toy and add it to the cart.",
+    "Open this store and ask the browser's agent to find milk and add it to the cart.",
   'content.dev.tryNote':
     'The flag name and the API are still changing; this was last checked in November 2026. Browser-agent testing is manual: the automated tests use a stand-in for the browser API.',
   'content.dev.toolsTitle': 'The {count} tools',

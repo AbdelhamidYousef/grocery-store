@@ -3,7 +3,7 @@ import type { Entry } from '../types';
 
 export const search: Record<keyof typeof enNs, Entry> = {
   'search.label': 'Produkte suchen',
-  'search.placeholder': 'Spielzeug, Betten, Leckerlis suchen ...',
+  'search.placeholder': 'Milch, Brot, Äpfel suchen ...',
   'search.submit': 'Suchen',
   'search.cancel': 'Abbrechen',
   'search.suggestions': 'Suchvorschläge',

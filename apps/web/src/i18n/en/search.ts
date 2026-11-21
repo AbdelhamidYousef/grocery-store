@@ -2,7 +2,7 @@ import type { Dictionary } from '../types';
 
 export const search = {
   'search.label': 'Search products',
-  'search.placeholder': 'Search toys, beds, treats...',
+  'search.placeholder': 'Search milk, bread, apples...',
   'search.submit': 'Search',
   'search.cancel': 'Cancel',
   'search.suggestions': 'Search suggestions',

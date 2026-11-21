@@ -131,7 +131,7 @@ export const searchCatalog = defineTool({
     'Search the Grocery catalogue. Returns compact product cards (id, slug, name, ' +
     'price range in cents, in-stock flag). Use get_product for variants and their ids.',
   inputSchema: z.object({
-    query: z.string().trim().max(100).optional().describe('Free-text search, e.g. "rope toy".'),
+    query: z.string().trim().max(100).optional().describe('Free-text search, e.g. "milk".'),
     category: z.string().trim().max(80).optional().describe('Category slug, e.g. "cheese".'),
     brand: z.string().trim().max(80).optional().describe('Brand slug.'),
     maxPriceCents: z.number().int().min(0).optional().describe('Upper price bound in cents.'),

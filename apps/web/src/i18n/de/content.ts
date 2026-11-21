@@ -119,7 +119,7 @@ export const content: Record<keyof typeof enNs, Entry> = {
   'content.dev.try2Before': 'Öffne',
   'content.dev.try2After': ', stell es auf „Enabled“ und starte den Browser neu.',
   'content.dev.try3':
-    'Öffne diesen Shop und bitte den Agenten deines Browsers, ein Spielzeug zu finden und in den Warenkorb zu legen.',
+    'Öffne diesen Shop und bitte den Agenten deines Browsers, Milch zu finden und in den Warenkorb zu legen.',
   'content.dev.tryNote':
     'Der Name des Flags und die API ändern sich noch; zuletzt geprüft im November 2026. Tests mit Browser-Agenten erfolgen manuell: Die automatisierten Tests verwenden einen Platzhalter für die Browser-API.',
   'content.dev.toolsTitle': 'Die {count} Tools',

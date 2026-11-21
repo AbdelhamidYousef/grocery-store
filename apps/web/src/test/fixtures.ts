@@ -116,7 +116,7 @@ export function makeCategory(overrides: Partial<CategoryNode> = {}): CategoryNod
     id: 'c1',
     slug: 'dairy-eggs',
     name: 'Dairy & eggs',
-    description: 'Toys, beds, treats and walkies gear for dairy-eggs of every size.',
+    description: 'Milk, cheese, yoghurt and eggs.',
     parentId: null,
     sortOrder: 0,
     departmentSlug: 'dairy-eggs',

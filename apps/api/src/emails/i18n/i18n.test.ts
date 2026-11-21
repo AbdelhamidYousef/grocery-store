@@ -40,7 +40,7 @@ const order = {
   items: [
     {
       id: 'i1',
-      productName: 'Rope toy',
+      productName: 'Oat milk',
       variantName: 'Red',
       sku: 'PW-1',
       imageUrl: null,

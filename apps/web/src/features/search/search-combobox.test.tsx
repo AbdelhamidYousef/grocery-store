@@ -224,13 +224,13 @@ describe('recent searches', () => {
   });
 
   it('opens a recent search as a search page', async () => {
-    addRecentSearch('rope toy');
+    addRecentSearch('whole milk');
     const router = renderApp('/');
     await userEvent.click(box());
     await userEvent.click(
-      await within(await screen.findByRole('listbox')).findByRole('option', { name: /rope toy/ }),
+      await within(await screen.findByRole('listbox')).findByRole('option', { name: /whole milk/ }),
     );
-    await waitFor(() => expect(router.state.location.search).toBe('?q=rope%20toy'));
+    await waitFor(() => expect(router.state.location.search).toBe('?q=whole%20milk'));
   });
 
   it('still works when storage throws', async () => {

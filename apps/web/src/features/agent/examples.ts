@@ -10,35 +10,35 @@ const money = (cents: number, formatted: string) => ({ cents, formatted, currenc
 
 export const TOOL_EXAMPLES: Record<string, ToolExample> = {
   search_catalog: {
-    input: { query: 'rope toy', maxPriceCents: 2000, limit: 3 },
+    input: { query: 'milk', maxPriceCents: 300, limit: 3 },
     output: {
       total: 1,
       products: [
         {
           id: 'a1b2…',
-          slug: 'rope-tug',
-          name: 'Rope Tug',
-          brand: null,
-          category: 'cheese',
-          priceFrom: money(1099, '€10.99'),
-          priceTo: money(1899, '€18.99'),
+          slug: 'whole-milk-1l',
+          name: 'Whole milk, 1 l',
+          brand: 'Meadowbrook Dairy',
+          category: 'milk-cream',
+          priceFrom: money(129, '€1.29'),
+          priceTo: money(129, '€1.29'),
           inStock: true,
-          url: '/products/rope-tug',
+          url: '/products/whole-milk-1l',
         },
       ],
     },
   },
   get_product: {
-    input: { slug: 'rope-tug' },
+    input: { slug: 'whole-milk-1l' },
     output: {
-      slug: 'rope-tug',
-      name: 'Rope Tug',
+      slug: 'whole-milk-1l',
+      name: 'Whole milk, 1 l',
       inStock: true,
       variants: [
         {
           variantId: '2f6d3a52-5b2c-4d57-9a41-0d6f1f0f7a10',
-          name: 'Red · Small',
-          price: money(1099, '€10.99'),
+          name: '1 l',
+          price: money(129, '€1.29'),
           available: true,
         },
       ],
@@ -48,14 +48,16 @@ export const TOOL_EXAMPLES: Record<string, ToolExample> = {
     input: { variantId: '2f6d3a52-5b2c-4d57-9a41-0d6f1f0f7a10', quantity: 2 },
     output: {
       itemCount: 2,
-      lines: [{ itemId: 'l1', product: 'Rope Tug', quantity: 2, lineTotal: money(2198, '€21.98') }],
-      total: money(2198, '€21.98'),
+      lines: [
+        { itemId: 'l1', product: 'Whole milk, 1 l', quantity: 2, lineTotal: money(258, '€2.58') },
+      ],
+      total: money(258, '€2.58'),
       nextStep: 'Ask the shopper to review the cart at /cart and pay themselves.',
     },
   },
   get_cart: {
     input: {},
-    output: { itemCount: 2, lines: ['…'], total: money(2198, '€21.98') },
+    output: { itemCount: 2, lines: ['…'], total: money(258, '€2.58') },
   },
   update_cart_lines: {
     input: { lines: [{ itemId: 'l1', quantity: 0 }] },
