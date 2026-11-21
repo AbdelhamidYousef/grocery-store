@@ -28,9 +28,12 @@ Written by the build sessions for the owner and the next session. Newest state f
 - **G4 in progress** (2026-11-21): G4.1 done (order numbers `GR-`, review size field dropped; migration
   0046); G4.2 done (areas, dark stores, postcodes, `X-Postcode` delivery context; migration 0047,
   `/api/v1/delivery/*`); G4.3 done (stock per dark store: migration 0048, reservations at the delivery
-  address's store, admin stock editor per store). The web does not send `X-Postcode` yet (G4.4), so the
-  shop shows Mitte; checkout now needs a served Berlin postcode (422 otherwise). A database migrated
-  from G3 needs `pnpm db:reset` to get varied shelves. Next G4.4 web postcode gate. Not pushed.
+  address's store, admin stock editor per store). G4.4 done (web postcode gate: `DeliveryProvider`,
+  `X-Postcode` on every call, header chip + dialog, hero result, `/delivery` page, store-aware "Sold out
+  at ...", checkout postcode check; EN + DE). Checkout needs a served Berlin postcode (422 otherwise). A
+  database migrated from G3 needs `pnpm db:reset` to get varied shelves. Gates green after G4.4: shared
+  282, web 950, API 1,416 + 2 skipped. e2e not run yet: the specs still use old postcodes, G4.5 ports
+  them and adds the new spec. Next G4.5 (phase end, lead). Not pushed.
 - **Open follow-ups** (small, not blocking):
   - e2e "back in stock" missed its mail once under full-suite load (passed on re-run).
 

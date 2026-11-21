@@ -1,16 +1,20 @@
 import type { ShippingQuote, User, Address } from '@store/shared';
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
 import type { WebCart } from '../../api/cart';
 import type { PlacedOrder } from '../../api/checkout';
 import { ApiError } from '../../api/client';
+import { fetchDeliveryAreas, fetchPostcode } from '../../api/delivery';
 import { Checkbox } from '../../components/ui/Checkbox';
 import { useT, type TFunction } from '../../i18n';
+import { keys } from '../../lib/query-client';
 import { paymentsConfigured } from '../../lib/stripe';
 import { TEST_IDS } from '../../lib/test-ids';
 import { track } from '../../lib/track';
 import { useCreateAddress } from '../account/queries';
 import { formErrorMessage } from '../auth/form-errors';
+import { useDelivery } from '../delivery/DeliveryContext';
 import { PointsRedeem } from '../loyalty/PointsRedeem';
 import { useStore } from '../stores/StoreContext';
 
@@ -74,6 +78,9 @@ export function CheckoutFlow({
   const i18n = useT();
   const { t } = i18n;
   const { shipCountries } = useStore();
+  const queryClient = useQueryClient();
+  const delivery = useDelivery();
+  const [postcodeError, setPostcodeError] = useState<string | null>(null);
   const [step, setStep] = useState<Step>(1);
   const [details, setDetails] = useState<Details | null>(null);
   const [shippingCode, setShippingCode] = useState<string | null>(null);
@@ -97,6 +104,42 @@ export function CheckoutFlow({
     setError(null);
     setCodeError(null);
     setPointsError(null);
+  };
+
+  // The bag is packed at the store of the ADDRESS postcode, so an address we do not deliver to stops
+  // here, on the postcode field, before shipping and payment (the API refuses it too).
+  const notServedMessage = async (postcode: string, areaNames?: string[]) => {
+    const names =
+      areaNames ??
+      (
+        await queryClient.fetchQuery({
+          queryKey: keys.delivery.areas,
+          queryFn: () => fetchDeliveryAreas(),
+          staleTime: 60 * 60_000,
+        })
+      ).map((a) => a.name);
+    return t('delivery.checkout.notServed', { postcode, areas: names.join(', ') });
+  };
+
+  const submitDetails = async (values: Details) => {
+    setPostcodeError(null);
+    const postcode = values.shippingAddress.postalCode.trim();
+    try {
+      const found = await fetchPostcode(postcode);
+      if (!found.served) {
+        setPostcodeError(await notServedMessage(postcode));
+        return;
+      }
+    } catch (e) {
+      // A malformed postcode is a 400 from the lookup: also "not somewhere we deliver". Any other
+      // failure (network) is let through: the API checks the address again when the order is placed.
+      if (e instanceof ApiError && e.status === 400) {
+        setPostcodeError(await notServedMessage(postcode));
+        return;
+      }
+    }
+    setDetails(values);
+    goTo(2);
   };
 
   const continueToPayment = (quote: ShippingQuote) => {
@@ -140,6 +183,15 @@ export function CheckoutFlow({
           }
         },
         onError: (e) => {
+          if (e instanceof ApiError && e.code === 'POSTCODE_NOT_SERVED') {
+            // Back to the address, with the sentence on the postcode field.
+            const d = e.details as { postcode?: string; areas?: string[] } | undefined;
+            goTo(1);
+            void notServedMessage(d?.postcode ?? details.shippingAddress.postalCode, d?.areas).then(
+              setPostcodeError,
+            );
+            return;
+          }
           setError(placeErrorMessage(e, i18n));
           setCodeError(codeProblem(e, i18n.tm));
           setPointsError(pointsProblem(e, i18n.tm));
@@ -172,14 +224,16 @@ export function CheckoutFlow({
           }
         >
           <DetailsStep
-            defaults={details ? toInput(details) : detailsDefaults(user, addresses, shipCountries)}
+            defaults={
+              details
+                ? toInput(details)
+                : detailsDefaults(user, addresses, shipCountries, delivery.postcode)
+            }
+            postcodeError={postcodeError}
             signedIn={user !== null}
             saveAddress={saveAddress}
             onSaveAddressChange={setSaveAddress}
-            onSubmit={(values) => {
-              setDetails(values);
-              goTo(2);
-            }}
+            onSubmit={submitDetails}
           />
         </StepCard>
 

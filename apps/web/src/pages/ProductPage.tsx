@@ -28,6 +28,7 @@ import { RelatedStrip } from '../features/catalog/pdp/RelatedStrip';
 import { useProduct } from '../features/catalog/queries';
 import { variantFromSku } from '../features/catalog/resolve-variant';
 import { VariantPicker } from '../features/catalog/VariantPicker';
+import { useSoldOutLabel } from '../features/delivery/DeliveryContext';
 import { EarnPoints } from '../features/loyalty/EarnPoints';
 import { formatRating } from '../features/reviews/format';
 import { RatingStars } from '../features/reviews/RatingStars';
@@ -75,6 +76,7 @@ export default function ProductPage() {
 
 function ProductView({ product }: { product: ProductDetail }) {
   const { t, tn } = useT();
+  const soldOutLabel = useSoldOutLabel();
   const foodLabels = useFoodLabels();
   const fmt = useFormat();
   const ratingText = (tenths: number) =>
@@ -166,7 +168,7 @@ function ProductView({ product }: { product: ProductDetail }) {
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 {!product.inStock && (
                   <Badge tone="neutral" className="border-ink bg-surface text-ink">
-                    {t('pdp.page.soldOut')}
+                    {soldOutLabel(t('pdp.page.soldOut'))}
                   </Badge>
                 )}
                 <ProductBadges badges={product.badges} />
@@ -269,7 +271,7 @@ function ProductView({ product }: { product: ProductDetail }) {
                     variant.available ? 'font-semibold text-success' : 'font-semibold text-danger'
                   }
                 >
-                  {variant.available ? t('pdp.page.inStock') : t('pdp.page.soldOut')}
+                  {variant.available ? t('pdp.page.inStock') : soldOutLabel(t('pdp.page.soldOut'))}
                 </span>
               </p>
             )}

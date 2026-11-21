@@ -1,36 +1,25 @@
 import { DEPARTMENTS } from '@store/shared';
-import { useState, type FormEvent } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { DepartmentGlyph } from '../../components/icons';
 import { Container } from '../../components/layout/Container';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
 import { useT } from '../../i18n';
-
-// Berlin postcodes are five digits. The box only checks the shape and writes `?postcode=`; looking
-// the area up (and showing slots) arrives with the delivery phase.
-const POSTCODE = /^\d{5}$/;
+import { useDelivery } from '../delivery/DeliveryContext';
+import { DeliveryResult } from '../delivery/DeliveryResult';
+import { PostcodeForm } from '../delivery/PostcodeForm';
 
 // The first screen: the promise, one box that starts the order, and a quiet picture made of the
 // department icons (decoration only, so it is hidden from screen readers and from small phones).
 export function HomeHero() {
   const { t } = useT();
   const navigate = useNavigate();
-  const [params] = useSearchParams();
-  const saved = params.get('postcode') ?? '';
-  const [value, setValue] = useState(saved);
-  const [error, setError] = useState<string | undefined>();
+  const { postcode, setPostcode } = useDelivery();
 
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    const postcode = value.trim();
-    if (!POSTCODE.test(postcode)) {
-      setError(t('shell.home.hero.postcodeInvalid'));
-      return;
-    }
-    setError(undefined);
-    navigate(`/?postcode=${postcode}`);
+  // The URL carries the choice (`?postcode=10115`, so a shared link shows the same shop); the
+  // delivery context reads it, remembers it and asks the API what it means.
+  const submit = (code: string) => {
+    setPostcode(code);
+    navigate(`/?postcode=${code}`);
   };
 
   return (
@@ -51,33 +40,12 @@ export function HomeHero() {
             {t('shell.home.h1')}
           </h1>
           <p className="mt-3 max-w-prose text-lg text-ink">{t('shell.home.hero.lead')}</p>
-          <form
+          <PostcodeForm
+            initial={postcode ?? ''}
             onSubmit={submit}
-            noValidate
-            data-testid="postcode-form"
             className="mt-5 flex max-w-md flex-col gap-3 sm:flex-row sm:items-start"
-          >
-            <div className="min-w-0 flex-1">
-              <Input
-                label={t('shell.home.hero.postcodeLabel')}
-                hint={t('shell.home.hero.postcodeHint')}
-                error={error}
-                inputMode="numeric"
-                autoComplete="postal-code"
-                maxLength={5}
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-              />
-            </div>
-            <Button type="submit" className="sm:mt-7">
-              {t('shell.home.hero.postcodeButton')}
-            </Button>
-          </form>
-          {saved && POSTCODE.test(saved) && (
-            <p role="status" data-testid="postcode-saved" className="mt-3 font-semibold text-ink">
-              {t('shell.home.hero.postcodeSaved', { postcode: saved })}
-            </p>
-          )}
+          />
+          <DeliveryResult />
         </div>
         <ul aria-hidden="true" className="hidden grid-cols-3 gap-3 md:grid">
           {DEPARTMENTS.slice(0, 9).map((dept) => (

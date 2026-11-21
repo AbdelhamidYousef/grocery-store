@@ -286,3 +286,29 @@ back-in-stock trigger had to learn the store, or a restock in Mitte would have w
 Learn: when a table's key gains a dimension, every join on the old key silently multiplies rows; find
 them by grepping for the table, not by waiting for a wrong number.
 
+### G4.4: postcode gate in the web
+`DeliveryProvider` (inside `AppLayout`, so it sees the router) holds the postcode: `?postcode=` in the
+URL wins and is remembered in local storage, the rest of the app reads it with `useDelivery()` (`postcode`,
+`served`, `area`, `store`, `status`, `setPostcode`, `clear`), and `apiFetch` sends it as `X-Postcode` on
+every call, read from a small module (`lib/postcode.ts`) so a request never waits for React. The lookup
+is `GET /delivery/postcodes/:code`, cached five minutes. The home hero and the new header chip share one
+`PostcodeForm`; the result line reads "We deliver to 10115 · Mitte", or "We don't deliver to 12345 yet"
+with the list of areas. The chip opens a dialog (change or remove the postcode) and on a phone shows just
+the number next to the search box, so the 375 px header gained no row. "Sold out" says "Sold out at
+Neukölln" once a store is known (card and PDP). Checkout starts the address at the gate postcode, checks
+the postcode on the details step (a 400 or "not served" stops there, inline on the field, with the areas
+we cover), and a 422 `POSTCODE_NOT_SERVED` from the API sends the shopper back to that step with the same
+sentence. `/delivery` lists the areas, their stores and postcodes (linked from the footer). EN and DE
+strings in a new `delivery.*` namespace (du in German).
+Surprise: the German chip text is longer than English ("Keine Lieferung nach 80331"), so the long form
+only shows from `sm` up. Learn: state that must be on every request but changes rarely (store view,
+postcode) belongs in a plain module the fetch layer reads, with React only mirroring it; a hook the fetch
+layer would have to ask can be a render behind.
+
+### Quiz: Phase G4 (so far)
+1. Why does checkout take the store from the delivery address and not from the header?
+2. Migration 0048 copies every stock row to all four stores. What would break if it only moved the rows
+   to Mitte and left the others empty? And why do old reservations stay on Mitte?
+3. `const availableOf = sql...` sat at module level and showed the wrong store. Why, and what fixes it?
+4. The admin product list showed 8 variants for a product with 2. Which join caused it?
+

@@ -52,7 +52,7 @@ afterEach(() => {
 });
 
 const placed = {
-  orderNumber: 'PW-2026-000123',
+  orderNumber: 'GR-2026-000123',
   clientSecret: 'pi_123_secret_456',
   totals: {
     currency: 'EUR',
@@ -169,13 +169,13 @@ describe('checkout payment step with a Stripe key', () => {
     await user.click(await screen.findByTestId('pay-button'));
 
     await waitFor(() =>
-      expect(router.state.location.pathname).toBe('/checkout/confirmation/PW-2026-000123'),
+      expect(router.state.location.pathname).toBe('/checkout/confirmation/GR-2026-000123'),
     );
     expect(confirmPayment).toHaveBeenCalledWith(
       expect.objectContaining({
         redirect: 'if_required',
         confirmParams: {
-          return_url: `${window.location.origin}/checkout/confirmation/PW-2026-000123`,
+          return_url: `${window.location.origin}/checkout/confirmation/GR-2026-000123`,
         },
       }),
     );
@@ -196,6 +196,34 @@ describe('checkout payment step with a Stripe key', () => {
       'Something in your cart changed',
     );
     expect(screen.getByTestId('checkout-continue-payment')).toBeEnabled();
+  });
+
+  it('sends a 422 POSTCODE_NOT_SERVED back to the address, on the postcode field', async () => {
+    server.use(
+      http.post(`${API}/checkout`, () =>
+        HttpResponse.json(
+          {
+            error: {
+              code: 'POSTCODE_NOT_SERVED',
+              message: "We don't deliver to 10115 yet.",
+              details: { postcode: '10115', areas: ['Mitte', 'Neukölln'] },
+            },
+          },
+          { status: 422 },
+        ),
+      ),
+    );
+    renderApp('/checkout');
+    await reachPayment();
+    expect(await screen.findByLabelText('Postal code')).toHaveAccessibleDescription(
+      "We don't deliver to 10115 yet. We cover Mitte, Neukölln.",
+    );
+    const steps = screen.getAllByTestId('checkout-step');
+    expect(steps.map((st) => st.getAttribute('data-state'))).toEqual([
+      'active',
+      'locked',
+      'locked',
+    ]);
   });
 
   it('explains a 502 payment provider failure as retryable', async () => {

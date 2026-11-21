@@ -54,6 +54,35 @@ describe('checkout page', () => {
     expect(steps.map((s) => s.getAttribute('data-state'))).toEqual(['active', 'locked', 'locked']);
   });
 
+  it('starts the address at the postcode chosen at the delivery gate', async () => {
+    serveCart();
+    renderApp('/checkout?postcode=12045');
+    expect(await screen.findByLabelText('Postal code')).toHaveValue('12045');
+  });
+
+  it('stops an address outside the delivery areas on the postcode field', async () => {
+    serveCart();
+    renderApp('/checkout');
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText('Email'), 'sam@example.test');
+    await user.type(screen.getByLabelText('Full name'), 'Sam Rivers');
+    await user.type(screen.getByLabelText('Address line 1'), '1 Bone Street');
+    await user.type(screen.getByLabelText('Postal code'), '80331');
+    await user.type(screen.getByLabelText('City'), 'Munich');
+    await user.click(screen.getByTestId('checkout-continue-shipping'));
+    await waitFor(() =>
+      expect(screen.getByLabelText('Postal code')).toHaveAccessibleDescription(
+        "We don't deliver to 80331 yet. We cover Mitte, Neukölln.",
+      ),
+    );
+    const steps = screen.getAllByTestId('checkout-step');
+    expect(steps.map((st) => st.getAttribute('data-state'))).toEqual([
+      'active',
+      'locked',
+      'locked',
+    ]);
+  });
+
   it('offers a sign-in link to guests and pre-fills a signed-in shopper', async () => {
     serveCart();
     renderApp('/checkout');

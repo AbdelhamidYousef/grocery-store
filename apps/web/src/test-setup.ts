@@ -3,6 +3,7 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup, configure } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll } from 'vitest';
 
+import { resetPostcodeMemory } from './lib/postcode';
 import { server } from './test/server';
 
 // `findBy*` and `waitFor` return the moment their condition holds, so a longer ceiling costs
@@ -14,6 +15,15 @@ configure({ asyncUtilTimeout: 5000 });
 
 // Vitest globals are off, so Testing Library cannot register its own cleanup; do it here.
 afterEach(cleanup);
+// The chosen delivery postcode lives in module memory and localStorage.
+afterEach(() => {
+  resetPostcodeMemory();
+  try {
+    window.localStorage.clear();
+  } catch {
+    // No storage in this environment: nothing to clear.
+  }
+});
 // Some state lives in module memory and localStorage; one test must not see another's.
 
 // One msw server for the whole suite: components fetch through the real api/ layer and the

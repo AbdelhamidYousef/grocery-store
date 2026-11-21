@@ -1,4 +1,6 @@
 import type {
+  DeliveryArea,
+  PostcodeLookup,
   Navigation,
   Address,
   AdminCollection,
@@ -837,4 +839,50 @@ export function makeAdminReturnDetail(
     simulatedMode: false,
     ...overrides,
   };
+}
+
+// Postcodes the tests treat as served (the default msw answer): 10115 Mitte, 12043 and 12045 Neukölln.
+export const SERVED_POSTCODES: Record<string, { area: string; areaSlug: string; store: string }> = {
+  '10115': { area: 'Mitte', areaSlug: 'mitte', store: 'Grocery Mitte' },
+  '12043': { area: 'Neukölln', areaSlug: 'neukoelln', store: 'Grocery Neukölln' },
+  '12045': { area: 'Neukölln', areaSlug: 'neukoelln', store: 'Grocery Neukölln' },
+};
+
+export function makePostcodeLookup(code: string): PostcodeLookup {
+  const hit = SERVED_POSTCODES[code];
+  return hit
+    ? {
+        postcode: code,
+        served: true,
+        area: { slug: hit.areaSlug, name: hit.area },
+        store: { slug: hit.areaSlug, name: hit.store },
+      }
+    : { postcode: code, served: false };
+}
+
+export function makeDeliveryAreas(): DeliveryArea[] {
+  return [
+    {
+      slug: 'mitte',
+      name: 'Mitte',
+      store: {
+        slug: 'mitte',
+        name: 'Grocery Mitte',
+        street: 'Brunnenstraße 14',
+        postalCode: '10119',
+      },
+      postcodes: ['10115', '10117'],
+    },
+    {
+      slug: 'neukoelln',
+      name: 'Neukölln',
+      store: {
+        slug: 'neukoelln',
+        name: 'Grocery Neukölln',
+        street: 'Sonnenallee 95',
+        postalCode: '12045',
+      },
+      postcodes: ['12043', '12045'],
+    },
+  ];
 }

@@ -35,6 +35,9 @@ export function detailsDefaults(
   user: User | null,
   addresses: Address[] | undefined,
   allowed: readonly string[] = SUPPORTED_COUNTRIES,
+  // The postcode chosen at the delivery gate: it is where the shopper sees stock, so it is where the
+  // address starts (it wins over a saved address in another postcode).
+  gatePostcode: string | null = null,
 ): DetailsInput {
   const saved = addresses?.find((a) => a.isDefaultShipping) ?? addresses?.[0];
   return {
@@ -45,7 +48,7 @@ export function detailsDefaults(
       line2: saved?.line2 ?? '',
       city: saved?.city ?? '',
       region: saved?.region ?? '',
-      postalCode: saved?.postalCode ?? '',
+      postalCode: gatePostcode ?? saved?.postalCode ?? '',
       country:
         saved && allowed.includes(saved.country) && isSupported(saved.country)
           ? saved.country

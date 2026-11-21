@@ -2,6 +2,8 @@ import { ErrorCode } from '@store/shared';
 import { isStoreCode } from '@store/shared';
 import type { z } from 'zod';
 
+import { postcodeHeader } from '../lib/postcode';
+
 // The one place that calls fetch. Components never do (SSR guard-rail), and every response is
 // parsed with the shared Zod schema the API itself validated against, so a drifting API shape
 // fails loudly here instead of becoming `undefined is not a function` three components later.
@@ -59,6 +61,8 @@ export async function apiFetch<S extends z.ZodType>(
       headers: {
         Accept: 'application/json',
         ...storeViewHeader(),
+        // The delivery postcode the shopper chose: it picks the dark store whose stock is shown.
+        ...postcodeHeader(),
         // A FormData body (photo upload) must NOT get a Content-Type from us: the browser adds
         // `multipart/form-data` together with the boundary it generated.
         ...(body === undefined || body instanceof FormData

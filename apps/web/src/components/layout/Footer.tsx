@@ -69,6 +69,7 @@ function buildGroups(t: TFunction): FooterGroup[] {
       title: t('shell.footer.help'),
       links: [
         { label: t('shell.footer.helpCentre'), to: '/help' },
+        { label: t('shell.footer.delivery'), to: '/delivery' },
         { label: t('shell.footer.trackOrder'), to: '/track-order' },
         { label: t('shell.footer.contact'), to: '/contact' },
         { label: t('shell.footer.newsletter'), to: '/newsletter' },

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { DeliveryChip } from '../../features/delivery/DeliveryChip';
 import { MegaMenu } from '../../features/navigation/MegaMenu';
 import { StoreSwitcher } from '../../features/stores/StoreSwitcher';
 import { useT } from '../../i18n';
@@ -65,8 +66,11 @@ export function Header({
         </Link>
 
         {/* Desktop: search sits inline. Mobile: it wraps to its own full-width row (order-last). */}
-        <div className="order-last w-full lg:order-none lg:mx-4 lg:max-w-md lg:flex-1">
-          <SearchBox idPrefix="header" />
+        <div className="order-last flex w-full items-center gap-2 lg:order-none lg:mx-4 lg:max-w-xl lg:flex-1">
+          <DeliveryChip />
+          <div className="min-w-0 flex-1">
+            <SearchBox idPrefix="header" />
+          </div>
         </div>
 
         <div className="flex items-center gap-1 lg:ml-auto">

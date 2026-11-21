@@ -1,4 +1,8 @@
-import { DeliveryMethodsResponseSchema } from '@store/shared';
+import {
+  DeliveryAreasResponseSchema,
+  DeliveryMethodsResponseSchema,
+  PostcodeLookupResponseSchema,
+} from '@store/shared';
 
 import { apiFetch } from './client';
 
@@ -11,4 +15,22 @@ export async function fetchDeliveryMethods(signal?: AbortSignal) {
     ...(signal && { signal }),
   });
   return { methods: data.methods, offsetMs: Date.parse(data.serverNow) - Date.now() };
+}
+
+// Which area and dark store serve a postcode (or that none does).
+export async function fetchPostcode(code: string, signal?: AbortSignal) {
+  const { data } = await apiFetch(`/delivery/postcodes/${encodeURIComponent(code)}`, {
+    schema: PostcodeLookupResponseSchema,
+    ...(signal && { signal }),
+  });
+  return data;
+}
+
+// Every area with its store and postcodes: the delivery page and the "we cover ..." lists.
+export async function fetchDeliveryAreas(signal?: AbortSignal) {
+  const { data } = await apiFetch('/delivery/areas', {
+    schema: DeliveryAreasResponseSchema,
+    ...(signal && { signal }),
+  });
+  return data;
 }

@@ -12,6 +12,7 @@ import { useT } from '../../i18n';
 import { useFormat } from '../../i18n/format';
 import { productSrcSet } from '../../lib/images';
 import { TEST_IDS } from '../../lib/test-ids';
+import { useSoldOutLabel } from '../delivery/DeliveryContext';
 import { RatingStars } from '../reviews/RatingStars';
 import { WishlistHeart } from '../wishlist/WishlistHeart';
 
@@ -41,6 +42,7 @@ export function ProductCard({
   footer,
 }: ProductCardProps) {
   const { t, tn } = useT();
+  const soldOutLabel = useSoldOutLabel();
   const fmt = useFormat();
   const [preview, setPreview] = useState<string | null>(null);
   const [picked, setPicked] = useState<string | null>(null);
@@ -83,7 +85,7 @@ export function ProductCard({
                   data-testid={TEST_IDS.soldOutBadge}
                   className="border-ink bg-surface text-ink"
                 >
-                  {t('catalog.card.soldOut')}
+                  {soldOutLabel(t('catalog.card.soldOut'))}
                 </Badge>
               )}
               <ProductBadges badges={product.badges} />

@@ -48,6 +48,7 @@ export const shell: Record<keyof typeof enNs, Entry> = {
   'shell.footer.helpCentre': 'Hilfe-Center',
   'shell.footer.trackOrder': 'Bestellung verfolgen',
   'shell.footer.contact': 'Kontakt',
+  'shell.footer.delivery': 'Wohin wir liefern',
   'shell.footer.newsletter': 'Newsletter',
   'shell.footer.company': 'Unternehmen',
   'shell.footer.developers': 'Für Entwickler',
@@ -126,12 +127,6 @@ export const shell: Record<keyof typeof enNs, Entry> = {
   'shell.home.hero.eyebrow': 'Lieferung in 30 Minuten',
   'shell.home.hero.lead':
     'Frische Lebensmittel und Haushaltsbasics aus unseren Berliner Regalen, direkt zu dir.',
-  'shell.home.hero.postcodeLabel': 'Deine Postleitzahl',
-  'shell.home.hero.postcodeHint':
-    'Wir liefern innerhalb von Berlin. Gib deine Postleitzahl ein, dann siehst du, wann.',
-  'shell.home.hero.postcodeButton': 'Lieferung prüfen',
-  'shell.home.hero.postcodeInvalid': 'Gib eine fünfstellige Postleitzahl ein',
-  'shell.home.hero.postcodeSaved': 'Danke. Die Lieferzeiten für {postcode} folgen bald.',
   'shell.home.deals.title': 'Angebote der Woche',
   'shell.home.usuals.title': 'Deine Klassiker',
   'shell.home.foodBank.title': 'Gutes Essen für die Nachbarschaft',

@@ -22,13 +22,16 @@ export function DetailsStep({
   signedIn,
   saveAddress,
   onSaveAddressChange,
+  postcodeError,
   onSubmit,
 }: {
   defaults: DetailsInput;
   signedIn: boolean;
   saveAddress: boolean;
   onSaveAddressChange: (value: boolean) => void;
-  onSubmit: (details: Details) => void;
+  /** "We don't deliver to 12345 yet": shown on the postcode field, not as a general error. */
+  postcodeError?: string | null;
+  onSubmit: (details: Details) => void | Promise<void>;
 }) {
   const { t } = useT();
   const { locale } = useFormat();
@@ -93,7 +96,7 @@ export function DetailsStep({
         <Input
           label={t('checkout.details.postalCode')}
           autoComplete="shipping postal-code"
-          error={a?.postalCode?.message}
+          error={postcodeError ?? a?.postalCode?.message}
           {...register('shippingAddress.postalCode')}
         />
         <Input

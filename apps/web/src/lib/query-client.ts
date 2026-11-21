@@ -71,6 +71,11 @@ export const keys = {
   saleBanner: ['promotions', 'banner'] as const,
   // Transit days of the shipping methods and the server clock, for the delivery estimate.
   deliveryMethods: ['delivery-methods'] as const,
+  // Delivery areas (G4): which area and store serve a postcode, and the list of all areas.
+  delivery: {
+    postcode: (code: string) => ['delivery', 'postcode', code] as const,
+    areas: ['delivery', 'areas'] as const,
+  },
   // True once a request came back 401 while the shopper looked signed in (see createQueryClient).
   sessionExpired: ['session-expired'] as const,
   // Warnings the cart reported, kept until dismissed (see features/cart/queries.ts).

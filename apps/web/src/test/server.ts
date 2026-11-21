@@ -4,6 +4,8 @@ import { setupServer } from 'msw/node';
 
 import {
   makeCard,
+  makeDeliveryAreas,
+  makePostcodeLookup,
   makeCart,
   makeCategory,
   makeGuideCard,
@@ -31,6 +33,18 @@ export const server = setupServer(
     ),
   ),
   // The hearts on product cards read the wishlist: an empty list unless a test says otherwise.
+  // Delivery areas (G4): three postcodes are served, any other well-formed one is not.
+  http.get(`${API}/delivery/postcodes/:code`, ({ params }) => {
+    const code = String(params.code);
+    if (!/^\d{5}$/.test(code)) {
+      return HttpResponse.json(
+        { error: { code: 'VALIDATION_ERROR', message: 'A postcode has five digits' } },
+        { status: 400 },
+      );
+    }
+    return HttpResponse.json({ data: makePostcodeLookup(code) });
+  }),
+  http.get(`${API}/delivery/areas`, () => HttpResponse.json({ data: makeDeliveryAreas() })),
   http.get(`${API}/wishlist`, () => HttpResponse.json({ data: { items: [], shareToken: null } })),
   // The footer's charity line: a shelter with nothing given yet.
   http.get(`${API}/charity/total`, () =>

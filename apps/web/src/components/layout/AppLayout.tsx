@@ -3,6 +3,7 @@ import { Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
 
 import { MiniCart } from '../../features/cart/MiniCart';
 import { useCart } from '../../features/cart/queries';
+import { DeliveryProvider } from '../../features/delivery/DeliveryContext';
 import { ReferralCapture } from '../../features/loyalty/ReferralCapture';
 import { SaleBanner } from '../../features/promotions/SaleBanner';
 
@@ -37,33 +38,35 @@ export function AppLayout() {
   }, [pathname]);
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <SkipLink />
-      <ReferralCapture />
-      <ApiStatusBanner />
-      <SaleBanner />
-      <Header
-        cartCount={cart?.itemCount ?? 0}
-        // On the cart and checkout pages the page itself is the cart, so the icon just links.
-        {...(pathname === '/cart' || pathname.startsWith('/checkout')
-          ? {}
-          : { onOpenCart: () => setMiniCartOpen(true) })}
-      />
-      <MiniCart open={miniCartOpen} onClose={() => setMiniCartOpen(false)} />
-      <main
-        ref={mainRef}
-        id="main"
-        tabIndex={-1}
-        className="flex-1 focus:outline-none"
-        data-testid="main"
-      >
-        <Outlet />
-      </main>
-      <Footer />
-      <CookieBanner />
-      {/* Restores scroll per history entry (back returns to where you were) and resets to the
+    <DeliveryProvider>
+      <div className="flex min-h-screen flex-col">
+        <SkipLink />
+        <ReferralCapture />
+        <ApiStatusBanner />
+        <SaleBanner />
+        <Header
+          cartCount={cart?.itemCount ?? 0}
+          // On the cart and checkout pages the page itself is the cart, so the icon just links.
+          {...(pathname === '/cart' || pathname.startsWith('/checkout')
+            ? {}
+            : { onOpenCart: () => setMiniCartOpen(true) })}
+        />
+        <MiniCart open={miniCartOpen} onClose={() => setMiniCartOpen(false)} />
+        <main
+          ref={mainRef}
+          id="main"
+          tabIndex={-1}
+          className="flex-1 focus:outline-none"
+          data-testid="main"
+        >
+          <Outlet />
+        </main>
+        <Footer />
+        <CookieBanner />
+        {/* Restores scroll per history entry (back returns to where you were) and resets to the
           top on a new navigation; needs the data router. */}
-      <ScrollRestoration />
-    </div>
+        <ScrollRestoration />
+      </div>
+    </DeliveryProvider>
   );
 }
