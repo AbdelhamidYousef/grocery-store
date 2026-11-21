@@ -55,14 +55,23 @@ const SIZE_NAMES: Record<string, StringKey> = {
   XL: 'catalog.variant.sizeXL',
 };
 
+// A product with a free sample has one `pack` option: the full pack or the sample.
+const PACK_NAMES: Record<string, StringKey> = {
+  full: 'catalog.variant.packFull',
+  trial: 'catalog.variant.packTrial',
+};
+
 export function optionKeyLabel(key: string, t: TFunction): string {
   if (key === 'color') return t('catalog.variant.colour');
+  if (key === 'pack') return t('catalog.variant.pack');
   return key.charAt(0).toUpperCase() + key.slice(1);
 }
 
 export function optionValueLabel(key: string, value: string, t: TFunction): string {
   const sizeKey = SIZE_NAMES[value];
   if (key === 'size') return sizeKey ? t(sizeKey) : value;
+  const packKey = key === 'pack' ? PACK_NAMES[value] : undefined;
+  if (packKey) return t(packKey);
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 

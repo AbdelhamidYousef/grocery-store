@@ -79,6 +79,9 @@ export const catalog = {
 
   // Variant picker
   'catalog.variant.colour': 'Colour',
+  'catalog.variant.pack': 'Pack',
+  'catalog.variant.packFull': 'Full size',
+  'catalog.variant.packTrial': 'Free sample',
   'catalog.variant.sizeXS': 'Extra small',
   'catalog.variant.sizeS': 'Small',
   'catalog.variant.sizeM': 'Medium',

@@ -38,6 +38,14 @@ describe('resolve-variant', () => {
     expect(optionValues(unordered, 'size')).toEqual(['S', 'M', 'L']);
   });
 
+  it('lists a full pack before its free sample, whatever order the data has', () => {
+    const packs = [
+      makeVariant({ id: 't', sku: 'T', options: { pack: 'trial' } }),
+      makeVariant({ id: 'f', sku: 'F', options: { pack: 'full' } }),
+    ];
+    expect(optionValues(packs, 'pack')).toEqual(['full', 'trial']);
+  });
+
   it('works for any option keys, not just colour and size', () => {
     const flavours = [
       makeVariant({ sku: 'A', options: { flavour: 'beef', pack: '150g' } }),

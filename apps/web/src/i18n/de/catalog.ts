@@ -80,6 +80,9 @@ export const catalog: Record<keyof typeof enNs, Entry> = {
 
   // Variant picker
   'catalog.variant.colour': 'Farbe',
+  'catalog.variant.pack': 'Packung',
+  'catalog.variant.packFull': 'Normale Packung',
+  'catalog.variant.packTrial': 'Gratisprobe',
   'catalog.variant.sizeXS': 'Extra klein',
   'catalog.variant.sizeS': 'Klein',
   'catalog.variant.sizeM': 'Mittel',

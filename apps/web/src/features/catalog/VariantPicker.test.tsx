@@ -24,6 +24,30 @@ describe('variant picker', () => {
     expect(screen.getByTestId('variant-sku')).toHaveTextContent('TUG-RED-S');
   });
 
+  it('names a free-sample choice in words, full size first', async () => {
+    serveProduct(
+      makeProduct({
+        optionKeys: ['pack'],
+        variants: [
+          makeVariant({
+            id: 't',
+            sku: 'OATS-T',
+            name: 'Free sample, 30 g',
+            options: { pack: 'trial' },
+          }),
+          makeVariant({ id: 'f', sku: 'OATS-F', isDefault: true, options: { pack: 'full' } }),
+        ],
+      }),
+    );
+    renderApp('/products/rope-tug');
+    await screen.findByTestId('variant-picker');
+    expect(picker().getByRole('group', { name: /Pack/ })).toBeInTheDocument();
+    const radios = picker().getAllByRole('radio');
+    expect(picker().getByRole('radio', { name: 'Full size' })).toBeChecked();
+    expect(picker().getByRole('radio', { name: 'Free sample' })).not.toBeChecked();
+    expect(radios[0]).toBe(picker().getByRole('radio', { name: 'Full size' }));
+  });
+
   it('puts the chosen variant in the url and updates the price', async () => {
     const router = renderApp('/products/rope-tug');
     await screen.findByTestId('variant-picker');

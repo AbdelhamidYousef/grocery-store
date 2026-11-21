@@ -16,14 +16,16 @@ export function selectionOf(variant: Variant, optionKeys: readonly string[]): Se
   return Object.fromEntries(optionKeys.map((k) => [k, variant.options[k] ?? '']));
 }
 
+// Sizes small to large; a pack choice lists the full size before its free sample.
 const SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const PACK_ORDER = ['full', 'trial'];
 
 /** The distinct values an option key takes, in the order the data lists them (sizes sorted). */
 export function optionValues(variants: readonly Variant[], key: string): string[] {
   const values = [...new Set(variants.flatMap((v) => (v.options[key] ? [v.options[key]] : [])))];
-  const ranks = values.map((v) => SIZE_ORDER.indexOf(v));
-  return ranks.every((r) => r >= 0)
-    ? [...values].sort((a, b) => SIZE_ORDER.indexOf(a) - SIZE_ORDER.indexOf(b))
+  const order = key === 'pack' ? PACK_ORDER : SIZE_ORDER;
+  return values.every((v) => order.includes(v))
+    ? [...values].sort((a, b) => order.indexOf(a) - order.indexOf(b))
     : values;
 }
 
