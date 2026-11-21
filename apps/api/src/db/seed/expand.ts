@@ -1,4 +1,4 @@
-import type { NetUnit, Nutrition } from '@store/shared';
+import { pricePerKgFor, type NetUnit, type Nutrition } from '@store/shared';
 
 import type { ProductAttributes } from '../schema/products.ts';
 
@@ -79,6 +79,9 @@ export type VariantSeed = {
   netUnit: NetUnit | null;
   isTrial: boolean;
   swatchHex: string | null;
+  soldByWeight: boolean;
+  pricePerKgCents: number | null;
+  nominalGrams: number | null;
 };
 
 // ---- Expansion ----
@@ -101,6 +104,12 @@ export function expandVariants(product: ProductSeed): VariantSeed[] {
     const options = Object.fromEntries(
       product.axes.map((axis, i) => [axis.key, combo[i]?.value ?? '']),
     );
+    // A weighed product is sold as "about <net> g": the catalogue price is one such unit, from which
+    // the price per kg follows; the price stays the estimate of that unit (shared/weight.ts).
+    const weighed =
+      product.soldByWeight && trialValue === undefined && netAmount !== null && netAmount > 0
+        ? { pricePerKgCents: pricePerKgFor(priceCents, netAmount), nominalGrams: netAmount }
+        : null;
     return {
       sku: ['GR', product.code, ...combo.map((v) => v.value.toUpperCase())].join('-'),
       name: combo.length === 0 ? 'Standard' : combo.map((v) => v.label).join(' · '),
@@ -119,6 +128,9 @@ export function expandVariants(product: ProductSeed): VariantSeed[] {
       netUnit: netAmount === null ? null : (product.netUnit ?? 'g'),
       isTrial: trialValue !== undefined,
       swatchHex: null,
+      soldByWeight: weighed !== null,
+      pricePerKgCents: weighed?.pricePerKgCents ?? null,
+      nominalGrams: weighed?.nominalGrams ?? null,
     };
   });
 }

@@ -110,6 +110,8 @@ export const TEST_IDS = {
   addToCart: 'add-to-cart',
   stockHint: 'stock-hint',
   bestBefore: 'best-before',
+  weightLine: 'weight-line',
+  weighedNotice: 'weighed-notice',
   shortDatedOffer: 'short-dated-offer',
   addShortDated: 'add-short-dated',
   cartLineShortDated: 'cart-line-short-dated',

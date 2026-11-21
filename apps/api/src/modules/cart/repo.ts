@@ -110,6 +110,9 @@ export type LineRow = {
   isTrial: boolean;
   // A kit: priced as a fixed price (no sale/member price, no order discounts or codes).
   isBundle: boolean;
+  soldByWeight: boolean;
+  pricePerKgCents: number | null;
+  nominalGrams: number | null;
   variantStatus: 'draft' | 'active' | 'archived';
   productId: string;
   productName: string;
@@ -141,6 +144,9 @@ export async function listLines(
         weightGrams: productVariants.weightGrams,
         isTrial: productVariants.isTrial,
         isBundle: sql<boolean>`exists (select 1 from bundle_items where bundle_variant_id = ${productVariants.id})`,
+        soldByWeight: productVariants.soldByWeight,
+        pricePerKgCents: productVariants.pricePerKgCents,
+        nominalGrams: productVariants.nominalGrams,
         variantStatus: productVariants.status,
         productId: products.id,
         productName: products.name,
@@ -258,13 +264,16 @@ export async function findPurchasable(
   tx: Tx,
   variantId: string,
   currency: string = currentStore().currency,
-): Promise<{ available: number; priceCents: number; isTrial: boolean } | undefined> {
+): Promise<
+  { available: number; priceCents: number; isTrial: boolean; soldByWeight: boolean } | undefined
+> {
   const [row] = await tx
     .select({
       stock: stockQuantity(productVariants.id),
       reserved: stockReserved(productVariants.id),
       priceCents: priceIn(currency),
       isTrial: productVariants.isTrial,
+      soldByWeight: productVariants.soldByWeight,
     })
     .from(productVariants)
     .innerJoin(products, eq(products.id, productVariants.productId))
@@ -282,6 +291,7 @@ export async function findPurchasable(
     available: Math.max(0, (row.stock ?? 0) - (row.reserved ?? 0)),
     priceCents: row.priceCents,
     isTrial: row.isTrial,
+    soldByWeight: row.soldByWeight,
   };
 }
 

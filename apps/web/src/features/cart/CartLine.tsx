@@ -11,6 +11,7 @@ import { image600 } from '../../lib/images';
 import { TEST_IDS } from '../../lib/test-ids';
 import { QuantityStepper } from '../catalog/QuantityStepper';
 import { formatBestBefore } from '../expiry/format';
+import { WeightLine } from '../weight/Weight';
 
 import { noticeKey } from './queries';
 
@@ -114,7 +115,15 @@ export function CartLine({
             {item.productName}
           </Link>
           <p className="break-words text-sm text-muted">{item.variantName}</p>
-          {onSale ? (
+          {item.weight && (
+            <WeightLine
+              grams={item.weight.nominalGrams}
+              pricePerKgCents={item.weight.pricePerKgCents}
+              estimateCents={item.unitPriceCents}
+              currency={currency}
+            />
+          )}
+          {item.weight ? null : onSale ? (
             <p className="text-sm text-muted" data-testid="cart-line-sale">
               <SalePrice
                 sale={{ priceCents: engine.unitCents, referenceCents: engine.referenceCents }}
@@ -212,7 +221,9 @@ export function CartLine({
               )}
               data-testid="cart-line-total"
             >
-              {fmt.money(lineTotal, currency)}
+              {item.weight
+                ? t('weight.est', { price: fmt.money(lineTotal, currency) })
+                : fmt.money(lineTotal, currency)}
             </span>
           </div>
         </div>

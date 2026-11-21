@@ -80,6 +80,8 @@ export type VariantInput = {
   netUnit?: 'g' | 'ml';
   isTrial?: boolean;
   swatchHex?: string;
+  /** Sold by weight: "about nominalGrams" at pricePerKgCents (priceCents should be the estimate). */
+  weight?: { pricePerKgCents: number; nominalGrams: number };
 };
 
 export type ImageInput = { url?: string; alt?: string; variantIndex?: number; sortOrder?: number };
@@ -167,6 +169,11 @@ export async function createProduct(
         ...(v.netUnit && { netUnit: v.netUnit }),
         ...(v.isTrial !== undefined && { isTrial: v.isTrial }),
         ...(v.swatchHex && { swatchHex: v.swatchHex }),
+        ...(v.weight && {
+          soldByWeight: true,
+          pricePerKgCents: v.weight.pricePerKgCents,
+          nominalGrams: v.weight.nominalGrams,
+        }),
       })),
     )
     .returning();

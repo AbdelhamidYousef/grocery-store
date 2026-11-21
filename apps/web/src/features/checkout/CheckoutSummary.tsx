@@ -5,6 +5,7 @@ import type { WebCart } from '../../api/cart';
 import type { PlacedOrder } from '../../api/checkout';
 import { useT } from '../../i18n';
 import { TEST_IDS } from '../../lib/test-ids';
+import { WeighedNotice } from '../weight/Weight';
 
 import { SummaryLines, TotalsList } from './OrderSummary';
 
@@ -96,6 +97,11 @@ export function CheckoutSummary({
             : []),
         ]}
         total={{ cents: totals?.totalCents ?? null, fallback: t('checkout.summary.totalPending') }}
+      />
+      <WeighedNotice
+        items={cart.items}
+        totalCents={totals?.totalCents ?? cart.pricing.totalEstimateCents}
+        currency={cart.currency}
       />
     </aside>
   );

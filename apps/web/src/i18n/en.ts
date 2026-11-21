@@ -12,6 +12,7 @@ import { returns } from './en/returns';
 import { reviews } from './en/reviews';
 import { search } from './en/search';
 import { shell } from './en/shell';
+import { weight } from './en/weight';
 
 // One file per area keeps the dictionary readable and lets areas be translated independently.
 export const en = {
@@ -29,4 +30,5 @@ export const en = {
   ...content,
   ...delivery,
   ...expiry,
+  ...weight,
 };

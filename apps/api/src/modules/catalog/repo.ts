@@ -167,6 +167,12 @@ export function variantSummary() {
       >`max(case when ${productVariants.isDefault} and ${productVariants.netUnit} is not null then ${productVariants.netUnit}::text end)`.as(
         'unit_per',
       ),
+      // "About 500 g": the nominal weight of the default variant when it is sold by weight.
+      nominalGrams: sql<
+        number | null
+      >`max(case when ${productVariants.isDefault} and ${productVariants.soldByWeight} then ${productVariants.nominalGrams} end)`.as(
+        'nominal_grams',
+      ),
       inStock:
         sql<boolean>`coalesce(bool_or(${stockQuantity(productVariants.id)} - ${stockReserved(productVariants.id)} > 0), false)`.as(
           'in_stock',
@@ -200,6 +206,7 @@ export interface ProductCardRow {
   inStock: boolean;
   unitCents: number | null;
   unitPer: string | null;
+  nominalGrams: number | null;
   brandSlug: string | null;
   brandName: string | null;
   ratingCount: number;
@@ -422,6 +429,7 @@ export async function listProducts(
       inStock: v.inStock,
       unitCents: v.unitCents,
       unitPer: v.unitPer,
+      nominalGrams: v.nominalGrams,
       brandSlug: brands.slug,
       brandName: brands.name,
       ratingCount: products.ratingCount,
@@ -566,6 +574,9 @@ export interface VariantRow {
   compareAtPriceCents: number | null;
   currency: string;
   isDefault: boolean;
+  soldByWeight: boolean;
+  pricePerKgCents: number | null;
+  nominalGrams: number | null;
   // Raw stock numbers stay inside the API; the service turns them into booleans.
   quantity: number;
   reserved: number;
@@ -664,6 +675,9 @@ export async function getProductBySlug(slug: string): Promise<ProductDetailRows 
         netUnit: productVariants.netUnit,
         isTrial: productVariants.isTrial,
         swatchHex: productVariants.swatchHex,
+        soldByWeight: productVariants.soldByWeight,
+        pricePerKgCents: productVariants.pricePerKgCents,
+        nominalGrams: productVariants.nominalGrams,
         // A variant row without an inventory row is treated as zero stock.
         quantity: sql<number>`coalesce(${stockQuantity(productVariants.id)}, 0)`,
         reserved: sql<number>`coalesce(${stockReserved(productVariants.id)}, 0)`,

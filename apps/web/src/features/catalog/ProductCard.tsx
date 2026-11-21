@@ -1,4 +1,4 @@
-import type { ProductCard as ProductCardData } from '@store/shared';
+import { formatGrams, type ProductCard as ProductCardData } from '@store/shared';
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -135,6 +135,13 @@ export function ProductCard({
                   currency={product.price.currency}
                   className="text-dept-strong"
                 />
+              )}
+              {product.weighedGrams !== null && (
+                <span data-testid={TEST_IDS.weightLine} className="text-sm text-muted">
+                  {t('weight.aboutShort', {
+                    weight: formatGrams(product.weighedGrams, fmt.locale),
+                  })}
+                </span>
               )}
               <UnitPrice unitPrice={product.unitPrice} currency={product.price.currency} />
             </div>

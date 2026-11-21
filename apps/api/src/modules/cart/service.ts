@@ -153,7 +153,7 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
 
     // What is left for this line after the lines above it took their components (a kit and its
     // own part on a separate line draw on the same units).
-    const shortDated = line.shortDated && !line.isBundle;
+    const shortDated = line.shortDated && !line.isBundle && !line.soldByWeight;
     const shortOffer = shortDated ? shortStock.get(line.variantId) : undefined;
     const unitCents = shortDated ? shortDatedPrice(line.priceCents) : line.priceCents;
     const available = shortDated
@@ -208,6 +208,10 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
       maxQty,
       shortDated,
       bestBefore: shortOffer?.bestBefore ?? null,
+      weight:
+        line.soldByWeight && line.pricePerKgCents !== null && line.nominalGrams !== null
+          ? { pricePerKgCents: line.pricePerKgCents, nominalGrams: line.nominalGrams }
+          : null,
     });
 
     // Sold-out lines are shown but never counted: the subtotal is what can actually be bought.
@@ -340,6 +344,9 @@ async function addLine(
   if (!stock) throw notFound('Product variant not found');
   if (shortDated && (await bundleComponentsOf(tx, [variantId])).has(variantId)) {
     throw conflict(ErrorCode.CONFLICT, 'A kit has no short-dated offer');
+  }
+  if (shortDated && stock.soldByWeight) {
+    throw conflict(ErrorCode.CONFLICT, 'Items sold by weight have no short-dated offer');
   }
   // Stock left for this variant once the OTHER lines (kits expanded) have their share.
   const others = await demandOfOthers(tx, cartId, variantId, variantId);

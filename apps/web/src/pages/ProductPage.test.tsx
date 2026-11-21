@@ -458,3 +458,28 @@ describe('product page: best before and short-dated offer', () => {
     expect(screen.queryByTestId('short-dated-offer')).toBeNull();
   });
 });
+
+describe('product page: sold by weight', () => {
+  it('says about how much, the price per kilo and the estimate, instead of a plain unit price', async () => {
+    server.use(
+      http.get(`${API}/products/rope-tug`, () =>
+        HttpResponse.json({
+          data: makeProduct({
+            variants: [
+              makeVariant({
+                isDefault: true,
+                priceCents: 189,
+                weight: { pricePerKgCents: 378, nominalGrams: 500, estimateCents: 189 },
+              }),
+            ],
+          }),
+        }),
+      ),
+    );
+    renderApp('/products/rope-tug');
+    expect(await screen.findByTestId('weight-line')).toHaveTextContent(
+      'about 500 g · €3.78/kg · est. €1.89',
+    );
+    expect(screen.queryByTestId('unit-price')).toBeNull();
+  });
+});

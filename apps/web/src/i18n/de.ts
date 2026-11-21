@@ -12,6 +12,7 @@ import { returns } from './de/returns';
 import { reviews } from './de/reviews';
 import { search } from './de/search';
 import { shell } from './de/shell';
+import { weight } from './de/weight';
 import type { en } from './en';
 import type { Entry } from './types';
 
@@ -30,4 +31,5 @@ export const de: Record<keyof typeof en, Entry> = {
   ...content,
   ...delivery,
   ...expiry,
+  ...weight,
 };

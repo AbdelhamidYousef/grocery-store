@@ -189,6 +189,7 @@ function toCard(
         : null,
     swatches,
     sale,
+    weighedGrams: row.nominalGrams,
     ...memberFields(memberCents, isMember),
     rating: {
       count: row.ratingCount,
@@ -512,6 +513,15 @@ export async function getProduct(
       swatchHex: v.swatchHex,
       sale: offers.byVariant.get(v.id) ?? null,
       ...memberFields(members.byVariant.get(v.id), viewer.isMember),
+      weight:
+        v.soldByWeight && v.pricePerKgCents !== null && v.nominalGrams !== null
+          ? {
+              pricePerKgCents: v.pricePerKgCents,
+              nominalGrams: v.nominalGrams,
+              // price_cents IS the estimate of one nominal unit (derived from the price per kg).
+              estimateCents: v.priceCents,
+            }
+          : null,
       bestBefore: bestBefores.get(v.id) ?? null,
       shortDated: short
         ? {

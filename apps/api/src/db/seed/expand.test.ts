@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { DEPARTMENTS } from '@store/shared';
+import { estimateCents, DEPARTMENTS } from '@store/shared';
 import { describe, expect, it } from 'vitest';
 
 import { brands } from './brands.ts';
@@ -169,6 +169,26 @@ describe('seed catalogue data', () => {
     const publicDir = fileURLToPath(new URL('../../../../web/public', import.meta.url));
     for (const d of DEPARTMENTS) {
       expect(existsSync(`${publicDir}/products/placeholders/${d.slug}.svg`), d.slug).toBe(true);
+    }
+  });
+
+  it('sells exactly the ten flagged products by weight, each estimated at its catalogue price', () => {
+    const weighed = variants.filter((v) => v.soldByWeight);
+    expect(weighed.map((v) => v.product.slug).sort()).toEqual(
+      products
+        .filter((p) => p.soldByWeight)
+        .map((p) => p.slug)
+        .sort(),
+    );
+    expect(weighed).toHaveLength(10);
+    for (const v of weighed) {
+      // price_cents is the estimate of one nominal unit, derived from the price per kg.
+      expect(estimateCents(v.pricePerKgCents!, v.nominalGrams!), v.product.slug).toBe(v.priceCents);
+      expect(v.nominalGrams).toBe(v.netAmount);
+    }
+    for (const v of variants.filter((x) => !x.soldByWeight)) {
+      expect(v.pricePerKgCents).toBeNull();
+      expect(v.nominalGrams).toBeNull();
     }
   });
 });

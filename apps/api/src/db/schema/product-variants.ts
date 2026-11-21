@@ -41,6 +41,13 @@ export const productVariants = pgTable(
     // Drives the unit price (per kg / per L) computed in packages/shared.
     netAmount: integer('net_amount'),
     netUnit: netUnit('net_unit'),
+    // Sold by weight (loose fruit, counter cheese, fish): the shopper buys "about nominal_grams", the
+    // card is authorised for an estimate and charged for what the bag weighs. `price_cents` stays the
+    // estimate of one nominal unit (derived from the price per kg, see shared/weight.ts), so every
+    // reader of prices keeps working; these columns say how it was derived.
+    soldByWeight: boolean('sold_by_weight').notNull().default(false),
+    pricePerKgCents: integer('price_per_kg_cents'),
+    nominalGrams: integer('nominal_grams'),
     // A sample size; at most one unit per customer, ever (trial_redemptions).
     isTrial: boolean('is_trial').notNull().default(false),
     // Colour dot shown on the product card, #RRGGBB.
@@ -55,6 +62,11 @@ export const productVariants = pgTable(
     check(
       'product_variants_member_price_check',
       sql`${t.memberPriceCents} is null or ${t.memberPriceCents} > 0`,
+    ),
+    // A weighed variant needs both numbers; any other must have neither.
+    check(
+      'product_variants_weight_check',
+      sql`(${t.soldByWeight} and ${t.pricePerKgCents} is not null and ${t.pricePerKgCents} > 0 and ${t.nominalGrams} is not null and ${t.nominalGrams} > 0) or (not ${t.soldByWeight} and ${t.pricePerKgCents} is null and ${t.nominalGrams} is null)`,
     ),
     check('product_variants_net_amount_check', sql`${t.netAmount} is null or ${t.netAmount} > 0`),
     // An amount without a unit (or the reverse) is meaningless.

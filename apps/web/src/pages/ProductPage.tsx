@@ -36,6 +36,7 @@ import { RatingStars } from '../features/reviews/RatingStars';
 import { ReviewsSection } from '../features/reviews/ReviewsSection';
 import { SafetyNoticeBox } from '../features/safety/SafetyNoticeBox';
 import { useCanonicalSlug } from '../features/stores/useCanonicalSlug';
+import { WeightLine } from '../features/weight/Weight';
 import { WishlistHeart } from '../features/wishlist/WishlistHeart';
 import { useT, type StringKey } from '../i18n';
 import { useFormat } from '../i18n/format';
@@ -224,8 +225,19 @@ function ProductView({ product }: { product: ProductDetail }) {
 
             {variant && (
               <div className="-mt-3 flex flex-col gap-1">
-                <UnitPrice unitPrice={variant.unitPrice} currency={variant.currency} />
-                {variant.unitPrice && <UnitPriceNote />}
+                {variant.weight ? (
+                  <WeightLine
+                    grams={variant.weight.nominalGrams}
+                    pricePerKgCents={variant.weight.pricePerKgCents}
+                    estimateCents={variant.weight.estimateCents}
+                    currency={variant.currency}
+                  />
+                ) : (
+                  <>
+                    <UnitPrice unitPrice={variant.unitPrice} currency={variant.currency} />
+                    {variant.unitPrice && <UnitPriceNote />}
+                  </>
+                )}
                 {variant.isTrial && (
                   <div className="mt-1 flex flex-col gap-1">
                     <Badge tone="dept" data-testid={TEST_IDS.trialPill} className="w-fit">

@@ -466,3 +466,22 @@ Surprise: the first idea (two cart lines per variant, one normal and one short) 
 other offer switches it) needed none of that.
 Learn: count what you can derive (units in short batches minus held) instead of storing a second reservation
 number; the one lock that already guards the stock row guards the count too.
+
+### G6.3: sold by weight
+`shared/weight.ts` holds every weighed-money rule, with tests: `weighedCents(pricePerKg, grams)` =
+`round(pricePerKg x grams / 1000)` half up, once per line; `estimateCents` (one nominal unit),
+`pricePerKgFor` (the seed derives 378 per kg from 189 cents for 500 g), `weightBufferCents` (15 % of the weighed
+lines, rounded once) and `authorisationCents(total, weighedLines)` (the total at the estimate plus that buffer;
+189 gives the "up to 2.17" of the plan). Migration 0053 adds `product_variants.sold_by_weight`,
+`price_per_kg_cents`, `nominal_grams` with a CHECK (all three or none) and backfills from the catalogue flags;
+`price_cents` stays the estimate of one nominal unit, so every price reader keeps working. The seed marks the ten
+weighed products. The API sends `weight` on a PDP variant and on the cart line and `weighedGrams` on a card. A
+weighed item has no short-dated offer (packed to order). Web: "about 500 g · 3.78 EUR/kg · est. 1.89 EUR" on the
+product page (replacing the plain unit price), the cart line (the total reads "est. ...") and "about 500 g" on cards;
+the cart summary and the checkout sidebar say "Final price after weighing. We hold up to X on your card and take
+only what it weighs." (EN and DE "du").
+Surprise: a CHECK that is NULL passes: my first version of the weight constraint let `nominal_grams = null`
+through on a weighed row (`true and null` is NULL, which a CHECK accepts); spelling out `is not null` fixed it and a
+test now tries it. (I also had to regenerate the migration, so a test database that already applied the first
+0053 needed those columns dropped by hand.)
+Learn: in SQL a CHECK only rejects `false`; when a column may be null, say `is not null` in the rule.

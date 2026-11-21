@@ -15,7 +15,9 @@ export interface ShortDatedStock {
 }
 
 /**
- * Short-dated availability per variant at one store. COUNTED, not stored (the reservation stays the
+ * Short-dated availability per variant at one store (never for an item sold by weight: it is packed
+ * to order, so there is no short-dated pack to offer).
+ * COUNTED, not stored (the reservation stays the
  * one number `inventory.reserved`):
  *
  *   units in short-dated batches (best before today .. today + 2)
@@ -60,6 +62,7 @@ export async function shortDatedAvailability(
       greatest(i.quantity - i.reserved, 0)::int as free
     from stock_batches b
     join inventory i on i.store_id = b.store_id and i.variant_id = b.variant_id
+    join product_variants pv on pv.id = b.variant_id and not pv.sold_by_weight
     where b.store_id = ${storeId}::uuid and b.variant_id in (${ids}) and b.quantity > 0
       and b.best_before between ${today}::date and ${last}::date
     group by b.variant_id, i.quantity, i.reserved
@@ -111,9 +114,10 @@ export async function variantsWithShortDated(
   today: string = todayKey(),
 ): Promise<string[]> {
   const rows = await run.execute<{ variant_id: string }>(sql`
-    select distinct variant_id from stock_batches
-    where store_id = ${storeId}::uuid and quantity > 0
-      and best_before between ${today}::date and ${addDays(today, SHORT_DATE_DAYS)}::date
+    select distinct b.variant_id from stock_batches b
+    join product_variants pv on pv.id = b.variant_id and not pv.sold_by_weight
+    where b.store_id = ${storeId}::uuid and b.quantity > 0
+      and b.best_before between ${today}::date and ${addDays(today, SHORT_DATE_DAYS)}::date
   `);
   return rows.map((r) => r.variant_id);
 }

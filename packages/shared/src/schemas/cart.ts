@@ -49,6 +49,13 @@ export const CartItemSchema = z.object({
   available: z.number().int().min(0),
   // The most the stepper may offer: min(99, available).
   maxQty: z.number().int().min(0),
+  // Sold by weight: "about nominalGrams" per unit; the line total is an estimate until it is weighed.
+  weight: z
+    .object({
+      pricePerKgCents: z.number().int().positive(),
+      nominalGrams: z.number().int().positive(),
+    })
+    .nullable(),
   // A short-dated line: priced 30 % off and filled only from short-dated packs.
   shortDated: z.boolean(),
   // The oldest short-dated pack's best-before date ("YYYY-MM-DD") of a short-dated line; else null.

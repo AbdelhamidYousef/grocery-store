@@ -11,6 +11,7 @@ import { TEST_IDS } from '../../lib/test-ids';
 import { useFreeShippingThreshold } from '../checkout/queries';
 import { NextDelivery } from '../delivery/NextDelivery';
 import { EarnPoints } from '../loyalty/EarnPoints';
+import { WeighedNotice } from '../weight/Weight';
 
 import { CartCode } from './CartCode';
 import { DiscountsCombine } from './DiscountsCombine';
@@ -103,6 +104,11 @@ export function CartSummary({
               </dd>
             </div>
           </dl>
+          <WeighedNotice
+            items={cart.items}
+            totalCents={pricing.totalEstimateCents}
+            currency={cart.currency}
+          />
           <EarnPoints merchandiseCents={pricing.merchandiseCents} returnTo="/cart" />
           <p className="text-sm text-muted">{t('cart.summary.noTax')}</p>
           <DiscountsCombine />

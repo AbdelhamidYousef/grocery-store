@@ -209,6 +209,17 @@ describe('seed: product page content', () => {
     await expectBatchInvariant();
   });
 
+  it('sells the ten weighed products by weight, estimated at their price, and nothing else', async () => {
+    await runSeed();
+    const rows = await db.execute<{ n: number; wrong: number; other: number }>(sql`
+      select count(*) filter (where sold_by_weight)::int as n,
+        count(*) filter (where sold_by_weight
+          and floor((price_per_kg_cents::bigint * nominal_grams + 500) / 1000) <> price_cents)::int as wrong,
+        count(*) filter (where not sold_by_weight and (price_per_kg_cents is not null or nominal_grams is not null))::int as other
+      from product_variants`);
+    expect(rows[0]).toEqual({ n: 10, wrong: 0, other: 0 });
+  });
+
   it('seeds specs and FAQs, once', async () => {
     await runSeed();
     const read = async () =>

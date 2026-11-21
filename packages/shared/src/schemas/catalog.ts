@@ -107,6 +107,8 @@ export const ProductCardSchema = z.object({
   // Of the default variant; null when it has no net amount (a toy).
   unitPrice: UnitPriceSchema.nullable(),
   swatches: z.array(SwatchSchema),
+  // Nominal grams ("about 500 g") of the default variant when it is sold by weight; else null.
+  weighedGrams: z.number().int().positive().nullable(),
   // The best flash-sale offer among the product's variants right now; null when none.
   sale: SaleOfferSchema.nullable(),
   // True when a variant has a member price below its regular one; the amount is in `member` and
@@ -159,6 +161,13 @@ export type ProductListResponse = z.infer<typeof ProductListResponseSchema>;
 
 // The short-dated packs a store has of a variant right now (best before in two days or less), sold
 // 30 % off. `units` is counted, not stored: packs in short batches minus those held by unpaid orders.
+export const WeightInfoSchema = z.object({
+  pricePerKgCents: z.number().int().positive(),
+  nominalGrams: z.number().int().positive(),
+  estimateCents: z.number().int().min(0),
+});
+export type WeightInfo = z.infer<typeof WeightInfoSchema>;
+
 export const ShortDatedOfferSchema = z.object({
   units: z.number().int().min(1),
   // The oldest date among them ("YYYY-MM-DD").
@@ -188,6 +197,9 @@ export const VariantSchema = z.object({
   sale: SaleOfferSchema.nullable(),
   hasMemberPrice: z.boolean(),
   member: MemberOfferSchema.nullable(),
+  // Sold by weight: the shopper buys "about nominalGrams" at pricePerKgCents; `estimateCents` is the
+  // price of one such unit (what the cart adds up), the real weight is charged after packing.
+  weight: WeightInfoSchema.nullable(),
   // "Best before at least ...": the oldest date the store could send of the normal packs. Null for
   // anything that does not expire, and when the store has none.
   bestBefore: z.string().nullable(),

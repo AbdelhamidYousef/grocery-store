@@ -372,6 +372,13 @@
       "when": 1795250180337,
       "tag": "0052_short_dated_lines",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1795251658191,
+      "tag": "0053_sold_by_weight",
+      "breakpoints": true
     }
   ]
 }
