@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { PASSWORD, register, signOut, uniqueEmail } from './helpers';
 
 // Needs the API on :3000 with the seeded dev database. Products used here are not low-stock or
-// sold out in the seed: bouncy-rubber-ball, braided-tug-rope (default variants well stocked).
+// sold out in the seed: glass-cleaner, kitchen-sponges-6 (household basics, well stocked).
 async function addFromProduct(page: Page, slug: string): Promise<void> {
   await page.goto(`/products/${slug}`);
   await page.getByTestId('add-to-cart').click();
@@ -13,7 +13,7 @@ async function addFromProduct(page: Page, slug: string): Promise<void> {
 test('guest cart: add, survive a reload, change the quantity, remove, empty state', async ({
   page,
 }) => {
-  await addFromProduct(page, 'bouncy-rubber-ball');
+  await addFromProduct(page, 'glass-cleaner');
   await expect(page.getByTestId('cart-count')).toHaveText('1');
 
   // The toast offers a way to the cart.
@@ -21,7 +21,7 @@ test('guest cart: add, survive a reload, change the quantity, remove, empty stat
   await expect(page).toHaveURL(/\/cart$/);
   const lines = page.getByTestId('cart-line');
   await expect(lines).toHaveCount(1);
-  await expect(lines.first()).toContainText('Bouncy Rubber Ball');
+  await expect(lines.first()).toContainText('Glass cleaner');
 
   // The guest cart lives in a cookie, so it survives a reload.
   await page.reload();
@@ -46,7 +46,7 @@ test('guest cart: add, survive a reload, change the quantity, remove, empty stat
   // The mini cart is available from other pages.
   await page.goto('/');
   await page.getByTestId('mini-cart-button').click();
-  await expect(page.getByTestId('mini-cart')).toContainText('Bouncy Rubber Ball');
+  await expect(page.getByTestId('mini-cart')).toContainText('Glass cleaner');
   await page.getByTestId('dialog-close').click();
 
   await page.goto('/cart');
@@ -56,8 +56,8 @@ test('guest cart: add, survive a reload, change the quantity, remove, empty stat
 });
 
 test('adding more than the stock shows how many are available', async ({ page }) => {
-  // Seeded as low stock: 1 to 4 units.
-  await page.goto('/products/bell-and-mirror-toy?variant=PW-BIRD-BELL-GREEN');
+  // Seeded as low stock on purpose: 3 units (FORCED_STOCK in the seed).
+  await page.goto('/products/matjes-herring');
   const qty = page.getByRole('spinbutton', { name: 'Quantity' });
   await qty.fill('10');
   await page.getByTestId('add-to-cart').click();
@@ -72,13 +72,13 @@ test('a guest cart is merged into the account on sign-in', async ({ page }) => {
   await register(page, email);
   await expect(page).toHaveURL(/\/account$/);
 
-  // The account's own cart holds a rope; then sign out.
-  await addFromProduct(page, 'braided-tug-rope');
+  // The account's own cart holds sponges; then sign out.
+  await addFromProduct(page, 'kitchen-sponges-6');
   await signOut(page);
   await expect(page.getByTestId('cart-count')).toHaveCount(0);
 
-  // As a guest, add a ball; the rope must not be there.
-  await addFromProduct(page, 'bouncy-rubber-ball');
+  // As a guest, add a glass cleaner; the sponges must not be there.
+  await addFromProduct(page, 'glass-cleaner');
   await page.goto('/cart');
   await expect(page.getByTestId('cart-line')).toHaveCount(1);
 

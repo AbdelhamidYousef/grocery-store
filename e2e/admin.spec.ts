@@ -19,7 +19,7 @@ const HOOK_HEADERS: Record<string, string> = process.env.TEST_HOOK_SECRET
 
 const ADDRESS = {
   fullName: 'Sam Rivers',
-  line1: '1 Bone Street',
+  line1: '1 Market Street',
   postalCode: '10115',
   city: 'Berlin',
   country: 'DE',
@@ -227,13 +227,13 @@ test.describe('products', () => {
     const admin = await adminSession(browser);
     const page = admin.page;
     const token = unique('zq');
-    const name = `Wobbly ${token} Hammock`;
+    const name = `Wobbly ${token} Tea Towel`;
     const sku = unique('HAM-').toUpperCase();
 
     await page.goto('/admin/products/new');
     const form = page.getByTestId('admin-product-form');
     await form.getByLabel('Name', { exact: true }).fill(name);
-    await form.getByLabel('Description').fill('A hammock for the sleepiest cat.');
+    await form.getByLabel('Description').fill('A tea towel for the busiest kitchen.');
     await form.getByLabel('Category').selectOption({ index: 1 });
     const variant = form.getByRole('group', { name: 'Variant 1' });
     await variant.getByLabel('SKU').fill(`${sku}-S`);
@@ -265,8 +265,8 @@ test.describe('products', () => {
     const productForm = page.getByTestId('admin-product-form');
     await productForm.getByRole('button', { name: 'Add image' }).click();
     const image = productForm.getByRole('group', { name: 'Image 1' });
-    await image.getByLabel('Image URL').fill('/products/bouncy-rubber-ball.webp');
-    await image.getByLabel('Alt text').fill('A hammock');
+    await image.getByLabel('Image URL').fill('/products/cleaning/glass-cleaner-1.webp');
+    await image.getByLabel('Alt text').fill('A tea towel');
     await image.getByLabel('Width (px)').fill('800');
     await image.getByLabel('Height (px)').fill('800');
     await productForm.getByLabel('Status', { exact: true }).selectOption('active');
@@ -325,10 +325,10 @@ test.describe('orders', () => {
     await expect(
       page.getByTestId('toast').filter({ hasText: 'Order is now processing' }),
     ).toBeVisible();
-    await page.getByLabel('Note (optional)').fill('Packed with a treat');
+    await page.getByLabel('Note (optional)').fill('Packed with care');
     await page.getByRole('button', { name: 'Mark shipped' }).click();
     await expect(page.getByTestId('admin-order-status')).toContainText('Shipped');
-    await expect(page.getByTestId('admin-timeline')).toContainText('Packed with a treat');
+    await expect(page.getByTestId('admin-timeline')).toContainText('Packed with care');
 
     // The customer's own page.
     await shopper.goto(`/account/orders/${orderNumber}`);

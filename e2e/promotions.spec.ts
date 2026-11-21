@@ -1,30 +1,32 @@
 import { expect, test, type Browser, type Page } from '@playwright/test';
 
-import { ADMIN, api, uniqueEmail } from './helpers';
+import { ADMIN, api, restock, uniqueEmail } from './helpers';
 
 // Phase 18 (promotions), end to end: the gift bar, a code against a bulk tier, a flash sale
 // scheduled through the admin UI (banner, sale price, Omnibus text), a paid order's promotions in
 // the admin order detail, and member prices.
 //
-// Seeded rules this relies on: gift Peanut Crunch Biscuits from EUR 40.00, tiers 5% from EUR 75 and
+// Seeded rules this relies on: gift butter biscuits from EUR 40.00, tiers 5% from EUR 75 and
 // 10% from EUR 100, code GROCERY10 (10%, min EUR 30).
 //
 // Independence from the other specs (they run in parallel workers on the same database):
 //   - every test builds its own cart (a cart is per browser context, so nothing is shared);
-//   - the only stock-moving test (checkout) buys a bed no other spec buys;
+//   - the only stock-moving test (checkout) buys nappies no other spec buys (restocked first);
 //   - the flash sale sits on a product nobody else views or buys, has a unique name, and is ended
 //     (or deleted) in `finally`; a sale left behind by a crashed run is cleaned up first.
 
-const BED = 'cuddle-cup-bed'; // EUR 37.90 per variant
-const BED_SKU = 'PW-CAT-CUPB-CREAM-M';
-const CHEW = 'dental-chew-sticks'; // EUR 6.99
-const CHEW_SKU = 'PW-DOG-DENT-SMALL-7X';
-const SALE_PRODUCT = 'raised-double-diner'; // single variant, EUR 37.90
-const SALE_SKU = 'PW-DOG-DINE-M';
-const MEMBER_PRODUCT = 'spooky-bat-teaser'; // EUR 5.99, member price EUR 5.39
+// Grocery prices are small, so the thresholds are reached with quantities of one dearer item.
+const NAPPIES = 'nappies-size-4'; // EUR 8.99, single variant
+const NAPPIES_SKU = 'GR-NAPPIES-SIZE-4';
+const OIL = 'olive-oil-500ml'; // EUR 6.99
+const OIL_SKU = 'GR-OLIVE-OIL-500ML';
+const SALE_PRODUCT = 'mixed-nuts'; // single variant, EUR 3.29
+const SALE_SKU = 'GR-MIXED-NUTS';
+const MEMBER_PRODUCT = 'cod-fillets'; // EUR 6.49, member price EUR 5.84
+const GIFT = 'Butter biscuits';
 const ADDRESS = {
   fullName: 'Sam Rivers',
-  line1: '1 Bone Street',
+  line1: '1 Market Street',
   postalCode: '10115',
   city: 'Berlin',
   country: 'DE',
@@ -51,34 +53,41 @@ async function addApi(page: Page, slug: string, sku: string, quantity: number): 
 
 const line = (page: Page) => page.getByTestId('cart-line');
 
+// The order test buys 12 packs of nappies (and receives a gift pack of biscuits) on every run.
+test.beforeAll(async ({ browser, baseURL }) => {
+  await restock(browser, baseURL, [NAPPIES, 'butter-biscuits'], 100);
+});
+
 test.describe('gift progress', () => {
-  test('EUR 2.10 short of the gift, then the gift line appears', async ({ page }) => {
+  test('EUR 4.04 short of the gift, then the gift line appears', async ({ page }) => {
+    // 4 x 8.99 = 35.96: 4.04 short of 40.00, 89% of the way (rounded down).
     await page.goto('/');
-    await addApi(page, BED, BED_SKU, 1);
+    await addApi(page, NAPPIES, NAPPIES_SKU, 4);
     await page.goto('/cart');
     const bar = page.getByTestId('cart-gift-progress');
-    await expect(bar).toContainText('Spend €2.10 more for a free gift');
+    await expect(bar).toContainText('Spend €4.04 more for a free gift');
     const progress = bar.getByRole('progressbar');
-    await expect(progress).toHaveAttribute('aria-valuenow', '94');
+    await expect(progress).toHaveAttribute('aria-valuenow', '89');
     await expect(page.getByTestId('cart-gift-line')).toHaveCount(0);
 
-    await addApi(page, CHEW, CHEW_SKU, 1);
+    // + 6.99 = 42.95: over the threshold.
+    await addApi(page, OIL, OIL_SKU, 1);
     await page.reload();
     await expect(bar).toContainText('You get a free gift!');
     await expect(progress).toHaveAttribute('aria-valuenow', '100');
     const gift = page.getByTestId('cart-gift-line');
     await expect(gift).toBeVisible();
     await expect(gift).toContainText('Free gift');
-    await expect(gift).toContainText('Peanut Crunch Biscuits');
+    await expect(gift).toContainText(GIFT);
     await expect(gift).toContainText('€0.00');
   });
 });
 
 test.describe('code against a bulk tier', () => {
   test('the better one wins and the cart says why', async ({ page }) => {
-    // 2 x 37.90 = 75.80: tier 5% saves 3.79, GROCERY10 saves 7.58, so the code wins.
+    // 11 x 8.99 = 98.89: tier 5% saves 4.94, GROCERY10 saves 9.89, so the code wins.
     await page.goto('/');
-    await addApi(page, BED, BED_SKU, 2);
+    await addApi(page, NAPPIES, NAPPIES_SKU, 11);
     await page.goto('/cart');
     await page.getByLabel('Discount code').fill('grocery10');
     await page.getByRole('button', { name: 'Apply' }).click();
@@ -88,17 +97,17 @@ test.describe('code against a bulk tier', () => {
     const adjustments = page.getByTestId('cart-adjustment');
     await expect(adjustments).toHaveCount(1);
     await expect(adjustments.first()).toContainText('GROCERY10');
-    await expect(adjustments.first()).toContainText('€7.58');
+    await expect(adjustments.first()).toContainText('€9.89');
     await expect(page.getByTestId('cart-code-notice')).toHaveCount(0);
 
-    // 3 x 37.90 = 113.70: tier 10% and GROCERY10 both save 11.37; a tie goes to the tier, which needs
+    // 12 x 8.99 = 107.88: tier 10% and GROCERY10 both save 10.79; a tie goes to the tier, which needs
     // no code, and the cart explains the choice.
     await line(page)
       .first()
       .getByRole('button', { name: /^Increase quantity/ })
       .click();
     await expect(adjustments).toHaveCount(1);
-    await expect(adjustments.first()).toContainText('€11.37');
+    await expect(adjustments.first()).toContainText('€10.79');
     await expect(adjustments.first()).not.toContainText('GROCERY10');
     await expect(adjustments.first()).toContainText('10%');
     await expect(page.getByTestId('cart-code-notice')).toContainText(
@@ -161,7 +170,7 @@ test.describe('flash sale', () => {
       await form.getByLabel('Starts (UTC)').fill(utc(Date.now() - 10 * 60_000));
       await form.getByLabel('Ends (UTC)').fill(utc(Date.now() + 2 * 3_600_000));
       await form.getByLabel('SKU, item 1').fill(SALE_SKU);
-      await form.getByLabel('Sale price (EUR), item 1').fill('29.90');
+      await form.getByLabel('Sale price (EUR), item 1').fill('2.49');
       await form.getByRole('button', { name: 'Create sale' }).click();
 
       const row = admin.page.getByTestId('admin-flash-row').filter({ hasText: name });
@@ -178,23 +187,23 @@ test.describe('flash sale', () => {
           await expect(page.getByTestId('sale-banner')).toContainText(name, { timeout: 2_000 });
         }).toPass({ timeout: 20_000 });
         await expect(page.getByTestId('sale-banner')).toContainText('ends in');
-        await expect(page.getByTestId('sale-price').first()).toHaveText('€29.90');
-        // The reference is the lowest price of the 30 days before the sale started: EUR 37.90 on a
-        // fresh database, but an earlier run's own sale (EUR 29.90, now ended) is inside that
+        await expect(page.getByTestId('sale-price').first()).toHaveText('€2.49');
+        // The reference is the lowest price of the 30 days before the sale started: EUR 3.29 on a
+        // fresh database, but an earlier run's own sale (EUR 2.49, now ended) is inside that
         // window on a re-run, and the Omnibus rule counts it. Both are right, so check the rule's
         // bounds rather than one number.
         const omnibus = await page.getByTestId('sale-omnibus').first().innerText();
         const reference = /^Lowest price in the last 30 days: €(\d+\.\d{2})$/.exec(omnibus);
         expect(reference, omnibus).not.toBeNull();
         const cents = Math.round(Number(reference![1]) * 100);
-        expect(cents).toBeGreaterThanOrEqual(2990);
-        expect(cents).toBeLessThanOrEqual(3790);
+        expect(cents).toBeGreaterThanOrEqual(249);
+        expect(cents).toBeLessThanOrEqual(329);
 
         // The cart charges the sale price and repeats the Omnibus line.
         await page.getByTestId('add-to-cart').click();
         await expect(page.getByTestId('toast').filter({ hasText: /^Added 1 x/ })).toBeVisible();
         await page.goto('/cart');
-        await expect(page.getByTestId('cart-line-sale')).toContainText('€29.90');
+        await expect(page.getByTestId('cart-line-sale')).toContainText('€2.49');
         await expect(page.getByTestId('cart-line-sale')).toContainText(
           'Lowest price in the last 30 days',
         );
@@ -219,10 +228,10 @@ test.describe('order snapshot', () => {
     page,
     browser,
   }) => {
-    // 3 beds = 113.70: the 10% tier (11.37) and the free gift. This is the one test here that
-    // buys, and nothing else buys this bed.
+    // 12 packs = 107.88: the 10% tier (10.79) and the free gift. This is the one test here that
+    // buys, and no other spec buys these nappies.
     await page.goto('/');
-    await addApi(page, BED, BED_SKU, 3);
+    await addApi(page, NAPPIES, NAPPIES_SKU, 12);
     const email = uniqueEmail();
     const placed = await api<{ data: { orderNumber: string } }>(page, 'POST', '/checkout', {
       email,
@@ -250,7 +259,7 @@ test.describe('order snapshot', () => {
       timeout: 15_000,
     });
     const summary = page.getByTestId('order-summary');
-    await expect(summary).toContainText('Peanut Crunch Biscuits');
+    await expect(summary).toContainText(GIFT);
 
     const admin = await adminSession(browser);
     try {
@@ -258,10 +267,10 @@ test.describe('order snapshot', () => {
       await expect(admin.page.getByTestId('admin-order-status')).toHaveText('Paid');
       const promos = admin.page.getByTestId('admin-order-promotions');
       await expect(promos).toContainText('10%');
-      await expect(promos).toContainText('€11.37');
-      await expect(promos).toContainText('Peanut Crunch Biscuits');
+      await expect(promos).toContainText('€10.79');
+      await expect(promos).toContainText(GIFT);
       await expect(admin.page.getByText('Discount', { exact: true })).toBeVisible();
-      await expect(admin.page.getByText('-€11.37').first()).toBeVisible();
+      await expect(admin.page.getByText('-€10.79').first()).toBeVisible();
     } finally {
       await admin.context.close();
     }
@@ -277,7 +286,7 @@ test.describe('member price', () => {
     await expect(teaser).toHaveText('Member price: log in to see');
     await expect(page.getByTestId('member-price')).toHaveCount(0);
     // The number is not in the page for a guest at all.
-    await expect(page.locator('body')).not.toContainText('5.39');
+    await expect(page.locator('body')).not.toContainText('5.84');
 
     await teaser.click();
     await expect(page).toHaveURL(/\/login\?next=%2Fproducts%2F/);
@@ -286,7 +295,7 @@ test.describe('member price', () => {
     await page.getByTestId('login-submit').click();
 
     await expect(page).toHaveURL(`/de-en/products/${MEMBER_PRODUCT}`);
-    await expect(page.getByTestId('member-price')).toHaveText('Member price €5.39');
+    await expect(page.getByTestId('member-price')).toHaveText('Member price €5.84');
     await expect(page.getByTestId('member-teaser')).toHaveCount(0);
   });
 });

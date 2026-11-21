@@ -32,7 +32,7 @@ test('an expired session sends the shopper to sign in and the cart survives it',
   await register(page, email);
   await expect(page).toHaveURL(/\/account$/);
 
-  await page.goto('/products/braided-tug-rope');
+  await page.goto('/products/kitchen-sponges-6');
   await page.getByTestId('add-to-cart').click();
   await expect(page.getByTestId('toast').filter({ hasText: /^Added 1 x/ })).toBeVisible();
   await expect(page.getByTestId('cart-count')).toHaveText('1');

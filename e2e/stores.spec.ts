@@ -8,8 +8,8 @@ import { restock } from './helpers';
 test('an old unprefixed product URL lands on the default store and keeps its query', async ({
   page,
 }) => {
-  await page.goto('/products/braided-tug-rope?x=1#reviews');
-  await expect(page).toHaveURL(/\/de-en\/products\/braided-tug-rope\?x=1#reviews$/);
+  await page.goto('/products/shower-gel-250ml?x=1#reviews');
+  await expect(page).toHaveURL(/\/de-en\/products\/shower-gel-250ml\?x=1#reviews$/);
   await expect(page.getByTestId('header')).toBeVisible();
 });
 
@@ -19,7 +19,7 @@ test('the bare root lands on the default store', async ({ page }) => {
 });
 
 test('links inside a store view stay inside it and set the page language', async ({ page }) => {
-  await page.goto('/de-de/c/dogs');
+  await page.goto('/de-de/c/pantry');
   await expect(page.getByTestId('header')).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('lang', 'de-DE');
   await page.getByTestId('logo').click();
@@ -27,9 +27,9 @@ test('links inside a store view stay inside it and set the page language', async
 });
 
 test('an unknown store code is a not-found page, not a redirect', async ({ page }) => {
-  await page.goto('/xx-yy/c/dogs');
+  await page.goto('/xx-yy/c/pantry');
   await expect(page.getByTestId('page-not-found')).toBeVisible();
-  await expect(page).toHaveURL(/\/xx-yy\/c\/dogs$/);
+  await expect(page).toHaveURL(/\/xx-yy\/c\/pantry$/);
 });
 
 test('the admin stays un-prefixed', async ({ page }) => {
@@ -40,16 +40,16 @@ test('the admin stays un-prefixed', async ({ page }) => {
 test('the switcher keeps the page and query, and the pick is remembered for old URLs', async ({
   page,
 }) => {
-  await page.goto('/de-en/c/dogs?sort=price_asc');
+  await page.goto('/de-en/c/pantry?sort=price_asc');
   await expect(page.getByTestId('header')).toBeVisible();
   await page.getByTestId('store-switcher').selectOption('de-de');
-  await expect(page).toHaveURL(/\/de-de\/c\/dogs\?sort=price_asc$/);
+  await expect(page).toHaveURL(/\/de-de\/c\/pantry\?sort=price_asc$/);
   await expect(page.locator('html')).toHaveAttribute('lang', 'de-DE');
   await expect(page.getByTestId('store-switcher')).toHaveValue('de-de');
 
   // Footer switcher too, and the cookie sends a bare old URL to the last pick.
   await page.getByTestId('store-switcher-footer').selectOption('de-en');
-  await expect(page).toHaveURL(/\/de-en\/c\/dogs\?sort=price_asc$/);
+  await expect(page).toHaveURL(/\/de-en\/c\/pantry\?sort=price_asc$/);
   await page.goto('/brands');
   await expect(page).toHaveURL(/\/de-en\/brands$/);
 });
@@ -57,23 +57,23 @@ test('the switcher keeps the page and query, and the pick is remembered for old 
 test('the old multi-country prefixes land on the English view and keep the path', async ({
   page,
 }) => {
-  await page.goto('/uk-en/c/dogs?sort=price_asc');
-  await expect(page).toHaveURL(/\/de-en\/c\/dogs\?sort=price_asc$/);
+  await page.goto('/uk-en/c/pantry?sort=price_asc');
+  await expect(page).toHaveURL(/\/de-en\/c\/pantry\?sort=price_asc$/);
   await page.goto('/fr-fr/brands');
   await expect(page).toHaveURL(/\/de-en\/brands$/);
 });
 
 test('every store view is announced to search engines with hreflang', async ({ page }) => {
-  // On the English store: the German store has its own category slugs (`hunde`), and the
+  // On the English store: the German store has its own category slugs (`vorrat`), and the
   // alternates for it still carry the canonical's slug (follow-up in the handover).
-  await page.goto('/de-en/c/dogs');
+  await page.goto('/de-en/c/pantry');
   await expect(page.getByTestId('header')).toBeVisible();
   const links = page.locator('link[rel="alternate"][hreflang]');
   await expect(links).toHaveCount(3);
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', '/de-en/c/dogs');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', '/de-en/c/pantry');
   await expect(page.locator('link[hreflang="x-default"]')).toHaveAttribute(
     'href',
-    /\/de-en\/c\/dogs$/,
+    /\/de-en\/c\/pantry$/,
   );
 });
 
@@ -86,7 +86,7 @@ test('every store view is announced to search engines with hreflang', async ({ p
 // ---------------------------------------------------------------------------------------------
 
 const MAILPIT = process.env.MAILPIT_URL ?? 'http://localhost:8026';
-const PRODUCT = 'bouncy-rubber-ball';
+const PRODUCT = 'shower-gel-250ml';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -150,7 +150,7 @@ async function buyIn(
     email,
     shippingAddress: {
       fullName: 'Sam Rivers',
-      line1: '1 Bone Street',
+      line1: '1 Market Street',
       postalCode: '10115',
       city: 'Berlin',
       country,
@@ -222,7 +222,7 @@ test('German store: German words and euros; English store: euros, checkout, Engl
     email: enMail,
     shippingAddress: {
       fullName: 'Sam Rivers',
-      line1: '1 Rue Bone',
+      line1: '1 Rue du Marché',
       postalCode: '75001',
       city: 'Paris',
       country: 'FR',

@@ -16,7 +16,7 @@ const HOOK_HEADERS: Record<string, string> = process.env.TEST_HOOK_SECRET
   : {};
 const ADDRESS = {
   fullName: 'Sam Rivers',
-  line1: '1 Bone Street',
+  line1: '1 Market Street',
   postalCode: '10115',
   city: 'Berlin',
   country: 'DE',
@@ -102,7 +102,7 @@ test('a buyer reviews with a photo, an admin approves it, others vote and sort',
   browser,
 }) => {
   const admin = await adminSession(browser);
-  const product = await createProduct(admin.page, `E2E Review Tug ${unique('')}`);
+  const product = await createProduct(admin.page, `E2E Review Granola ${unique('')}`);
 
   // The buyer: registers (signed in), buys the product, writes a review with a photo.
   const buyerCtx = await browser.newContext();
@@ -118,16 +118,17 @@ test('a buyer reviews with a photo, an admin approves it, others vote and sort',
   await section.getByRole('button', { name: 'Write a review' }).click();
   const form = buyer.getByTestId('review-form');
   await form.getByText('5', { exact: true }).click();
-  const title = `Sturdy and loved ${unique('')}`;
+  const title = `Crunchy and loved ${unique('')}`;
   await form.getByLabel('Title').fill(title);
   await form
     .getByLabel('Your review')
-    .fill('My dog has chewed on this for a week and it still looks brand new, wonderful.');
-  await form.getByLabel('Pet weight (kg)').fill('12.5');
+    .fill('We have had this for breakfast all week and it is still crunchy to the last bowl.');
+  // The recommendation is on by default; it shows on the published card.
+  await expect(form.getByLabel('I would recommend this product')).toBeChecked();
   await form
     .getByLabel(/Photos/)
-    .setInputFiles({ name: 'dog.png', mimeType: 'image/png', buffer: PNG });
-  await expect(form.getByAltText('Preview of dog.png')).toBeVisible();
+    .setInputFiles({ name: 'breakfast.png', mimeType: 'image/png', buffer: PNG });
+  await expect(form.getByAltText('Preview of breakfast.png')).toBeVisible();
   await form.getByRole('button', { name: 'Submit review' }).click();
   await expect(buyer.getByTestId('review-pending')).toContainText('waiting for approval');
 
@@ -146,12 +147,12 @@ test('a buyer reviews with a photo, an admin approves it, others vote and sort',
     0,
   );
 
-  // Now it is public: verified tag, pet detail, photo, and the rating on the title block.
+  // Now it is public: verified tag, recommendation, photo, and the rating on the title block.
   await buyer.reload();
   const card = buyer.getByTestId('review-card').filter({ hasText: title });
   await expect(card).toBeVisible();
   await expect(card.getByTestId('review-verified')).toBeVisible();
-  await expect(card).toContainText('weighs 12.5 kg');
+  await expect(card).toContainText('Would recommend');
   await expect(card.getByTestId('review-photo')).toHaveCount(1);
   await expect(buyer.getByRole('link', { name: /5\.0 \(1 review\)/ })).toBeVisible();
   // Your own review cannot be voted on; a second shopper can, once, and can take it back.

@@ -20,7 +20,7 @@ import { ADMIN, api, register, restock, uniqueEmail } from './helpers';
 const MAILPIT = process.env.MAILPIT_URL ?? 'http://localhost:8026';
 const ADDRESS = {
   fullName: 'Sam Rivers',
-  line1: '1 Bone Street',
+  line1: '1 Market Street',
   postalCode: '10115',
   city: 'Berlin',
   country: 'DE',
@@ -58,10 +58,10 @@ async function mailText(to: string, subject: RegExp): Promise<string> {
 // Every run buys these; without a restock the dev database runs dry after a few runs.
 test.beforeAll(async ({ browser, baseURL }) => {
   await restock(browser, baseURL, [
-    'feather-wand-teaser',
-    'crinkle-mouse-trio',
-    'catnip-banana-kicker',
-    'window-perch-cushion',
+    'fabric-softener-1l',
+    'toilet-paper-8',
+    'laundry-liquid-1-5l',
+    'dishwasher-tabs-30',
   ]);
 });
 
@@ -134,7 +134,7 @@ test('newsletter: confirm from the inbox, get the welcome code, use it once', as
   await page.goto('/newsletter');
   const form = page.getByTestId('newsletter-form');
   await form.getByLabel('Email').fill(email);
-  await form.getByLabel('Dogs').check();
+  await form.getByLabel('Pantry').check();
   // The consent box is a real choice: without it nothing is sent.
   await form.getByRole('button', { name: /subscribe/i }).click();
   await expect(form.getByText('Please tick the box to subscribe')).toBeVisible();
@@ -155,7 +155,7 @@ test('newsletter: confirm from the inbox, get the welcome code, use it once', as
   expect(welcome).toMatch(/newsletter\/unsubscribe\?token=/);
 
   // First order: the code takes 10% off.
-  await addToCart(page, 'feather-wand-teaser');
+  await addToCart(page, 'fabric-softener-1l');
   await page.goto('/cart');
   await page.getByLabel('Discount code').fill(code!);
   await page.getByRole('button', { name: 'Apply' }).click();
@@ -169,7 +169,7 @@ test('newsletter: confirm from the inbox, get the welcome code, use it once', as
   await expect(page.getByTestId('order-summary')).toContainText('Discount');
 
   // Second order: the single-use code is spent (and it is a first-order code), so it is refused.
-  await addToCart(page, 'crinkle-mouse-trio');
+  await addToCart(page, 'toilet-paper-8');
   await page.goto('/cart');
   await page.getByLabel('Discount code').fill(code!);
   await page.getByRole('button', { name: 'Apply' }).click();
@@ -185,7 +185,7 @@ test('points: a paid order earns them, the next order spends some and rounds up'
   await expect(page).toHaveURL(/\/account$/);
 
   // The cart promises N points; the same number lands in the ledger once the order is paid.
-  await addToCart(page, 'catnip-banana-kicker');
+  await addToCart(page, 'laundry-liquid-1-5l');
   await page.goto('/cart');
   const promise = (await page.getByTestId('earn-points').first().textContent()) ?? '';
   const earned = Number(promise.match(/Earn (\d+) point/)?.[1]);
@@ -198,7 +198,7 @@ test('points: a paid order earns them, the next order spends some and rounds up'
   await expect(page.getByTestId('points-ledger-row').first()).toContainText(`+${earned}`);
 
   // Next order: the shipping step offers the points box and the round-up checkbox.
-  await addToCart(page, 'window-perch-cushion');
+  await addToCart(page, 'dishwasher-tabs-30');
   await page.goto('/checkout');
   await page.getByTestId('checkout-email').fill(email);
   await page.getByLabel('Full name').fill(ADDRESS.fullName);
@@ -244,7 +244,7 @@ test('wishlist: the share link opens logged out and dies when sharing stops', as
 }) => {
   await register(page, uniqueEmail());
   await expect(page).toHaveURL(/\/account$/);
-  await page.goto('/products/salmon-crunch-treats');
+  await page.goto('/products/peppermint-tea-20');
   const heart = page.getByTestId('wishlist-heart').first();
   await heart.click();
   await expect(heart).toHaveAttribute('aria-pressed', 'true');
@@ -271,7 +271,7 @@ test('wishlist: the share link opens logged out and dies when sharing stops', as
 
 test('back in stock: alert signup, admin restock, the job CLI sends the mail', async ({ page }) => {
   test.skip(!(await mailpitUp()), '!!! Mailpit is unreachable: the alert mail cannot be checked.');
-  const slug = 'ladder-and-bell-set'; // no other spec buys or restocks it
+  const slug = 'spaetzle-500g'; // no other spec buys or restocks it
   const login = await api(page, 'POST', '/auth/login', ADMIN);
   expect(login.status).toBe(200);
   const product = await api<{ data: { name: string; variants: { id: string }[] } }>(
@@ -320,7 +320,7 @@ test('back in stock: alert signup, admin restock, the job CLI sends the mail', a
     ).toString();
     expect(out).toContain('"status":"ran"');
     const mail = await mailText(email, /Back in stock/);
-    expect(mail).toMatch(/\/products\/ladder-and-bell-set\?variant=/);
+    expect(mail).toMatch(/\/products\/spaetzle-500g\?variant=/);
     expect(mail).toMatch(/\/stock-alerts\/cancel\?token=/);
   } finally {
     await api(page, 'POST', '/auth/login', ADMIN);

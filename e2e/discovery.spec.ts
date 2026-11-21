@@ -1,14 +1,14 @@
 import { expect, test } from '@playwright/test';
 
-// Phase 15: reaching a product through search, the menu, filters, a pet profile or the gift quiz,
-// by keyboard where the plan says so. Needs the seeded dev database. Every test starts in a fresh
-// browser context, so a guest's pets and recent searches never leak between them.
+// Phase 15: reaching a product through search, the menu and the filters, by keyboard where the
+// plan says so. Needs the seeded dev database. Every test starts in a fresh browser context, so a
+// guest's recent searches never leak between them.
 
-test('search "chew" with the keyboard only and open a suggestion', async ({ page }) => {
+test('search "choc" with the keyboard only and open a suggestion', async ({ page }) => {
   await page.goto('/');
   const input = page.getByTestId('header').getByRole('combobox', { name: 'Search products' });
   await input.focus();
-  await page.keyboard.type('chew');
+  await page.keyboard.type('choc');
 
   const listbox = page.getByRole('listbox', { name: 'Search suggestions' });
   await expect(listbox).toBeVisible();
@@ -28,20 +28,20 @@ test('search "chew" with the keyboard only and open a suggestion', async ({ page
   await page.goto('/');
   await input.fill('');
   await input.focus();
-  await page.keyboard.type('rope');
+  await page.keyboard.type('pasta');
   await page.keyboard.press('Enter');
-  await expect(page).toHaveURL(/\/search\?q=rope/);
+  await expect(page).toHaveURL(/\/search\?q=pasta/);
   await input.focus();
   await input.fill('');
   await expect(page.getByRole('group', { name: 'Recent searches' })).toBeVisible();
   await expect(
-    page.getByTestId('search-popup').getByRole('option', { name: /rope/ }),
+    page.getByTestId('search-popup').getByRole('option', { name: /pasta/ }),
   ).toBeVisible();
 });
 
 test('open the mega-menu with the keyboard and follow its promo', async ({ page }) => {
   await page.goto('/');
-  const button = page.getByTestId('menu-button').filter({ hasText: 'Dogs' });
+  const button = page.getByTestId('menu-button').filter({ hasText: 'Frozen' });
   await expect(button).toBeVisible();
   await expect(button).toHaveAttribute('aria-expanded', 'false');
 
@@ -50,25 +50,25 @@ test('open the mega-menu with the keyboard and follow its promo', async ({ page 
   await expect(button).toHaveAttribute('aria-expanded', 'true');
   const panel = page.getByTestId('menu-panel');
   await expect(panel).toBeVisible();
-  await expect(panel.getByRole('link', { name: /^All Dogs|^See all Dogs/ })).toBeVisible();
+  await expect(panel.getByRole('link', { name: /^All Frozen|^See all Frozen/ })).toBeVisible();
 
   // Escape closes it and returns focus to its button.
   await page.keyboard.press('Escape');
   await expect(panel).toBeHidden();
   await expect(button).toBeFocused();
 
-  // Open again, walk into the panel with Tab and follow the promo tile with Enter.
+  // Open again, move into the panel with Tab and follow the promo tile with Enter.
   await page.keyboard.press('Space');
   await expect(panel).toBeVisible();
   const promo = panel.getByTestId('menu-promo');
   await promo.focus();
   await page.keyboard.press('Enter');
-  await expect(page).toHaveURL(/\/c\/dog-walk/);
+  await expect(page).toHaveURL(/\/c\/frozen-meals/);
   await expect(panel).toBeHidden();
 });
 
 test('set a price range and in-stock only; a reload keeps the state', async ({ page }) => {
-  await page.goto('/c/dogs');
+  await page.goto('/c/pantry');
   const filters = page.getByTestId('filters');
   const max = filters.getByRole('slider', { name: 'Maximum price' });
   const stock = filters.getByRole('switch', { name: 'In stock only' });
@@ -99,7 +99,7 @@ for (const [label, size] of [
     await page.setViewportSize(size);
     const overflow = () =>
       page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-    for (const path of ['/', '/c/dogs', '/search?q=chew']) {
+    for (const path of ['/', '/c/pantry', '/search?q=choc']) {
       await page.goto(path);
       await page.waitForLoadState('networkidle');
       expect(await overflow(), `${path} at ${size.width}px`).toBeLessThanOrEqual(0);
@@ -118,10 +118,11 @@ for (const [label, size] of [
     expect(await overflow()).toBeLessThanOrEqual(0);
 
     if (label === 'laptop') {
-      // A menu panel stays within the viewport width and 70% of its height.
+      // A menu panel stays within the viewport width and 70% of its height. The last department
+      // has the longest name, so its button sits at the far end of the bar.
       await page.keyboard.press('Escape');
       await page.keyboard.press('Escape');
-      await page.getByTestId('menu-button').filter({ hasText: 'Small Pets' }).click();
+      await page.getByTestId('menu-button').filter({ hasText: 'Personal care & baby' }).click();
       const panel = page.getByTestId('menu-panel');
       await expect(panel).toBeVisible();
       const panelBox = await panel.boundingBox();

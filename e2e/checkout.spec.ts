@@ -76,9 +76,9 @@ function callApi<T>(
 test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(async ({ browser, baseURL }) => {
-  await restock(browser, baseURL, [PRODUCT, 'braided-tug-rope']);
+  await restock(browser, baseURL, [PRODUCT, 'kitchen-sponges-6']);
 });
-const PRODUCT = 'bouncy-rubber-ball';
+const PRODUCT = 'glass-cleaner';
 
 async function addToCart(page: Page, slug = PRODUCT): Promise<void> {
   await page.goto(`/products/${slug}`);
@@ -88,7 +88,7 @@ async function addToCart(page: Page, slug = PRODUCT): Promise<void> {
 
 const ADDRESS = {
   fullName: 'Sam Rivers',
-  line1: '1 Bone Street',
+  line1: '1 Market Street',
   postalCode: '10115',
   city: 'Berlin',
 };
@@ -214,10 +214,10 @@ test.describe('simulated payment (fake gateway + /test/webhooks/simulate)', () =
   test('guest checkout: address, shipping, simulated payment, paid confirmation', async ({
     page,
   }) => {
-    await addToCart(page, 'bouncy-rubber-ball');
+    await addToCart(page, 'glass-cleaner');
     await payAndVerify(page, uniqueEmail(), {
-      slug: 'bouncy-rubber-ball',
-      name: 'Bouncy Rubber Ball',
+      slug: 'glass-cleaner',
+      name: 'Glass cleaner',
     });
   });
 
@@ -225,7 +225,7 @@ test.describe('simulated payment (fake gateway + /test/webhooks/simulate)', () =
     const email = uniqueEmail();
     await register(page, email);
     await expect(page).toHaveURL(/\/account$/);
-    await addToCart(page, 'braided-tug-rope');
+    await addToCart(page, 'kitchen-sponges-6');
 
     await page.goto('/checkout');
     await expect(page.getByTestId('checkout-email')).toHaveValue(email);
@@ -233,8 +233,8 @@ test.describe('simulated payment (fake gateway + /test/webhooks/simulate)', () =
     await expect(page.getByTestId('checkout-save-address')).not.toBeChecked();
 
     const orderNumber = await payAndVerify(page, email, {
-      slug: 'braided-tug-rope',
-      name: 'Braided Tug Rope',
+      slug: 'kitchen-sponges-6',
+      name: 'Kitchen sponges',
     });
 
     // The order is in the account's history, and its page shows the paid timeline.
@@ -249,7 +249,7 @@ test.describe('simulated payment (fake gateway + /test/webhooks/simulate)', () =
       'data-status',
       'paid',
     );
-    await expect(page.getByTestId('order-summary')).toContainText('Braided Tug Rope');
+    await expect(page.getByTestId('order-summary')).toContainText('Kitchen sponges');
   });
 
   test('an empty cart has nothing to check out', async ({ page }) => {

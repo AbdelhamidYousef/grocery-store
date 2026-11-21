@@ -1,71 +1,65 @@
 import { expect, test } from '@playwright/test';
 
 // Needs the API (started by playwright.config.ts) with the seeded dev database (see playwright.config.ts).
-test('browse: home, category, filter by material, open a product, change variant', async ({
+test('browse: home, department, dietary filter, open a product, change option', async ({
   page,
 }) => {
   await page.goto('/');
-  await page.getByTestId('pet-tiles').getByRole('link', { name: /^Dogs/ }).click();
-  await expect(page).toHaveURL(/\/c\/dogs$/);
-  await expect(page.getByRole('heading', { level: 1, name: 'Dogs' })).toBeVisible();
+  await page
+    .getByTestId('department-tiles')
+    .getByRole('link', { name: /^Pantry/ })
+    .click();
+  await expect(page).toHaveURL(/\/c\/pantry$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Pantry' })).toBeVisible();
   const cards = page.getByTestId('product-card');
   await expect(cards.first()).toBeVisible();
-  const allDogs = await cards.count();
-  expect(allDogs).toBeGreaterThan(1);
+  expect(await cards.count()).toBeGreaterThan(1);
 
-  // Filter by material: the checkbox label is "<value> (<count>)". Long lists fold their smaller
-  // entries behind "Show N more", so open the Material group first.
+  // Filter by a dietary tag: the checkbox label is "<value> (<count>)"; the choice is the `diet`
+  // URL parameter and shows as a removable chip.
   await page
     .getByTestId('filters')
-    .getByRole('group', { name: 'Material' })
-    .getByRole('button', { name: /^Show \d+ more/ })
-    .click();
-  await page
-    .getByTestId('filters')
-    .getByRole('checkbox', { name: /^Natural rubber/ })
+    .getByRole('checkbox', { name: /^Organic/ })
     .check();
-  await expect(page).toHaveURL(/attr\.material=natural\+rubber|attr\.material=natural%20rubber/);
-  await expect(
-    page.getByRole('button', { name: /Remove filter Material: Natural rubber/ }),
-  ).toBeVisible();
+  await expect(page).toHaveURL(/diet=organic/);
+  await expect(page.getByRole('button', { name: /Remove filter Dietary: Organic/ })).toBeVisible();
   await expect(cards).toHaveCount(1);
   await expect(page.getByTestId('result-count')).toHaveText('1 product');
 
   await cards.first().click();
-  await expect(page).toHaveURL(/\/products\/bouncy-rubber-ball$/);
-  await expect(page.getByRole('heading', { level: 1, name: 'Bouncy Rubber Ball' })).toBeVisible();
+  await expect(page).toHaveURL(/\/products\/rolled-oats-500g$/);
+  await expect(page.getByRole('heading', { level: 1, name: /Rolled oats/ })).toBeVisible();
 
-  // Change the size: the choice is written to the URL and the price follows the variant.
+  // Switch to the free sample: the choice is written to the URL and the price follows it.
   const picker = page.getByTestId('variant-picker');
   const priceBefore = await page.getByTestId('price-current').first().innerText();
-  await expect(picker.getByRole('radio', { name: 'Small' })).toBeChecked();
-  await picker.locator('label', { hasText: 'Large' }).click();
-  await expect(page).toHaveURL(/\?variant=PW-[A-Z0-9-]+-L$/);
-  await expect(picker.getByRole('radio', { name: 'Large' })).toBeChecked();
+  await expect(picker.getByRole('radio', { name: 'Full size' })).toBeChecked();
+  await picker.locator('label', { hasText: 'Free sample' }).click();
+  await expect(page).toHaveURL(/\?variant=GR-ROLLED-OATS-500G-TRIAL$/);
+  await expect(picker.getByRole('radio', { name: 'Free sample' })).toBeChecked();
   await expect(page.getByTestId('price-current').first()).not.toHaveText(priceBefore);
 
-  // A shared link opens the exact variant.
-  const url = page.url();
-  await page.goto(url);
+  // A shared link opens the exact option.
+  await page.goto(page.url());
   await expect(
-    page.getByTestId('variant-picker').getByRole('radio', { name: 'Large' }),
+    page.getByTestId('variant-picker').getByRole('radio', { name: 'Free sample' }),
   ).toBeChecked();
 });
 
 test('search finds a product and keeps the query in the box', async ({ page }) => {
   await page.goto('/');
-  await page.getByTestId('header').getByRole('combobox', { name: 'Search products' }).fill('rope');
+  await page.getByTestId('header').getByRole('combobox', { name: 'Search products' }).fill('milk');
   await page.keyboard.press('Enter');
-  await expect(page).toHaveURL(/\/search\?q=rope$/);
+  await expect(page).toHaveURL(/\/search\?q=milk$/);
   await expect(page.getByTestId('product-card').first()).toBeVisible();
   await expect(
     page.getByTestId('header').getByRole('combobox', { name: 'Search products' }),
-  ).toHaveValue('rope');
+  ).toHaveValue('milk');
 });
 
 test('a sold-out product cannot be added to the cart', async ({ page }) => {
-  await page.goto('/products/soft-glow-led-bar');
-  await expect(page.getByRole('heading', { level: 1, name: 'Soft Glow LED Bar' })).toBeVisible();
+  await page.goto('/products/frozen-prawns');
+  await expect(page.getByRole('heading', { level: 1, name: /prawns/i })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Sold out' })).toBeDisabled();
 });
 
@@ -78,9 +72,9 @@ test('every filter group on a short desktop screen can be reached with its optio
   page,
 }) => {
   // 1280x800 is a common laptop. The sidebar used to be an inner scroll box that cut between a
-  // heading and its checkboxes, so "Age stage" looked empty.
+  // heading and its checkboxes, so a group looked empty.
   await page.setViewportSize({ width: 1280, height: 800 });
-  await page.goto('/c/dogs');
+  await page.goto('/c/pantry');
   const groups = page.locator('aside[aria-label="Filters"] fieldset');
   await expect(groups.first()).toBeVisible();
   const count = await groups.count();

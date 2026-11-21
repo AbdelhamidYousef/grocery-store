@@ -54,15 +54,15 @@ test('an agent finds a product and fills the cart through the registered tools',
   const found = await callTool<{ products: { slug: string; inStock: boolean }[] }>(
     page,
     'search_catalog',
-    { query: 'bouncy rubber ball', limit: 5 },
+    { query: 'glass cleaner', limit: 5 },
   );
-  const hit = found.products.find((p) => p.slug === 'bouncy-rubber-ball' && p.inStock);
-  expect(hit, 'the seeded Bouncy Rubber Ball is found and in stock').toBeTruthy();
+  const hit = found.products.find((p) => p.slug === 'glass-cleaner' && p.inStock);
+  expect(hit, 'the seeded glass cleaner is found and in stock').toBeTruthy();
 
   const product = await callTool<{
     name: string;
     variants: { variantId: string; available: boolean }[];
-  }>(page, 'get_product', { slug: 'bouncy-rubber-ball' });
+  }>(page, 'get_product', { slug: 'glass-cleaner' });
   const variant = product.variants.find((v) => v.available);
   expect(variant).toBeTruthy();
 

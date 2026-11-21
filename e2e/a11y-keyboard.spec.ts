@@ -63,7 +63,7 @@ test('buy a product with the keyboard only', async ({ page }) => {
   const email = uniqueEmail();
 
   // --- skip link: first Tab stop, jumps past the header ---
-  await page.goto('/products/bouncy-rubber-ball');
+  await page.goto('/products/glass-cleaner');
   await expect(page.getByTestId('add-to-cart')).toBeVisible();
   await page.keyboard.press('Tab');
   await expect(page.getByTestId('skip-link')).toBeFocused();
@@ -124,7 +124,7 @@ test('buy a product with the keyboard only', async ({ page }) => {
   await page.getByLabel('Full name').focus();
   await page.keyboard.type('Sam Rivers');
   await page.getByLabel('Address line 1').focus();
-  await page.keyboard.type('1 Bone Street');
+  await page.keyboard.type('1 Market Street');
   await page.getByLabel('Postal code').focus();
   await page.keyboard.type('10115');
   await page.getByLabel('City').focus();
@@ -150,7 +150,7 @@ test('buy a product with the keyboard only', async ({ page }) => {
     email,
     shippingAddress: {
       fullName: 'Sam Rivers',
-      line1: '1 Bone Street',
+      line1: '1 Market Street',
       postalCode: '10115',
       city: 'Berlin',
       country: 'DE',
@@ -176,7 +176,7 @@ test('buy a product with the keyboard only', async ({ page }) => {
 
 test('the filters drawer traps focus and gives it back', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 800 });
-  await page.goto('/c/dogs');
+  await page.goto('/c/pantry');
   const toggle = page.getByTestId('filters-toggle');
   await expect(toggle).toBeVisible();
   await toggle.focus();

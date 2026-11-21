@@ -29,7 +29,7 @@ test('profile name, password change and addresses work for a new account', async
   await expect(page.getByTestId('empty-state')).toBeVisible();
   await page.getByTestId('address-add').click();
   await page.getByLabel('Full name').fill('Robin Rivers');
-  await page.getByLabel('Address line 1').fill('1 Bone Street');
+  await page.getByLabel('Address line 1').fill('1 Market Street');
   await page.getByLabel('Postal code').fill('10115');
   await page.getByLabel('City').fill('Berlin');
   await page.getByTestId('address-save').click();

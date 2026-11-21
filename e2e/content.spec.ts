@@ -1,8 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { api, uniqueEmail } from './helpers';
+import { api, restock, uniqueEmail } from './helpers';
 
-// Phase 20 (content and trust), end to end: homepage hero, guides, help centre, order tracking,
+// Phase 20 (content and trust), end to end: homepage hero and sections, guides, help centre, order tracking,
 // withdrawal and the cookie notice. Guides and help articles come from the seeded database.
 //
 // The seed creates no orders, so the two tests that need one (tracking, withdrawal) place and pay
@@ -11,15 +11,20 @@ import { api, uniqueEmail } from './helpers';
 // so nothing depends on run order. They buy a product no other spec buys, so the stock arithmetic
 // in checkout.spec.ts cannot be disturbed when files run in parallel.
 
-const PRODUCT = 'reflective-walking-leash';
+const PRODUCT = 'shampoo-250ml';
 const ADDRESS = {
   fullName: 'Sam Rivers',
-  line1: '1 Bone Street',
+  line1: '1 Market Street',
   postalCode: '10115',
   city: 'Berlin',
   country: 'DE',
 };
 const NOT_FOUND = 'We could not find an order with that number and email.';
+
+// Every run buys two; without a restock the dev database runs dry after enough runs.
+test.beforeAll(async ({ browser, baseURL }) => {
+  await restock(browser, baseURL, [PRODUCT]);
+});
 
 // Buys one item and returns the paid order's number and the email it was placed with. Skips the
 // test, loudly, when the API on this port has no simulator (not started by playwright.config.ts).
@@ -53,28 +58,27 @@ async function paidOrder(page: Page): Promise<{ orderNumber: string; email: stri
 }
 
 test.describe('homepage', () => {
-  test('hero carousel can be paused, and the sections render', async ({ page }) => {
+  test('the hero checks the postcode, and the sections render', async ({ page }) => {
     await page.goto('/');
-    const hero = page.getByTestId('hero-carousel');
+    const hero = page.getByTestId('home-hero');
     await expect(hero).toBeVisible();
-    await expect(page.getByTestId('hero-slide').filter({ visible: true })).toHaveCount(1);
+    await expect(hero.getByRole('heading', { level: 1 })).toBeVisible();
 
-    const toggle = page.getByTestId('hero-toggle');
-    await expect(toggle).toHaveText(/Pause/);
-    await expect(hero).toHaveAttribute('data-playing', 'true');
-    await toggle.click();
-    await expect(toggle).toHaveText(/Play/);
-    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
-    await expect(hero).toHaveAttribute('data-playing', 'false');
+    // The postcode box only accepts five digits, and says so on the field.
+    const postcode = hero.getByLabel('Your postcode');
+    await postcode.fill('123');
+    await hero.getByRole('button', { name: 'Check delivery' }).click();
+    await expect(postcode).toHaveAccessibleDescription(/Enter a 5-digit postcode/);
+    await expect(page).not.toHaveURL(/postcode=/);
 
-    // Paused means it stays put; next/previous still work by hand.
-    const title = () => hero.getByRole('heading', { level: 2 }).filter({ visible: true });
-    const first = await title().innerText();
-    await page.getByTestId('hero-next').click();
-    await expect(title()).not.toHaveText(first);
-    await page.getByTestId('hero-prev').click();
-    await expect(title()).toHaveText(first);
+    // A valid one is kept in the URL and confirmed.
+    await postcode.fill('10115');
+    await hero.getByRole('button', { name: 'Check delivery' }).click();
+    await expect(page).toHaveURL(/\?postcode=10115$/);
+    await expect(page.getByTestId('postcode-saved')).toContainText('10115');
 
+    // The sections below the hero: every department has a tile, and the guides teaser.
+    await expect(page.getByTestId('department-tiles').getByRole('link')).toHaveCount(10);
     await expect(page.getByTestId('guides-teaser')).toBeVisible();
   });
 });
@@ -83,12 +87,12 @@ test.describe('guides', () => {
   test('opens a guide from the list and follows a linked product', async ({ page }) => {
     await page.goto('/guides');
     await expect(page.getByTestId('page-guides')).toBeVisible();
-    const card = page.getByTestId('guide-card').filter({ hasText: 'Walking gear basics' });
+    const card = page.getByTestId('guide-card').filter({ hasText: 'Tomato pasta in 15 minutes' });
     await card.click();
 
-    await expect(page).toHaveURL(/\/guides\/walking-gear-basics$/);
+    await expect(page).toHaveURL(/\/guides\/tomato-pasta-in-fifteen-minutes$/);
     await expect(page.getByTestId('page-guide')).toBeVisible();
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Walking gear basics');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Tomato pasta in 15 minutes');
     await expect(page.getByTestId('guide-body')).not.toBeEmpty();
 
     const linked = page.getByTestId('guide-products').getByRole('link').first();
@@ -176,13 +180,15 @@ test.describe('cookie notice', () => {
     const banner = page.getByTestId('cookie-banner');
     await expect(banner).toBeVisible();
     // A notice, not a gate: the page behind it still works.
-    await page.getByTestId('hero-toggle').click();
+    await page.getByTestId('home-hero').getByLabel('Your postcode').fill('10115');
+    await page.getByTestId('home-hero').getByRole('button', { name: 'Check delivery' }).click();
+    await expect(page.getByTestId('postcode-saved')).toBeVisible();
 
     await page.getByTestId('cookie-ok').click();
     await expect(banner).toHaveCount(0);
 
     await page.reload();
-    await expect(page.getByTestId('hero-carousel')).toBeVisible();
+    await expect(page.getByTestId('home-hero')).toBeVisible();
     await expect(banner).toHaveCount(0);
     await page.goto('/help');
     await expect(banner).toHaveCount(0);

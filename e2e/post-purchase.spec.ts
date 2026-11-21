@@ -13,7 +13,7 @@ const HOOK_HEADERS: Record<string, string> = process.env.TEST_HOOK_SECRET
   : {};
 const ADDRESS = {
   fullName: 'Sam Rivers',
-  line1: '1 Bone Street',
+  line1: '1 Market Street',
   postalCode: '10115',
   city: 'Berlin',
   country: 'DE',
@@ -116,7 +116,7 @@ test('a delivered order is returned, approved, received, refunded and restocked'
   browser,
 }) => {
   const admin = await adminSession(browser);
-  const product = await createProduct(admin.page, `E2E Return Tug ${unique('')}`, 20);
+  const product = await createProduct(admin.page, `E2E Return Granola ${unique('')}`, 20);
 
   const buyerCtx = await browser.newContext();
   const buyer = await buyerCtx.newPage();
@@ -139,7 +139,7 @@ test('a delivered order is returned, approved, received, refunded and restocked'
   await buyer.reload();
   await buyer.getByRole('button', { name: 'Return items' }).click();
   const form = buyer.getByTestId('return-request-form');
-  await form.getByRole('checkbox', { name: /E2E Return Tug/ }).check();
+  await form.getByRole('checkbox', { name: /E2E Return Granola/ }).check();
   await form.getByLabel(/Quantity of/).selectOption('2');
   await form.getByLabel('Why are you returning it?').selectOption('wrong_size');
   await expect(form.getByTestId('return-preview')).toContainText('€30.00');
@@ -180,7 +180,7 @@ test('a delivered order is returned, approved, received, refunded and restocked'
 
 test('the analytics page reports revenue and offers CSV downloads', async ({ browser }) => {
   const admin = await adminSession(browser);
-  const product = await createProduct(admin.page, `E2E Analytics Tug ${unique('')}`, 5);
+  const product = await createProduct(admin.page, `E2E Analytics Granola ${unique('')}`, 5);
   const buyerCtx = await browser.newContext();
   const buyer = await buyerCtx.newPage();
   await checkout(buyer, uniqueEmail(), product.variants[0]!.id, 1);
