@@ -412,6 +412,46 @@ describe('the shopper answers', () => {
   });
 });
 
+describe('what the shopper can read', () => {
+  it('the customer order carries the replacement with its list price, and tracking lists the change without money', async () => {
+    const s = await shelf({ price: 200 }, [{ name: 'Pricey yoghurt', price: 250 }]);
+    const p = await paidOrder(s);
+    await short(p, { pickedQty: 1 });
+    const res = await p.buyer.shopper.call('get', `/account/orders/${p.number}`);
+    const items = bodyOf<{
+      data: {
+        items: {
+          substitutesItemId: string | null;
+          unitPriceCents: number;
+          listPriceCents: number | null;
+          swapStatus: string | null;
+        }[];
+      };
+    }>(res).data.items;
+    const swap = items.find((i) => i.substitutesItemId)!;
+    expect(swap).toMatchObject({
+      unitPriceCents: 200,
+      listPriceCents: 250,
+      swapStatus: 'proposed',
+    });
+
+    const track = await makeShopper(app).call('post', '/orders/track', {
+      orderNumber: p.number,
+      email: p.buyer.user.email,
+    });
+    const tracked = bodyOf<{ data: { changes: unknown[]; items: unknown[] } }>(track).data;
+    expect(tracked.changes).toEqual([
+      {
+        name: 'Greek yoghurt',
+        picked: 1,
+        quantity: 3,
+        replacement: { name: 'Pricey yoghurt', quantity: 2, status: 'proposed' },
+      },
+    ]);
+    expect(JSON.stringify(tracked)).not.toContain('250');
+  });
+});
+
 describe('a weighed replacement', () => {
   it('follows the weight rules and is capped at the price of the units it replaces', async () => {
     const s = await shelf({ price: 250 }, [

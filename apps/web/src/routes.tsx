@@ -28,6 +28,7 @@ import {
   StockAlertCancelPage,
 } from './pages/NewsletterPage';
 import NotFoundPage from './pages/NotFoundPage';
+import OrderChangesPage from './pages/OrderChangesPage';
 import ProductPage from './pages/ProductPage';
 import RegisterPage from './pages/RegisterPage';
 import RouteErrorPage from './pages/RouteErrorPage';
@@ -78,6 +79,7 @@ export const routes: RouteObject[] = [
               { path: 'newsletter', element: <NewsletterPage /> },
               { path: 'newsletter/confirm', element: <NewsletterConfirmPage /> },
               { path: 'newsletter/unsubscribe', element: <NewsletterUnsubscribePage /> },
+              { path: 'order-changes/:number', element: <OrderChangesPage /> },
               { path: 'stock-alerts/cancel', element: <StockAlertCancelPage /> },
               { path: 'contact', element: <ContactPage /> },
               { path: 'withdraw', element: <WithdrawPage /> },

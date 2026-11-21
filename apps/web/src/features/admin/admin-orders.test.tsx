@@ -281,6 +281,7 @@ describe('admin order detail: capture now', () => {
     pickedQty: null,
     substitutesItemId: null,
     swapStatus: null,
+    listPriceCents: null,
     refundedCents: 0,
   };
   function authorised(over: { capturedCents?: number | null } = {}) {

@@ -50,6 +50,7 @@ export function toOrderDto(
       pickedQty: i.pickedQty,
       substitutesItemId: i.substitutesItemId,
       swapStatus: i.swapStatus,
+      listPriceCents: i.listPriceCents,
       refundedCents: i.refundedCents,
     })),
     delivery:

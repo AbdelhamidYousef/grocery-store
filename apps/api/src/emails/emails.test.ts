@@ -53,6 +53,7 @@ const order: Order = {
       pickedQty: null,
       substitutesItemId: null,
       swapStatus: null,
+      listPriceCents: null,
       refundedCents: 0,
     },
   ],

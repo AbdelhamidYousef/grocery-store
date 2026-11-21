@@ -11,6 +11,7 @@ import { OrderAddress, OrderSummary } from '../checkout/OrderSummary';
 import { deliverySentence } from '../delivery/slots';
 import { ReorderButton } from '../reorder/ReorderButton';
 import { ReturnsSection } from '../returns/ReturnsSection';
+import { OrderChanges } from '../substitutions/OrderChanges';
 
 import { TIMELINE_KEY } from './order-status';
 import { OrderStatusBadge } from './OrderStatusBadge';
@@ -127,7 +128,10 @@ export function OrderDetail() {
 
       <div className="mt-8 grid grid-cols-1 items-start gap-8 xl:grid-cols-[minmax(0,1fr)_16rem]">
         <div className="min-w-0">
-          <h3 className="font-display text-xl font-bold">{t('account.order.items')}</h3>
+          <OrderChanges order={order} />
+          <h3 className="mt-6 font-display text-xl font-bold first:mt-0">
+            {t('account.order.items')}
+          </h3>
           <div className="mt-3">
             <OrderSummary
               items={order.items}

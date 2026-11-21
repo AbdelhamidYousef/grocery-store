@@ -1,4 +1,10 @@
-import { formatGrams, type OrderAddress, type OrderItem, type OrderTotals } from '@store/shared';
+import {
+  formatGrams,
+  lineShareCents,
+  type OrderAddress,
+  type OrderItem,
+  type OrderTotals,
+} from '@store/shared';
 
 import { useT } from '../../i18n';
 import { useFormat } from '../../i18n/format';
@@ -17,21 +23,42 @@ export interface SummaryLine {
   /** What a weighed line really came to (shown instead of the estimate once known). */
   finalCents?: number | null | undefined;
   weighedGrams?: number | null | undefined;
+  /** Substitutions (G7): the line a replacement stands in for. */
+  replaces?: string | undefined;
+  /** Only some units were found: "2 of 3" is shown instead of the quantity. */
+  found?: { picked: number; quantity: number } | undefined;
+  /** None of it was found and nothing replaces it: the price reads "Not charged". */
+  notCharged?: boolean | undefined;
 }
 
 export const linesOfOrder = (
   items: OrderItem[],
 ): (SummaryLine & { weighedGrams?: number | null })[] =>
-  items.map((i) => ({
-    key: i.id,
-    name: i.productName,
-    variant: i.variantName,
-    quantity: i.quantity,
-    lineTotalCents: i.lineTotalCents,
-    imageUrl: i.imageUrl,
-    finalCents: i.finalCents,
-    weighedGrams: i.weighedGrams,
-  }));
+  items
+    // A replacement the shopper rejected is not part of what they bought or pay for.
+    .filter((i) => i.swapStatus !== 'rejected')
+    .map((i) => {
+      const picked = i.pickedQty;
+      const isReplacement = i.substitutesItemId !== null;
+      const short = !isReplacement && picked !== null && picked < i.quantity;
+      const replaced = isReplacement ? items.find((o) => o.id === i.substitutesItemId) : undefined;
+      return {
+        key: i.id,
+        name: i.productName,
+        variant: i.variantName,
+        quantity: i.quantity,
+        // Units not found are not charged: the line shows the share of what was packed.
+        lineTotalCents: short
+          ? lineShareCents(i.lineTotalCents, picked, i.quantity)
+          : i.lineTotalCents,
+        imageUrl: i.imageUrl,
+        finalCents: i.finalCents,
+        weighedGrams: i.weighedGrams,
+        replaces: replaced?.productName,
+        found: short && picked > 0 ? { picked, quantity: i.quantity } : undefined,
+        notCharged: short && picked === 0,
+      };
+    });
 
 // The picture box has a fixed size, so a long name or a missing image never changes the layout.
 export function SummaryLines({ lines, currency }: { lines: SummaryLine[]; currency: string }) {
@@ -60,8 +87,16 @@ export function SummaryLines({ lines, currency }: { lines: SummaryLine[]; curren
           <div className="min-w-0 flex-1">
             <p className="break-words font-semibold">{line.name}</p>
             <p className="break-words text-sm text-muted">
-              {line.variant} · {t('checkout.summary.qty', { quantity: line.quantity })}
+              {line.variant} ·{' '}
+              {line.found
+                ? t('subs.order.foundOf', line.found)
+                : t('checkout.summary.qty', { quantity: line.quantity })}
             </p>
+            {line.replaces && (
+              <p className="break-words text-sm font-semibold text-primary-strong">
+                {t('subs.order.replaces', { name: line.replaces })}
+              </p>
+            )}
             {line.finalCents !== null && line.finalCents !== undefined && (
               <p
                 data-testid={TEST_IDS.orderItemWeighed}
@@ -74,7 +109,9 @@ export function SummaryLines({ lines, currency }: { lines: SummaryLine[]; curren
             )}
           </div>
           <p className="shrink-0 font-display font-bold">
-            {fmt.money(line.finalCents ?? line.lineTotalCents, currency)}
+            {line.notCharged
+              ? t('subs.order.notChargedShort')
+              : fmt.money(line.finalCents ?? line.lineTotalCents, currency)}
           </p>
         </li>
       ))}

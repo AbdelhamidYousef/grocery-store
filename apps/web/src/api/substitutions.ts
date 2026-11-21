@@ -1,8 +1,11 @@
 import {
   SubstitutesResponseSchema,
+  SwapAnswerResponseSchema,
   SubstitutionSettingsResponseSchema,
   type SetSubstitutionInput,
   type SubstituteOption,
+  type SwapAnswer,
+  type SwapDecisionInput,
   type SubstitutionSettings,
 } from '@store/shared';
 
@@ -64,6 +67,21 @@ export async function saveSubstitutionSettings(
       method: 'PUT',
       body: input,
       schema: SubstitutionSettingsResponseSchema,
+    })
+  ).data;
+}
+
+// The shopper's answer to one replacement: signed in as the owner, or with the token of the email link.
+export async function answerSwap(
+  number: string,
+  itemId: string,
+  input: SwapDecisionInput,
+): Promise<SwapAnswer> {
+  return (
+    await apiFetch(`/orders/${encodeURIComponent(number)}/swaps/${encodeURIComponent(itemId)}`, {
+      method: 'POST',
+      body: input,
+      schema: SwapAnswerResponseSchema,
     })
   ).data;
 }

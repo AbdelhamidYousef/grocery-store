@@ -129,6 +129,8 @@ export const OrderItemSchema = z.object({
   pickedQty: z.number().int().min(0).nullable(),
   substitutesItemId: z.string().nullable(),
   swapStatus: SwapStatusSchema.nullable(),
+  // A replacement's normal unit price (it is charged `unitPriceCents`, never above the original's).
+  listPriceCents: z.number().int().min(0).nullable(),
   refundedCents: z.number().int().min(0),
 });
 export type OrderItem = z.infer<typeof OrderItemSchema>;

@@ -66,6 +66,9 @@ export const orderItems = pgTable(
       onDelete: 'cascade',
     }),
     swapStatus: swapStatus('swap_status'),
+    // What a replacement normally costs per unit (its catalogue price when it was proposed); the line is
+    // charged `unit_price_cents` (never above the original), and the difference is "You save".
+    listPriceCents: integer('list_price_cents'),
     // A replacement refused at the door after capture: written in two steps (intent, then the amount
     // once the gateway has answered) so a crash in between can be continued, never repeated.
     refundIntentAt: timestamp('refund_intent_at', { withTimezone: true }),

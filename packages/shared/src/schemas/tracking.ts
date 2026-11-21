@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { SwapStatusSchema } from '../substitutions.ts';
+
 import { OrderStatusSchema } from './checkout.ts';
 import { DataSchema } from './common.ts';
 import { OrderDeliverySchema } from './slots.ts';
@@ -30,6 +32,22 @@ export const TrackedOrderSchema = z.object({
   placedAt: z.string().nullable(),
   items: z.array(
     z.object({ name: z.string(), variantName: z.string(), quantity: z.number().int().min(1) }),
+  ),
+  // What changed while packing (G7): short or missing items and their replacements. Names and
+  // counts only, no money: the answer is given from the email link or the account.
+  changes: z.array(
+    z.object({
+      name: z.string(),
+      picked: z.number().int().min(0),
+      quantity: z.number().int().min(1),
+      replacement: z
+        .object({
+          name: z.string(),
+          quantity: z.number().int().min(1),
+          status: SwapStatusSchema,
+        })
+        .nullable(),
+    }),
   ),
   tracking: z.object({ carrier: z.string(), trackingNumber: z.string() }).nullable(),
   // The promised delivery window (no address or money in it); null for orders from before slots.

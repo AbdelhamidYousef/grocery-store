@@ -147,6 +147,7 @@ export async function recordShortfall(
           sku: chosen.sku,
           imageUrl: chosen.imageUrl,
           unitPriceCents: unit,
+          listPriceCents: chosen.priceCents,
           quantity: missing,
           lineTotalCents: unit * missing,
           pricePerKgCents: chosen.soldByWeight ? chosen.pricePerKgCents : null,

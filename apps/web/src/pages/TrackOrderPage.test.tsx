@@ -13,6 +13,7 @@ const order: TrackedOrder = {
   statusLabel: 'On its way',
   placedAt: '2026-10-01T10:00:00.000Z',
   items: [{ name: 'Rope Tug', variantName: 'Red', quantity: 2 }],
+  changes: [],
   tracking: null,
   delivery: null,
   timeline: [

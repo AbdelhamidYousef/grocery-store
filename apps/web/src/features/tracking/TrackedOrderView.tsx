@@ -74,6 +74,32 @@ export function TrackedOrderView({ order }: { order: TrackedOrder }) {
           </li>
         ))}
       </ol>
+      {order.changes.length > 0 && (
+        <div
+          data-testid={TEST_IDS.trackChanges}
+          className="mt-6 rounded-card border-2 border-primary bg-primary-soft p-4"
+        >
+          <h3 className="font-display text-xl font-bold">{t('subs.order.heading')}</h3>
+          <ul className="mt-2 flex flex-col gap-2">
+            {order.changes.map((c, i) => (
+              <li key={i} className="break-words text-sm">
+                <span className="font-semibold">{c.name}</span>{' '}
+                {c.picked === 0
+                  ? t('subs.order.missing')
+                  : t('subs.order.short', { picked: c.picked, quantity: c.quantity })}{' '}
+                {c.replacement
+                  ? t('subs.track.replacement', {
+                      name: c.replacement.name,
+                      quantity: c.replacement.quantity,
+                      status: t(`subs.track.status.${c.replacement.status}`),
+                    })
+                  : t('subs.order.notCharged')}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-sm text-muted">{t('subs.order.changedOnTracking')}</p>
+        </div>
+      )}
       <h3 className="mt-6 font-display text-xl font-bold">{t('account.tracking.inOrder')}</h3>
       <ul className="mt-3 divide-y divide-line">
         {order.items.map((item, i) => (

@@ -21,6 +21,11 @@ export async function trackOrder(body: TrackOrderBody): Promise<TrackedOrder> {
         name: orderItems.productName,
         variantName: orderItems.variantName,
         quantity: orderItems.quantity,
+        id: orderItems.id,
+        pickStatus: orderItems.pickStatus,
+        pickedQty: orderItems.pickedQty,
+        substitutesItemId: orderItems.substitutesItemId,
+        swapStatus: orderItems.swapStatus,
       })
       .from(orderItems)
       .where(eq(orderItems.orderId, order.id))
@@ -37,7 +42,30 @@ export async function trackOrder(body: TrackOrderBody): Promise<TrackedOrder> {
     status: order.status,
     statusLabel: statusLabel(order.status),
     placedAt: order.placedAt?.toISOString() ?? null,
-    items,
+    // Replacements are not "in the order" until accepted; a rejected one is not shown at all.
+    items: items
+      .filter((i) => i.swapStatus !== 'rejected')
+      .map(({ name, variantName, quantity }) => ({ name, variantName, quantity })),
+    changes: items
+      .filter(
+        (i) =>
+          i.substitutesItemId === null &&
+          (i.pickStatus === 'missing' ||
+            i.pickStatus === 'short' ||
+            i.pickStatus === 'substituted'),
+      )
+      .map((i) => {
+        const sub = items.find((r) => r.substitutesItemId === i.id);
+        return {
+          name: i.name,
+          picked: i.pickedQty ?? 0,
+          quantity: i.quantity,
+          replacement:
+            sub && sub.swapStatus
+              ? { name: sub.name, quantity: sub.quantity, status: sub.swapStatus }
+              : null,
+        };
+      }),
     tracking: trackingOf(order),
     delivery:
       order.deliveryKind && order.deliveryFrom && order.deliveryTo

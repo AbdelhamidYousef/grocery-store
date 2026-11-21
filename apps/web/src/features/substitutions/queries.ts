@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { WebCart } from '../../api/cart';
 import {
+  answerSwap,
   fetchSubstitutes,
   fetchSubstitutionSettings,
   saveSubstitutionSettings,
@@ -67,5 +68,18 @@ export function useSaveSubstitutionSettings() {
   return useMutation({
     mutationFn: saveSubstitutionSettings,
     onSuccess: (settings) => queryClient.setQueryData(keys.account.substitution, settings),
+  });
+}
+
+// Accept or reject one replacement. The answer changes the order (and its totals), so the order is
+// read again; an error (a link that no longer works, a bag that has left) is shown by the caller.
+export function useAnswerSwap(orderNumber: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ itemId, ...input }: { itemId: string } & Parameters<typeof answerSwap>[2]) =>
+      answerSwap(orderNumber, itemId, input),
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: keys.account.order(orderNumber) });
+    },
   });
 }

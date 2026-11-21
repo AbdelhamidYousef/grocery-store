@@ -376,6 +376,7 @@ export function makeOrder(overrides: Partial<Order> = {}): Order {
         pickedQty: null,
         substitutesItemId: null,
         swapStatus: null,
+        listPriceCents: null,
         refundedCents: 0,
       },
     ],
@@ -595,6 +596,7 @@ export function makeAdminOrderDetail(
           pickedQty: null,
           substitutesItemId: null,
           swapStatus: null,
+          listPriceCents: null,
           refundedCents: 0,
         },
         {
@@ -614,6 +616,7 @@ export function makeAdminOrderDetail(
           pickedQty: null,
           substitutesItemId: null,
           swapStatus: null,
+          listPriceCents: null,
           refundedCents: 0,
         },
       ],

@@ -600,3 +600,23 @@ Surprise: the stock invariant needed no change to its checker, but every functio
 Learn: when a line can hold fewer units than it says, "quantity" stops being the truth: name the derived number once
 and make every stock path read it.
 
+### G7.3: the shopper's view
+Migration 0057: `order_items.list_price_cents` (a replacement's normal unit price when it was proposed), so "You save" is
+exact: `(list price - charged price) x quantity`, zero when the replacement is cheaper. The order DTO carries it; the
+tracking answer gained `changes` (names, counts, the replacement's name and status, no money: the page already shows no
+totals to a stranger). Web: `OrderChanges` ("Changes to your order") on the account order page: per missing or short line
+the gap ("Not in stock", "We found 1 of 3. You pay for 1."), the replacement with photo, price each, "You save",
+Accept / Reject while the order is paid or processing and not charged (`canAnswerSwaps`), the line "If you do not answer,
+we keep it when we dispatch your order", and the outcome afterwards ("Accepted", "Rejected. You are not charged",
+"Refused at the door. We refunded 4.00"); a missing item says "You are not charged". `OrderSummary` hides rejected
+replacements, labels a replacement "Replaces X", shows "1 of 3" and a share of the price for short lines and "Not
+charged" for a line with nothing found (`lineShareCents`, the same rounding as the capture). The email links open
+`/:store/order-changes/:number?item&decision&token`, a page that changes nothing until the button is pressed (mail scanners
+open links), then sends the token with the answer. The tracking page lists the changes read-only and points to the email
+or the account. English and German ("du").
+Surprise: the first draft of "You save" compared the replacement's price with the original's, which is zero whenever the
+replacement is cheaper and wrong whenever the packer's pick is dearer than the cap: only the replacement's own list
+price, kept on the line, answers it.
+Learn: when the charged number is derived (a minimum), keep the input the shopper never pays so the page can show what
+the rule saved them.
+
