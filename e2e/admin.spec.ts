@@ -349,7 +349,7 @@ test.describe('orders', () => {
         .getByTestId('order-row')
         .filter({ hasText: orderNumber })
         .getByTestId('order-status-badge'),
-    ).toHaveText('Shipped');
+    ).toHaveText('On the way');
 
     // The shipped email, if Mailpit is up (local only). The outbox sends it asynchronously.
     const mailpit = await fetch(`${MAILPIT}/api/v1/messages`).then(

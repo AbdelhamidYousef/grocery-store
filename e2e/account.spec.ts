@@ -35,7 +35,7 @@ test('profile name, password change and addresses work for a new account', async
   await page.getByTestId('address-save').click();
   const cards = page.getByTestId('address-card');
   await expect(cards).toHaveCount(1);
-  await expect(cards.first()).toContainText('Default shipping');
+  await expect(cards.first()).toContainText('Default delivery address');
 
   await cards.first().getByRole('button', { name: /^Edit/ }).click();
   await page.getByLabel('City').fill('Hamburg');
@@ -50,9 +50,9 @@ test('profile name, password change and addresses work for a new account', async
   await page.getByTestId('address-save').click();
   await expect(cards).toHaveCount(2);
   const second = cards.filter({ hasText: 'Munich' });
-  await second.getByRole('button', { name: 'Make default shipping' }).click();
-  await expect(second).toContainText('Default shipping');
-  await expect(cards.filter({ hasText: 'Hamburg' })).not.toContainText('Default shipping');
+  await second.getByRole('button', { name: 'Make default delivery address' }).click();
+  await expect(second).toContainText('Default delivery address');
+  await expect(cards.filter({ hasText: 'Hamburg' })).not.toContainText('Default delivery address');
 
   await cards
     .filter({ hasText: 'Hamburg' })
