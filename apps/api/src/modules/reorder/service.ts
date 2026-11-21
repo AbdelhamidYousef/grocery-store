@@ -100,7 +100,7 @@ export async function buyAgain(userId: string): Promise<BuyAgainItem[]> {
 // kit rules are exactly the ones a shopper hits by hand. Each line is tried on its own: what cannot
 // be added is reported (not silently dropped, and not fatal for the lines that can).
 export async function reorder(userId: string, orderRef: string): Promise<ReorderResult> {
-  // The account area names orders by number (PW-2026-000123), the API contract by id: accept both.
+  // The account area names orders by number (GR-2026-000123), the API contract by id: accept both.
   const byRef = UUID.test(orderRef) ? eq(orders.id, orderRef) : eq(orders.number, orderRef);
   const [order] = await db
     .select({ id: orders.id })

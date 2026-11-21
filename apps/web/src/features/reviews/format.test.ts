@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatRating, reviewContextLine, viewFromSearch, withView } from './format';
+import { formatRating, viewFromSearch, withView } from './format';
 
 describe('review formatting', () => {
   it.each([
@@ -10,11 +10,6 @@ describe('review formatting', () => {
     [0, '0.0'],
   ])('formats %i tenths as %s', (tenths, text) => {
     expect(formatRating(tenths)).toBe(text);
-  });
-
-  it('writes a context line from what was shared, or nothing', () => {
-    expect(reviewContextLine({ sizePurchased: 'Large' })).toBe('bought size Large');
-    expect(reviewContextLine({ sizePurchased: null })).toBeNull();
   });
 });
 

@@ -48,12 +48,12 @@ export const orders = pgTable(
   'orders',
   {
     id: id(),
-    // Human-facing number like PW-2026-000123, built by the database so no code path can skip it.
+    // Human-facing number like GR-2026-000123, built by the database so no code path can skip it.
     number: text('number')
       .notNull()
       .unique()
       .default(
-        sql`'PW-' || to_char(now(), 'YYYY') || '-' || lpad(nextval('order_number_seq')::text, 6, '0')`,
+        sql`'GR-' || to_char(now(), 'YYYY') || '-' || lpad(nextval('order_number_seq')::text, 6, '0')`,
       ),
     // Null for guest checkout. SET NULL (not cascade) so deleting an account never deletes the
     // shop's sales records.

@@ -18,14 +18,12 @@ describe('reviewInputSchema', () => {
     const r = reviewInputSchema.parse({
       ...valid,
       rating: '4',
-      sizePurchased: '',
       wouldRecommend: 'false',
     });
     expect(r).toMatchObject({
       rating: 4,
       wouldRecommend: false,
     });
-    expect(r.sizePurchased).toBeUndefined();
   });
 
   it.each([

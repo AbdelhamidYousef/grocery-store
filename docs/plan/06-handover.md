@@ -25,11 +25,9 @@ Written by the build sessions for the owner and the next session. Newest state f
   photos; the quick-commerce home. QA fixes on the way: the German menu and tile counts (translated
   slugs), the department bar overflow, the free-sample picker labels, leftover pet copy. Gates green:
   shared 270, web 923, API 1,378 + 2 skipped, e2e 75 + 1 skipped. Pushed at the phase end.
+- **G4 in progress** (2026-11-21): G4.1 done (order numbers `GR-`, review size field dropped; migration
+  0046). Next G4.2 areas and stores. Not pushed.
 - **Open follow-ups** (small, not blocking):
-  - Order numbers still start with `PW-` (`apps/api/src/db/schema/orders.ts`); shoppers see them in
-    the confirmation and emails. Needs a migration; e2e specs match `PW-` too.
-  - The review form asks "Size you bought" but nothing shows it (`reviews.size` string unused). For
-    groceries the field can go.
   - e2e "back in stock" missed its mail once under full-suite load (passed on re-run).
 
 ## Waiting on you

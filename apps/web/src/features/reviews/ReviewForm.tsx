@@ -22,7 +22,7 @@ import { applyFieldErrors, formErrorMessage } from '../auth/form-errors';
 import { useSubmitReview } from './queries';
 
 type FormValues = z.input<typeof reviewInputSchema>;
-const FIELDS = ['rating', 'title', 'body', 'sizePurchased', 'wouldRecommend'] as const;
+const FIELDS = ['rating', 'title', 'body', 'wouldRecommend'] as const;
 const ACCEPT = 'image/jpeg,image/png,image/webp';
 
 // The browser's check is a courtesy (instant feedback); the server re-checks the real bytes.
@@ -61,7 +61,7 @@ export function ReviewForm({
     formState: { errors },
   } = useForm<FormValues, unknown, ReviewInput>({
     resolver: zodResolver(reviewInputSchema),
-    defaultValues: { title: '', body: '', sizePurchased: '', wouldRecommend: true },
+    defaultValues: { title: '', body: '', wouldRecommend: true },
   });
   const rating = Number(useWatch({ control, name: 'rating' }) ?? 0);
 
@@ -92,7 +92,6 @@ export function ReviewForm({
     form.set('title', values.title);
     form.set('body', values.body);
     form.set('wouldRecommend', String(values.wouldRecommend));
-    if (values.sizePurchased) form.set('sizePurchased', values.sizePurchased);
     for (const file of photos) form.append('photos', file);
     try {
       await submit.mutateAsync(form);
@@ -172,13 +171,6 @@ export function ReviewForm({
         {...register('body')}
       />
       <Checkbox label={t('reviews.form.recommend')} {...register('wouldRecommend')} />
-
-      <Input
-        label={t('reviews.form.size')}
-        maxLength={40}
-        error={errors.sizePurchased?.message}
-        {...register('sizePurchased')}
-      />
 
       {uploadsEnabled ? (
         <div className="flex flex-col gap-2">

@@ -116,7 +116,7 @@ export default function WithdrawPage() {
         <FormAlert message={fieldError ?? (send.error ? messageFor(send.error, t, tm) : null)} />
         <Input
           label={t('returns.withdraw.orderNumber')}
-          placeholder="PW-2026-000123"
+          placeholder="GR-2026-000123"
           autoComplete="off"
           value={orderNumber}
           onChange={(e) => setOrderNumber(e.target.value)}

@@ -62,7 +62,6 @@ export async function createReview(
         title: input.title,
         body: input.body,
         verifiedBuyer: orderId !== undefined,
-        sizePurchased: input.sizePurchased ?? null,
         wouldRecommend: input.wouldRecommend,
         status: 'pending',
       });
@@ -145,7 +144,6 @@ export async function listReviews(
       body: r.body,
       verifiedBuyer: r.verifiedBuyer,
       authorName: authorName(r.firstName, r.lastName),
-      sizePurchased: r.sizePurchased,
       wouldRecommend: r.wouldRecommend,
       helpfulCount: r.helpfulCount,
       votedHelpful: r.voted,
@@ -197,7 +195,6 @@ function toAdminReview(r: AdminRows['rows'][number], photos: AdminRows['photos']
     title: r.title,
     body: r.body,
     verifiedBuyer: r.verifiedBuyer,
-    sizePurchased: r.sizePurchased,
     wouldRecommend: r.wouldRecommend,
     status: r.status,
     rejectReason: r.rejectReason,

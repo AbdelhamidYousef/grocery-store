@@ -63,7 +63,6 @@ describe('reviews section on the product page', () => {
     const cards = await within(section).findAllByTestId('review-card');
     expect(cards).toHaveLength(2);
     expect(within(cards[0]!).getByText('Verified buyer')).toBeInTheDocument();
-    expect(within(cards[0]!).getByText('bought size M')).toBeInTheDocument();
     expect(within(cards[1]!).queryByText('Verified buyer')).not.toBeInTheDocument();
   });
 
@@ -188,7 +187,6 @@ describe('review form', () => {
       within(form).getByLabelText('Your review'),
       'The rolls were still warm and the box arrived on time.',
     );
-    await userEvent.type(within(form).getByLabelText('Size you bought'), 'Large');
     const file = new File([new Uint8Array([1, 2, 3])], 'loaf.jpg', { type: 'image/jpeg' });
     await userEvent.upload(within(form).getByLabelText(/Photos/), file);
     expect(within(form).getByAltText('Preview of loaf.jpg')).toBeInTheDocument();
@@ -197,7 +195,7 @@ describe('review form', () => {
     expect(await screen.findByTestId('review-pending')).toHaveTextContent('waiting for approval');
     const body = received as unknown as FormData;
     expect(body.get('rating')).toBe('4');
-    expect(body.get('sizePurchased')).toBe('Large');
+    expect(body.has('sizePurchased')).toBe(false);
     expect(body.has('petAgeMonths')).toBe(false);
     expect(body.get('wouldRecommend')).toBe('true');
     // msw's FormData parser hands files back as generic blobs, so check there is one and its size.

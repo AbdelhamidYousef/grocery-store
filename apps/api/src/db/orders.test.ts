@@ -27,7 +27,7 @@ describe('orders', () => {
   it('accepts an order whose total equals subtotal + shipping + tax - discount', async () => {
     const [order] = await db.insert(orders).values(base).returning();
     expect(order?.status).toBe('pending_payment');
-    expect(order?.number).toMatch(/^PW-\d{4}-\d{6}$/);
+    expect(order?.number).toMatch(/^GR-\d{4}-\d{6}$/);
   });
 
   it('rejects an order whose total does not add up', async () => {

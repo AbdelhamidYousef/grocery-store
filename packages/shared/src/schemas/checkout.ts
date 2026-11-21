@@ -140,7 +140,7 @@ export const OrderStatusResponseSchema = DataSchema(
 );
 export type OrderStatusResponse = z.infer<typeof OrderStatusResponseSchema>;
 
-// `PW-2026-000123`: the year plus a zero-padded sequence number.
+// `GR-2026-000123` (orders before G4 keep `PW-`): the year plus a zero-padded sequence number.
 export const OrderNumberParamsSchema = z.object({
-  number: z.string().regex(/^PW-\d{4}-\d{6,}$/, 'Not an order number'),
+  number: z.string().regex(/^(GR|PW)-\d{4}-\d{6,}$/, 'Not an order number'),
 });

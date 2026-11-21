@@ -1,0 +1,2 @@
+ALTER TABLE "orders" ALTER COLUMN "number" SET DEFAULT 'GR-' || to_char(now(), 'YYYY') || '-' || lpad(nextval('order_number_seq')::text, 6, '0');--> statement-breakpoint
+ALTER TABLE "reviews" DROP COLUMN "size_purchased";

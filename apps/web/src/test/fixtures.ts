@@ -723,7 +723,6 @@ export function makeReview(overrides: Partial<Review> = {}): Review {
     body: 'My beagle has not managed to destroy it yet, and it has been a month.',
     verifiedBuyer: true,
     authorName: 'Ada L.',
-    sizePurchased: 'M',
     wouldRecommend: true,
     helpfulCount: 2,
     votedHelpful: false,

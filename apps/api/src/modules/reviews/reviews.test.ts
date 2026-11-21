@@ -44,7 +44,7 @@ describe('submitting a review', () => {
     expect(res.status).toBe(201);
     expect(bodyOf<Created>(res).data).toMatchObject({ status: 'pending', verifiedBuyer: false });
     const [row] = await db.select().from(reviews);
-    expect(row).toMatchObject({ status: 'pending', sizePurchased: null });
+    expect(row).toMatchObject({ status: 'pending' });
   });
 
   it('ignores a verifiedBuyer flag sent by the client', async () => {

@@ -160,7 +160,7 @@ async function simulatePaid(page: Page, orderNumber: string): Promise<void> {
 async function simulatorAvailable(page: Page): Promise<boolean> {
   await page.goto('/');
   const res = await api<{ error?: { message?: string } }>(page, 'POST', '/test/webhooks/simulate', {
-    orderNumber: 'PW-2000-000000',
+    orderNumber: 'GR-2000-000000',
   });
   return res.status === 404 && res.body?.error?.message === 'Order not found';
 }
@@ -285,10 +285,10 @@ test.describe('real Stripe (card 4242, real PaymentIntent, simulated webhook del
     await frame.getByLabel('Security code').fill('123');
     await page.getByTestId('pay-button').click();
 
-    await expect(page).toHaveURL(/\/checkout\/confirmation\/PW-/);
+    await expect(page).toHaveURL(/\/checkout\/confirmation\/GR-/);
     // Stripe took the card. Delivering the webhook ourselves (instead of through `stripe listen`)
     // retrieves the real PaymentIntent, so a wrong amount would still be caught.
-    const orderNumber = /\/checkout\/confirmation\/(PW-[\w-]+)/.exec(page.url())![1]!;
+    const orderNumber = /\/checkout\/confirmation\/(GR-[\w-]+)/.exec(page.url())![1]!;
     await simulatePaid(page, orderNumber);
     await expect(page.getByTestId('confirmation-status')).toHaveAttribute('data-state', 'paid', {
       timeout: 60_000,

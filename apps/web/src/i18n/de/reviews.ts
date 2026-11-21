@@ -43,15 +43,12 @@ export const reviews: Record<keyof typeof enNs, Entry> = {
   'reviews.card.markedHelpful': 'Als hilfreich markiert ({count})',
   'reviews.card.signInHelpful': 'Anmelden, um als hilfreich zu markieren ({count})',
 
-  'reviews.size': 'Größe {size} gekauft',
-
   'reviews.form.title': '{name} bewerten',
   'reviews.form.rating': 'Deine Bewertung',
   'reviews.form.titleLabel': 'Titel',
   'reviews.form.bodyLabel': 'Deine Bewertung',
   'reviews.form.bodyHint': 'Wie hat es dir gefallen? 20 bis 2000 Zeichen.',
   'reviews.form.recommend': 'Ich würde dieses Produkt empfehlen',
-  'reviews.form.size': 'Gekaufte Größe',
   'reviews.form.photosLabel': 'Fotos (optional, bis zu {max}, je 3 MB)',
   'reviews.form.photosToUpload': 'Hochzuladende Fotos',
   'reviews.form.photoPreview': 'Vorschau von {name}',

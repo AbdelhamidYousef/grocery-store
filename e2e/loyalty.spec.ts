@@ -105,7 +105,7 @@ async function simulatorAvailable(page: Page): Promise<boolean> {
     page,
     'POST',
     '/test/webhooks/simulate',
-    { orderNumber: 'PW-2000-000000' },
+    { orderNumber: 'GR-2000-000000' },
     { 'X-Test-Hook-Secret': process.env.TEST_HOOK_SECRET ?? '' },
   );
   return res.status === 404 && res.body?.error?.message === 'Order not found';

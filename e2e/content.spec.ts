@@ -133,7 +133,7 @@ test.describe('order tracking', () => {
     await expect(page.getByTestId('track-result')).toHaveCount(0);
 
     // A number that does not exist gets the very same words.
-    await page.getByTestId('track-order-number').fill('PW-2000-999999');
+    await page.getByTestId('track-order-number').fill('GR-2000-999999');
     await page.getByTestId('track-email').fill(email);
     await page.getByTestId('track-submit').click();
     await expect(page.getByRole('alert').filter({ hasText: NOT_FOUND })).toBeVisible();
@@ -166,7 +166,7 @@ test.describe('withdrawal', () => {
 
   test('a wrong email is refused with the generic message', async ({ page }) => {
     await page.goto('/withdraw');
-    await page.getByLabel('Order number').fill('PW-2000-999999');
+    await page.getByLabel('Order number').fill('GR-2000-999999');
     await page.getByLabel('Email used for the order').fill(uniqueEmail());
     await page.getByRole('button', { name: 'Withdraw from contract' }).click();
     await expect(page.getByRole('alert').filter({ hasText: NOT_FOUND })).toBeVisible();

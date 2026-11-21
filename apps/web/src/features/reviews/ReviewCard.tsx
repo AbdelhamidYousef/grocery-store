@@ -11,19 +11,17 @@ import { loginUrl } from '../../lib/safe-next';
 import { TEST_IDS } from '../../lib/test-ids';
 import { useAuth } from '../auth/AuthProvider';
 
-import { reviewContextLine } from './format';
 import { useHelpful } from './queries';
 import { RatingStars } from './RatingStars';
 
 // Text is rendered as text (React escapes it): reviews are stored raw and may contain anything.
 export function ReviewCard({ review }: { review: Review }) {
-  const { t, tn, tm } = useT();
+  const { t, tm } = useT();
   const fmt = useFormat();
   const { status } = useAuth();
   const location = useLocation();
   const helpful = useHelpful();
   const [open, setOpen] = useState<string | null>(null);
-  const context = reviewContextLine(review, { t, tn, locale: fmt.locale });
 
   return (
     <li
@@ -44,7 +42,6 @@ export function ReviewCard({ review }: { review: Review }) {
           </Badge>
         )}
       </p>
-      {context && <p className="text-sm font-semibold text-dept-strong">{context}</p>}
       <p className="whitespace-pre-line break-words">{review.body}</p>
       <p className="text-sm">
         {review.wouldRecommend ? t('reviews.card.recommend') : t('reviews.card.notRecommend')}

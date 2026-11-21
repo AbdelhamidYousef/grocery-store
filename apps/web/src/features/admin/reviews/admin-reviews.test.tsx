@@ -17,7 +17,6 @@ const review = (n: number, over: object = {}) => ({
   title: `Review ${n}`,
   body: 'My beagle loves this tug, it has survived a month of games.',
   verifiedBuyer: n % 2 === 1,
-  sizePurchased: null,
   wouldRecommend: true,
   status: 'pending',
   rejectReason: null,

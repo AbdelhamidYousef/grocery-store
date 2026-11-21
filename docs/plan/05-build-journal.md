@@ -237,3 +237,15 @@ the test.
 3. The German menu came back empty. What did the code compare, what should it have compared, and
    why does `/c/fruit-veg` still work in the German store?
 4. Why were the product photos generated as 2×2 grids, and what is the cost of that choice?
+
+## Phase G4: areas and dark stores
+
+### G4.1: follow-ups from G3
+Order numbers now start with `GR-` (migration 0046 changes the column default; existing orders keep
+`PW-`, and the shared order-number check accepts both). The review form's "Size you bought" field is
+gone from the shared schema, the API, the form, both languages and the tests, and migration 0046
+drops `reviews.size_purchased`. Surprise: the no-hard-literals test whitelists the order-number
+placeholder by its prefix, so the placeholder rename failed it until the whitelist followed.
+Learn: a default that lives in the database (the order number) is changed with a migration, never in
+code alone, and old rows keep the value they were born with.
+

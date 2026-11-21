@@ -1,31 +1,7 @@
-import { lookupFor, type TFunction, type TnFunction } from '../../i18n';
-
 // Display helpers for review data. Everything arrives as integers (tenths of a star) and is formatted here, with integer arithmetic only, so 46 is always "4.6".
 
 export const formatRating = (tenths: number): string =>
   `${Math.floor(tenths / 10)}.${String(tenths % 10)}`;
-
-// The text helpers take the shopper's words and locale. Without them they speak the default
-// English, so the admin screens (English only) and the unit tests call them as before.
-export interface ReviewWords {
-  t: TFunction;
-  tn: TnFunction;
-  locale: string;
-}
-const english = lookupFor('en-IE');
-const ENGLISH: ReviewWords = {
-  t: (key, params) => english.t(key, params),
-  tn: (key, count, params) => english.tn(key, count, params),
-  locale: 'en-IE',
-};
-
-/** "Bought size M" line from whatever the reviewer shared, or nothing. */
-export function reviewContextLine(
-  r: { sizePurchased: string | null },
-  words: ReviewWords = ENGLISH,
-): string | null {
-  return r.sizePurchased ? words.t('reviews.size', { size: r.sizePurchased }) : null;
-}
 
 // ---------- URL state: ?rsort= &rstar= &rtopic= &rpage= ----------
 

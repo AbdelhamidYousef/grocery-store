@@ -40,7 +40,6 @@ export const reviews = pgTable(
     body: text('body').notNull(),
     // Computed by the server from a paid order, never accepted from the client.
     verifiedBuyer: boolean('verified_buyer').notNull().default(false),
-    sizePurchased: text('size_purchased'),
     wouldRecommend: boolean('would_recommend').notNull(),
     status: reviewStatus('status').notNull().default('pending'),
     rejectReason: text('reject_reason'),

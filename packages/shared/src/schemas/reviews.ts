@@ -23,10 +23,6 @@ export const reviewInputSchema = z.object({
     .trim()
     .min(20, 'Please write at least 20 characters')
     .max(2000, 'At most 2000 characters'),
-  sizePurchased: z.preprocess(
-    (v) => (v === '' || v === null ? undefined : v),
-    z.string().trim().max(40).optional(),
-  ),
   // Multipart sends booleans as the strings "true"/"false".
   wouldRecommend: z.preprocess(
     (v) => (v === 'true' ? true : v === 'false' ? false : v),
@@ -57,7 +53,6 @@ export const ReviewSchema = z.object({
   body: z.string(),
   verifiedBuyer: z.boolean(),
   authorName: z.string(),
-  sizePurchased: z.string().nullable(),
   wouldRecommend: z.boolean(),
   helpfulCount: z.number().int().min(0),
   // Whether the signed-in viewer has voted; false for guests.
@@ -121,7 +116,6 @@ export const AdminReviewSchema = z.object({
   title: z.string(),
   body: z.string(),
   verifiedBuyer: z.boolean(),
-  sizePurchased: z.string().nullable(),
   wouldRecommend: z.boolean(),
   status: ReviewStatusSchema,
   rejectReason: z.string().nullable(),

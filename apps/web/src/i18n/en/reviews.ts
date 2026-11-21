@@ -42,15 +42,12 @@ export const reviews = {
   'reviews.card.markedHelpful': 'Marked helpful ({count})',
   'reviews.card.signInHelpful': 'Sign in to mark helpful ({count})',
 
-  'reviews.size': 'bought size {size}',
-
   'reviews.form.title': 'Review {name}',
   'reviews.form.rating': 'Your rating',
   'reviews.form.titleLabel': 'Title',
   'reviews.form.bodyLabel': 'Your review',
   'reviews.form.bodyHint': 'What did you think? 20 to 2000 characters.',
   'reviews.form.recommend': 'I would recommend this product',
-  'reviews.form.size': 'Size you bought',
   'reviews.form.photosLabel': 'Photos (optional, up to {max}, 3 MB each)',
   'reviews.form.photosToUpload': 'Photos to upload',
   'reviews.form.photoPreview': 'Preview of {name}',

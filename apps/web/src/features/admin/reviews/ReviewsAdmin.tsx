@@ -11,7 +11,6 @@ import { useToast } from '../../../components/ui/Toast';
 import { cn } from '../../../lib/cn';
 import { formatDate } from '../../../lib/format';
 import { FormAlert } from '../../auth/AuthCard';
-import { reviewContextLine } from '../../reviews/format';
 import { RatingStars } from '../../reviews/RatingStars';
 import { adminErrorMessage } from '../errors';
 
@@ -173,7 +172,6 @@ function ReviewRow({
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const context = reviewContextLine(review);
 
   const fail = (e: unknown) => setError(adminErrorMessage(e));
 
@@ -210,7 +208,6 @@ function ReviewRow({
         · {review.authorName} {review.authorEmail ? `(${review.authorEmail})` : ''} ·{' '}
         {formatDate(review.createdAt)}
       </p>
-      {context && <p className="text-sm font-semibold">{context}</p>}
       <p className="whitespace-pre-line break-words">{review.body}</p>
       {review.photos.length > 0 && (
         <ul className="flex flex-wrap gap-2" aria-label="Photos in this review">

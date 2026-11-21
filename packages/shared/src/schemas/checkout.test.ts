@@ -76,6 +76,7 @@ describe('order helpers', () => {
   });
 
   it('accepts only well-formed order numbers', () => {
+    expect(OrderNumberParamsSchema.safeParse({ number: 'GR-2026-000123' }).success).toBe(true);
     expect(OrderNumberParamsSchema.safeParse({ number: 'PW-2026-000123' }).success).toBe(true);
     expect(OrderNumberParamsSchema.safeParse({ number: "PW-2026-1'; drop" }).success).toBe(false);
   });

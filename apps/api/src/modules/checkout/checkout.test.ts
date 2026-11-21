@@ -80,7 +80,7 @@ describe('POST /checkout', () => {
       taxCents: 0,
       totalCents: 3190,
     });
-    expect(body.orderNumber).toMatch(/^PW-\d{4}-\d{6}$/);
+    expect(body.orderNumber).toMatch(/^GR-\d{4}-\d{6}$/);
     expect(body.clientSecret).toContain('_secret_');
 
     const [order] = await allOrders();

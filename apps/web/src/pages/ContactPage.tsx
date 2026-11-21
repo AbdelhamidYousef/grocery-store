@@ -171,7 +171,7 @@ export default function ContactPage() {
         </Select>
         <Input
           label={t('content.contact.order')}
-          placeholder="PW-2026-000123"
+          placeholder="GR-2026-000123"
           autoComplete="off"
           value={values.orderNumber}
           onChange={set('orderNumber')}

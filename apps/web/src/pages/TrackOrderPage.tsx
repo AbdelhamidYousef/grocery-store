@@ -67,7 +67,7 @@ export default function TrackOrderPage() {
         <FormAlert message={fieldError ?? (lookup.error ? messageFor(lookup.error, t) : null)} />
         <Input
           label={t('account.tracking.orderNumber')}
-          placeholder="PW-2026-000123"
+          placeholder="GR-2026-000123"
           autoComplete="off"
           value={orderNumber}
           onChange={(e) => setOrderNumber(e.target.value)}
