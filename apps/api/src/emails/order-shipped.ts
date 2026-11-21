@@ -3,6 +3,8 @@ import type { Order } from '@store/shared';
 import type { EmailText } from './i18n/index.ts';
 import {
   addressLines,
+  deliveryBlock,
+  deliveryLine,
   escapeHtml,
   htmlOf,
   itemsTable,
@@ -23,6 +25,7 @@ export function orderShipped(order: Order, x: EmailText): Email {
     x.t('shipped.method', { method: order.shippingMethod.name }),
     '',
     itemsText(order, x),
+    ...(deliveryLine(order, x) ? ['', deliveryLine(order, x)!] : []),
     '',
     x.t('order.deliveringTo'),
     ...address,
@@ -42,6 +45,7 @@ export function orderShipped(order: Order, x: EmailText): Email {
         ),
       ),
       itemsTable(order, x),
+      deliveryBlock(order, x),
       paragraph(
         `<strong>${escapeHtml(x.t('order.deliveringTo').replace(/:$/, ''))}</strong><br>${address.map(escapeHtml).join('<br>')}`,
       ),

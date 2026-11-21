@@ -18,6 +18,9 @@ export const de: Record<EmailKey, TextEntry> = {
   'order.donation': 'Spende an Spreeufer Food Bank (Demo)',
   'order.total': 'Gesamtsumme',
   'order.shippingTo': 'Lieferadresse:',
+  'order.deliveryTime': 'Lieferzeit',
+  'order.arrives': 'Lieferung {when}',
+  'order.arrivesExpress': 'Express, bis {time}',
   'order.deliveringTo': 'Wir liefern an:',
 
   'confirm.subject': 'Deine Grocery-Bestellung {number} ist bestätigt',

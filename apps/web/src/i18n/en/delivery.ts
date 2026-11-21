@@ -44,4 +44,52 @@ export const delivery = {
   'delivery.page.loading': 'Loading the delivery areas',
   'delivery.page.error': "We couldn't load the delivery areas. Try again in a moment.",
   'delivery.page.yours': 'Your postcode is here',
+
+  // ---------- delivery times (G5) ----------
+  'delivery.slots.title': 'Choose a delivery time',
+  'delivery.slots.lead': 'Pick a one-hour slot. We hold it for 15 minutes while you check out.',
+  'delivery.slots.loading': 'Loading delivery times',
+  'delivery.slots.loadError': "We couldn't load the delivery times.",
+  'delivery.slots.none': 'No delivery times are open right now. Try again later.',
+  'delivery.slots.days': 'Delivery day',
+  'delivery.slots.hours': 'Delivery time on {day}',
+  'delivery.slots.today': 'Today',
+  'delivery.slots.tomorrow': 'Tomorrow',
+  'delivery.slots.full': 'Full',
+  'delivery.slots.closed': 'Closed',
+  'delivery.slots.left': {
+    one: '{count} left',
+    other: '{count} left',
+  },
+  'delivery.slots.yours': 'Your slot',
+  'delivery.slots.continue': 'Continue to payment',
+
+  'delivery.express.title': 'Express',
+  'delivery.express.lead': 'At your door in about 30 minutes',
+  'delivery.express.closed': 'Express is only offered while the store is open.',
+  'delivery.express.busy': 'All riders are out right now. Try again in a few minutes.',
+  'delivery.express.noPostcode': 'Enter your postcode to see express delivery.',
+
+  'delivery.hold.label': 'Held for {time}',
+  'delivery.hold.expired': 'Your slot is no longer held. Pick a time again.',
+  'delivery.hold.aria': 'Your slot is held for about {minutes} more minutes',
+
+  'delivery.window.arrives': 'Arrives {when}',
+  'delivery.window.express': 'Express, by {time}',
+  'delivery.window.expressCart': 'Express, within 30 minutes',
+  'delivery.window.heading': 'Delivery time',
+
+  'delivery.next.slot': 'Next delivery: {when}',
+  'delivery.next.express': 'Express in 30 minutes',
+  'delivery.next.noPostcode': 'Enter your postcode to see delivery times.',
+
+  'delivery.error.slotFull': 'That slot just filled up. Pick another time.',
+  'delivery.error.slotClosed': 'That slot is closed. Pick another time.',
+  'delivery.error.wrongArea':
+    'That slot is for another delivery area. Pick a time for your address.',
+  'delivery.error.holdExpired':
+    'Your slot was held for 15 minutes and has run out. Pick a time again.',
+  'delivery.error.expressUnavailable':
+    'Express is not available right now. Pick a time or try again in a few minutes.',
+  'delivery.error.required': 'Pick a delivery time to continue.',
 } satisfies Dictionary;

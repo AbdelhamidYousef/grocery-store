@@ -51,17 +51,3 @@ export const ShippingQuoteSchema = z.object({
 export type ShippingQuote = z.infer<typeof ShippingQuoteSchema>;
 
 export const ShippingMethodsResponseSchema = DataSchema(z.array(ShippingQuoteSchema));
-
-// What the product page needs to estimate arrival: each active method's transit range in business
-// days, and the server's clock (a device with a wrong clock must not decide "before the cutoff").
-export const DeliveryMethodSchema = z.object({
-  code: z.string(),
-  name: z.string(),
-  etaDaysMin: z.number().int().min(0),
-  etaDaysMax: z.number().int().min(0),
-});
-export type DeliveryMethod = z.infer<typeof DeliveryMethodSchema>;
-export const DeliveryMethodsResponseSchema = DataSchema(
-  z.object({ serverNow: z.iso.datetime(), methods: z.array(DeliveryMethodSchema) }),
-);
-export type DeliveryMethodsResponse = z.infer<typeof DeliveryMethodsResponseSchema>;

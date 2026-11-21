@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useT } from '../../i18n';
 import { useFormat } from '../../i18n/format';
 import { TEST_IDS } from '../../lib/test-ids';
+import { deliverySentence } from '../delivery/slots';
 
 export function TrackedOrderView({ order }: { order: TrackedOrder }) {
   const { t } = useT();
@@ -36,6 +37,11 @@ export function TrackedOrderView({ order }: { order: TrackedOrder }) {
           {t(`account.tracking.state.${order.status}`)}
         </strong>
       </p>
+      {order.delivery && (
+        <p data-testid={TEST_IDS.deliveryOrderWindow} className="mt-1 font-semibold">
+          {deliverySentence(order.delivery, locale, t)}
+        </p>
+      )}
       {order.tracking && (
         <p className="mt-1 text-muted">
           {t('account.tracking.carrier', { carrier: order.tracking.carrier })}{' '}

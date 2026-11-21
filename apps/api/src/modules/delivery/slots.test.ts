@@ -219,6 +219,12 @@ describe('GET /delivery/slots', () => {
     const res = await shopper.call('get', '/delivery/slots');
     expect(res.status).toBe(200);
     expect(res.headers['cache-control']).toBe('no-store');
+    // Public and cart-free: looking at the slots creates no guest cart and sets no cookie.
+    const fresh = await makeShopper(app, undefined, undefined, '10115').call(
+      'get',
+      '/delivery/slots',
+    );
+    expect(fresh.headers['set-cookie']).toBeUndefined();
     const data = bodyOf<SlotsResponse>(res).data;
     const all = data.days.flatMap((d) => d.slots);
     expect(all.find((s) => s.id === full)).toMatchObject({ status: 'full', remaining: 0 });

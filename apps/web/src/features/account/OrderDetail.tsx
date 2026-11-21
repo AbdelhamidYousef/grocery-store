@@ -8,6 +8,7 @@ import { useT } from '../../i18n';
 import { useFormat } from '../../i18n/format';
 import { TEST_IDS } from '../../lib/test-ids';
 import { OrderAddress, OrderSummary } from '../checkout/OrderSummary';
+import { deliverySentence } from '../delivery/slots';
 import { ReorderButton } from '../reorder/ReorderButton';
 import { ReturnsSection } from '../returns/ReturnsSection';
 
@@ -21,6 +22,7 @@ export function OrderDetail() {
   const { number = '' } = useParams();
   const { t } = useT();
   const fmt = useFormat();
+  const { locale } = fmt;
   const { data: order, isPending, error, refetch } = useOrder(number);
 
   const back = (
@@ -138,6 +140,17 @@ export function OrderDetail() {
         </div>
         <div className="flex min-w-0 flex-col gap-5">
           <OrderAddress title={t('account.order.shippingTo')} address={order.shippingAddress} />
+          {order.delivery && (
+            <div>
+              <h3 className="font-display text-lg font-bold">{t('delivery.window.heading')}</h3>
+              <p
+                data-testid={TEST_IDS.deliveryOrderWindow}
+                className="mt-1 break-words font-semibold"
+              >
+                {deliverySentence(order.delivery, locale, t)}
+              </p>
+            </div>
+          )}
           <div>
             <h3 className="font-display text-lg font-bold">{t('account.order.shippingMethod')}</h3>
             <p className="mt-1 break-words">{order.shippingMethod.name}</p>

@@ -51,11 +51,12 @@ test('bought together: Add all puts the chosen items in the cart; delivery text;
   await block.getByTestId('bought-together-add').click();
   await expect(page.getByTestId('cart-count')).toHaveText(String(count + 1));
 
-  // The delivery estimate: the sentence and the zone it is stated in.
-  const delivery = page.getByTestId('delivery-estimate');
+  // The next delivery, from the slots of the shopper's store (express only while a rider is free).
+  const delivery = page.getByTestId('delivery-next');
   await expect(delivery).toBeVisible();
-  await expect(delivery).toContainText(/arrives \w{3} \d{1,2} \w{3}/);
-  await expect(delivery).toContainText(/Cutoff 15:00 (CET|CEST)/);
+  await expect(delivery).toContainText(
+    /Next delivery: .*\d\d:\d\d–\d\d:\d\d|Express in 30 minutes/,
+  );
 
   // Recently viewed: visit another product, come back, and the first one is in the strip.
   await page.goto('/products/glass-cleaner');

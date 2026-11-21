@@ -20,7 +20,6 @@ import { formatFacetValue } from '../features/catalog/filters';
 import { Gallery } from '../features/catalog/Gallery';
 import { BoughtTogether } from '../features/catalog/pdp/BoughtTogether';
 import { BundlePanel, KitsBlock } from '../features/catalog/pdp/BundlePanel';
-import { DeliveryEstimate } from '../features/catalog/pdp/DeliveryEstimate';
 import { faqJsonLd } from '../features/catalog/pdp/FaqAccordion';
 import { ProductTabs } from '../features/catalog/pdp/ProductTabs';
 import { RecentlyViewed } from '../features/catalog/pdp/RecentlyViewed';
@@ -29,6 +28,7 @@ import { useProduct } from '../features/catalog/queries';
 import { variantFromSku } from '../features/catalog/resolve-variant';
 import { VariantPicker } from '../features/catalog/VariantPicker';
 import { useSoldOutLabel } from '../features/delivery/DeliveryContext';
+import { NextDelivery } from '../features/delivery/NextDelivery';
 import { EarnPoints } from '../features/loyalty/EarnPoints';
 import { formatRating } from '../features/reviews/format';
 import { RatingStars } from '../features/reviews/RatingStars';
@@ -285,7 +285,7 @@ function ProductView({ product }: { product: ProductDetail }) {
               />
             )}
 
-            {variant?.available && <DeliveryEstimate />}
+            {variant?.available && <NextDelivery />}
           </div>
         </div>
         <ProductTabs

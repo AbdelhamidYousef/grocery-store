@@ -99,17 +99,19 @@ test.beforeAll(async ({ browser, baseURL }) => {
 async function api<T>(
   page: Page,
   store: string,
-  method: 'GET' | 'POST',
+  method: 'GET' | 'POST' | 'PUT',
   path: string,
   body?: unknown,
+  postcode?: string,
 ): Promise<{ status: number; body: T }> {
   return page.evaluate(
-    async ({ store, method, path, body, hookSecret }) => {
+    async ({ store, method, path, body, hookSecret, postcode }) => {
       const res = await fetch(`/api/v1${path}`, {
         method,
         credentials: 'include',
         headers: {
           'X-Store-View': store,
+          ...(postcode ? { 'X-Postcode': postcode } : {}),
           ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
           ...(path.startsWith('/test/') ? { 'X-Test-Hook-Secret': hookSecret } : {}),
         },
@@ -117,8 +119,27 @@ async function api<T>(
       });
       return { status: res.status, body: (await res.json().catch(() => null)) as never };
     },
-    { store, method, path, body, hookSecret: process.env.TEST_HOOK_SECRET ?? '' },
+    { store, method, path, body, hookSecret: process.env.TEST_HOOK_SECRET ?? '', postcode },
   );
+}
+
+// Since G5 an order needs a delivery time: hold the first open slot of Mitte (10115) through the API.
+async function pickSlot(page: Page, store: string): Promise<void> {
+  const list = await api<{ data: { days: { slots: { id: string; status: string }[] }[] } }>(
+    page,
+    store,
+    'GET',
+    '/delivery/slots',
+    undefined,
+    '10115',
+  );
+  const open = list.body.data.days.flatMap((d) => d.slots).filter((x) => x.status === 'open');
+  expect(open.length, 'an open delivery slot (run pnpm db:seed)').toBeGreaterThan(0);
+  for (const slot of open) {
+    const put = await api(page, store, 'PUT', '/cart/slot', { slotId: slot.id }, '10115');
+    if (put.status === 200) return;
+  }
+  throw new Error('no delivery slot could be held');
 }
 
 async function mailSubject(to: string): Promise<string> {
@@ -146,6 +167,7 @@ async function buyIn(
   await page.goto(`/${store}/products/${PRODUCT}`);
   await page.getByTestId('add-to-cart').click();
   await expect(page.getByTestId('toast')).toBeVisible();
+  await pickSlot(page, store);
   const res = await api<{ data: { orderNumber: string } }>(page, store, 'POST', '/checkout', {
     email,
     shippingAddress: {
@@ -155,7 +177,7 @@ async function buyIn(
       city: 'Berlin',
       country,
     },
-    shippingMethodCode: 'standard',
+    shippingMethodCode: 'slot',
   });
   expect(res.status, JSON.stringify(res.body)).toBe(200);
   const number = res.body.data.orderNumber;
@@ -227,7 +249,7 @@ test('German store: German words and euros; English store: euros, checkout, Engl
       city: 'Paris',
       country: 'FR',
     },
-    shippingMethodCode: 'standard',
+    shippingMethodCode: 'slot',
   });
   expect(wrong.status).toBe(400);
 });

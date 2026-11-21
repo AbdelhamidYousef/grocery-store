@@ -1,4 +1,3 @@
-export * from './delivery.ts';
 export * from './errors.ts';
 export * from './money.ts';
 export * from './departments.ts';

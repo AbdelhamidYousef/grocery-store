@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 
 import { expect, test, type Browser, type Page } from '@playwright/test';
 
-import { ADMIN, api, register, restock, uniqueEmail } from './helpers';
+import { ADMIN, api, register, restock, uniqueEmail, pickSlot } from './helpers';
 
 // Phase 19 (loyalty and retention), end to end, on the simulated gateway (NODE_ENV=test API with
 // /test/webhooks/simulate):
@@ -76,10 +76,11 @@ async function placeOrder(
   email: string,
   extra: { pointsToRedeem?: number; roundUpDonation?: boolean } = {},
 ): Promise<string> {
+  await pickSlot(page);
   const res = await api<{ data: { orderNumber: string } }>(page, 'POST', '/checkout', {
     email,
     shippingAddress: ADDRESS,
-    shippingMethodCode: 'standard',
+    shippingMethodCode: 'slot',
     ...extra,
   });
   expect(res.status, JSON.stringify(res.body)).toBe(200);

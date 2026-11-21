@@ -100,21 +100,24 @@ async function fillAddress(page: Page): Promise<void> {
   await page.getByLabel('City').fill(ADDRESS.city);
 }
 
-// Address and shipping steps through the UI; returns the shipping method the shopper ended up with.
+// Address and delivery-time steps through the UI; returns the shipping method the slot is paid with.
 async function driveToPayment(page: Page, email: string | null): Promise<string> {
   await page.goto('/checkout');
   if (email) await page.getByTestId('checkout-email').fill(email);
   await fillAddress(page);
   await page.getByTestId('checkout-continue-shipping').click();
 
-  const options = page.getByTestId('shipping-option');
-  await expect(options.first()).toBeVisible();
-  const code = await options.locator('input:checked').getAttribute('value');
-  expect(code).toBeTruthy();
+  // The delivery time: nothing is chosen yet, so there is no way on; pick the first open slot and
+  // the server holds it for 15 minutes.
+  const slots = page.getByTestId('delivery-slot');
+  await expect(slots.first()).toBeVisible();
+  await expect(page.getByTestId('checkout-continue-payment')).toBeDisabled();
   // The server's quote, never a client sum: the total stays unconfirmed until payment.
   await expect(page.getByTestId('checkout-summary').getByTestId('order-total')).toContainText(
     'Confirmed at payment',
   );
+  await slots.and(page.locator('[data-status=open]')).first().click();
+  await expect(page.getByTestId('delivery-hold')).toContainText(/Held for 1[45]:\d\d/);
   await page.getByTestId('checkout-continue-payment').click();
 
   // Either Payments are configured in this web build (Payment Element) or the friendly state.
@@ -123,7 +126,7 @@ async function driveToPayment(page: Page, email: string | null): Promise<string>
   ).toBeVisible();
   const steps = page.getByTestId('checkout-step');
   await expect(steps.nth(2)).toHaveAttribute('data-state', 'active');
-  return code as string;
+  return 'slot';
 }
 
 interface CartBody {
@@ -197,6 +200,10 @@ test.describe('simulated payment (fake gateway + /test/webhooks/simulate)', () =
     await expect(page.getByTestId('confirmation-order-number')).toHaveText(orderNumber);
     await expect(page.getByTestId('order-summary')).toContainText(product.name);
     await expect(page.getByTestId('order-summary').getByTestId('order-total')).not.toBeEmpty();
+    // The window the shopper picked, in the shop's time.
+    await expect(page.getByTestId('delivery-order-window')).toContainText(
+      /Arrives .*\d\d:\d\d–\d\d:\d\d/,
+    );
 
     // The cart was converted: the badge is gone and the API's cart is empty.
     await expect(page.getByTestId('cart-count')).toHaveCount(0);
@@ -263,7 +270,7 @@ test.describe('simulated payment (fake gateway + /test/webhooks/simulate)', () =
     await page.getByTestId('checkout-continue-shipping').click();
     await expect(page.getByLabel('Email')).toHaveAttribute('aria-invalid', 'true');
     await expect(page.getByLabel('Postal code')).toHaveAccessibleDescription('Required');
-    await expect(page.getByTestId('shipping-option')).toHaveCount(0);
+    await expect(page.getByTestId('delivery-slot')).toHaveCount(0);
   });
 });
 

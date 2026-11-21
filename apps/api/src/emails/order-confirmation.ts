@@ -5,6 +5,8 @@ import { env } from '../config/env.ts';
 import type { EmailText } from './i18n/index.ts';
 import {
   addressLines,
+  deliveryBlock,
+  deliveryLine,
   escapeHtml,
   htmlOf,
   itemsTable,
@@ -29,6 +31,7 @@ export function orderConfirmation(order: Order, x: EmailText): Email {
     x.t('confirm.paid', { number: order.number }),
     '',
     itemsText(order, x),
+    ...(deliveryLine(order, x) ? ['', deliveryLine(order, x)!] : []),
     '',
     x.t('order.shippingTo'),
     ...address,
@@ -44,6 +47,7 @@ export function orderConfirmation(order: Order, x: EmailText): Email {
     body: [
       paragraph(htmlOf(x, 'confirm.intro', { name, number: order.number }, ['number'])),
       itemsTable(order, x),
+      deliveryBlock(order, x),
       paragraph(
         `<strong>${escapeHtml(x.t('order.shippingTo').replace(/:$/, ''))}</strong><br>${address.map(escapeHtml).join('<br>')}`,
       ),

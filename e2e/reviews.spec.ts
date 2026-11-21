@@ -1,6 +1,6 @@
 import { expect, test, type Browser, type Page } from '@playwright/test';
 
-import { ADMIN, api, register, uniqueEmail } from './helpers';
+import { ADMIN, api, register, uniqueEmail, pickSlot } from './helpers';
 
 // Reviews, end to end: a buyer writes a review with a photo, an admin
 // approves it, it appears with the "Verified buyer" tag, another shopper votes it helpful and
@@ -77,6 +77,7 @@ async function paidOrderFor(page: Page, email: string, variantId: string) {
   await page.goto('/');
   const add = await api(page, 'POST', '/cart/items', { variantId, quantity: 1 });
   expect(add.status, JSON.stringify(add.body)).toBeLessThan(300);
+  await pickSlot(page);
   const shipping = await api<{ data: { code: string }[] }>(
     page,
     'GET',

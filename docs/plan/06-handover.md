@@ -32,7 +32,9 @@ Written by the build sessions for the owner and the next session. Newest state f
   ...", checkout postcode check; EN + DE). Checkout needs a served Berlin postcode (422 otherwise). New
   e2e spec `delivery-areas.spec.ts`. Gates green: shared 282, web 950, API 1,416 + 2 skipped, e2e 76 + 1 skipped.
   A database migrated from G3 needs `pnpm db:reset` to get varied shelves. Not pushed yet.
-- **G5 in progress** (2026-11-21): G5.2 done: holds and capacity (`delivery/holds.ts`), `GET /delivery/slots`, `PUT/DELETE /cart/slot`, `PUT /cart/express`,
+- **G5 in progress** (2026-11-21): G5.3 done: checkout "Delivery time" step (`DeliveryTimeStep`, hold countdown), `NextDelivery`
+  on the PDP and cart, the order window on the confirmation, account order, tracking page and emails; the Pawsome cutoff
+  estimate and `GET /delivery-methods` are gone. G5.2 done: holds and capacity (`delivery/holds.ts`), `GET /delivery/slots`, `PUT/DELETE /cart/slot`, `PUT /cart/express`,
   `release-slot-holds` job (new 5-minute cadence), migration 0050; checkout needs a live hold or express (the web picker is G5.3,
   so the UI checkout cannot pay until then). G5.1 done: shared `slots.ts` (Berlin-zone rules and labels), migration 0049
   (`delivery_slots`, store hours/capacity/riders), `generate-slots` job and seed. Not pushed.

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { ADMIN, api } from './helpers';
+import { ADMIN, api, pickSlot } from './helpers';
 
 // Delivery areas: a postcode picks the store, the store decides what is in stock, and checkout
 // reserves on the store of the delivery ADDRESS. The seed sells the frozen prawns out in Mitte and
@@ -55,6 +55,7 @@ test('a Neukölln postcode shows the area, unlocks the prawns, and checkout rese
   await expect(page.getByTestId('toast').filter({ hasText: /^Added 1 x/ })).toBeVisible();
 
   // Checkout to a Neukölln address reserves on the Neukölln shelf, not Mitte's.
+  await pickSlot(page, '12045');
   const order = await api<{ data: { orderNumber: string } }>(page, 'POST', '/checkout', {
     email: `e2e-${Date.now()}@example.test`,
     shippingAddress: {
@@ -64,7 +65,7 @@ test('a Neukölln postcode shows the area, unlocks the prawns, and checkout rese
       city: 'Berlin',
       country: 'DE',
     },
-    shippingMethodCode: 'standard',
+    shippingMethodCode: 'slot',
   });
   expect(order.status, JSON.stringify(order.body)).toBe(200);
   expect(order.body.data.orderNumber).toMatch(/^GR-/);

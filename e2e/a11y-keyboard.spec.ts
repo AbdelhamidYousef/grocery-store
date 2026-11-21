@@ -133,11 +133,14 @@ test('buy a product with the keyboard only', async ({ page }) => {
   await page.keyboard.press('Enter');
 
   // --- shipping step: focus follows to the new step instead of falling onto <body> ---
-  await expect(page.getByRole('heading', { name: 'Shipping method' })).toBeFocused();
-  await expect(page.getByTestId('shipping-option').first()).toBeVisible();
-  await tabTo(page, 'input[type=radio]');
-  expect(await hasFocusIndicator(page), 'the shipping radio shows focus').toBe(true);
-  const code = await page.evaluate(() => (document.activeElement as HTMLInputElement).value);
+  await expect(page.getByRole('heading', { name: 'Delivery time' })).toBeFocused();
+  await expect(page.getByTestId('delivery-slot').first()).toBeVisible();
+  // An open slot is a button: Tab reaches it, it shows focus, and Enter holds it.
+  await tabTo(page, '[data-testid=delivery-slot]:not([disabled])');
+  expect(await hasFocusIndicator(page), 'the delivery slot shows focus').toBe(true);
+  await page.keyboard.press('Enter');
+  await expect(page.getByTestId('delivery-hold')).toBeVisible();
+  const code = 'slot';
   await tabTo(page, '[data-testid=checkout-continue-payment]');
   await page.keyboard.press('Enter');
   await expect(page.getByRole('heading', { name: 'Payment' })).toBeFocused();

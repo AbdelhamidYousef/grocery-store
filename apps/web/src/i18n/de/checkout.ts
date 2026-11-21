@@ -16,12 +16,12 @@ export const checkout: Record<keyof typeof enNs, Entry> = {
 
   // ---------- step cards ----------
   'checkout.step.details': 'Kontakt und Adresse',
-  'checkout.step.shipping': 'Versandart',
+  'checkout.step.shipping': 'Lieferzeit',
   'checkout.step.payment': 'Zahlung',
   'checkout.step.edit': 'Ändern',
   'checkout.step.editAria': '{title} ändern',
   'checkout.step.editDetails': 'Kontakt und Adresse ändern',
-  'checkout.step.editShipping': 'Versandart ändern',
+  'checkout.step.editShipping': 'Lieferzeit ändern',
 
   // ---------- step 1: details ----------
   'checkout.details.haveAccount': 'Hast du schon ein Konto?',
@@ -41,21 +41,11 @@ export const checkout: Record<keyof typeof enNs, Entry> = {
   'checkout.details.phone': 'Telefon (optional)',
   'checkout.details.phoneHint': 'Nur für den Zusteller.',
   'checkout.details.saveAddress': 'Diese Adresse in meinem Konto speichern',
-  'checkout.details.continue': 'Weiter zum Versand',
+  'checkout.details.continue': 'Weiter zur Lieferzeit',
 
   // ---------- step 2: shipping ----------
   'checkout.shipping.loading': 'Versandoptionen werden geladen',
   'checkout.shipping.loadError': 'Wir konnten die Versandoptionen nicht laden.',
-  'checkout.shipping.none': 'Wir können diese Bestellung derzeit nicht in dieses Land liefern.',
-  'checkout.shipping.legend': 'Versandart',
-  'checkout.shipping.etaSame': {
-    one: '{count} Werktag',
-    other: '{count} Werktage',
-  },
-  'checkout.shipping.etaRange': {
-    one: '{min}-{max} Werktage',
-    other: '{min}-{max} Werktage',
-  },
   'checkout.shipping.free': 'Kostenlos',
   'checkout.shipping.continue': 'Weiter zur Zahlung',
   'checkout.shipping.tryAgain': 'Erneut versuchen',

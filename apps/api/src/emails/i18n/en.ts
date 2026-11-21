@@ -22,6 +22,9 @@ export const en = {
   'order.donation': 'Donation to Spreeufer Food Bank (demo)',
   'order.total': 'Total',
   'order.shippingTo': 'Shipping to:',
+  'order.deliveryTime': 'Delivery time',
+  'order.arrives': 'Arrives {when}',
+  'order.arrivesExpress': 'Express, by {time}',
   'order.deliveringTo': 'Delivering to:',
 
   // ----- order confirmation -----

@@ -9,6 +9,7 @@ import { cn } from '../../lib/cn';
 import { freeShippingProgress } from '../../lib/shipping';
 import { TEST_IDS } from '../../lib/test-ids';
 import { useFreeShippingThreshold } from '../checkout/queries';
+import { NextDelivery } from '../delivery/NextDelivery';
 import { EarnPoints } from '../loyalty/EarnPoints';
 
 import { CartCode } from './CartCode';
@@ -81,6 +82,7 @@ export function CartSummary({
 
       {!compact && (
         <>
+          <NextDelivery />
           <CartCode cart={cart} />
           <dl className="flex flex-col gap-1 border-t-2 border-line pt-3 text-sm">
             <div className="flex justify-between gap-4">

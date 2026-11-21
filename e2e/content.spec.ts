@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { api, restock, uniqueEmail } from './helpers';
+import { api, restock, uniqueEmail, pickSlot } from './helpers';
 
 // Phase 20 (content and trust), end to end: homepage hero and sections, guides, help centre, order tracking,
 // withdrawal and the cookie notice. Guides and help articles come from the seeded database.
@@ -34,10 +34,11 @@ async function paidOrder(page: Page): Promise<{ orderNumber: string; email: stri
   await page.getByTestId('add-to-cart').click();
   await expect(page.getByTestId('toast').filter({ hasText: /^Added 1 x/ })).toBeVisible();
 
+  await pickSlot(page);
   const placed = await api<{ data: { orderNumber: string } }>(page, 'POST', '/checkout', {
     email,
     shippingAddress: ADDRESS,
-    shippingMethodCode: 'standard',
+    shippingMethodCode: 'slot',
   });
   expect(placed.status, JSON.stringify(placed.body)).toBe(200);
   const orderNumber = placed.body.data.orderNumber;

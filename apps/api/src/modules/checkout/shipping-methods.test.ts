@@ -99,34 +99,3 @@ describe('GET /checkout/shipping-methods', () => {
     }
   });
 });
-
-describe('GET /delivery-methods', () => {
-  type Body = {
-    data: {
-      serverNow: string;
-      methods: { code: string; name: string; etaDaysMin: number; etaDaysMax: number }[];
-    };
-  };
-
-  it('lists the active methods fastest first, with transit days and the server clock, and sets no cookie', async () => {
-    await seedMethods();
-    const before = Date.now();
-    const res = await request(app).get('/api/v1/delivery-methods');
-    expect(res.status).toBe(200);
-    const { data } = bodyOf<Body>(res);
-    expect(data.methods).toEqual([
-      { code: 'express', name: 'Express', etaDaysMin: 1, etaDaysMax: 2 },
-      { code: 'standard', name: 'Standard', etaDaysMin: 3, etaDaysMax: 5 },
-    ]);
-    expect(Date.parse(data.serverNow)).toBeGreaterThanOrEqual(before - 1000);
-    expect(Date.parse(data.serverNow)).toBeLessThanOrEqual(Date.now() + 1000);
-    // Public and cart-free: no guest cart is created by looking at a product page.
-    expect(res.headers['set-cookie']).toBeUndefined();
-  });
-
-  it('is never cached (the clock must be the clock of this request)', async () => {
-    const res = await request(app).get('/api/v1/delivery-methods');
-    expect(res.headers['cache-control']).toBe('no-store');
-    expect(bodyOf<Body>(res).data.methods).toEqual([]);
-  });
-});

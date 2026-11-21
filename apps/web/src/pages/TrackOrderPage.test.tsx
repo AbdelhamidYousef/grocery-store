@@ -14,11 +14,17 @@ const order: TrackedOrder = {
   placedAt: '2026-10-01T10:00:00.000Z',
   items: [{ name: 'Rope Tug', variantName: 'Red', quantity: 2 }],
   tracking: null,
+  delivery: null,
   timeline: [
     { status: 'pending_payment', label: 'Awaiting payment', at: '2026-10-01T10:00:00.000Z' },
     { status: 'paid', label: 'Payment confirmed', at: '2026-10-01T10:01:00.000Z' },
     { status: 'shipped', label: 'On its way', at: '2026-10-02T09:00:00.000Z' },
   ],
+};
+
+const withWindow: TrackedOrder = {
+  ...order,
+  delivery: { kind: 'slot', from: '2026-11-23T13:00:00.000Z', to: '2026-11-23T14:00:00.000Z' },
 };
 
 async function fill(number: string, email: string) {
@@ -30,6 +36,15 @@ async function fill(number: string, email: string) {
 }
 
 describe('track order page', () => {
+  it('shows the delivery window of the order', async () => {
+    server.use(http.post(`${API}/orders/track`, () => HttpResponse.json({ data: withWindow })));
+    renderApp('/track-order');
+    await fill('PW-2026-000007', 'ada@grocery.test');
+    expect(await screen.findByTestId('delivery-order-window')).toHaveTextContent(
+      /^Arrives Mon.*23.*Nov 14:00–15:00$/,
+    );
+  });
+
   it('shows the status, the progress list and the items', async () => {
     const seen = vi.fn();
     server.use(

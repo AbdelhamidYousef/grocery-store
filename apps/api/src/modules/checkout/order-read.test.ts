@@ -124,6 +124,17 @@ describe('GET /checkout/orders/:number/status', () => {
 });
 
 describe('GET /checkout/orders/:number', () => {
+  it('carries the delivery window the order was promised (the slot of the hold, as a snapshot)', async () => {
+    const { guest, number } = await guestOrder();
+    const res = await guest.call('get', `/checkout/orders/${number}`);
+    const { delivery } = bodyOf<{
+      data: { delivery: { kind: string; from: string; to: string } | null };
+    }>(res).data;
+    expect(delivery).toMatchObject({ kind: 'slot' });
+    expect(Date.parse(delivery!.to) - Date.parse(delivery!.from)).toBe(3_600_000);
+    expect(Date.parse(delivery!.from)).toBeGreaterThan(Date.now());
+  });
+
   it('returns the order with its snapshot items, totals and addresses', async () => {
     const { guest, number } = await guestOrder();
     const res = await guest.call('get', `/checkout/orders/${number}`);

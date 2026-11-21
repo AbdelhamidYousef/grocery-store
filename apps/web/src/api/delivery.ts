@@ -1,20 +1,21 @@
 import {
   DeliveryAreasResponseSchema,
-  DeliveryMethodsResponseSchema,
   PostcodeLookupResponseSchema,
+  SlotsResponseSchema,
 } from '@store/shared';
 
 import { apiFetch } from './client';
 
-// The transit ranges of the active shipping methods. `offsetMs` is the server's clock minus this
-// device's clock when the answer arrived: the estimate adds it to Date.now(), so a device with a
-// wrong clock still counts down to the real cutoff (same idea as the sale banner).
-export async function fetchDeliveryMethods(signal?: AbortSignal) {
-  const { data } = await apiFetch('/delivery-methods', {
-    schema: DeliveryMethodsResponseSchema,
+// The slots of the postcode's store, with the places left and whether express is on offer.
+// `offsetMs` is the server's clock minus this device's clock when the answer arrived: the hold
+// countdown adds it to Date.now(), so a device with a wrong clock still counts down correctly
+// (same idea as the sale banner).
+export async function fetchSlots(signal?: AbortSignal) {
+  const { data } = await apiFetch('/delivery/slots', {
+    schema: SlotsResponseSchema,
     ...(signal && { signal }),
   });
-  return { methods: data.methods, offsetMs: Date.parse(data.serverNow) - Date.now() };
+  return { ...data, offsetMs: Date.parse(data.serverNow) - Date.now() };
 }
 
 // Which area and dark store serve a postcode (or that none does).

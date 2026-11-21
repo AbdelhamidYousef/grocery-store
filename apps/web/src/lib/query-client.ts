@@ -69,8 +69,9 @@ export const keys = {
   health: ['health'] as const,
   // The site-wide flash-sale banner (active or next scheduled sale, plus the server's clock).
   saleBanner: ['promotions', 'banner'] as const,
-  // Transit days of the shipping methods and the server clock, for the delivery estimate.
-  deliveryMethods: ['delivery-methods'] as const,
+  // The delivery slots of the postcode's store. Not under `delivery`: that root is left alone when the
+  // postcode changes, and the slots belong to one store.
+  slots: ['slots'] as const,
   // Delivery areas (G4): which area and store serve a postcode, and the list of all areas.
   delivery: {
     postcode: (code: string) => ['delivery', 'postcode', code] as const,

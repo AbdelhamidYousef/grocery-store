@@ -62,6 +62,21 @@ export async function removeCartCode(): Promise<WebCart> {
   return (await apiFetch('/cart/code', { method: 'DELETE', schema: CartResponse })).data;
 }
 
+// Delivery time: hold a slot (15 minutes), choose express, or let go of either. Each answers the
+// whole cart, whose `delivery` says what is held.
+export async function setCartSlot(slotId: string): Promise<WebCart> {
+  return (await apiFetch('/cart/slot', { method: 'PUT', body: { slotId }, schema: CartResponse }))
+    .data;
+}
+
+export async function setCartExpress(): Promise<WebCart> {
+  return (await apiFetch('/cart/express', { method: 'PUT', schema: CartResponse })).data;
+}
+
+export async function clearCartDelivery(): Promise<WebCart> {
+  return (await apiFetch('/cart/slot', { method: 'DELETE', schema: CartResponse })).data;
+}
+
 // `details` of a 409 OUT_OF_STOCK, or null when the error is something else.
 export function outOfStockDetails(error: unknown): OutOfStockDetails | null {
   if (!(error instanceof ApiError) || error.code !== 'OUT_OF_STOCK') return null;

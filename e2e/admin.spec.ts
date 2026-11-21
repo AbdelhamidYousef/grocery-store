@@ -1,6 +1,6 @@
 import { expect, test, type Browser, type Page } from '@playwright/test';
 
-import { ADMIN, api, register, uniqueEmail } from './helpers';
+import { ADMIN, api, register, uniqueEmail, pickSlot } from './helpers';
 
 // The back office, end to end: the guard, stock, product creation, the order lifecycle (with the
 // customer's own view and the shipped email in Mailpit) and the phone layout.
@@ -89,6 +89,7 @@ async function placeOrder(page: Page, email: string, variantId: string, quantity
   await page.goto('/');
   const add = await api(page, 'POST', '/cart/items', { variantId, quantity });
   expect(add.status, JSON.stringify(add.body)).toBeLessThan(300);
+  await pickSlot(page);
   const shipping = await api<{ data: { code: string }[] }>(
     page,
     'GET',

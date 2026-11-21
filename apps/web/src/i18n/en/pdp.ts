@@ -68,27 +68,15 @@ export const pdp = {
   // ---- delivery panel ----
   'pdp.delivery.heading': 'Delivery',
   'pdp.delivery.shipIntro':
-    'Orders ship from our warehouse on business days. You choose standard or express delivery at checkout and see the exact price before you pay. Read the',
+    'We deliver in one-hour slots from the store that packs your order, or within 30 minutes with express. You pick the time at checkout and see the exact price before you pay. Read the',
   'pdp.delivery.shipLink': 'shipping page',
   'pdp.delivery.shipOutro': 'for prices and times.',
   'pdp.delivery.cutoffNote':
-    'Orders placed before 15:00 Amsterdam time on a business day ship the same day. The dispatch schedule and the holiday list are invented for this demo shop.',
+    'A slot can be booked until 60 minutes before it starts. We hold it for 15 minutes while you check out.',
   'pdp.delivery.returnsHeading': 'Returns',
   'pdp.delivery.returnsIntro':
     'Changed your mind? Unused items in their original packaging can be returned within 30 days. Opened food and hygiene items cannot be returned unless they are faulty. See',
   'pdp.delivery.returnsLink': 'returns and withdrawal',
-
-  // ---- delivery estimate ----
-  'pdp.estimate.orderIn': 'Order in {countdown}, arrives {range}',
-  'pdp.estimate.orderNow': 'Order now, ships {day}, arrives {range}',
-  'pdp.estimate.methodArrives': '{method} arrives {range}',
-  'pdp.estimate.methodArrivesSpoken': '{method} arrives {range}.',
-  'pdp.estimate.range': '{from} to {to}',
-  'pdp.estimate.spoken': 'Order before {time} on a business day and it ships the same day.',
-  'pdp.estimate.cutoffNote': 'Cutoff {time}, Amsterdam time, Monday to Friday.',
-  'pdp.estimate.countdownHm': '{h}h {m}m',
-  'pdp.estimate.countdownM': '{m}m',
-  'pdp.estimate.countdownUnderMinute': 'under a minute',
 
   // ---- bought together ----
   'pdp.bought.heading': 'Frequently bought together',

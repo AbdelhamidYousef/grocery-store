@@ -369,3 +369,24 @@ a second time); (3) the helper's cart read repaired carts and hid two tests' war
 the slot before changing stock or prices.
 Learn: when a count decides who gets the last place, the lock must be on a row both writers share (the
 slot), taken before the count; a unique key alone only tells the loser after the fact.
+
+### G5.3: slot picker and delivery times in the web
+Checkout step 2 is now "Delivery time" (`DeliveryTimeStep`, replacing the shipping radios): an express card
+when the API says a rider is free, otherwise the reason ("Express is only offered while the store is
+open"), then day tabs and hour buttons; full and closed slots are disabled and say so. Choosing calls
+`PUT /cart/slot` (or `/cart/express`) at once, so what the cart shows is what the server holds; "Held for
+14:32" counts down against the server clock (the same offset trick as the sale banner) and, at zero,
+refetches the cart. The fee follows the choice (express fee, else the slot fee). A checkout refused for the
+delivery time (`SLOT_HOLD_EXPIRED`, `SLOT_FULL`, `SLOT_WRONG_AREA`, ...) goes back to this step with the
+reason. The parcel estimate is gone: `NextDelivery` ("Next delivery: today 14:00–15:00" or "Express in 30
+minutes") sits on the product page and the cart summary, built from the same slots call. `shared/delivery.ts`
+(Amsterdam zone, cutoff, holidays), `GET /delivery-methods` and its schema are deleted. The order
+confirmation, the account order page, the tracking page and both order emails show the window ("Arrives Mon
+23 Nov 14:00–15:00", "Express, by 14:30"), in Berlin time and the language of the store view. EN and DE
+strings in the `delivery.*` namespace (du in German).
+Surprises: (1) `react-hooks/purity` forbids `Date.now()` in render, so a small `useServerNow` hook ticks the
+clock; (2) a hold that the first checkout attempt used is gone on a retry, so the pending order carries the
+slot (already covered in G5.2); (3) the German day labels come from `Intl`, so "Heute/Morgen" needed no keys
+for the sentences but the tabs still use dictionary keys, because a tab says only that one word.
+Learn: a countdown that decides a rule (a hold) must read the server's clock, not the device's, and the
+server must still be the judge when it reaches zero.

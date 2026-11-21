@@ -69,28 +69,15 @@ export const pdp: Record<keyof typeof enNs, Entry> = {
   // ---- delivery panel ----
   'pdp.delivery.heading': 'Lieferung',
   'pdp.delivery.shipIntro':
-    'Bestellungen werden an Werktagen aus unserem Lager versandt. Du wählst an der Kasse Standard- oder Expresslieferung und siehst den genauen Preis, bevor du bezahlst. Preise und Lieferzeiten findest du auf der Seite',
+    'Wir liefern in Zeitfenstern von einer Stunde aus dem Laden, der deine Bestellung packt, oder mit Express innerhalb von 30 Minuten. Du wählst die Zeit an der Kasse und siehst den genauen Preis, bevor du bezahlst. Preise und Lieferzeiten findest du auf der Seite',
   'pdp.delivery.shipLink': 'Versand',
   'pdp.delivery.shipOutro': '.',
   'pdp.delivery.cutoffNote':
-    'Bestellungen, die an einem Werktag vor 15:00 Uhr Amsterdamer Zeit eingehen, werden am selben Tag versandt. Der Versandplan und die Feiertagsliste sind für diesen Demo-Shop erfunden.',
+    'Ein Zeitfenster kannst du bis 60 Minuten vor Beginn buchen. Wir halten es 15 Minuten für dich frei, während du bezahlst.',
   'pdp.delivery.returnsHeading': 'Rücksendung',
   'pdp.delivery.returnsIntro':
     'Anders überlegt? Unbenutzte Artikel in der Originalverpackung können innerhalb von 30 Tagen zurückgesendet werden. Geöffnete Lebensmittel und Hygieneartikel sind von der Rücksendung ausgeschlossen, es sei denn, sie sind fehlerhaft. Siehe',
   'pdp.delivery.returnsLink': 'Rücksendung und Widerruf',
-
-  // ---- delivery estimate ----
-  'pdp.estimate.orderIn': 'Bestelle in {countdown}, Lieferung {range}',
-  'pdp.estimate.orderNow': 'Jetzt bestellen, Versand {day}, Lieferung {range}',
-  'pdp.estimate.methodArrives': '{method}: Lieferung {range}',
-  'pdp.estimate.methodArrivesSpoken': '{method}: Lieferung {range}.',
-  'pdp.estimate.range': '{from} bis {to}',
-  'pdp.estimate.spoken':
-    'Bestelle an einem Werktag vor {time}, dann wird deine Bestellung am selben Tag versandt.',
-  'pdp.estimate.cutoffNote': 'Bestellschluss {time} Uhr Amsterdamer Zeit, Montag bis Freitag.',
-  'pdp.estimate.countdownHm': '{h} Std. {m} Min.',
-  'pdp.estimate.countdownM': '{m} Min.',
-  'pdp.estimate.countdownUnderMinute': 'weniger als einer Minute',
 
   // ---- bought together ----
   'pdp.bought.heading': 'Wird oft zusammen gekauft',

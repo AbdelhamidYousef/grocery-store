@@ -122,6 +122,27 @@ describe('order history list', () => {
 });
 
 describe('order detail', () => {
+  it('shows the delivery window next to the shipping method', async () => {
+    server.use(
+      signedInAs(),
+      http.get(`${API}/account/orders/:number`, () =>
+        HttpResponse.json({
+          data: makeCustomerOrder({
+            delivery: {
+              kind: 'slot',
+              from: '2026-11-23T13:00:00.000Z',
+              to: '2026-11-23T14:00:00.000Z',
+            },
+          }),
+        }),
+      ),
+    );
+    renderApp('/account/orders/PW-2026-000123');
+    expect(await screen.findByTestId('delivery-order-window')).toHaveTextContent(
+      /^Arrives Mon.*23.*Nov 14:00–15:00$/,
+    );
+  });
+
   it('shows the timeline, items, totals, address and method', async () => {
     server.use(
       signedInAs(),

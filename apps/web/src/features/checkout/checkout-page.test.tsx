@@ -4,9 +4,9 @@ import { http, HttpResponse } from 'msw';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import * as tracking from '../../lib/track';
-import { makeAddress, makeCart, makeCartItem, makeQuote, makeUser } from '../../test/fixtures';
+import { makeAddress, makeCartItem, makeQuote, makeSlotsData, makeUser } from '../../test/fixtures';
 import { renderApp } from '../../test/render';
-import { API, server, signedInAs } from '../../test/server';
+import { API, server, serveCartWithDelivery, signedInAs } from '../../test/server';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -16,8 +16,14 @@ afterEach(() => {
 const tug = makeCartItem({ unitPriceCents: 1099, quantity: 2, lineTotalCents: 2198 });
 
 function serveCart(items = [tug]) {
-  server.use(http.get(`${API}/cart`, () => HttpResponse.json({ data: makeCart(items) })));
+  serveCartWithDelivery(items);
 }
+
+// The first open slot of the page (the fixture has a closed one, a full one, then open ones).
+const openSlots = async () =>
+  (await screen.findAllByTestId('delivery-slot')).filter(
+    (b) => b.getAttribute('data-status') === 'open',
+  );
 
 async function fillDetails(user = userEvent.setup()) {
   await user.type(await screen.findByLabelText('Email'), 'sam@example.test');
@@ -108,14 +114,14 @@ describe('checkout page', () => {
     expect(screen.queryByTestId('checkout-sign-in-hint')).not.toBeInTheDocument();
   });
 
-  it('lists the server quotes, cheapest preselected, and keeps the total unconfirmed', async () => {
+  it('shows the slots of the day, disables full and closed ones, and keeps the total unconfirmed', async () => {
     serveCart();
     server.use(
       http.get(`${API}/checkout/shipping-methods`, () =>
         HttpResponse.json({
           data: [
-            makeQuote({ priceCents: 490 }),
-            makeQuote({ code: 'express', name: 'Express', priceCents: 1190, freeOverCents: null }),
+            makeQuote({ code: 'slot', name: 'Delivery in your slot', priceCents: 299 }),
+            makeQuote({ code: 'express', name: 'Express', priceCents: 499, freeOverCents: null }),
           ],
         }),
       ),
@@ -124,16 +130,90 @@ describe('checkout page', () => {
     const user = await fillDetails();
     await user.click(screen.getByTestId('checkout-continue-shipping'));
 
-    const options = await screen.findAllByTestId('shipping-option');
-    expect(options).toHaveLength(2);
-    expect(within(options[0]!).getByRole('radio')).toBeChecked();
+    const slots = await screen.findAllByTestId('delivery-slot');
+    const closed = slots.find((b) => b.getAttribute('data-status') === 'closed');
+    const full = slots.find((b) => b.getAttribute('data-status') === 'full');
+    expect(closed).toBeDisabled();
+    expect(closed).toHaveTextContent('Closed');
+    expect(full).toBeDisabled();
+    expect(full).toHaveTextContent('Full');
+    // Nothing is chosen yet: no way on, and no shipping price in the summary.
+    expect(screen.getByTestId('checkout-continue-payment')).toBeDisabled();
     const summary = screen.getByTestId('checkout-summary');
-    expect(summary).toHaveTextContent('€4.90');
     expect(within(summary).getByTestId('order-total')).toHaveTextContent('Confirmed at payment');
 
-    await user.click(within(options[1]!).getByRole('radio'));
-    expect(summary).toHaveTextContent('€11.90');
+    await user.click((await openSlots())[0]!);
+    expect(await screen.findByTestId('delivery-hold')).toHaveTextContent(/Held for 1[45]:\d\d/);
+    expect(summary).toHaveTextContent('€2.99');
+    expect(screen.getByTestId('checkout-continue-payment')).toBeEnabled();
   });
+
+  it('offers express when the store has a rider free, and charges its own fee', async () => {
+    serveCart();
+    server.use(
+      http.get(`${API}/delivery/slots`, () =>
+        HttpResponse.json({
+          data: makeSlotsData({ express: { available: true } }),
+        }),
+      ),
+      http.get(`${API}/checkout/shipping-methods`, () =>
+        HttpResponse.json({
+          data: [
+            makeQuote({ code: 'slot', priceCents: 299 }),
+            makeQuote({ code: 'express', name: 'Express', priceCents: 499, freeOverCents: null }),
+          ],
+        }),
+      ),
+    );
+    renderApp('/checkout');
+    const user = await fillDetails();
+    await user.click(screen.getByTestId('checkout-continue-shipping'));
+
+    const express = await screen.findByTestId('delivery-express');
+    expect(express).toHaveTextContent('At your door in about 30 minutes');
+    expect(express).toHaveTextContent('€4.99');
+    await user.click(express);
+    await waitFor(() => expect(express).toHaveAttribute('aria-pressed', 'true'));
+    expect(screen.getByTestId('checkout-summary')).toHaveTextContent('€4.99');
+  });
+
+  it('says why express is not offered, and lets the shopper pick a slot of another day', async () => {
+    serveCart();
+    renderApp('/checkout');
+    const user = await fillDetails();
+    await user.click(screen.getByTestId('checkout-continue-shipping'));
+    expect(await screen.findByTestId('delivery-express')).toHaveTextContent(
+      'Express is only offered while the store is open.',
+    );
+    const tabs = screen.getAllByTestId('delivery-day-tab');
+    expect(tabs.length).toBeGreaterThanOrEqual(2);
+    expect(tabs[0]).toHaveTextContent('Today');
+    expect(tabs[1]).toHaveTextContent('Tomorrow');
+    expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
+    await user.click(tabs[1]!);
+    expect(tabs[1]).toHaveAttribute('aria-selected', 'true');
+    expect(await openSlots()).toHaveLength(1);
+  });
+
+  it('tells the shopper when a slot filled up in the meantime and keeps the picker', async () => {
+    serveCart();
+    server.use(
+      http.put(`${API}/cart/slot`, () =>
+        HttpResponse.json(
+          { error: { code: 'SLOT_FULL', message: 'This slot is full' } },
+          { status: 409 },
+        ),
+      ),
+    );
+    renderApp('/checkout');
+    const user = await fillDetails();
+    await user.click(screen.getByTestId('checkout-continue-shipping'));
+    await user.click((await openSlots())[0]!);
+    expect(await screen.findByTestId('delivery-problem')).toHaveTextContent(
+      'That slot just filled up. Pick another time.',
+    );
+    expect(screen.getByTestId('checkout-continue-payment')).toBeDisabled();
+  }, 15_000);
 
   it('says payments are not configured and never creates an order without a key', async () => {
     serveCart();
@@ -147,6 +227,7 @@ describe('checkout page', () => {
     renderApp('/checkout');
     const user = await fillDetails();
     await user.click(screen.getByTestId('checkout-continue-shipping'));
+    await user.click((await openSlots())[0]!);
     await user.click(await screen.findByTestId('checkout-continue-payment'));
 
     const note = await screen.findByTestId('payment-not-configured');
@@ -160,7 +241,7 @@ describe('checkout page', () => {
     renderApp('/checkout');
     const user = await fillDetails();
     await user.click(screen.getByTestId('checkout-continue-shipping'));
-    await screen.findAllByTestId('shipping-option');
+    await screen.findAllByTestId('delivery-slot');
     const [first] = screen.getAllByTestId('checkout-edit');
     await user.click(first!);
     expect(await screen.findByLabelText('Full name')).toHaveValue('Sam Rivers');

@@ -40,6 +40,17 @@ describe('POST /orders/track', () => {
     expect(data.timeline.every((t) => t.label.length > 0)).toBe(true);
   });
 
+  it('shows the delivery window the order was promised, and nothing else about delivery', async () => {
+    const { number } = await placeOrder(app, { email: 'ada@grocery.test' });
+    const res = await track({ orderNumber: number, email: 'ada@grocery.test' });
+    const { data } = bodyOf<{
+      data: { delivery: { kind: string; from: string; to: string } | null };
+    }>(res);
+    expect(data.delivery).toMatchObject({ kind: 'slot' });
+    expect(Date.parse(data.delivery!.to) - Date.parse(data.delivery!.from)).toBe(3_600_000);
+    expect(JSON.stringify(data)).not.toContain('slotId');
+  });
+
   it('compares the email without case and the number without case or spaces', async () => {
     const { number } = await placeOrder(app, { email: 'ada@grocery.test' });
     const res = await track({

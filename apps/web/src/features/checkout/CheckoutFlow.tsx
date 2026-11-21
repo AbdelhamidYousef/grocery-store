@@ -15,16 +15,17 @@ import { track } from '../../lib/track';
 import { useCreateAddress } from '../account/queries';
 import { formErrorMessage } from '../auth/form-errors';
 import { useDelivery } from '../delivery/DeliveryContext';
+import { deliverySentence } from '../delivery/slots';
 import { PointsRedeem } from '../loyalty/PointsRedeem';
 import { useStore } from '../stores/StoreContext';
 
 import { CheckoutSummary } from './CheckoutSummary';
+import { DeliveryTimeStep } from './DeliveryTimeStep';
 import type { Details } from './details';
 import { detailsDefaults, toInput } from './details';
 import { DetailsStep } from './DetailsStep';
 import { PaymentStep } from './PaymentStep';
 import { usePlaceOrder, useShippingQuotes } from './queries';
-import { ShippingStep } from './ShippingStep';
 import { StepCard } from './StepCard';
 
 type Step = 1 | 2 | 3;
@@ -46,6 +47,26 @@ function pointsProblem(error: unknown, tm: (message: string) => string): string 
     ?.fieldErrors?.pointsToRedeem;
   const message = Array.isArray(messages) ? messages.find((m) => typeof m === 'string') : null;
   return typeof message === 'string' ? tm(message) : null;
+}
+
+// What to tell the shopper when checkout refuses the delivery time; null for every other error.
+function deliveryErrorMessage(code: string, t: TFunction): string | null {
+  switch (code) {
+    case 'SLOT_HOLD_EXPIRED':
+      return t('delivery.error.holdExpired');
+    case 'SLOT_FULL':
+      return t('delivery.error.slotFull');
+    case 'SLOT_CLOSED':
+      return t('delivery.error.slotClosed');
+    case 'SLOT_WRONG_AREA':
+      return t('delivery.error.wrongArea');
+    case 'EXPRESS_UNAVAILABLE':
+      return t('delivery.error.expressUnavailable');
+    case 'DELIVERY_REQUIRED':
+      return t('delivery.error.required');
+    default:
+      return null;
+  }
 }
 
 function placeErrorMessage(
@@ -77,13 +98,12 @@ export function CheckoutFlow({
 }) {
   const i18n = useT();
   const { t } = i18n;
-  const { shipCountries } = useStore();
+  const { shipCountries, locale } = useStore();
   const queryClient = useQueryClient();
   const delivery = useDelivery();
   const [postcodeError, setPostcodeError] = useState<string | null>(null);
   const [step, setStep] = useState<Step>(1);
   const [details, setDetails] = useState<Details | null>(null);
-  const [shippingCode, setShippingCode] = useState<string | null>(null);
   const [placed, setPlaced] = useState<PlacedOrder | null>(null);
   const [saveAddress, setSaveAddress] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -95,8 +115,17 @@ export function CheckoutFlow({
   const place = usePlaceOrder();
   const createAddress = useCreateAddress();
   const { data: quotes } = useShippingQuotes(details?.shippingAddress.country ?? null);
+  // The fee follows the delivery time: express has its own, every slot uses the slot fee. (Any
+  // other active method stands in when the slot method is not on offer.)
+  const expressQuote = quotes?.find((q) => q.code === 'express') ?? null;
   const selectedQuote: ShippingQuote | null =
-    step >= 2 && quotes ? (quotes.find((q) => q.code === shippingCode) ?? quotes[0] ?? null) : null;
+    step >= 2 && quotes && cart.delivery
+      ? cart.delivery.kind === 'express'
+        ? expressQuote
+        : (quotes.find((q) => q.code === 'slot') ??
+          quotes.find((q) => q.code !== 'express') ??
+          null)
+      : null;
 
   const goTo = (target: Step) => {
     setStep(target);
@@ -142,11 +171,11 @@ export function CheckoutFlow({
     goTo(2);
   };
 
-  const continueToPayment = (quote: ShippingQuote) => {
-    if (!details) return;
+  const continueToPayment = () => {
+    const quote = selectedQuote;
+    if (!details || !quote) return;
     setError(null);
     setCodeError(null);
-    setShippingCode(quote.code);
     // No publishable key: show the "not configured" state and never create an order that nobody
     // could pay for (it would reserve stock for 30 minutes for nothing).
     if (!paymentsConfigured()) {
@@ -183,6 +212,16 @@ export function CheckoutFlow({
           }
         },
         onError: (e) => {
+          const slotMessage = e instanceof ApiError ? deliveryErrorMessage(e.code, t) : null;
+          if (slotMessage) {
+            // The delivery time is no longer good: back to the picker, with the reason, and fresh
+            // slots (the cart too, its hold may be gone).
+            goTo(2);
+            setError(slotMessage);
+            void queryClient.invalidateQueries({ queryKey: keys.cart });
+            void queryClient.invalidateQueries({ queryKey: keys.slots });
+            return;
+          }
           if (e instanceof ApiError && e.code === 'POSTCODE_NOT_SERVED') {
             // Back to the address, with the sentence on the postcode field.
             const d = e.details as { postcode?: string; areas?: string[] } | undefined;
@@ -244,7 +283,7 @@ export function CheckoutFlow({
           state={step === 2 ? 'active' : step > 2 ? 'done' : 'locked'}
           onEdit={() => goTo(2)}
           editLabel={t('checkout.step.editShipping')}
-          summary={selectedQuote && <p>{selectedQuote.name}</p>}
+          summary={cart.delivery && <p>{deliverySentence(cart.delivery, locale, t)}</p>}
         >
           {details && (
             <>
@@ -276,10 +315,9 @@ export function CheckoutFlow({
                 />
                 <p className="ml-8 text-sm text-muted">{t('checkout.roundUp.hint')}</p>
               </div>
-              <ShippingStep
-                country={details.shippingAddress.country}
-                selected={shippingCode}
-                onSelect={setShippingCode}
+              <DeliveryTimeStep
+                cart={cart}
+                express={expressQuote}
                 onContinue={continueToPayment}
                 placing={place.isPending}
               />

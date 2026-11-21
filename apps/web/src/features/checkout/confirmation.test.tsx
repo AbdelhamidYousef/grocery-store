@@ -41,6 +41,39 @@ describe('confirmation page', () => {
     expect(screen.getByTestId('order-address')).toHaveTextContent('1 Bone Street');
   });
 
+  it('shows the delivery window the shopper picked, in Berlin time', async () => {
+    const slot = {
+      kind: 'slot' as const,
+      from: '2026-11-23T13:00:00.000Z',
+      to: '2026-11-23T14:00:00.000Z',
+    };
+    server.use(statusOf('paid', 'succeeded'), orderOf(makeOrder({ delivery: slot })));
+    renderApp(PATH);
+    expect(await screen.findByTestId('delivery-order-window')).toHaveTextContent(
+      /^Arrives Mon.*23.*Nov 14:00–15:00$/,
+    );
+  });
+
+  it('shows express by the end of its 30-minute window', async () => {
+    const express = {
+      kind: 'express' as const,
+      from: '2026-11-23T13:00:00.000Z',
+      to: '2026-11-23T13:30:00.000Z',
+    };
+    server.use(statusOf('paid', 'succeeded'), orderOf(makeOrder({ delivery: express })));
+    renderApp(PATH);
+    expect(await screen.findByTestId('delivery-order-window')).toHaveTextContent(
+      'Express, by 14:30',
+    );
+  });
+
+  it('shows no delivery window for an order from before slots', async () => {
+    server.use(statusOf('paid', 'succeeded'), orderOf(makeOrder({ delivery: null })));
+    renderApp(PATH);
+    await screen.findByTestId('order-summary');
+    expect(screen.queryByTestId('delivery-order-window')).not.toBeInTheDocument();
+  });
+
   it('polls until the webhook flips the order to paid, then refreshes the cart', async () => {
     let calls = 0;
     let cartReads = 0;

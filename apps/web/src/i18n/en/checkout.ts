@@ -14,12 +14,12 @@ export const checkout = {
 
   // ---------- step cards ----------
   'checkout.step.details': 'Contact and address',
-  'checkout.step.shipping': 'Shipping method',
+  'checkout.step.shipping': 'Delivery time',
   'checkout.step.payment': 'Payment',
   'checkout.step.edit': 'Edit',
   'checkout.step.editAria': 'Edit {title}',
   'checkout.step.editDetails': 'Edit contact and address',
-  'checkout.step.editShipping': 'Edit shipping method',
+  'checkout.step.editShipping': 'Edit delivery time',
 
   // ---------- step 1: details ----------
   'checkout.details.haveAccount': 'Have an account?',
@@ -38,21 +38,11 @@ export const checkout = {
   'checkout.details.phone': 'Phone (optional)',
   'checkout.details.phoneHint': 'Only for the courier.',
   'checkout.details.saveAddress': 'Save this address to my account',
-  'checkout.details.continue': 'Continue to shipping',
+  'checkout.details.continue': 'Continue to delivery time',
 
   // ---------- step 2: shipping ----------
   'checkout.shipping.loading': 'Loading shipping options',
   'checkout.shipping.loadError': 'We could not load the shipping options.',
-  'checkout.shipping.none': 'We cannot ship this order to that country right now.',
-  'checkout.shipping.legend': 'Shipping method',
-  'checkout.shipping.etaSame': {
-    one: '{count} working day',
-    other: '{count} working days',
-  },
-  'checkout.shipping.etaRange': {
-    one: '{min}-{max} working days',
-    other: '{min}-{max} working days',
-  },
   'checkout.shipping.free': 'Free',
   'checkout.shipping.continue': 'Continue to payment',
   'checkout.shipping.tryAgain': 'Try again',

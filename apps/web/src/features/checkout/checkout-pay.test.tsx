@@ -6,9 +6,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { resetStripe } from '../../lib/stripe';
 import * as tracking from '../../lib/track';
-import { makeCart, makeCartItem } from '../../test/fixtures';
+import { makeCartItem } from '../../test/fixtures';
 import { renderApp } from '../../test/render';
-import { API, server } from '../../test/server';
+import { API, server, serveCartWithDelivery } from '../../test/server';
 
 // Stripe.js lives on js.stripe.com and cannot run in jsdom, so the two packages are replaced by
 // small stand-ins: Elements renders its children, PaymentElement renders a marker and
@@ -38,13 +38,9 @@ beforeEach(() => {
   stripe.failElement = undefined;
   vi.stubEnv('VITE_STRIPE_PUBLISHABLE_KEY', 'pk_test_abc123');
   confirmPayment.mockReset();
-  server.use(
-    http.get(`${API}/cart`, () =>
-      HttpResponse.json({
-        data: makeCart([makeCartItem({ unitPriceCents: 1099, quantity: 2, lineTotalCents: 2198 })]),
-      }),
-    ),
-  );
+  serveCartWithDelivery([
+    makeCartItem({ unitPriceCents: 1099, quantity: 2, lineTotalCents: 2198 }),
+  ]);
 });
 afterEach(() => {
   vi.restoreAllMocks();
@@ -73,6 +69,9 @@ async function reachPayment() {
   await user.type(screen.getByLabelText('Postal code'), '10115');
   await user.type(screen.getByLabelText('City'), 'Berlin');
   await user.click(screen.getByTestId('checkout-continue-shipping'));
+  // Pick the first open delivery time (the picker lists a closed and a full one before it).
+  const slots = await screen.findAllByTestId('delivery-slot');
+  await user.click(slots.find((b) => b.getAttribute('data-status') === 'open')!);
   await user.click(await screen.findByTestId('checkout-continue-payment'));
   return user;
 }
@@ -224,6 +223,24 @@ describe('checkout payment step with a Stripe key', () => {
       'locked',
       'locked',
     ]);
+  });
+
+  it('sends an expired slot hold back to the delivery time, with the reason and fresh slots', async () => {
+    server.use(
+      http.post(`${API}/checkout`, () =>
+        HttpResponse.json(
+          { error: { code: 'SLOT_HOLD_EXPIRED', message: 'Your delivery slot has expired' } },
+          { status: 409 },
+        ),
+      ),
+    );
+    renderApp('/checkout');
+    await reachPayment();
+    expect(await screen.findByTestId('checkout-error')).toHaveTextContent(
+      'Your slot was held for 15 minutes and has run out. Pick a time again.',
+    );
+    const steps = screen.getAllByTestId('checkout-step');
+    expect(steps.map((st) => st.getAttribute('data-state'))).toEqual(['done', 'active', 'locked']);
   });
 
   it('explains a 502 payment provider failure as retryable', async () => {

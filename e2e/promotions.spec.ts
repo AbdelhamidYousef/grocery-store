@@ -1,6 +1,6 @@
 import { expect, test, type Browser, type Page } from '@playwright/test';
 
-import { ADMIN, api, restock, uniqueEmail } from './helpers';
+import { ADMIN, api, restock, uniqueEmail, pickSlot } from './helpers';
 
 // Phase 18 (promotions), end to end: the gift bar, a code against a bulk tier, a flash sale
 // scheduled through the admin UI (banner, sale price, Omnibus text), a paid order's promotions in
@@ -233,10 +233,11 @@ test.describe('order snapshot', () => {
     await page.goto('/');
     await addApi(page, NAPPIES, NAPPIES_SKU, 12);
     const email = uniqueEmail();
+    await pickSlot(page);
     const placed = await api<{ data: { orderNumber: string } }>(page, 'POST', '/checkout', {
       email,
       shippingAddress: ADDRESS,
-      shippingMethodCode: 'standard',
+      shippingMethodCode: 'slot',
     });
     expect(placed.status, JSON.stringify(placed.body)).toBe(200);
     const orderNumber = placed.body.data.orderNumber;

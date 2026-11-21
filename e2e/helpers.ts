@@ -28,7 +28,7 @@ export async function signOut(page: Page): Promise<void> {
 // separate request client is avoided).
 export async function api<T = unknown>(
   page: Page,
-  method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
+  method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE',
   path: string,
   body?: unknown,
   extraHeaders: Record<string, string> = {},
@@ -57,6 +57,31 @@ export async function api<T = unknown>(
       await page.waitForLoadState('load');
     }
   }
+}
+
+// Since G5 an order needs a delivery time. This holds the first open slot of the postcode's store
+// through the real API (`PUT /cart/slot`), exactly what the delivery step does, so an API checkout has
+// something to place. Express is never used here: it depends on the time of day.
+export async function pickSlot(
+  page: Page,
+  postcode = '10115',
+  extraHeaders: Record<string, string> = {},
+): Promise<void> {
+  const headers = { 'X-Postcode': postcode, ...extraHeaders };
+  const list = await api<{ data: { days: { slots: { id: string; status: string }[] }[] } }>(
+    page,
+    'GET',
+    '/delivery/slots',
+    undefined,
+    headers,
+  );
+  const open = list.body.data.days.flatMap((d) => d.slots).filter((s) => s.status === 'open');
+  expect(open.length, 'an open delivery slot (run pnpm db:seed to create them)').toBeGreaterThan(0);
+  for (const slot of open) {
+    const put = await api(page, 'PUT', '/cart/slot', { slotId: slot.id }, headers);
+    if (put.status === 200) return;
+  }
+  throw new Error('no delivery slot could be held');
 }
 
 export const ADMIN = { email: 'admin@grocery.test', password: 'Grocery-demo-1!' };

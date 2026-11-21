@@ -1,6 +1,5 @@
 import {
   CheckoutRequestSchema,
-  DeliveryMethodsResponseSchema,
   CheckoutResponseSchema,
   OrderNumberParamsSchema,
   OrderResponseSchema,
@@ -13,7 +12,6 @@ import { Router as ExpressRouter, type Request, type Router } from 'express';
 import { readLastOrder, setLastOrderCookie } from '../../lib/cookies.ts';
 import type { PaymentGateway } from '../../lib/stripe.ts';
 import { respond, valid, validate } from '../../lib/validate.ts';
-import { noStore } from '../../middleware/cache.ts';
 import { cartIdOf, withCart } from '../../middleware/cart.ts';
 
 import * as service from './service.ts';
@@ -30,12 +28,6 @@ export function createCheckoutRouter(deps: { payments: PaymentGateway }): Router
     respond(res, ShippingMethodsResponseSchema, {
       data: await service.getShippingQuotes(cartIdOf(req), query.country),
     });
-  });
-
-  // Public, no cart: the transit ranges the product page's delivery estimate is built from. Not
-  // cached because `serverNow` must be the server's clock at the moment of the request.
-  router.get('/delivery-methods', noStore, async (_req, res) => {
-    respond(res, DeliveryMethodsResponseSchema, { data: await service.getDeliveryMethods() });
   });
 
   // 200, not 201: calling it again for the same cart updates the pending order instead of

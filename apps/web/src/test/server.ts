@@ -2,9 +2,13 @@ import type { User } from '@store/shared';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 
+import type { WebCart, WebCartItem } from '../api/cart';
+
 import {
   makeCard,
   makeDeliveryAreas,
+  makeHeldDelivery,
+  makeSlotsData,
   makePostcodeLookup,
   makeCart,
   makeCategory,
@@ -45,6 +49,8 @@ export const server = setupServer(
     return HttpResponse.json({ data: makePostcodeLookup(code) });
   }),
   http.get(`${API}/delivery/areas`, () => HttpResponse.json({ data: makeDeliveryAreas() })),
+  // Delivery slots (G5): two open today, one full, one closed, express off unless a test says so.
+  http.get(`${API}/delivery/slots`, () => HttpResponse.json({ data: makeSlotsData() })),
   http.get(`${API}/wishlist`, () => HttpResponse.json({ data: { items: [], shareToken: null } })),
   // The footer's charity line: a shelter with nothing given yet.
   http.get(`${API}/charity/total`, () =>
@@ -180,9 +186,6 @@ export const server = setupServer(
   ),
   // No recommendations and no recently viewed cards unless a test says so. `by-ids` comes before
   // `:slug`, like in the API router, or it would be read as a slug.
-  http.get(`${API}/delivery-methods`, () =>
-    HttpResponse.json({ data: { serverNow: new Date().toISOString(), methods: [] } }),
-  ),
   http.get(`${API}/products/by-ids`, () => HttpResponse.json({ data: [] })),
   http.get(`${API}/products/:slug/recommendations`, () =>
     HttpResponse.json({ data: { boughtTogether: [], related: [] } }),
@@ -200,5 +203,34 @@ export const server = setupServer(
 export function signedInAs(overrides: Partial<User> = {}) {
   return http.get(`${API}/auth/me`, () =>
     HttpResponse.json({ data: { user: makeUser(overrides) } }),
+  );
+}
+
+/**
+ * Serves `GET /cart` for the given items and the delivery-time writes of a real cart: `PUT
+ * /cart/slot` and `PUT /cart/express` hold a choice that the next `GET /cart` returns, `DELETE
+ * /cart/slot` lets go of it. Start state: nothing chosen, or `delivery` when given.
+ */
+export function serveCartWithDelivery(
+  items: WebCartItem[],
+  delivery: WebCart['delivery'] = null,
+): void {
+  let held = delivery;
+  const answer = () => HttpResponse.json({ data: { ...makeCart(items), delivery: held } });
+  server.use(
+    http.get(`${API}/cart`, answer),
+    http.put(`${API}/cart/slot`, async ({ request }) => {
+      const { slotId } = (await request.json()) as { slotId: string };
+      held = makeHeldDelivery(slotId);
+      return answer();
+    }),
+    http.put(`${API}/cart/express`, () => {
+      held = { kind: 'express', slot: null, holdExpiresAt: null };
+      return answer();
+    }),
+    http.delete(`${API}/cart/slot`, () => {
+      held = null;
+      return answer();
+    }),
   );
 }

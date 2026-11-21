@@ -1,6 +1,6 @@
 import { expect, test, type Browser, type Page } from '@playwright/test';
 
-import { ADMIN, api, register, uniqueEmail } from './helpers';
+import { ADMIN, api, register, uniqueEmail, pickSlot } from './helpers';
 
 // After the sale, end to end: a delivered order is returned, approved, received (stock back) and
 // refunded (simulated payment gateway, NODE_ENV=test), and the analytics page shows non-zero figures.
@@ -79,6 +79,7 @@ async function checkout(
     const add = await api(page, 'POST', '/cart/items', { variantId, quantity });
     expect(add.status, JSON.stringify(add.body)).toBeLessThan(300);
   }
+  await pickSlot(page);
   const shipping = await api<{ data: { code: string }[] }>(
     page,
     'GET',

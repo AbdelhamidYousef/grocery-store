@@ -1,4 +1,4 @@
-import type { Order } from '@store/shared';
+import { formatClock, formatSlotDate, formatSlotRange, type Order } from '@store/shared';
 
 import type { EmailText } from './i18n/index.ts';
 
@@ -91,6 +91,29 @@ export function itemsTable(order: Order, x: EmailText): string {
     ${order.totals.donationCents > 0 ? total(escapeHtml(x.t('order.donation')), order.totals.donationCents) : ''}
     ${total(escapeHtml(x.t('order.total')), order.totals.totalCents, true)}
   </table>`;
+}
+
+/**
+ * The promised window in words ("Arrives Mon, 23 Nov 14:00–15:00", "Express, by 14:30"), in the
+ * shop's time zone and the email's language; null for an order from before delivery slots.
+ */
+export function deliveryLine(order: Order, x: EmailText): string | null {
+  const d = order.delivery;
+  if (!d) return null;
+  const from = new Date(d.from);
+  const to = new Date(d.to);
+  if (d.kind === 'express') return x.t('order.arrivesExpress', { time: formatClock(to) });
+  return x.t('order.arrives', {
+    when: `${formatSlotDate(from, x.locale)} ${formatSlotRange(from, to)}`,
+  });
+}
+
+/** The delivery time as a block of the HTML email, or an empty string when there is none. */
+export function deliveryBlock(order: Order, x: EmailText): string {
+  const line = deliveryLine(order, x);
+  return line
+    ? `<p style="margin:0 0 16px;"><strong>${escapeHtml(x.t('order.deliveryTime'))}</strong><br>${escapeHtml(line)}</p>`
+    : '';
 }
 
 export function addressLines(a: Order['shippingAddress']): string[] {

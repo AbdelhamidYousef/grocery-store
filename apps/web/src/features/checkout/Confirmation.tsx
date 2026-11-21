@@ -8,8 +8,10 @@ import { Seo } from '../../components/Seo';
 import { buttonClasses, Button } from '../../components/ui/Button';
 import { Spinner } from '../../components/ui/Spinner';
 import { useT, type StringKey } from '../../i18n';
+import { useFormat } from '../../i18n/format';
 import { TEST_IDS } from '../../lib/test-ids';
 import { useSlow } from '../../lib/use-slow';
+import { deliverySentence } from '../delivery/slots';
 
 import {
   isPendingStatus,
@@ -56,6 +58,7 @@ const COPY: Record<View, { title: StringKey; body: StringKey }> = {
 
 export function Confirmation({ number }: { number: string }) {
   const { t } = useT();
+  const { locale } = useFormat();
   const [params] = useSearchParams();
   // Fixed for this visit so re-renders do not extend the 30 s polling window.
   const [startedAt, setStartedAt] = useState(() => Date.now());
@@ -175,6 +178,17 @@ export function Confirmation({ number }: { number: string }) {
               title={t('checkout.address.shippingTo')}
               address={order.data.shippingAddress}
             />
+            {order.data.delivery && (
+              <div>
+                <h3 className="font-display text-lg font-bold">{t('delivery.window.heading')}</h3>
+                <p
+                  data-testid={TEST_IDS.deliveryOrderWindow}
+                  className="mt-1 break-words font-semibold"
+                >
+                  {deliverySentence(order.data.delivery, locale, t)}
+                </p>
+              </div>
+            )}
             <div>
               <h3 className="font-display text-lg font-bold">
                 {t('checkout.confirmation.shippingMethod')}

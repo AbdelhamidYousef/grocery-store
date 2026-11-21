@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { OrderStatusSchema } from './checkout.ts';
 import { DataSchema } from './common.ts';
+import { OrderDeliverySchema } from './slots.ts';
 
 // ---------- public order tracking ----------
 
@@ -31,6 +32,8 @@ export const TrackedOrderSchema = z.object({
     z.object({ name: z.string(), variantName: z.string(), quantity: z.number().int().min(1) }),
   ),
   tracking: z.object({ carrier: z.string(), trackingNumber: z.string() }).nullable(),
+  // The promised delivery window (no address or money in it); null for orders from before slots.
+  delivery: OrderDeliverySchema.nullable(),
   timeline: z.array(TrackingTimelineStepSchema),
 });
 export type TrackedOrder = z.infer<typeof TrackedOrderSchema>;
