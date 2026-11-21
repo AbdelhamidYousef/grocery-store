@@ -284,6 +284,28 @@ describe('recording a shortfall', () => {
   });
 });
 
+describe('a crowded subcategory', () => {
+  it('accepts a packer pick that is safe even when more than fifty products are closer in price', async () => {
+    const s = await shelf({ price: 200 }, [{ name: 'Far but safe', price: 255 }]);
+    for (let i = 0; i < 55; i++) {
+      await createProduct({
+        name: `Same price ${i}`,
+        categoryId: s.category.id,
+        shelfLifeDays: 10,
+        food: { allergens: ['milk'], dietary: ['vegetarian'] },
+        variants: [{ priceCents: 200 }],
+      });
+    }
+    const p = await paidOrder(s);
+    const res = await short(p, {
+      pickedQty: 1,
+      substituteVariantId: s.others[0]!.variants[0]!.id,
+    });
+    expect(res.status, JSON.stringify(res.body)).toBe(200);
+    expect((await swapOf(p.order.id)).variantId).toBe(s.others[0]!.variants[0]!.id);
+  });
+});
+
 describe('the shopper answers', () => {
   async function proposed() {
     const s = await shelf({}, [{ name: 'Close yoghurt', price: 190, stock: 8 }]);

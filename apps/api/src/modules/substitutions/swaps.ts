@@ -212,7 +212,15 @@ async function chooseSubstitute(
   }
   if (!item.variantId) return null;
   const storeId = checkoutRepo.storeOfOrder(order);
-  const found = await matchesFor(tx, item.variantId, storeId, order.currency, 50);
+  // The WHOLE safe list, not a top 5: the packer may pick any safe product, and cutting the list first
+  // would refuse a valid pick when a crowded subcategory has many products at the same price.
+  const found = await matchesFor(
+    tx,
+    item.variantId,
+    storeId,
+    order.currency,
+    Number.MAX_SAFE_INTEGER,
+  );
   if (!found) return null;
   const withImage = async (c: repo.Candidate): Promise<Chosen> => ({
     ...c,

@@ -72,6 +72,16 @@ Written by the build sessions for the owner and the next session. Newest state f
   page "Changes to your order" (gap, replacement with photo, "You save", Accept / Reject until the bag is closed, then
   the outcome; missing items say "not charged"), order summary lines for replacements and short lines, the email-link page
   `/:store/order-changes/:number` (a button, never a GET that acts), read-only changes on the tracking page. EN + DE.
+- **G7 done** (2026-11-21): substitutions. Per-line "if it is missing" (best match / choose a product / refund it, account
+  default, "same for every item"), the pure shared `bestMatches` (safe before similar), swaps recorded by the packer with
+  the stock taken FEFO at the order's store, accept / reject before dispatch (unanswered counts as accepted), the capture
+  from picked units and accepted swaps, door rejection refunded line by line, the email with signed links, the shopper's
+  view in EN + DE. Migrations 0055 to 0057. New e2e spec `substitutions.spec.ts`. Gates green: shared 309, web 1,007, API
+  1,569 + 3 skipped, e2e 79 + 1 skipped. A database migrated from G6 needs `pnpm db:migrate`. Not pushed (the lead pushes at
+  the phase end). Open: no admin screen for recording a shortfall yet (the G8 packer view calls the same service); an
+  order whose every line is missing and has free shipping cannot be captured (the capture refuses 0: cancel it); door
+  refunds do not claw back loyalty points; analytics' net revenue still reads `total - refunded`, not `captured - refunded`.
+
   Paid orders are only AUTHORISED until captured: tests that refund or return a paid order capture it first
   (`captureOrder` / `deliveredOrder` in `test/orders.ts`); `simulate` turns "the shopper paid" into the
   authorisation event for a manual-capture order.

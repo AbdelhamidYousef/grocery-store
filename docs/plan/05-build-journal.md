@@ -620,3 +620,35 @@ price, kept on the line, answers it.
 Learn: when the charged number is derived (a minimum), keep the input the shopper never pays so the page can show what
 the rule saved them.
 
+### G7.4: phase end (e2e)
+New spec `e2e/substitutions.spec.ts`: the test makes its own two food products in one subcategory (10.00 and a dearer
+12.00 neighbour), a shopper puts two of the cheaper in the cart (the line says "Best match" and that they never pay
+more), pays on the simulated gateway, the admin records the line as missing (0 of 2 found) with the neighbour as the
+replacement, the shopper's account order shows "Changes to your order" with "You save 4.00" and rejects it, the admin
+captures, and the capture is the order total minus 20.00 (nothing for the missing packs, nothing for the rejected swap)
+with the final bill on the order page.
+Surprise: the e2e found a real bug the API suite could not: `recordShortfall` cut the safe list to the best 50 BEFORE
+looking for the packer's pick, and the dev database's subcategory held more than 50 products at the same price (leftovers
+of other specs), so a valid pick was refused with "not a safe replacement". The list is now the whole safe list (the top
+5 is only for the shopper's dialog), with a unit test of 55 closer products. The first full run also failed 5 other
+specs because the dev API (`tsx watch`) restarted mid-run; the clean second run was 79 passed + 1 skipped. The Playwright
+Chromium (revision 1248) was not installed on this machine: `playwright install chromium` (a free download) fixed it.
+Learn: the number a rule produces (min of two prices) is only trustworthy if the test pins BOTH inputs (the e2e makes the
+neighbour dearer than the original so the cap, not luck, produces 10.00), and a limit applied before a filter is a bug
+waiting for a crowded shelf.
+
+### Quiz: Phase G7
+1. A shopper's yoghurt (milk, vegetarian) is missing. The closest-priced candidate in the same subcategory is a
+   nut yoghurt at exactly the same price; the next is vegan at +25 %; one more is a gelatine yoghurt at -5 %. Which does
+   `bestMatches` return, in which order, and which of the two rules ("safe", "similar") removed the other two before
+   price was even compared?
+2. A replacement costs 2.50 and the original 2.00; another weighed replacement estimates 2.00 per unit and, packed,
+   would cost 5.20 for two units where the original was 2.50 each. What is charged for each, which function does it,
+   and why must the cap also apply AFTER weighing and not only to the estimate?
+3. The shopper rejects a replacement before dispatch, and later the whole order is cancelled. Why does the replacement's
+   stock not come back a second time, and which single helper makes `restoreOrderStock`, `partsOf` and `expandOrderItems`
+   agree on how many units a line holds? What would break if the packer's 2 missing units were restocked instead?
+4. The card has been charged and the courier reports the replacement was refused at the door. Walk through the three
+   steps of `rejectAtDoor`, say what is stored after each, and explain why a retry made two days after a crash between
+   step 2 and step 3 still refunds exactly once even though Stripe has forgotten the idempotency key.
+
