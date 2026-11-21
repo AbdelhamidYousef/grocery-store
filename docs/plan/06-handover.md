@@ -32,15 +32,24 @@ Written by the build sessions for the owner and the next session. Newest state f
   ...", checkout postcode check; EN + DE). Checkout needs a served Berlin postcode (422 otherwise). New
   e2e spec `delivery-areas.spec.ts`. Gates green: shared 282, web 950, API 1,416 + 2 skipped, e2e 76 + 1 skipped.
   A database migrated from G3 needs `pnpm db:reset` to get varied shelves. Not pushed yet.
-- **G5 in progress** (2026-11-21): G5.3 done: checkout "Delivery time" step (`DeliveryTimeStep`, hold countdown), `NextDelivery`
-  on the PDP and cart, the order window on the confirmation, account order, tracking page and emails; the Pawsome cutoff
-  estimate and `GET /delivery-methods` are gone. G5.2 done: holds and capacity (`delivery/holds.ts`), `GET /delivery/slots`, `PUT/DELETE /cart/slot`, `PUT /cart/express`,
-  `release-slot-holds` job (new 5-minute cadence), migration 0050; checkout needs a live hold or express (the web picker is G5.3,
-  so the UI checkout cannot pay until then). G5.1 done: shared `slots.ts` (Berlin-zone rules and labels), migration 0049
-  (`delivery_slots`, store hours/capacity/riders), `generate-slots` job and seed. Not pushed.
+- **G5 done** (2026-11-21): delivery slots. One-hour slots per dark store (`delivery_slots`, generated 7 days
+  ahead by the daily `generate-slots` job and the seed), express within 30 minutes, holds of 15 minutes that
+  count against capacity under a slot-row lock (`modules/delivery/holds.ts`; expire by `expires_at` alone, the
+  5-minute `release-slot-holds` job only deletes old rows), checkout needs a live hold or express (new codes
+  `SLOT_FULL`, `SLOT_CLOSED`, `SLOT_WRONG_AREA`, `SLOT_HOLD_EXPIRED`, `EXPRESS_UNAVAILABLE`, `DELIVERY_REQUIRED`),
+  migrations 0049 and 0050, shipping methods `slot` (2.99 EUR, free over 49) and `express` (4.99 EUR) with the
+  parcel `standard` switched off. Web: the "Delivery time" checkout step with hold countdown, "Next delivery" on
+  the product page and cart, the window on the confirmation, account order, tracking page and both order emails.
+  The Pawsome cutoff estimate (`shared/delivery.ts`, `GET /delivery-methods`) is deleted. Gates green: shared 277,
+  web 959, API 1,453 + 2 skipped, e2e 77 + 1 skipped (the known "back in stock" flake fails under full-suite load
+  and passes alone). A database migrated from G4 needs `pnpm db:migrate && pnpm db:seed` for slots and fees. Not pushed.
+  Tests that check out through the API use `makeShopper(...).pickSlot()` / the auto-pick before `POST /checkout`
+  (`autoSlot: false` for the delivery rule tests); e2e uses `pickSlot` in `e2e/helpers.ts`.
 - **Open follow-ups** (small, not blocking):
   - Reseed before the first public deploy: a database migrated from G3 has identical shelves in every store (`pnpm db:reset`).
-  - e2e "back in stock" missed its mail once under full-suite load (passed on re-run).
+  - e2e "back in stock" fails under full-suite load (it waits for a mail through two `pnpm` spawns) and passes alone; give it a longer timeout or call the job in-process.
+  - The `release-slot-holds` cadence is 5 minutes: a scheduler that calls `POST /internal/jobs/run` hourly only runs it hourly, which is harmless (holds expire by themselves).
+  - Express availability and slot status depend on the time of day (Berlin), so a spec must never assert "express is on".
 
 ## Waiting on you
 

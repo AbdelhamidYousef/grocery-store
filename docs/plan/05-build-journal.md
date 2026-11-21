@@ -390,3 +390,31 @@ slot (already covered in G5.2); (3) the German day labels come from `Intl`, so "
 for the sentences but the tabs still use dictionary keys, because a tab says only that one word.
 Learn: a countdown that decides a rule (a hold) must read the server's clock, not the device's, and the
 server must still be the judge when it reaches zero.
+
+### G5.4: phase end (e2e)
+Every e2e spec that places an order through the API now holds a slot first with a helper over the real
+endpoints (`pickSlot` in `e2e/helpers.ts`) and pays with the `slot` method, because the old `standard`
+method is switched off; the UI specs (checkout, keyboard-only purchase) pick a slot in the new step. The
+keyboard spec tabs to an open slot button and holds it with Enter. New spec `e2e/delivery-slots.spec.ts`:
+eight guest carts hold the places of the last open slot of the week, and the picker then shows that slot
+as disabled and "Full"; an open slot can be held and the cart carries it. The paid-order specs now also
+check that the confirmation shows "Arrives ... 14:00–15:00". Surprises: (1) parallel specs all took the
+first open slot, which holds 8, so the helper starts at a random slot and moves on when one fills up
+(the UI specs still take the first); (2) the e2e database needs `pnpm db:migrate && pnpm db:seed` first,
+the seed now creates the next 7 days of slots; (3) `getByRole('heading', { name: 'Delivery time' })`
+matched the picker's own "Choose a delivery time" too (names match as substrings), so the keyboard spec
+uses `exact: true`. The known load flake "back in stock" (it waits for a mail through two `pnpm` spawns)
+failed in three of four full runs and passes alone in about 8 seconds.
+Learn: a shared fixture with a capacity (8 places) turns parallel tests into competitors; spread them out
+or make them tolerate a full slot.
+
+### Quiz: Phase G5
+1. Two carts ask for the last place of a slot at the same moment. Why does counting alone not stop both
+   from getting it, and what makes the second one wait? What would a unique key have told the loser, and
+   when?
+2. A hold expires 15 minutes after it was made, yet a job deletes holds. If the job stopped running for a
+   week, what would shoppers notice, and why?
+3. Why is the hold deleted in the same transaction that reserves the stock and writes the order, and what
+   would a shopper see if it were deleted in a separate step that failed?
+4. A slot starts at 08:00 on 2027-03-28, the day the clocks go forward. Why does adding 3,600,000 ms per
+   hour to midnight give the wrong answer, and what does the shared helper do instead?

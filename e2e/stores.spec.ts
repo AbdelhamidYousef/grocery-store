@@ -135,7 +135,8 @@ async function pickSlot(page: Page, store: string): Promise<void> {
   );
   const open = list.body.data.days.flatMap((d) => d.slots).filter((x) => x.status === 'open');
   expect(open.length, 'an open delivery slot (run pnpm db:seed)').toBeGreaterThan(0);
-  for (const slot of open) {
+  const start = Math.floor(Math.random() * open.length);
+  for (const slot of [...open.slice(start), ...open.slice(0, start)]) {
     const put = await api(page, store, 'PUT', '/cart/slot', { slotId: slot.id }, '10115');
     if (put.status === 200) return;
   }

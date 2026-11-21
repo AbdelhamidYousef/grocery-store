@@ -59,7 +59,7 @@ export async function api<T = unknown>(
   }
 }
 
-// Since G5 an order needs a delivery time. This holds the first open slot of the postcode's store
+// Since G5 an order needs a delivery time. This holds an open slot of the postcode's store
 // through the real API (`PUT /cart/slot`), exactly what the delivery step does, so an API checkout has
 // something to place. Express is never used here: it depends on the time of day.
 export async function pickSlot(
@@ -77,7 +77,10 @@ export async function pickSlot(
   );
   const open = list.body.data.days.flatMap((d) => d.slots).filter((s) => s.status === 'open');
   expect(open.length, 'an open delivery slot (run pnpm db:seed to create them)').toBeGreaterThan(0);
-  for (const slot of open) {
+  // Specs run in parallel and a slot takes 8 orders: start at a random slot (the UI specs take the
+  // first one) and move on when a parallel spec took the last place.
+  const start = Math.floor(Math.random() * open.length);
+  for (const slot of [...open.slice(start), ...open.slice(0, start)]) {
     const put = await api(page, 'PUT', '/cart/slot', { slotId: slot.id }, headers);
     if (put.status === 200) return;
   }
