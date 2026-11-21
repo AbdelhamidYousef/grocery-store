@@ -1,10 +1,11 @@
-import { and, asc, count, desc, eq, ilike, ne, or, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, ilike, inArray, ne, or, sql } from 'drizzle-orm';
 
 import { db, type Tx } from '../../../db/client.ts';
 import {
   brands,
   cartItems,
   categories,
+  darkStores,
   inventory,
   inventoryAdjustments,
   productImages,
@@ -21,7 +22,9 @@ export type ProductRow = typeof products.$inferSelect;
 export type VariantRow = typeof productVariants.$inferSelect;
 export type InventoryRow = typeof inventory.$inferSelect;
 export type ImageRow = typeof productImages.$inferSelect;
-export type VariantWithStock = VariantRow & { inventory: InventoryRow | null };
+// One stock row per dark store, with the store's name for the editor.
+export type StoreStockRow = InventoryRow & { storeSlug: string; storeName: string };
+export type VariantWithStock = VariantRow & { stock: StoreStockRow[] };
 
 // `%` and `_` are wildcards in LIKE; a search for "50%" must find "50%", not everything.
 const likePattern = (q: string) => `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
@@ -53,7 +56,7 @@ export async function listProducts(opts: {
   const agg = db
     .select({
       productId: productVariants.productId,
-      variantCount: count().as('variant_count'),
+      variantCount: sql<number>`count(distinct ${productVariants.id})::int`.as('variant_count'),
       minPrice: sql<number>`min(${productVariants.priceCents})`.as('min_price'),
       maxPrice: sql<number>`max(${productVariants.priceCents})`.as('max_price'),
       currency: sql<string>`min(${productVariants.currency})`.as('agg_currency'),
@@ -120,18 +123,47 @@ export async function findCategory(run: Db, id: string) {
   return row;
 }
 
-export async function listVariants(run: Db, productId: string): Promise<VariantWithStock[]> {
+// Every store's stock rows of the given variants, grouped by variant (a variant with no row has none).
+async function stockOf(run: Db, variantIds: string[]): Promise<Map<string, StoreStockRow[]>> {
+  const out = new Map<string, StoreStockRow[]>();
+  if (variantIds.length === 0) return out;
   const rows = await run
-    .select({ variant: productVariants, inventory })
+    .select({ inv: inventory, storeSlug: darkStores.slug, storeName: darkStores.name })
+    .from(inventory)
+    .innerJoin(darkStores, eq(darkStores.id, inventory.storeId))
+    .where(inArray(inventory.variantId, variantIds))
+    .orderBy(asc(darkStores.name));
+  for (const r of rows) {
+    const list = out.get(r.inv.variantId) ?? [];
+    list.push({ ...r.inv, storeSlug: r.storeSlug, storeName: r.storeName });
+    out.set(r.inv.variantId, list);
+  }
+  return out;
+}
+
+export async function listVariants(run: Db, productId: string): Promise<VariantWithStock[]> {
+  const variants = await run
+    .select()
     .from(productVariants)
-    .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
     .where(eq(productVariants.productId, productId))
     .orderBy(
       desc(productVariants.isDefault),
       asc(productVariants.createdAt),
       asc(productVariants.id),
     );
-  return rows.map((r) => ({ ...r.variant, inventory: r.inventory }));
+  const stock = await stockOf(
+    run,
+    variants.map((v) => v.id),
+  );
+  return variants.map((v) => ({ ...v, stock: stock.get(v.id) ?? [] }));
+}
+
+/** Every dark store, by name: the shelves a new variant gets a stock row on. */
+export async function listStores(run: Db) {
+  return run
+    .select({ id: darkStores.id, slug: darkStores.slug, name: darkStores.name })
+    .from(darkStores)
+    .orderBy(asc(darkStores.name));
 }
 
 export async function findVariant(run: Db, id: string): Promise<VariantRow | undefined> {
@@ -143,12 +175,9 @@ export async function findVariantWithStock(
   run: Db,
   id: string,
 ): Promise<VariantWithStock | undefined> {
-  const [row] = await run
-    .select({ variant: productVariants, inventory })
-    .from(productVariants)
-    .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
-    .where(eq(productVariants.id, id));
-  return row ? { ...row.variant, inventory: row.inventory } : undefined;
+  const variant = await findVariant(run, id);
+  if (!variant) return undefined;
+  return { ...variant, stock: (await stockOf(run, [id])).get(id) ?? [] };
 }
 
 export async function listImages(run: Db, productId: string): Promise<ImageRow[]> {
@@ -238,28 +267,55 @@ export async function replaceImages(
 
 export async function lockInventoryRow(
   tx: Tx,
+  storeId: string,
   variantId: string,
 ): Promise<InventoryRow | undefined> {
   const [row] = await tx
     .select()
     .from(inventory)
-    .where(eq(inventory.variantId, variantId))
+    .where(and(eq(inventory.storeId, storeId), eq(inventory.variantId, variantId)))
     .for('update');
   return row;
 }
 
-export async function setInventoryQuantity(tx: Tx, variantId: string, quantity: number) {
+/** Locks (and returns) every store's row of a variant, in store-id order. */
+export async function lockInventoryRows(tx: Tx, variantId: string): Promise<InventoryRow[]> {
+  return tx
+    .select()
+    .from(inventory)
+    .where(eq(inventory.variantId, variantId))
+    .orderBy(asc(inventory.storeId))
+    .for('update');
+}
+
+export async function setInventoryQuantity(
+  tx: Tx,
+  storeId: string,
+  variantId: string,
+  quantity: number,
+) {
   await tx
     .update(inventory)
     .set({ quantity, updatedAt: sql`now()` })
-    .where(eq(inventory.variantId, variantId));
+    .where(and(eq(inventory.storeId, storeId), eq(inventory.variantId, variantId)));
 }
 
-export async function setLowStockThreshold(tx: Tx, variantId: string, threshold: number) {
+/** The low-stock threshold of one store's row, or of every store's when no store is named. */
+export async function setLowStockThreshold(
+  tx: Tx,
+  variantId: string,
+  threshold: number,
+  storeId?: string,
+) {
   await tx
     .update(inventory)
     .set({ lowStockThreshold: threshold, updatedAt: sql`now()` })
-    .where(eq(inventory.variantId, variantId));
+    .where(
+      and(
+        eq(inventory.variantId, variantId),
+        storeId === undefined ? undefined : eq(inventory.storeId, storeId),
+      ),
+    );
 }
 
 export async function brandExists(run: Db, id: string): Promise<boolean> {

@@ -1,7 +1,7 @@
 import { BUY_AGAIN_LIMIT, ErrorCode, type BuyAgainItem, type ReorderResult } from '@store/shared';
 import { and, asc, desc, eq, inArray, isNotNull, ne, sql } from 'drizzle-orm';
 
-import { stockQuantity, stockReserved } from '../../db/available.ts';
+import { inventoryAt, stockQuantity, stockReserved } from '../../db/available.ts';
 import { db } from '../../db/client.ts';
 import {
   inventory,
@@ -21,7 +21,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // "Paid or later", the same statuses the rest of loyalty uses.
 const PAID = ['paid', 'processing', 'shipped', 'delivered', 'refunded'] as const;
-const availableOf = sql<number>`coalesce(${stockQuantity(productVariants.id)} - ${stockReserved(productVariants.id)}, 0)`;
+// A function, not a constant: the store is the one of the request in flight, read when the query is built.
+const availableOf = () =>
+  sql<number>`coalesce(${stockQuantity(productVariants.id)} - ${stockReserved(productVariants.id)}, 0)`;
 
 // Distinct variants from this customer's paid orders, newest first, each with today's price and
 // availability. A variant or product that is gone or archived is left out: you cannot buy it again.
@@ -35,7 +37,7 @@ export async function buyAgain(userId: string): Promise<BuyAgainItem[]> {
       variantName: productVariants.name,
       priceCents: priceIn(),
       currency: sql<string>`${currentStore().currency}::char(3)`,
-      available: availableOf,
+      available: availableOf(),
       lastBoughtAt: sql<Date>`max(${orders.createdAt})`,
       timesBought: sql<number>`count(distinct ${orders.id})::int`,
     })
@@ -43,7 +45,7 @@ export async function buyAgain(userId: string): Promise<BuyAgainItem[]> {
     .innerJoin(orders, eq(orders.id, orderItems.orderId))
     .innerJoin(productVariants, eq(productVariants.id, orderItems.variantId))
     .innerJoin(products, eq(products.id, productVariants.productId))
-    .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
+    .leftJoin(inventory, inventoryAt(productVariants.id))
     .where(
       and(
         eq(orders.userId, userId),

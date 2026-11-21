@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { AdminVariant } from '@store/shared';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 
 import { Button } from '../../components/ui/Button';
 import { Dialog } from '../../components/ui/Dialog';
@@ -26,13 +26,34 @@ function StockForm({ variant, onDone }: { variant: AdminVariant; onDone: () => v
   const toast = useToast();
   const mutation = useSetAdminInventory();
   const [formError, setFormError] = useState<string | null>(null);
+  // Mitte (the central store) first; the rest in the order the API lists them.
+  const first = variant.stores.find((st) => st.storeSlug === 'mitte') ?? variant.stores[0];
   const {
     register,
     handleSubmit,
+    setValue,
+    control,
     formState: { errors },
   } = useForm<StockFormInput, unknown, ReturnType<typeof StockFormSchema.parse>>({
     resolver: zodResolver(StockFormSchema),
-    defaultValues: { quantity: String(variant.quantity), reason: 'restock', note: '' },
+    defaultValues: {
+      storeId: first?.storeId ?? '',
+      quantity: String(first?.quantity ?? 0),
+      lowStockThreshold: String(first?.lowStockThreshold ?? 5),
+      reason: 'restock',
+      note: '',
+    },
+  });
+  const chosenStore = useWatch({ control, name: 'storeId' });
+  const store = variant.stores.find((st) => st.storeId === chosenStore) ?? first;
+  // Counting another store starts from that store's own numbers.
+  const storeField = register('storeId', {
+    onChange: (e: { target: { value: string } }) => {
+      const next = variant.stores.find((st) => st.storeId === e.target.value);
+      if (!next) return;
+      setValue('quantity', String(next.quantity));
+      setValue('lowStockThreshold', String(next.lowStockThreshold));
+    },
   });
 
   const submit = handleSubmit((values) => {
@@ -41,7 +62,9 @@ function StockForm({ variant, onDone }: { variant: AdminVariant; onDone: () => v
       {
         variantId: variant.id,
         input: {
+          storeId: values.storeId,
           quantity: values.quantity,
+          lowStockThreshold: values.lowStockThreshold,
           reason: values.reason,
           ...(values.note && { note: values.note }),
         },
@@ -49,7 +72,10 @@ function StockForm({ variant, onDone }: { variant: AdminVariant; onDone: () => v
       {
         onSuccess: (result) => {
           const sign = result.delta > 0 ? '+' : '';
-          toast.show(`Stock set to ${result.quantity} (${sign}${result.delta})`, 'success');
+          toast.show(
+            `Stock set to ${result.quantity} (${sign}${result.delta}) in ${store?.storeName ?? 'the store'}`,
+            'success',
+          );
           onDone();
         },
         // A 409 here is "below what unpaid orders reserved"; the server's sentence says how many.
@@ -66,16 +92,59 @@ function StockForm({ variant, onDone }: { variant: AdminVariant; onDone: () => v
       className="flex flex-col gap-4"
     >
       <FormAlert message={formError} />
-      <p className="text-sm text-muted">
-        On hand {variant.quantity}, reserved by unpaid orders {variant.reserved}, available{' '}
-        {variant.available}.
-      </p>
+      <table className="w-full text-left text-sm" data-testid="admin-stock-stores">
+        <thead>
+          <tr className="border-b-2 border-line text-muted">
+            <th scope="col" className="py-1 pr-2">
+              Store
+            </th>
+            <th scope="col" className="py-1 pr-2 text-right">
+              On hand
+            </th>
+            <th scope="col" className="py-1 pr-2 text-right">
+              Reserved
+            </th>
+            <th scope="col" className="py-1 pr-2 text-right">
+              Available
+            </th>
+            <th scope="col" className="py-1 text-right">
+              Alert at
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {variant.stores.map((st) => (
+            <tr key={st.storeId} className="border-b border-line">
+              <th scope="row" className="py-1 pr-2 font-semibold">
+                {st.storeName}
+              </th>
+              <td className="py-1 pr-2 text-right">{st.quantity}</td>
+              <td className="py-1 pr-2 text-right">{st.reserved}</td>
+              <td className="py-1 pr-2 text-right">{st.available}</td>
+              <td className="py-1 text-right">{st.lowStockThreshold}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <Select label="Store" error={errors.storeId?.message} {...storeField}>
+        {variant.stores.map((st) => (
+          <option key={st.storeId} value={st.storeId}>
+            {st.storeName}
+          </option>
+        ))}
+      </Select>
       <Input
         label="Units on hand"
         inputMode="numeric"
-        hint="The count on the shelf. The change is recorded with your reason."
+        hint={`The count on ${store?.storeName ?? 'the'} shelf. The change is recorded with your reason.`}
         error={errors.quantity?.message}
         {...register('quantity')}
+      />
+      <Input
+        label="Low-stock alert at"
+        inputMode="numeric"
+        error={errors.lowStockThreshold?.message}
+        {...register('lowStockThreshold')}
       />
       <Select label="Reason" error={errors.reason?.message} {...register('reason')}>
         {REASONS.map((r) => (

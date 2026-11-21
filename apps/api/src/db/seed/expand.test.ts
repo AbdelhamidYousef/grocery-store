@@ -133,6 +133,18 @@ describe('seed catalogue data', () => {
     expect(stock.some((q) => q > 0 && q < 5)).toBe(true);
   });
 
+  it('spreads stock differently in every store, the same on every run', () => {
+    const [mitte, prenzl, kreuzberg, neukoelln] = [0, 1, 2, 3].map((i) =>
+      stockLevels(variants.length, i),
+    );
+    expect(stockLevels(variants.length, 3)).toEqual(neukoelln);
+    expect(mitte).toEqual(stockLevels(variants.length)); // store 0 is unchanged
+    expect(prenzl).not.toEqual(mitte);
+    expect(kreuzberg).not.toEqual(neukoelln);
+    // Somewhere a variant is out in one store and in stock in another.
+    expect(mitte!.some((q, i) => q === 0 && (neukoelln![i] ?? 0) > 0)).toBe(true);
+  });
+
   it('gives every seeded image row alt text and a file on disk (real or placeholder)', () => {
     const publicDir = fileURLToPath(new URL('../../../../web/public', import.meta.url));
     for (const p of products) {

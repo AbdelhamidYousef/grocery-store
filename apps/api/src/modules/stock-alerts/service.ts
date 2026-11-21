@@ -5,19 +5,22 @@ import { and, count, eq, isNotNull, sql } from 'drizzle-orm';
 import type { Logger } from 'pino';
 
 import { env } from '../../config/env.ts';
-import { stockQuantity, stockReserved } from '../../db/available.ts';
+import { inventoryAt, stockQuantity, stockReserved, type StoreRef } from '../../db/available.ts';
 import { db } from '../../db/client.ts';
 import { inventory, productVariants, products, stockAlerts } from '../../db/schema/index.ts';
+import { DEFAULT_STORE_ID } from '../../db/seed/delivery.ts';
 import { storeFor } from '../../emails/i18n/index.ts';
 import { conflict, notFound, validation } from '../../lib/errors.ts';
-import { currentStore } from '../i18n/context.ts';
+import { currentDelivery, currentStore } from '../i18n/context.ts';
 import { enqueueEmail, type Outbox } from '../mail/outbox.ts';
 
 const origin = (): string => env.WEB_ORIGIN.replace(/\/$/, '');
 export const cancelUrl = (token: string): string =>
   `${origin()}/stock-alerts/cancel?token=${encodeURIComponent(token)}`;
 
-const availableOf = sql<number>`coalesce(${stockQuantity(productVariants.id)} - ${stockReserved(productVariants.id)}, 0)`;
+// Units free to sell of the variant at one store (the request's by default).
+const availableAt = (store?: StoreRef) =>
+  sql<number>`coalesce(${stockQuantity(productVariants.id, store)} - ${stockReserved(productVariants.id, store)}, 0)`;
 
 // Asking for an alert on something that is in stock is a mistake worth saying out loud. Asking
 // twice for the same variant is the same ask (idempotent), and one address can wait on at most 5
@@ -30,10 +33,14 @@ export async function createAlert(input: {
   const email = input.email.trim().toLowerCase();
   await db.transaction(async (tx) => {
     const [v] = await tx
-      .select({ available: availableOf, status: productVariants.status, product: products.status })
+      .select({
+        available: availableAt(),
+        status: productVariants.status,
+        product: products.status,
+      })
       .from(productVariants)
       .innerJoin(products, eq(products.id, productVariants.productId))
-      .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
+      .leftJoin(inventory, inventoryAt(productVariants.id))
       .where(eq(productVariants.id, input.variantId));
     if (!v || v.status !== 'active' || v.product !== 'active') throw notFound('Variant not found');
     if (v.available > 0) throw conflict('CONFLICT', 'This item is in stock right now');
@@ -67,6 +74,9 @@ export async function createAlert(input: {
       userId: input.userId,
       token: randomBytes(24).toString('base64url'),
       storeView: currentStore().code,
+      // The store the shopper is browsing (Mitte when no postcode is chosen): that is the shelf they
+      // are waiting on.
+      storeId: currentDelivery().storeId,
     });
   });
 }
@@ -101,6 +111,8 @@ export async function sendDueAlerts(deps: {
   log: Logger;
 }): Promise<SendResult> {
   const result: SendResult = { sent: 0, deferred: 0 };
+  // Each alert is checked against its own store (a row from before G4 has none: the default store).
+  const alertStore = sql`coalesce(${stockAlerts.storeId}, ${DEFAULT_STORE_ID}::uuid)`;
   await db.transaction(async (tx) => {
     const due = await tx
       .select({
@@ -108,7 +120,7 @@ export async function sendDueAlerts(deps: {
         email: stockAlerts.email,
         token: stockAlerts.token,
         storeView: stockAlerts.storeView,
-        available: availableOf,
+        available: availableAt(alertStore),
         productName: products.name,
         productSlug: products.slug,
         variantName: productVariants.name,
@@ -119,7 +131,7 @@ export async function sendDueAlerts(deps: {
       .from(stockAlerts)
       .innerJoin(productVariants, eq(productVariants.id, stockAlerts.variantId))
       .innerJoin(products, eq(products.id, productVariants.productId))
-      .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
+      .leftJoin(inventory, inventoryAt(productVariants.id, alertStore))
       .where(and(eq(stockAlerts.status, 'waiting'), isNotNull(stockAlerts.dueAt)))
       .for('update', { of: stockAlerts, skipLocked: true });
 

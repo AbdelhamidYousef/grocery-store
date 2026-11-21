@@ -222,6 +222,9 @@ export function AnalyticsDashboard() {
                       <th scope="col" className="py-1 pr-2">
                         SKU
                       </th>
+                      <th scope="col" className="py-1 pr-2">
+                        Store
+                      </th>
                       <th scope="col" className="py-1 text-right">
                         Available
                       </th>
@@ -229,7 +232,7 @@ export function AnalyticsDashboard() {
                   </thead>
                   <tbody>
                     {data.lowStock.map((v) => (
-                      <tr key={v.variantId} className="border-b border-line">
+                      <tr key={`${v.storeSlug}-${v.variantId}`} className="border-b border-line">
                         <td className="break-words py-1.5 pr-2">
                           <Link
                             to={`/admin/products/${v.productId}`}
@@ -240,6 +243,7 @@ export function AnalyticsDashboard() {
                           ({v.variantName})
                         </td>
                         <td className="py-1.5 pr-2">{v.sku}</td>
+                        <td className="py-1.5 pr-2">{v.storeName}</td>
                         <td className="py-1.5 text-right font-semibold">{v.available}</td>
                       </tr>
                     ))}

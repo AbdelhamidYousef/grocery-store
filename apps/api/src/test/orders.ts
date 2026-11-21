@@ -1,9 +1,10 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import type { Express } from 'express';
 import request from 'supertest';
 
 import { db } from '../db/client.ts';
 import { inventory, orderStatusHistory, orders } from '../db/schema/index.ts';
+import { DEFAULT_STORE_ID } from '../db/seed/delivery.ts';
 import { createSession } from '../modules/auth/sessions.ts';
 
 import { TEST_HOOK_SECRET } from './app.ts';
@@ -15,7 +16,7 @@ export const TEST_ADDRESS = {
   fullName: 'Ada Lovelace',
   line1: '1 Bone Street',
   city: 'Riga',
-  postalCode: 'LV-1010',
+  postalCode: '10115',
   country: 'DE',
 };
 
@@ -68,8 +69,12 @@ export function simulate(
     .send({ orderNumber, type });
 }
 
-export async function stockOf(variantId: string) {
-  const [row] = await db.select().from(inventory).where(eq(inventory.variantId, variantId));
+// One store's shelf of a variant (the default store, Mitte, unless another is named).
+export async function stockOf(variantId: string, storeId: string = DEFAULT_STORE_ID) {
+  const [row] = await db
+    .select()
+    .from(inventory)
+    .where(and(eq(inventory.variantId, variantId), eq(inventory.storeId, storeId)));
   return { quantity: row!.quantity, reserved: row!.reserved };
 }
 

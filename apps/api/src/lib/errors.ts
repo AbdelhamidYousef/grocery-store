@@ -57,3 +57,12 @@ export const paymentProvider = (
   if (cause !== undefined) err.cause = cause;
   return err;
 };
+
+// The delivery address is in a postcode no dark store covers. `details` names the areas we do cover
+// and the field, so the web can show it inline on the postcode input.
+export const postcodeNotServed = (postcode: string, areas: string[]) =>
+  new AppError(
+    ErrorCode.POSTCODE_NOT_SERVED,
+    `We don't deliver to ${postcode} yet. We cover ${areas.join(', ')}.`,
+    { field: 'shippingAddress.postalCode', postcode, areas },
+  );

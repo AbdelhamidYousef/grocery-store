@@ -388,10 +388,15 @@ export function makeAdminStats(overrides: Partial<AdminStats> = {}): AdminStats 
     revenue30dCents: 123_456,
     currency: 'EUR',
     lowStockCount: 2,
+    lowStockByStore: [
+      { storeSlug: 'mitte', storeName: 'Grocery Mitte', count: 2 },
+      { storeSlug: 'neukoelln', storeName: 'Grocery Neukölln', count: 0 },
+    ],
     ...overrides,
   };
 }
 
+export const MITTE_STORE_ID = 'b0000000-0000-4000-8000-000000000001';
 export const CATEGORY_UUID = '2f6d3a52-5b2c-4d57-9a41-0d6f1f0f7a10';
 
 export function makeAdminRow(overrides: Partial<AdminProductRow> = {}): AdminProductRow {
@@ -434,6 +439,17 @@ export function makeAdminVariant(overrides: Partial<AdminVariant> = {}): AdminVa
     reserved: 2,
     available: 8,
     lowStockThreshold: 3,
+    stores: [
+      {
+        storeId: MITTE_STORE_ID,
+        storeSlug: 'mitte',
+        storeName: 'Grocery Mitte',
+        quantity: 10,
+        reserved: 2,
+        available: 8,
+        lowStockThreshold: 3,
+      },
+    ],
     updatedAt: '2026-10-30T10:00:00.000Z',
     ...overrides,
   };

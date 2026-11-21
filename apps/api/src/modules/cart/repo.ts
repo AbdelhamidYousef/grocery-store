@@ -1,6 +1,6 @@
 import { and, asc, eq, gt, inArray, isNull, sql } from 'drizzle-orm';
 
-import { stockQuantity, stockReserved } from '../../db/available.ts';
+import { inventoryAt, stockQuantity, stockReserved } from '../../db/available.ts';
 import { db, type Tx } from '../../db/client.ts';
 import {
   cartItems,
@@ -150,7 +150,7 @@ export async function listLines(
       .from(cartItems)
       .innerJoin(productVariants, eq(productVariants.id, cartItems.variantId))
       .innerJoin(products, eq(products.id, productVariants.productId))
-      .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
+      .leftJoin(inventory, inventoryAt(productVariants.id))
       .where(eq(cartItems.cartId, cartId))
       // Stable order: the lines do not jump around when one is edited.
       .orderBy(asc(cartItems.createdAt), asc(cartItems.id))
@@ -252,7 +252,7 @@ export async function findPurchasable(
     })
     .from(productVariants)
     .innerJoin(products, eq(products.id, productVariants.productId))
-    .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
+    .leftJoin(inventory, inventoryAt(productVariants.id))
     .where(
       and(
         eq(productVariants.id, variantId),
@@ -314,7 +314,7 @@ export async function freeUnits(tx: Tx, variantIds: string[]): Promise<Map<strin
     })
     .from(productVariants)
     .innerJoin(products, eq(products.id, productVariants.productId))
-    .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
+    .leftJoin(inventory, inventoryAt(productVariants.id))
     .where(inArray(productVariants.id, variantIds));
   for (const r of rows) free.set(r.variantId, Number(r.free));
   return free;

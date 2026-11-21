@@ -23,7 +23,7 @@ const body = {
     fullName: 'Ada Lovelace',
     line1: '1 Bone Street',
     city: 'Riga',
-    postalCode: 'LV-1010',
+    postalCode: '10115',
     country: 'DE',
   },
   shippingMethodCode: 'standard',

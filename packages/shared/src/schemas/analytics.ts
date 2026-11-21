@@ -74,6 +74,8 @@ export const AdminAnalyticsSchema = z.object({
       sku: z.string(),
       productName: z.string(),
       variantName: z.string(),
+      storeSlug: z.string(),
+      storeName: z.string(),
       available: z.number().int(),
     }),
   ),

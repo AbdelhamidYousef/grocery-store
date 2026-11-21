@@ -162,13 +162,29 @@ export function seededRandom(seed: number): () => number {
  * Stock 0-120 for every variant, in order. A few are forced to zero (sold-out UI) and a few to
  * 1-4 (below the default low-stock threshold of 5, for the admin badge).
  */
-export function stockLevels(count: number): number[] {
-  const random = seededRandom(20261031);
+export function stockLevels(count: number, storeIndex = 0): number[] {
+  // Each store gets its own deterministic spread (store 0, Mitte, is the one that has always been
+  // seeded), so the same yoghurt is sold out in one store and plentiful in another.
+  const random = seededRandom(20261031 + storeIndex * 7919);
+  const shift = storeIndex * 11;
   return Array.from({ length: count }, (_, i) => {
     const base = Math.floor(random() * 121);
     const low = 1 + Math.floor(random() * 4);
-    if (i % 31 === 30) return 0;
-    if (i % 37 === 7) return low;
+    if ((i + shift) % 31 === 30) return 0;
+    if ((i + shift) % 37 === 7) return low;
     return base;
   });
 }
+
+/**
+ * Per-store overrides on top of `FORCED_STOCK` (which is Mitte's): the sold-out prawns are in stock
+ * in the two southern stores, so "out of stock at your store" has something to contrast with.
+ */
+export const FORCED_STORE_STOCK: Readonly<Record<string, Readonly<Record<string, number>>>> = {
+  'GR-FROZEN-PRAWNS': {
+    mitte: 0,
+    'prenzlauer-berg': 0,
+    'kreuzberg-friedrichshain': 6,
+    neukoelln: 12,
+  },
+};

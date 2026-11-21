@@ -9,6 +9,7 @@ export const ErrorCode = {
   OUT_OF_STOCK: 'OUT_OF_STOCK',
   CART_CHANGED: 'CART_CHANGED',
   TRIAL_LIMIT: 'TRIAL_LIMIT',
+  POSTCODE_NOT_SERVED: 'POSTCODE_NOT_SERVED',
   RATE_LIMITED: 'RATE_LIMITED',
   PAYMENT_PROVIDER_ERROR: 'PAYMENT_PROVIDER_ERROR',
   INTERNAL: 'INTERNAL',
@@ -26,6 +27,8 @@ export const errorStatus: Record<ErrorCode, number> = {
   CART_CHANGED: 409,
   // A trial size is limited to one per customer per variant.
   TRIAL_LIMIT: 409,
+  // The delivery address is outside every delivery area: the request is well-formed, we just do not go there.
+  POSTCODE_NOT_SERVED: 422,
   RATE_LIMITED: 429,
   // The payment provider (Stripe) failed or is not configured; nothing is charged. Retryable.
   PAYMENT_PROVIDER_ERROR: 502,

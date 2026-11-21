@@ -9,10 +9,16 @@ export async function getStats(now: Date = new Date(), currency = 'EUR'): Promis
   const startOfToday = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
   );
-  const [ordersToday, revenue30dCents, lowStockCount] = await Promise.all([
+  const [ordersToday, revenue30dCents, lowStockByStore] = await Promise.all([
     repo.countOrdersPlacedSince(startOfToday),
     repo.revenueSince(new Date(now.getTime() - 30 * DAY_MS), currency),
-    repo.countLowStock(),
+    repo.countLowStockByStore(),
   ]);
-  return { ordersToday, revenue30dCents, currency, lowStockCount };
+  return {
+    ordersToday,
+    revenue30dCents,
+    currency,
+    lowStockCount: lowStockByStore.reduce((n, s) => n + s.count, 0),
+    lowStockByStore,
+  };
 }

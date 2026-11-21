@@ -3,18 +3,20 @@ import { applyTransition } from '../orders/transition.ts';
 
 import * as repo from './repo.ts';
 
-// Gives reserved units back (from each line's checkout snapshot) to the shelf. Locks first (ordered, see `lockInventory`) so that a
+// Gives reserved units back (from each line's checkout snapshot) to the shelf of the store that holds them. Locks first (ordered, see `lockInventory`) so that a
 // release can never deadlock with a checkout placing another order.
 export async function releaseReservations(
   tx: Tx,
+  storeId: string,
   lines: Pick<repo.OrderItemRow, 'variantId' | 'quantity' | 'bundleComponents'>[],
 ): Promise<void> {
   const held = repo.expandOrderItems(lines);
   await repo.lockInventory(
     tx,
+    storeId,
     held.map((l) => l.variantId),
   );
-  for (const line of held) await repo.releaseStock(tx, line.variantId, line.quantity);
+  for (const line of held) await repo.releaseStock(tx, storeId, line.variantId, line.quantity);
 }
 
 // Cancels an order that is still waiting for payment and returns its stock. It is the single

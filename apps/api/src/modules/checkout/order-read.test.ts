@@ -20,7 +20,7 @@ const checkoutBody = {
     fullName: 'Ada Lovelace',
     line1: '1 Bone Street',
     city: 'Riga',
-    postalCode: 'LV-1010',
+    postalCode: '10115',
     country: 'DE',
   },
   shippingMethodCode: 'standard',
@@ -136,7 +136,7 @@ describe('GET /checkout/orders/:number', () => {
       notes: 'Ring twice',
       totals: { totalCents: 2590 },
       billingAddress: null,
-      shippingAddress: { postalCode: 'LV-1010' },
+      shippingAddress: { postalCode: '10115' },
     });
     expect(order.items).toMatchObject([
       { productName: 'Tug Rope', quantity: 2, lineTotalCents: 2000 },

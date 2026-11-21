@@ -47,14 +47,17 @@ export async function applyTransition(
   const effect = stockEffect(from, to);
   if (effect !== 'none') {
     const items = repo.expandOrderItems(await repo.listOrderItems(tx, order.id));
+    // Every stock effect lands on the shelf of the store that packs the order.
+    const storeId = repo.storeOfOrder(order);
     await repo.lockInventory(
       tx,
+      storeId,
       items.map((i) => i.variantId),
     );
     for (const { variantId, quantity } of items) {
-      if (effect === 'commit') await repo.commitStock(tx, variantId, quantity);
-      else if (effect === 'release') await repo.releaseStock(tx, variantId, quantity);
-      else await repo.restockUnits(tx, variantId, quantity);
+      if (effect === 'commit') await repo.commitStock(tx, storeId, variantId, quantity);
+      else if (effect === 'release') await repo.releaseStock(tx, storeId, variantId, quantity);
+      else await repo.restockUnits(tx, storeId, variantId, quantity);
     }
   }
 

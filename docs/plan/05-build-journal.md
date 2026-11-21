@@ -263,3 +263,26 @@ cache.
 Learn: a lookup table beats a rule ("10xxx is Mitte") because real areas are not ranges; Neukölln and
 Kreuzberg interleave in the 12xxx and 10xxx blocks.
 
+### G4.3: stock per dark store
+`inventory` is now one row per store and variant (primary key `store_id, variant_id`), and so are the
+adjustments; orders carry `dark_store_id`, alerts `store_id`. Migration 0048 adds the column, makes
+the old row the Mitte row, copies it (same quantity, no reservations) to the other three stores, then
+drops the old key and adds the new one, all in one transaction; existing orders and alerts point at
+Mitte, so releasing an old reservation still finds its row. Every read of availability now names a
+store: `stockQuantity`/`stockReserved` and the new `inventoryAt(variantId)` join default to the
+request's store (the `X-Postcode` one), and the admin, the alert job and checkout pass a store
+explicitly. Checkout takes the store from the delivery ADDRESS (a served postcode, else
+`422 POSTCODE_NOT_SERVED` naming the areas) and runs the whole order transaction as that store, so
+even the cart re-pricing inside it reads the shelf that will be reserved; lock, reserve, release,
+commit and restock all take the store, and a retried payment whose address moved to another store
+gives the old store's reservation back and reserves in the new one. Admin: one stock row per store in
+the editor and the API (`stores` on each variant, `storeId` on the count), low-stock stats split by
+store, the analytics CSV has a store column. The seed gives each store its own deterministic spread
+(the prawns are sold out in Mitte and Prenzlauer Berg, in stock in Neukölln).
+Surprises: (1) a module-level `const availableOf = sql...` froze the store at import time (the default
+parameter is read once), so three of them became functions; (2) the admin product list counted every
+variant four times once `inventory` had four rows per variant (`count(distinct ...)` now); (3) the
+back-in-stock trigger had to learn the store, or a restock in Mitte would have woken Neukölln alerts.
+Learn: when a table's key gains a dimension, every join on the old key silently multiplies rows; find
+them by grepping for the table, not by waiting for a wrong number.
+

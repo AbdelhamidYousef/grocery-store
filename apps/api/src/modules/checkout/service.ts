@@ -10,12 +10,19 @@ import {
 import type { Logger } from 'pino';
 
 import { db } from '../../db/client.ts';
-import { conflict, notFound, paymentProvider, validation } from '../../lib/errors.ts';
+import {
+  conflict,
+  notFound,
+  paymentProvider,
+  postcodeNotServed,
+  validation,
+} from '../../lib/errors.ts';
 import type { PaymentGateway } from '../../lib/stripe.ts';
 import type { AuthUser } from '../auth/sessions.ts';
 import * as cartRepo from '../cart/repo.ts';
 import { getCart, loadCart } from '../cart/service.ts';
-import { currentStore } from '../i18n/context.ts';
+import { listAreaNames, lookupPostcode } from '../delivery/areas.ts';
+import { currentStore, runInStore } from '../i18n/context.ts';
 import * as loyalty from '../loyalty/service.ts';
 import { toOrderDto, totalsOf } from '../orders/view.ts';
 import * as promotionsRepo from '../promotions/repo.ts';
@@ -106,7 +113,22 @@ export async function placeOrder(
   input: CheckoutRequest,
   user: AuthUser | null,
 ): Promise<PlacedOrder> {
-  const { order, payment } = await reserveAndSave(cartId, input, user);
+  // The store comes from the delivery ADDRESS (where the bag actually goes), never from the browsing
+  // header: an unserved postcode is refused before anything is reserved.
+  // (Germany only: a wrong country is a plain 400 before the postcode is looked at.)
+  assertShipsTo(input.shippingAddress.country, 'shippingAddress.country');
+  const postcode = input.shippingAddress.postalCode.trim();
+  const area = await lookupPostcode(postcode);
+  if (!area) throw postcodeNotServed(postcode, await listAreaNames());
+  const { order, payment } = await runInStore(
+    {
+      postcode: area.code,
+      served: true,
+      area: { slug: area.areaSlug, name: area.areaName },
+      storeId: area.storeId,
+    },
+    () => reserveAndSave(cartId, input, user, area.storeId),
+  );
   const clientSecret = await attachPaymentIntent(gateway, log, order, payment);
   return { orderNumber: order.number, clientSecret, totals: totalsOf(order) };
 }
@@ -115,6 +137,7 @@ async function reserveAndSave(
   cartId: string,
   input: CheckoutRequest,
   user: AuthUser | null,
+  storeId: string,
 ): Promise<{ order: repo.OrderRow; payment: repo.PaymentRow }> {
   return db.transaction(async (tx) => {
     const cartRow = await cartRepo.lockCart(tx, cartId);
@@ -138,7 +161,10 @@ async function reserveAndSave(
       ...toRelease.map((l) => l.variantId),
       ...(giftVariantId ? [giftVariantId] : []),
     ];
-    await repo.lockInventory(tx, [...new Set(variantIds)]);
+    // A retried payment may move to another store (the shopper changed the address): lock the old
+    // store's rows too, so the reservation it holds can be given back.
+    const heldAt = pending ? repo.storeOfOrder(pending) : storeId;
+    await repo.lockInventory(tx, [...new Set([storeId, heldAt])], [...new Set(variantIds)]);
 
     let existingPayment: repo.PaymentRow | undefined;
     if (pending) {
@@ -147,7 +173,7 @@ async function reserveAndSave(
       if (existingPayment?.status === 'processing' || existingPayment?.status === 'succeeded') {
         throw conflict(ErrorCode.CONFLICT, 'A payment for this cart is already in progress');
       }
-      await releaseReservations(tx, pendingItems);
+      await releaseReservations(tx, heldAt, pendingItems);
     }
 
     const cart = await loadCart(tx, cartId);
@@ -167,7 +193,6 @@ async function reserveAndSave(
       cart.items,
     );
 
-    assertShipsTo(input.shippingAddress.country, 'shippingAddress.country');
     // The rate card of the cart's currency: a method with no rate in it is not offered here.
     const method = await repo.findActiveShippingMethod(input.shippingMethodCode, tx, cart.currency);
     if (!method) throw fieldError('shippingMethodCode', 'Unknown shipping method');
@@ -252,7 +277,7 @@ async function reserveAndSave(
       })),
     );
     for (const item of held.sort((a, b) => a.variantId.localeCompare(b.variantId))) {
-      if (!(await repo.reserveStock(tx, item.variantId, item.quantity))) {
+      if (!(await repo.reserveStock(tx, storeId, item.variantId, item.quantity))) {
         // The cart check already plans per-component demand across all lines, so this only trips if stock
         // moved after it; refuse instead of overselling.
         throw conflict(ErrorCode.OUT_OF_STOCK, 'An item just sold out', {
@@ -264,7 +289,7 @@ async function reserveAndSave(
     // The gift last: if its final unit went to one of this cart's own lines, the order simply has
     // no gift (it is free, so no amount changes).
     const gift =
-      priced.gift && result.gift && (await repo.reserveStock(tx, priced.gift.variantId, 1))
+      priced.gift && result.gift && (await repo.reserveStock(tx, storeId, priced.gift.variantId, 1))
         ? result.gift
         : null;
 
@@ -288,6 +313,7 @@ async function reserveAndSave(
       billingAddress: input.billingAddress ?? null,
       notes: input.notes ?? null,
       cartId,
+      darkStoreId: storeId,
     };
     const order = pending
       ? await repo.updateOrder(tx, pending.id, values)

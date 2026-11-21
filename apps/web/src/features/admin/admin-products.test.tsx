@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
   CATEGORY_UUID,
+  MITTE_STORE_ID,
   makeAdminProduct,
   makeAdminRow,
   makeAdminVariant,
@@ -266,7 +267,14 @@ describe('admin product edit', () => {
       http.patch(`${API}/admin/inventory/v1`, async ({ request }) => {
         body = await request.json();
         return HttpResponse.json({
-          data: { variantId: 'v1', quantity: 12, reserved: 2, available: 10, delta: 2 },
+          data: {
+            variantId: 'v1',
+            storeId: MITTE_STORE_ID,
+            quantity: 12,
+            reserved: 2,
+            available: 10,
+            delta: 2,
+          },
         });
       }),
     );
@@ -277,14 +285,91 @@ describe('admin product edit', () => {
     expect(rows[0]).toHaveTextContent('10 on hand, 2 reserved');
     await userEvent.click(screen.getByRole('button', { name: 'Adjust stock for TUG-RED-S' }));
     const form = within(await screen.findByTestId('admin-stock-form'));
-    const reasons = form.getAllByRole('option').map((o) => o.getAttribute('value'));
+    const reasons = within(form.getByLabelText('Reason'))
+      .getAllByRole('option')
+      .map((o) => o.getAttribute('value'));
     expect(reasons).toEqual(['restock', 'correction', 'damage', 'return']);
     await userEvent.clear(form.getByLabelText('Units on hand'));
     await userEvent.type(form.getByLabelText('Units on hand'), '12');
     await userEvent.selectOptions(form.getByLabelText('Reason'), 'return');
     await userEvent.click(form.getByRole('button', { name: 'Save stock' }));
-    await waitFor(() => expect(body).toEqual({ quantity: 12, reason: 'return' }));
-    expect(await screen.findByText('Stock set to 12 (+2)')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(body).toEqual({
+        storeId: MITTE_STORE_ID,
+        quantity: 12,
+        lowStockThreshold: 3,
+        reason: 'return',
+      }),
+    );
+    expect(await screen.findByText('Stock set to 12 (+2) in Grocery Mitte')).toBeInTheDocument();
+  });
+
+  it('shows one stock row per store and counts the chosen store', async () => {
+    const NEUKOELLN = 'b0000000-0000-4000-8000-000000000004';
+    let body: unknown;
+    const variant = makeAdminVariant({
+      quantity: 17,
+      reserved: 2,
+      available: 15,
+      stores: [
+        ...makeAdminVariant().stores,
+        {
+          storeId: NEUKOELLN,
+          storeSlug: 'neukoelln',
+          storeName: 'Grocery Neukölln',
+          quantity: 7,
+          reserved: 0,
+          available: 7,
+          lowStockThreshold: 9,
+        },
+      ],
+    });
+    server.use(
+      http.get(`${API}/admin/products/p1`, () =>
+        HttpResponse.json({ data: makeAdminProduct({ variants: [variant] }) }),
+      ),
+      http.patch(`${API}/admin/inventory/v1`, async ({ request }) => {
+        body = await request.json();
+        return HttpResponse.json({
+          data: {
+            variantId: 'v1',
+            storeId: NEUKOELLN,
+            quantity: 20,
+            reserved: 0,
+            available: 20,
+            delta: 13,
+          },
+        });
+      }),
+    );
+    renderApp('/admin/products/p1');
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Adjust stock for TUG-RED-S' }),
+    );
+    const form = within(await screen.findByTestId('admin-stock-form'));
+    const rows = form.getAllByRole('row').slice(1);
+    expect(rows).toHaveLength(2);
+    expect(rows[1]).toHaveTextContent('Grocery Neukölln');
+    expect(rows[1]).toHaveTextContent('7');
+    // Starts on Mitte; switching to Neukölln loads that store's own numbers.
+    expect(form.getByLabelText('Units on hand')).toHaveValue('10');
+    await userEvent.selectOptions(form.getByLabelText('Store'), NEUKOELLN);
+    expect(form.getByLabelText('Units on hand')).toHaveValue('7');
+    expect(form.getByLabelText('Low-stock alert at')).toHaveValue('9');
+    await userEvent.clear(form.getByLabelText('Units on hand'));
+    await userEvent.type(form.getByLabelText('Units on hand'), '20');
+    await userEvent.click(form.getByRole('button', { name: 'Save stock' }));
+    await waitFor(() =>
+      expect(body).toEqual({
+        storeId: NEUKOELLN,
+        quantity: 20,
+        lowStockThreshold: 9,
+        reason: 'restock',
+      }),
+    );
+    expect(
+      await screen.findByText('Stock set to 20 (+13) in Grocery Neukölln'),
+    ).toBeInTheDocument();
   });
 
   it('shows the refusal when stock is set below what is reserved', async () => {

@@ -62,7 +62,23 @@ describe('GET /admin/stats', () => {
     const res = await admin.shopper.call('get', '/admin/stats');
     expect(res.status).toBe(200);
     expect(bodyOf(res)).toEqual({
-      data: { ordersToday: 0, revenue30dCents: 0, currency: 'EUR', lowStockCount: 0 },
+      data: {
+        ordersToday: 0,
+        revenue30dCents: 0,
+        currency: 'EUR',
+        lowStockCount: 0,
+        // Every store is listed, also with nothing low.
+        lowStockByStore: [
+          {
+            storeSlug: 'kreuzberg-friedrichshain',
+            storeName: 'Grocery Kreuzberg-Friedrichshain',
+            count: 0,
+          },
+          { storeSlug: 'mitte', storeName: 'Grocery Mitte', count: 0 },
+          { storeSlug: 'neukoelln', storeName: 'Grocery Neukölln', count: 0 },
+          { storeSlug: 'prenzlauer-berg', storeName: 'Grocery Prenzlauer Berg', count: 0 },
+        ],
+      },
     });
   });
 });

@@ -90,6 +90,8 @@ describe('admin shell', () => {
     expect(tiles[0]).toHaveTextContent('Orders today7');
     expect(tiles[1]).toHaveTextContent('1,234.56');
     expect(tiles[2]).toHaveTextContent('0');
+    // The low-stock count is split by store.
+    expect(tiles[2]).toHaveTextContent('Grocery Mitte 2 · Grocery Neukölln 0');
   });
 
   it('offers a retry when the numbers cannot be loaded', async () => {

@@ -20,6 +20,7 @@ import {
   users,
 } from '../db/schema/index.ts';
 import type { ProductAttributes } from '../db/schema/products.ts';
+import { DEFAULT_STORE_ID, storeIdBySlug } from '../db/seed/delivery.ts';
 
 // Unique suffix per call so factories can be used many times inside one test without colliding
 // on slug / SKU / email unique constraints.
@@ -164,8 +165,10 @@ export async function createProduct(
     )
     .returning();
 
+  // Stock goes on the default store's shelf (Mitte), where a request without a postcode looks.
   await db.insert(inventory).values(
     variants.map((variant, i) => ({
+      storeId: DEFAULT_STORE_ID,
       variantId: variant.id,
       quantity: variantInputs[i]?.stock ?? 50,
       reserved: variantInputs[i]?.reserved ?? 0,
@@ -335,4 +338,23 @@ export async function createReview(
       .returning(),
     'review',
   );
+}
+
+/** Sets one store's shelf of a variant (a row is created when the store has none). */
+export async function stockAt(
+  variantId: string,
+  storeSlug: string,
+  quantity: number,
+  reserved = 0,
+): Promise<string> {
+  const storeId = storeIdBySlug(storeSlug);
+  if (!storeId) throw new Error(`factory: unknown store ${storeSlug}`);
+  await db
+    .insert(inventory)
+    .values({ storeId, variantId, quantity, reserved })
+    .onConflictDoUpdate({
+      target: [inventory.storeId, inventory.variantId],
+      set: { quantity, reserved },
+    });
+  return storeId;
 }

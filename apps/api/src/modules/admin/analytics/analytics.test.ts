@@ -372,8 +372,8 @@ describe('GET /admin/analytics/export.csv', () => {
       variants: [{ name: 'Near one', priceCents: 100, stock: 1 }],
     });
     const rows = lines((await csv('report=low-stock&lowStock=3')).text);
-    expect(rows[0]).toBe('sku,product,variant,available,threshold');
-    expect(rows[1]).toContain('Nearly out,Near one,1,3');
+    expect(rows[0]).toBe('sku,product,variant,store,available,threshold');
+    expect(rows[1]).toContain('Nearly out,Near one,Grocery Mitte,1,3');
     expect(rows[1]!.endsWith(',1,3')).toBe(true);
   });
 });

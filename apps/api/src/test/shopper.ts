@@ -15,7 +15,13 @@ export interface Shopper {
 // back, drops the ones the API clears, and attaches the Origin header the CSRF check demands on
 // writes. Pass a session token to act as a signed-in user.
 // `store` is the store view the browser is on (`de-de`): sent as X-Store-View on every call.
-export function makeShopper(app: Express, sid?: string, store?: string): Shopper {
+// `postcode` is the delivery postcode the browser has chosen: sent as X-Postcode on every call.
+export function makeShopper(
+  app: Express,
+  sid?: string,
+  store?: string,
+  postcode?: string,
+): Shopper {
   const jar = new Map<string, string>();
   if (sid) jar.set('sid', sid);
 
@@ -23,6 +29,7 @@ export function makeShopper(app: Express, sid?: string, store?: string): Shopper
     const req = request(app)[method](`/api/v1${path}`);
     if (method !== 'get') req.set('Origin', TEST_ORIGIN);
     if (store) req.set('X-Store-View', store);
+    if (postcode) req.set('X-Postcode', postcode);
     if (jar.size)
       req.set(
         'Cookie',

@@ -30,8 +30,8 @@ import { categories } from './categories.ts';
 import { seedCharity } from './charity.ts';
 import { collections, windowDates } from './collections.ts';
 import { loadContent, seedContent } from './content.ts';
-import { seedDelivery } from './delivery.ts';
-import { FORCED_STOCK, expandVariants, stockLevels } from './expand.ts';
+import { AREA_SEEDS, seedDelivery } from './delivery.ts';
+import { FORCED_STOCK, FORCED_STORE_STOCK, expandVariants, stockLevels } from './expand.ts';
 import { seedHomeContent } from './home.ts';
 import { imageRowsFor } from './images.ts';
 import { seedMenuPromos } from './menu-promos.ts';
@@ -259,19 +259,26 @@ export async function runSeed(now = new Date()) {
     }
 
     // ---- inventory: insert only. A re-seed must not reset stock that has since been sold. ----
-    const stock = stockLevels(variantValues.length);
+    // Every store has its own shelf of every variant, with its own deterministic spread.
     await tx
       .insert(inventory)
       .values(
-        variantValues.map((v, i) => {
-          const id = variantId.get(v.sku);
-          if (!id) throw new Error(`variant ${v.sku} was not inserted`);
-          // A sample is the way in to a product, so it is never the sold-out one (the random
-          // stock levels would otherwise leave some samples at 0 or 3).
-          return {
-            variantId: id,
-            quantity: FORCED_STOCK[v.sku] ?? (v.isTrial ? 50 : (stock[i] ?? 0)),
-          };
+        AREA_SEEDS.flatMap((area, storeIndex) => {
+          const stock = stockLevels(variantValues.length, storeIndex);
+          return variantValues.map((v, i) => {
+            const id = variantId.get(v.sku);
+            if (!id) throw new Error(`variant ${v.sku} was not inserted`);
+            // A sample is the way in to a product, so it is never the sold-out one (the random
+            // stock levels would otherwise leave some samples at 0 or 3).
+            const forced =
+              FORCED_STORE_STOCK[v.sku]?.[area.slug] ??
+              (storeIndex === 0 ? FORCED_STOCK[v.sku] : undefined);
+            return {
+              storeId: area.storeId,
+              variantId: id,
+              quantity: forced ?? (v.isTrial ? 50 : (stock[i] ?? 0)),
+            };
+          });
         }),
       )
       .onConflictDoNothing();

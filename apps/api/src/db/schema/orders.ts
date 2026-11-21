@@ -15,6 +15,7 @@ import {
 
 import { carts } from './carts.ts';
 import { citext, createdAt, id, updatedAt } from './columns.ts';
+import { darkStores } from './delivery.ts';
 import { users } from './users.ts';
 
 export const orderStatus = pgEnum('order_status', [
@@ -86,6 +87,10 @@ export const orders = pgTable(
     // Set when payment is confirmed, so it differs from created_at for abandoned checkouts.
     placedAt: timestamp('placed_at', { withTimezone: true }),
     // Provenance only; the cart can be purged without touching the order.
+    // The dark store that packs the order, from the delivery address's postcode at checkout. Stock
+    // is reserved, released, committed and restocked against it. Backfilled to Mitte for orders
+    // from before G4 (they were all packed from the one warehouse).
+    darkStoreId: uuid('dark_store_id').references(() => darkStores.id, { onDelete: 'restrict' }),
     cartId: uuid('cart_id').references(() => carts.id, { onDelete: 'set null' }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),

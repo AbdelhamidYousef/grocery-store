@@ -1,6 +1,7 @@
 import { index, integer, pgTable, text, uuid } from 'drizzle-orm/pg-core';
 
 import { createdAt, id } from './columns.ts';
+import { darkStores } from './delivery.ts';
 import { productVariants } from './product-variants.ts';
 
 // Append-only record of every manual stock change, so "why is there 12 on the shelf?" always has
@@ -14,6 +15,10 @@ export const inventoryAdjustments = pgTable(
     variantId: uuid('variant_id')
       .notNull()
       .references(() => productVariants.id, { onDelete: 'cascade' }),
+    // The store whose shelf changed.
+    storeId: uuid('store_id')
+      .notNull()
+      .references(() => darkStores.id, { onDelete: 'cascade' }),
     // Signed change applied to `inventory.quantity`.
     delta: integer('delta').notNull(),
     // 'restock' | 'correction' | 'damage' | 'return' (validated by the API with a shared enum).

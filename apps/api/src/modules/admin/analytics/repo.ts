@@ -114,16 +114,19 @@ export async function lowStock(threshold: number, limit: number | null) {
     sku: string;
     product_name: string;
     variant_name: string;
+    store_slug: string;
+    store_name: string;
     available: number;
   }>(sql`
     select v.id::text as variant_id, p.id::text as product_id, v.sku,
-      p.name as product_name, v.name as variant_name,
+      p.name as product_name, v.name as variant_name, s.slug as store_slug, s.name as store_name,
       (i.quantity - i.reserved)::int as available
     from inventory i
+    join dark_stores s on s.id = i.store_id
     join product_variants v on v.id = i.variant_id
     join products p on p.id = v.product_id
     where v.status = 'active' and p.status = 'active' and (i.quantity - i.reserved) <= ${threshold}
-    order by available asc, p.name asc, v.sku asc
+    order by available asc, p.name asc, v.sku asc, s.name asc
     ${limit === null ? sql`` : sql`limit ${limit}`}
   `);
 }

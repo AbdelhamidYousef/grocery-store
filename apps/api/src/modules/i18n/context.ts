@@ -51,6 +51,15 @@ export function currentDelivery(): DeliveryContext {
   return deliveryStorage.getStore() ?? NOT_CHOSEN;
 }
 
+/**
+ * Runs `fn` as if the request had come from this postcode's store. Checkout uses it with the
+ * delivery ADDRESS postcode, so every availability check inside the order transaction (the cart
+ * re-pricing) reads the shelf that will be reserved, not the one the header browsed.
+ */
+export function runInStore<T>(ctx: DeliveryContext, fn: () => T): T {
+  return deliveryStorage.run(ctx, fn);
+}
+
 /** The dark store the current request reads stock from. */
 export function currentStoreId(): string {
   return currentDelivery().storeId;

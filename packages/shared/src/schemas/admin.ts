@@ -21,7 +21,16 @@ export const AdminStatsSchema = z.object({
   revenue30dCents: z.number().int().min(0),
   currency: z.string().length(3),
   // Active variants whose available stock (quantity - reserved) is at or below their threshold.
+  // Counted per shelf: the same variant running low in two stores counts twice.
   lowStockCount: z.number().int().min(0),
+  // The same count split by dark store (every store is listed, also with 0).
+  lowStockByStore: z.array(
+    z.object({
+      storeSlug: z.string(),
+      storeName: z.string(),
+      count: z.number().int().min(0),
+    }),
+  ),
 });
 export type AdminStats = z.infer<typeof AdminStatsSchema>;
 // `revenue30dCents` is in this currency (never summed across currencies; EUR by default).
@@ -154,6 +163,18 @@ export const AdminVariantUpdateSchema = z
   .refine(netPair, { message: NET_PAIR_MESSAGE, path: ['netAmount'] });
 export type AdminVariantUpdate = z.input<typeof AdminVariantUpdateSchema>;
 
+// One row of the stock editor: a variant's shelf in one dark store.
+export const AdminStoreStockSchema = z.object({
+  storeId: z.string(),
+  storeSlug: z.string(),
+  storeName: z.string(),
+  quantity: z.number().int(),
+  reserved: z.number().int(),
+  available: z.number().int(),
+  lowStockThreshold: z.number().int(),
+});
+export type AdminStoreStock = z.infer<typeof AdminStoreStockSchema>;
+
 export const AdminVariantSchema = z.object({
   id: z.string(),
   productId: z.string(),
@@ -171,11 +192,14 @@ export const AdminVariantSchema = z.object({
   isTrial: z.boolean(),
   swatchHex: z.string().nullable(),
   status: ProductStatusSchema,
+  // Totals over every dark store; the per-store numbers are in `stores`.
   quantity: z.number().int(),
   reserved: z.number().int(),
   // quantity - reserved, computed once by the server so the UI never subtracts.
   available: z.number().int(),
+  // The default store's (Mitte); each store's own is in `stores`.
   lowStockThreshold: z.number().int(),
+  stores: z.array(AdminStoreStockSchema),
   updatedAt: z.string(),
 });
 export type AdminVariant = z.infer<typeof AdminVariantSchema>;
@@ -346,7 +370,11 @@ export const AdminProductListResponseSchema = PaginatedSchema(AdminProductRowSch
 // Absolute set, not a delta: "there are 12 on the shelf" is what a person counts. The server
 // derives the delta and records it with the reason.
 export const AdminInventorySetSchema = z.object({
+  // The store whose shelf is counted; the default store (Mitte) when left out.
+  storeId: z.uuid().optional(),
   quantity: z.number().int().min(0).max(1_000_000),
+  // This store's low-stock threshold, when it is being changed too.
+  lowStockThreshold: z.number().int().min(0).max(100_000).optional(),
   reason: InventoryReasonSchema,
   note: z.string().trim().max(300).optional(),
 });
@@ -355,6 +383,7 @@ export type AdminInventorySet = z.input<typeof AdminInventorySetSchema>;
 export const AdminInventoryResponseSchema = DataSchema(
   z.object({
     variantId: z.string(),
+    storeId: z.string(),
     quantity: z.number().int(),
     reserved: z.number().int(),
     available: z.number().int(),

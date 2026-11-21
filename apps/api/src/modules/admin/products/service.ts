@@ -19,6 +19,7 @@ import type {
 import type { z } from 'zod';
 
 import { db, type Tx } from '../../../db/client.ts';
+import { DEFAULT_STORE_ID } from '../../../db/seed/delivery.ts';
 import { uniqueViolation } from '../../../lib/db-errors.ts';
 import { conflict, notFound, validation } from '../../../lib/errors.ts';
 import { slugify } from '../../../lib/slug.ts';
@@ -40,8 +41,17 @@ const fieldError = (field: string, message: string) =>
 // ---------- mapping ----------
 
 const toAdminVariant = (v: repo.VariantWithStock): AdminVariant => {
-  const quantity = v.inventory?.quantity ?? 0;
-  const reserved = v.inventory?.reserved ?? 0;
+  const stores = v.stock.map((r) => ({
+    storeId: r.storeId,
+    storeSlug: r.storeSlug,
+    storeName: r.storeName,
+    quantity: r.quantity,
+    reserved: r.reserved,
+    available: r.quantity - r.reserved,
+    lowStockThreshold: r.lowStockThreshold,
+  }));
+  const quantity = stores.reduce((n, r) => n + r.quantity, 0);
+  const reserved = stores.reduce((n, r) => n + r.reserved, 0);
   return {
     id: v.id,
     productId: v.productId,
@@ -62,7 +72,11 @@ const toAdminVariant = (v: repo.VariantWithStock): AdminVariant => {
     quantity,
     reserved,
     available: quantity - reserved,
-    lowStockThreshold: v.inventory?.lowStockThreshold ?? 5,
+    lowStockThreshold:
+      v.stock.find((r) => r.storeId === DEFAULT_STORE_ID)?.lowStockThreshold ??
+      v.stock[0]?.lowStockThreshold ??
+      5,
+    stores,
     updatedAt: v.updatedAt.toISOString(),
   };
 };
@@ -215,19 +229,27 @@ async function createVariant(
       ? [{ variantId: variant.id, priceCents: variant.memberPriceCents, kind: 'member' as const }]
       : []),
   ]);
-  await repo.insertInventory(tx, {
-    variantId: variant.id,
-    quantity: input.stock,
-    ...(input.lowStockThreshold !== undefined && { lowStockThreshold: input.lowStockThreshold }),
-  });
-  if (input.stock > 0) {
-    await repo.insertAdjustment(tx, {
+  // Every store gets a shelf row so the stock editor lists them all. The opening stock goes on the
+  // central store's shelf (Mitte, which receives the supplier delivery); the others start at 0 and
+  // are counted on their own, like a real dark store waiting for its first transfer.
+  for (const store of await repo.listStores(tx)) {
+    const opening = store.id === DEFAULT_STORE_ID ? input.stock : 0;
+    await repo.insertInventory(tx, {
+      storeId: store.id,
       variantId: variant.id,
-      delta: input.stock,
-      reason: 'restock',
-      actor,
-      note: 'Opening stock',
+      quantity: opening,
+      ...(input.lowStockThreshold !== undefined && { lowStockThreshold: input.lowStockThreshold }),
     });
+    if (opening > 0) {
+      await repo.insertAdjustment(tx, {
+        storeId: store.id,
+        variantId: variant.id,
+        delta: opening,
+        reason: 'restock',
+        actor,
+        note: 'Opening stock',
+      });
+    }
   }
   return variant;
 }
@@ -486,13 +508,13 @@ export async function deleteVariant(variantId: string): Promise<void> {
     }
     // Stock held by an unpaid checkout cannot be deleted from under it. Locking in the shared
     // order (inventory after product) keeps this safe against a concurrent checkout.
-    await checkoutRepo.lockInventory(tx, [variantId]);
-    const stock = await repo.lockInventoryRow(tx, variantId);
-    if (stock && stock.reserved > 0) {
+    const stock = await repo.lockInventoryRows(tx, variantId);
+    const reserved = stock.reduce((n, r) => n + r.reserved, 0);
+    if (reserved > 0) {
       throw conflict(
         ErrorCode.CONFLICT,
         'This variant is reserved by unpaid orders; archive it instead of deleting it',
-        { reserved: stock.reserved },
+        { reserved },
       );
     }
     await repo.deleteVariant(tx, variantId);
@@ -514,9 +536,10 @@ export async function setInventory(
   return db.transaction(async (tx) => {
     // Same lock helper as checkout, so an admin edit queues behind (or ahead of) a reservation
     // instead of racing it.
-    await checkoutRepo.lockInventory(tx, [variantId]);
-    const row = await repo.lockInventoryRow(tx, variantId);
-    if (!row) throw notFound('Variant not found');
+    const storeId = input.storeId ?? DEFAULT_STORE_ID;
+    await checkoutRepo.lockInventory(tx, storeId, [variantId]);
+    const row = await repo.lockInventoryRow(tx, storeId, variantId);
+    if (!row) throw notFound('Variant not found in that store');
     // Units promised to unpaid orders cannot be taken away: the shopper has been told they are
     // theirs, and `reserved <= quantity` is what keeps "available" from going negative.
     if (input.quantity < row.reserved) {
@@ -528,8 +551,9 @@ export async function setInventory(
     }
     const delta = input.quantity - row.quantity;
     if (delta !== 0) {
-      await repo.setInventoryQuantity(tx, variantId, input.quantity);
+      await repo.setInventoryQuantity(tx, storeId, variantId, input.quantity);
       await repo.insertAdjustment(tx, {
+        storeId,
         variantId,
         delta,
         reason: input.reason,
@@ -537,8 +561,12 @@ export async function setInventory(
         note: input.note ?? null,
       });
     }
+    if (input.lowStockThreshold !== undefined) {
+      await repo.setLowStockThreshold(tx, variantId, input.lowStockThreshold, storeId);
+    }
     return {
       variantId,
+      storeId,
       quantity: input.quantity,
       reserved: row.reserved,
       available: input.quantity - row.reserved,

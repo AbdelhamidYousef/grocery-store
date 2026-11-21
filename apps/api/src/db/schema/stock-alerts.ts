@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import { index, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 
 import { citext, createdAt, id } from './columns.ts';
+import { darkStores } from './delivery.ts';
 import { productVariants } from './product-variants.ts';
 import { users } from './users.ts';
 
@@ -19,6 +20,9 @@ export const stockAlerts = pgTable(
       .references(() => productVariants.id, { onDelete: 'cascade' }),
     email: citext('email').notNull(),
     userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
+    // The dark store of the shopper's postcode at subscribe time (Mitte when none was chosen). Null
+    // only on rows from before G4: read as the default store.
+    storeId: uuid('store_id').references(() => darkStores.id, { onDelete: 'cascade' }),
     status: stockAlertStatus('status').notNull().default('waiting'),
     token: text('token').notNull().unique(),
     // The store view (and so the language) the person was in; their mail follows it.

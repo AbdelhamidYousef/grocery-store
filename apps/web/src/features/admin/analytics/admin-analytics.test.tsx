@@ -32,6 +32,8 @@ const analytics = (over: object = {}) => ({
       sku: 'TUG-S',
       productName: 'Rope Tug',
       variantName: 'Small',
+      storeSlug: 'neukoelln',
+      storeName: 'Grocery Neukölln',
       available: 2,
     },
   ],

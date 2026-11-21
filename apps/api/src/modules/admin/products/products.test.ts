@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { db } from '../../../db/client.ts';
@@ -9,6 +9,7 @@ import {
   productVariants,
   products,
 } from '../../../db/schema/index.ts';
+import { DEFAULT_STORE_ID } from '../../../db/seed/delivery.ts';
 import { makeTestApp } from '../../../test/app.ts';
 import {
   createCart,
@@ -22,6 +23,15 @@ import { placeOrder, signedIn, stockOf } from '../../../test/orders.ts';
 import type { Shopper } from '../../../test/shopper.ts';
 
 const app = makeTestApp({ payments: new FakeStripe() });
+
+// The central store's shelf of a variant (where opening stock goes).
+const mitteRow = async (variantId: string) =>
+  (
+    await db
+      .select()
+      .from(inventory)
+      .where(and(eq(inventory.variantId, variantId), eq(inventory.storeId, DEFAULT_STORE_ID)))
+  )[0];
 
 let admin: { shopper: Shopper; user: { id: string; email: string } };
 let categoryId: string;
@@ -110,6 +120,18 @@ describe('POST /admin/products', () => {
       reason: 'restock',
       actor: 'admin:boss@grocery.test',
     });
+  });
+
+  it('gives every store a shelf row, with the opening stock in Mitte only', async () => {
+    const product = await created();
+    const rows = await db
+      .select()
+      .from(inventory)
+      .where(eq(inventory.variantId, product.variants[0]!.id));
+    expect(rows).toHaveLength(4);
+    expect(rows.filter((r) => r.quantity > 0).map((r) => [r.storeId, r.quantity])).toEqual([
+      [DEFAULT_STORE_ID, 10],
+    ]);
   });
 
   it('adds a numeric suffix when the generated slug is taken', async () => {
@@ -414,6 +436,7 @@ describe('PATCH /admin/inventory/:variantId', () => {
     expect(res.status).toBe(200);
     expect(data<object>(res)).toEqual({
       variantId: id,
+      storeId: DEFAULT_STORE_ID,
       quantity: 25,
       reserved: 0,
       available: 25,
@@ -478,18 +501,16 @@ describe('PATCH /admin/inventory/:variantId', () => {
         })
       ).status,
     ).toBe(404);
-    expect(
-      (await db.select().from(inventory).where(eq(inventory.variantId, id)))[0]?.quantity,
-    ).toBe(10);
+    expect((await mitteRow(id))?.quantity).toBe(10);
   });
 
   it('bumps the inventory row updated_at (audit-friendly)', async () => {
     const product = await created();
     const id = product.variants[0]!.id;
-    const [before] = await db.select().from(inventory).where(eq(inventory.variantId, id));
+    const before = await mitteRow(id);
     await new Promise((r) => setTimeout(r, 15));
     await patch(`/admin/inventory/${id}`, { quantity: 11, reason: 'correction' });
-    const [after] = await db.select().from(inventory).where(eq(inventory.variantId, id));
+    const after = await mitteRow(id);
     expect(after!.updatedAt.getTime()).toBeGreaterThan(before!.updatedAt.getTime());
   });
 });

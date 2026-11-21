@@ -54,7 +54,11 @@ export function Dashboard() {
           <StatTile
             label="Low stock variants"
             value={String(data.lowStockCount)}
-            note="At or below their threshold"
+            note={
+              data.lowStockByStore.length > 0
+                ? data.lowStockByStore.map((st) => `${st.storeName} ${st.count}`).join(' · ')
+                : 'At or below their threshold'
+            }
           />
         </dl>
       )}

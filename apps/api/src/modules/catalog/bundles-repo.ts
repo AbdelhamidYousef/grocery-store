@@ -1,6 +1,6 @@
 import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 
-import { stockQuantity, stockReserved } from '../../db/available.ts';
+import { inventoryAt, stockQuantity, stockReserved } from '../../db/available.ts';
 import { db } from '../../db/client.ts';
 import { bundleItems, inventory, productVariants, products } from '../../db/schema/index.ts';
 import { hasPriceIn, priceIn } from '../i18n/prices.ts';
@@ -62,7 +62,7 @@ export async function listKitsContaining(productId: string): Promise<KitRow[]> {
     .from(bundleItems)
     .innerJoin(productVariants, eq(productVariants.id, bundleItems.bundleVariantId))
     .innerJoin(products, eq(products.id, productVariants.productId))
-    .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
+    .leftJoin(inventory, inventoryAt(productVariants.id))
     .where(
       and(
         inArray(bundleItems.componentVariantId, mine),

@@ -12,6 +12,8 @@ import {
   users,
 } from '../schema/index.ts';
 
+import { DEFAULT_STORE_ID } from './delivery.ts';
+
 // Phase 22 demo data: about 90 days of invented orders so the analytics charts are not empty, and
 // three sample returns (one waiting for a decision, one approved, one refunded). Everything comes
 // from a fixed-seed generator, so every run on every machine writes the same rows and re-seeding
@@ -30,7 +32,7 @@ const ADDRESS = {
   fullName: 'Demo Customer',
   line1: '1 Bone Street',
   city: 'Riga',
-  postalCode: 'LV-1010',
+  postalCode: '10115',
   country: 'DE',
 };
 
@@ -169,6 +171,8 @@ export async function seedSales(tx: Tx, opts: { passwordHash: string; now: Date 
         shippingMethodCode: 'standard',
         shippingMethodName: 'Standard',
         shippingAddress: ADDRESS,
+        // Packed in Mitte (ADDRESS is a Mitte postcode), like every order from before the stores existed.
+        darkStoreId: DEFAULT_STORE_ID,
         notes: SALES_MARKER,
         placedAt: p.placedAt,
         createdAt: p.placedAt,

@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, inArray, ne, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 
-import { stockQuantity, stockReserved } from '../../db/available.ts';
+import { inventoryAt, stockQuantity, stockReserved } from '../../db/available.ts';
 import { db } from '../../db/client.ts';
 import {
   inventory,
@@ -123,7 +123,7 @@ export async function sellableVariants(
       isDefault: productVariants.isDefault,
     })
     .from(productVariants)
-    .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
+    .leftJoin(inventory, inventoryAt(productVariants.id))
     .where(
       and(
         inArray(productVariants.productId, productIds),

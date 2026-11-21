@@ -162,13 +162,17 @@ export async function receive(
       }
     }
     const lines = checkoutRepo.expandOrderItems([...new Set(chosen)].map((id) => byId.get(id)!));
+    // Returned units go back to the shelf of the store that packed the order.
+    const storeId = checkoutRepo.storeOfOrder(order);
     await checkoutRepo.lockInventory(
       tx,
+      storeId,
       lines.map((l) => l.variantId),
     );
     for (const line of lines) {
-      await checkoutRepo.restockUnits(tx, line.variantId, line.quantity);
+      await checkoutRepo.restockUnits(tx, storeId, line.variantId, line.quantity);
       await repo.insertAdjustment(tx, {
+        storeId,
         variantId: line.variantId,
         delta: line.quantity,
         reason: 'return',

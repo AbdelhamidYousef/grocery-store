@@ -60,9 +60,9 @@ async function* rows(
       yield [p.name, p.units, p.revenue_cents, formatCents(p.revenue_cents)];
     }
   } else {
-    yield ['sku', 'product', 'variant', 'available', 'threshold'];
+    yield ['sku', 'product', 'variant', 'store', 'available', 'threshold'];
     for (const v of await repo.lowStock(lowStock, null)) {
-      yield [v.sku, v.product_name, v.variant_name, v.available, lowStock];
+      yield [v.sku, v.product_name, v.variant_name, v.store_name, v.available, lowStock];
     }
   }
 }

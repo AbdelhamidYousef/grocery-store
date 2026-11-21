@@ -26,3 +26,10 @@ export async function lookupPostcode(code: string): Promise<PostcodeRow | undefi
 
 /** What a request without a (served) postcode gets: the central store, flagged as not chosen. */
 export const DEFAULT_DELIVERY_STORE_ID = DEFAULT_STORE_ID;
+
+/** Names of the areas we deliver to, for the "we cover ..." sentence of a refusal. */
+export async function listAreaNames(): Promise<string[]> {
+  const names = new Map<string, string>();
+  for (const row of (await table()).values()) names.set(row.areaSlug, row.areaName);
+  return [...names.values()].sort((a, b) => a.localeCompare(b));
+}

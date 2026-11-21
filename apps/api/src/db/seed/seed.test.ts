@@ -128,6 +128,43 @@ describe('seed', () => {
     expect(rows[0]?.n).toBe(0);
   });
 
+  it('seeds the four areas and stores, and a shelf of every non-kit variant in every store', async () => {
+    await runSeed();
+    const rows = await db.execute<Record<string, number>>(sql`
+      select (select count(*)::int from delivery_areas) as areas,
+             (select count(*)::int from dark_stores) as stores,
+             (select count(*)::int from postcodes) as postcodes,
+             (select count(*)::int from product_variants v join products p on p.id = v.product_id where p.kind <> 'bundle') as variants,
+             (select count(*)::int from inventory) as shelves`);
+    const c = rows[0]!;
+    expect(c).toMatchObject({ areas: 4, stores: 4 });
+    expect(c.postcodes!).toBeGreaterThanOrEqual(30);
+    expect(c.shelves).toBe(4 * c.variants!);
+  });
+
+  it('varies the shelves: products sold out in one store are in stock in another', async () => {
+    await runSeed();
+    const rows = await db.execute<{ sku: string; stores_out: number; stores_in: number }>(sql`
+      select v.sku,
+        count(*) filter (where i.quantity - i.reserved <= 0)::int as stores_out,
+        count(*) filter (where i.quantity - i.reserved > 0)::int as stores_in
+      from inventory i join product_variants v on v.id = i.variant_id
+      group by v.sku having count(*) filter (where i.quantity - i.reserved <= 0) > 0`);
+    const mixed = rows.filter((r) => r.stores_in > 0);
+    expect(mixed.length).toBeGreaterThanOrEqual(5);
+    // The sold-out prawns are in stock in Neukölln, so the demo can show "in stock near you".
+    const prawns = await db.execute<{ slug: string; quantity: number }>(sql`
+      select s.slug, i.quantity from inventory i
+      join dark_stores s on s.id = i.store_id
+      join product_variants v on v.id = i.variant_id where v.sku = 'GR-FROZEN-PRAWNS'`);
+    expect(Object.fromEntries(prawns.map((r) => [r.slug, r.quantity]))).toEqual({
+      mitte: 0,
+      'prenzlauer-berg': 0,
+      'kreuzberg-friedrichshain': 6,
+      neukoelln: 12,
+    });
+  });
+
   it('does not reset stock on a second run', async () => {
     await runSeed();
     await db.execute(sql`update inventory set quantity = 777`);

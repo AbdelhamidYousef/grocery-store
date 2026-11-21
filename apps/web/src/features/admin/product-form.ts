@@ -332,7 +332,12 @@ export function toUpdatePayload(form: ProductFormOutput): AdminProductUpdate {
 // ---------- stock ----------
 
 export const StockFormSchema = z.object({
+  // The dark store whose shelf is counted (one stock row per store).
+  storeId: z.string().min(1),
   quantity: wholeNumber('Enter a whole number').pipe(AdminInventorySetSchema.shape.quantity),
+  lowStockThreshold: wholeNumber('Enter a whole number').pipe(
+    AdminInventorySetSchema.shape.lowStockThreshold.unwrap(),
+  ),
   reason: AdminInventorySetSchema.shape.reason,
   note: z.string().pipe(AdminInventorySetSchema.shape.note.unwrap()).or(z.literal('')),
 });

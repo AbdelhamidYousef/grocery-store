@@ -80,6 +80,8 @@ export async function getAnalytics(query: {
       sku: r.sku,
       productName: r.product_name,
       variantName: r.variant_name,
+      storeSlug: r.store_slug,
+      storeName: r.store_name,
       available: r.available,
     })),
     lowStockThreshold: query.lowStock,

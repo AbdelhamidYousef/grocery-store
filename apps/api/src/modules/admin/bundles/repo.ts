@@ -1,6 +1,6 @@
 import { and, asc, eq, ilike, inArray, ne, or, sql } from 'drizzle-orm';
 
-import { stockQuantity, stockReserved } from '../../../db/available.ts';
+import { inventoryAt, stockQuantity, stockReserved } from '../../../db/available.ts';
 import { db, type Tx } from '../../../db/client.ts';
 import {
   bundleItems,
@@ -9,6 +9,7 @@ import {
   productVariants,
   products,
 } from '../../../db/schema/index.ts';
+import { DEFAULT_STORE_ID } from '../../../db/seed/delivery.ts';
 
 type Run = typeof db | Tx;
 
@@ -37,7 +38,7 @@ export async function listVariantsById(run: Run, ids: string[]) {
     })
     .from(productVariants)
     .innerJoin(products, eq(products.id, productVariants.productId))
-    .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
+    .leftJoin(inventory, inventoryAt(productVariants.id, DEFAULT_STORE_ID))
     .where(inArray(productVariants.id, ids));
 }
 
@@ -69,12 +70,12 @@ export async function listBundleRows(run: Run, onlyVariantId?: string) {
       slug: products.slug,
       name: products.name,
       priceCents: productVariants.priceCents,
-      quantity: sql<number>`coalesce(${stockQuantity(productVariants.id)}, 0)`,
-      reserved: sql<number>`coalesce(${stockReserved(productVariants.id)}, 0)`,
+      quantity: sql<number>`coalesce(${stockQuantity(productVariants.id, DEFAULT_STORE_ID)}, 0)`,
+      reserved: sql<number>`coalesce(${stockReserved(productVariants.id, DEFAULT_STORE_ID)}, 0)`,
     })
     .from(productVariants)
     .innerJoin(products, eq(products.id, productVariants.productId))
-    .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
+    .leftJoin(inventory, inventoryAt(productVariants.id, DEFAULT_STORE_ID))
     .where(
       and(
         eq(products.kind, 'bundle'),

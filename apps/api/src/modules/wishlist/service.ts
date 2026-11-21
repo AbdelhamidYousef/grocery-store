@@ -8,7 +8,7 @@ import {
 } from '@store/shared';
 import { and, asc, count, eq, inArray, sql } from 'drizzle-orm';
 
-import { stockQuantity, stockReserved } from '../../db/available.ts';
+import { inventoryAt, stockQuantity, stockReserved } from '../../db/available.ts';
 import { db, type Tx } from '../../db/client.ts';
 import {
   inventory,
@@ -60,7 +60,9 @@ export async function resolveList(run: Run, who: WishlistWho) {
 
 // ---------- reading ----------
 
-const availableOf = sql<number>`coalesce(${stockQuantity(productVariants.id)} - ${stockReserved(productVariants.id)}, 0)`;
+// A function, not a constant: the store is the one of the request in flight, read when the query is built.
+const availableOf = () =>
+  sql<number>`coalesce(${stockQuantity(productVariants.id)} - ${stockReserved(productVariants.id)}, 0)`;
 
 async function viewItems(run: Run, wishlistId: string): Promise<WishlistItem[]> {
   const rows = await run
@@ -88,10 +90,10 @@ async function viewItems(run: Run, wishlistId: string): Promise<WishlistItem[]> 
       priceCents: priceIn(),
       currency: sql<string>`${currentStore().currency}::char(3)`,
       isDefault: productVariants.isDefault,
-      available: availableOf,
+      available: availableOf(),
     })
     .from(productVariants)
-    .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
+    .leftJoin(inventory, inventoryAt(productVariants.id))
     .where(
       and(
         inArray(productVariants.productId, productIds),

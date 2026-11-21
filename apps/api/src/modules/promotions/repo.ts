@@ -1,5 +1,6 @@
 import { and, asc, count, desc, eq, gt, inArray, isNull, lt, lte, ne, or, sql } from 'drizzle-orm';
 
+import { inventoryAt } from '../../db/available.ts';
 import { db, type Tx } from '../../db/client.ts';
 import {
   bulkTiers,
@@ -83,7 +84,7 @@ export async function activeGift(run: Run, currency: string = currentStore().cur
     .from(giftRules)
     .innerJoin(productVariants, eq(productVariants.id, giftRules.variantId))
     .innerJoin(products, eq(products.id, productVariants.productId))
-    .leftJoin(inventory, eq(inventory.variantId, giftRules.variantId))
+    .leftJoin(inventory, inventoryAt(giftRules.variantId))
     .where(eq(giftRules.active, true))
     .limit(1);
   if (!row) return undefined;

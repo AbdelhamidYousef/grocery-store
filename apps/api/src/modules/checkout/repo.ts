@@ -11,6 +11,7 @@ import {
   shippingMethods,
   webhookEvents,
 } from '../../db/schema/index.ts';
+import { DEFAULT_STORE_ID } from '../../db/seed/delivery.ts';
 import { currentStore } from '../i18n/context.ts';
 
 type Db = typeof db | Tx;
@@ -127,30 +128,44 @@ export function expandOrderItems(
   );
 }
 
-// Takes the row locks on stock in ONE statement, in variant-id order. Two checkouts that touch the
-// same two variants then always queue on the lower id first, so neither can hold B while waiting
+// Takes the row locks on stock in ONE statement, in (store, variant) order. Two checkouts that touch
+// the same shelves then always queue on the lower key first, so neither can hold B while waiting
 // for A as the other holds A while waiting for B (the classic deadlock). Postgres applies
 // FOR UPDATE after the sort, so the locks are acquired in the ORDER BY order. Every code path
-// that changes `inventory.reserved` (place, release, confirm) calls this first.
-export async function lockInventory(tx: Tx, variantIds: string[]): Promise<void> {
+// that changes `inventory.reserved` (place, release, confirm) calls this first. Stock is per dark
+// store, so the caller names the store(s): a retried checkout whose address moved to another area
+// holds the old store's reservation and the new one's shelf at the same time.
+export async function lockInventory(
+  tx: Tx,
+  storeIds: string | string[],
+  variantIds: string[],
+): Promise<void> {
   if (variantIds.length === 0) return;
   await tx
     .select({ variantId: inventory.variantId })
     .from(inventory)
-    .where(inArray(inventory.variantId, variantIds))
-    .orderBy(asc(inventory.variantId))
+    .where(
+      and(inArray(inventory.variantId, variantIds), inArray(inventory.storeId, [storeIds].flat())),
+    )
+    .orderBy(asc(inventory.storeId), asc(inventory.variantId))
     .for('update');
 }
 
-// Holds `qty` units for an order if (and only if) that many are free. The condition lives in the
-// UPDATE itself so check and write are one atomic step; the CHECK constraints on `inventory` are a
-// third line of defence behind the row lock and this guard.
-export async function reserveStock(tx: Tx, variantId: string, qty: number): Promise<boolean> {
+// Holds `qty` units for an order if (and only if) that many are free at the store. The condition
+// lives in the UPDATE itself so check and write are one atomic step; the CHECK constraints on
+// `inventory` are a third line of defence behind the row lock and this guard.
+export async function reserveStock(
+  tx: Tx,
+  storeId: string,
+  variantId: string,
+  qty: number,
+): Promise<boolean> {
   const rows = await tx
     .update(inventory)
     .set({ reserved: sql`${inventory.reserved} + ${qty}` })
     .where(
       and(
+        eq(inventory.storeId, storeId),
         eq(inventory.variantId, variantId),
         sql`${inventory.quantity} - ${inventory.reserved} >= ${qty}`,
       ),
@@ -159,31 +174,54 @@ export async function reserveStock(tx: Tx, variantId: string, qty: number): Prom
   return rows.length === 1;
 }
 
-export async function releaseStock(tx: Tx, variantId: string, qty: number): Promise<void> {
+const rowOf = (storeId: string, variantId: string) =>
+  and(eq(inventory.storeId, storeId), eq(inventory.variantId, variantId));
+
+export async function releaseStock(
+  tx: Tx,
+  storeId: string,
+  variantId: string,
+  qty: number,
+): Promise<void> {
   await tx
     .update(inventory)
     .set({ reserved: sql`${inventory.reserved} - ${qty}` })
-    .where(eq(inventory.variantId, variantId));
+    .where(rowOf(storeId, variantId));
 }
 
 // Payment confirmed: the held units leave the shelf for good.
-export async function commitStock(tx: Tx, variantId: string, qty: number): Promise<void> {
+export async function commitStock(
+  tx: Tx,
+  storeId: string,
+  variantId: string,
+  qty: number,
+): Promise<void> {
   await tx
     .update(inventory)
     .set({
       quantity: sql`${inventory.quantity} - ${qty}`,
       reserved: sql`${inventory.reserved} - ${qty}`,
     })
-    .where(eq(inventory.variantId, variantId));
+    .where(rowOf(storeId, variantId));
 }
 
-// Cancel/refund of an order that was paid but not shipped: the units go back on the shelf.
-export async function restockUnits(tx: Tx, variantId: string, qty: number): Promise<void> {
+// Cancel/refund of an order that was paid but not shipped, or a returned parcel: the units go back
+// on the shelf of the store that packed the order.
+export async function restockUnits(
+  tx: Tx,
+  storeId: string,
+  variantId: string,
+  qty: number,
+): Promise<void> {
   await tx
     .update(inventory)
     .set({ quantity: sql`${inventory.quantity} + ${qty}` })
-    .where(eq(inventory.variantId, variantId));
+    .where(rowOf(storeId, variantId));
 }
+
+/** The store that packs an order: its own, or the default for one without (from before G4). */
+export const storeOfOrder = (order: Pick<OrderRow, 'darkStoreId'>): string =>
+  order.darkStoreId ?? DEFAULT_STORE_ID;
 
 export async function findPendingOrderByCart(
   tx: Tx,

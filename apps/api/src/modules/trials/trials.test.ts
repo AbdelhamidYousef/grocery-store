@@ -93,7 +93,7 @@ describe('trial size at checkout and payment', () => {
         fullName: 'A',
         line1: '1 St',
         city: 'Riga',
-        postalCode: 'LV-1',
+        postalCode: '10115',
         country: 'DE',
       },
       shippingMethodCode: 'standard',

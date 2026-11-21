@@ -15,7 +15,7 @@ import {
   type SQL,
 } from 'drizzle-orm';
 
-import { stockQuantity, stockReserved } from '../../db/available.ts';
+import { inventoryAt, stockQuantity, stockReserved } from '../../db/available.ts';
 import { db } from '../../db/client.ts';
 import {
   brands,
@@ -173,7 +173,7 @@ export function variantSummary() {
         ),
     })
     .from(productVariants)
-    .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
+    .leftJoin(inventory, inventoryAt(productVariants.id))
     .where(
       and(
         eq(productVariants.status, 'active'),
@@ -670,7 +670,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetailRows 
         lowStockThreshold: sql<number>`coalesce(${inventory.lowStockThreshold}, 0)`,
       })
       .from(productVariants)
-      .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
+      .leftJoin(inventory, inventoryAt(productVariants.id))
       .where(
         and(
           eq(productVariants.productId, head.product.id),
@@ -843,7 +843,7 @@ export async function listBadgeFacts(): Promise<BadgeFactRow[]> {
         lowStockThreshold: sql<number>`coalesce(${inventory.lowStockThreshold}, 0)`,
       })
       .from(productVariants)
-      .leftJoin(inventory, eq(inventory.variantId, productVariants.id))
+      .leftJoin(inventory, inventoryAt(productVariants.id))
       .where(and(eq(productVariants.status, 'active'), hasPriceIn())),
   ]);
   const byProduct = new Map<string, BadgeFactRow['variants']>();
