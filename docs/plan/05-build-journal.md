@@ -992,3 +992,28 @@ local setup. `CREDITS.md` did not exist yet although the G3 journal promised it:
    you would search for in a copied project, and why the brand name is the weakest search term.
 4. The README says holds "expire by themselves" and that jobs run every 5 minutes. Explain, for a reader who has not seen the code,
    why a job that runs late cannot over-book a slot.
+
+## Final QA
+
+A last pass over what the G11 sweep skipped: the checkout delivery-time and payment steps, the confirmation, the account order
+page, the tracking page, the packer view (also at 768 px) and the admin order detail, at 1280 and 375 px, EN and DE, on a fresh
+order (a new shopper through the real API and the e2e payment simulator, because the dev API has no Stripe key). Measured: width
+past the viewport, page height, words over 28 characters, exclamation marks, leftover Pawsome and parcel words.
+Clean: no page is wider than its viewport (the delivery day tabs at 375 px scroll inside their own strip on purpose), no exclamation
+marks, no parcel words, no long words except e-mail addresses (they wrap).
+Found and fixed, one commit per group:
+- `fix(copy)`: the order badge said "Paid" for a card that is only held. It now says "Payment secured" (DE "Zahlung gesichert") and
+  "Charged" ("Abgebucht") once the capture happened; the admin status, history line, button ("Mark payment secured"), payment row
+  ("Held on the card" instead of the raw "authorized") use the same words; "Default billing" is "Default billing address"; the admin
+  total no longer reads "Delivery (Delivery in your slot)".
+- `fix(i18n)`: the German product page showed "Spain" and "Breakfast". Tags are rows with one name and no translation table, so the
+  API translates them by slug (`modules/i18n/tag-names.ts`, product page and filter list); countries are dictionary keys on the web
+  (`catalog.origin.*`, also in the filter list and its chips); the delivery kind on the confirmation and the account order page
+  ("Lieferung im gewählten Zeitfenster") is translated by method code.
+Left open: the order lines are snapshots, so in German an order shows "Strawberries" (the cart and product pages are translated);
+the all-orders packer list renders up to 30 open bags (11,000 px at 1280, 19,000 px at 375): a packer uses the store filter and
+"Find an order"; the admin area is English only under `/de-de` by design; help and legal pages are English only.
+Learn: a status that is stored once but means two things to the shopper (money held, money taken) needs the second fact (the
+captured amount) in its label, and a free-text catalogue field is a translation gap that no dictionary check can see: look for
+fields the seed writes as plain strings.
+
