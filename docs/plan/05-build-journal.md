@@ -1011,8 +1011,8 @@ Found and fixed, one commit per group:
   (`catalog.origin.*`, also in the filter list and its chips); the delivery kind on the confirmation and the account order page
   ("Lieferung im gewählten Zeitfenster") is translated by method code.
 Left open: the order lines are snapshots, so in German an order shows "Strawberries" (the cart and product pages are translated);
-the all-orders packer list renders up to 30 open bags (11,000 px at 1280, 19,000 px at 375): a packer uses the store filter and
-"Find an order"; the admin area is English only under `/de-de` by design; help and legal pages are English only.
+the admin area is English only under `/de-de` by design; help and legal pages are English only.
+- `fix(admin)`: the packer view rendered up to 30 open bags (11,121 px at 1280, 16,270 at 768, 19,371 at 375). Bags are now summary rows (order, window, items, status) that expand one at a time; `?order=` opens and scrolls to its bag; the walking pick list is unchanged (the page is 5,101 / 8,681 / 11,439 px, almost all of it the pick list).
 Learn: a status that is stored once but means two things to the shopper (money held, money taken) needs the second fact (the
 captured amount) in its label, and a free-text catalogue field is a translation gap that no dictionary check can see: look for
 fields the seed writes as plain strings.

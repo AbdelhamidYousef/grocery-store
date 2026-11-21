@@ -54,6 +54,14 @@ export function PickingPage() {
   const validFind = /^(GR|PW)-\d{4}-\d{6,}$/.test(find) ? find : '';
   const picking = usePicking(slug, window, validFind);
   const data = picking.data;
+  // One bag open at a time; a bag asked for by number is open (and scrolled to) until the packer
+  // picks another. A choice only counts for the address it was made at.
+  const found = validFind && data?.orders.some((o) => o.number === validFind) ? validFind : '';
+  const [choice, setChoice] = useState<{ found: string; open: string | null } | null>(null);
+  const openBag = choice && choice.found === found ? choice.open : found || null;
+  useEffect(() => {
+    document.getElementById(`bag-${found}`)?.scrollIntoView?.({ block: 'start' });
+  }, [found]);
   const openUnits = data?.pickList.reduce((n, e) => n + e.remainingQty, 0) ?? 0;
 
   return (
@@ -131,7 +139,14 @@ export function PickingPage() {
           <div className="flex min-w-0 flex-col gap-4">
             <h3 className="font-display text-xl font-bold">Bags</h3>
             {data.orders.map((order) => (
-              <BagPanel key={order.number} order={order} />
+              <BagPanel
+                key={order.number}
+                order={order}
+                open={openBag === order.number}
+                onToggle={() =>
+                  setChoice({ found, open: openBag === order.number ? null : order.number })
+                }
+              />
             ))}
           </div>
         </div>

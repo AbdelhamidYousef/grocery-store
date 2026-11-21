@@ -95,6 +95,13 @@ beforeEach(() => {
   );
 });
 
+// A bag is a summary row until it is opened.
+async function openBag() {
+  const bag = await screen.findByTestId('picking-bag');
+  await userEvent.click(within(bag).getByRole('button', { expanded: false }));
+  return bag;
+}
+
 describe('the packer view', () => {
   it('shows the walk with aisle, zone, packs and the bag each unit goes to', async () => {
     server.use(
@@ -139,7 +146,7 @@ describe('the packer view', () => {
       }),
     );
     renderApp('/admin/picking');
-    const bag = await screen.findByTestId('picking-bag');
+    const bag = await openBag();
     await userEvent.click(within(bag).getByRole('button', { name: 'Found all 2' }));
     await waitFor(() => expect(sent).toEqual([{ action: 'found' }]));
   });
@@ -165,7 +172,7 @@ describe('the packer view', () => {
       }),
     );
     renderApp('/admin/picking');
-    const bag = await screen.findByTestId('picking-bag');
+    const bag = await openBag();
     expect(within(bag).queryByRole('button', { name: /Found all/ })).not.toBeInTheDocument();
     const weigh = within(bag).getByRole('button', { name: 'Weigh' });
     expect(weigh).toBeDisabled();
@@ -207,7 +214,7 @@ describe('the packer view', () => {
       }),
     );
     renderApp('/admin/picking');
-    const bag = await screen.findByTestId('picking-bag');
+    const bag = await openBag();
     await userEvent.click(within(bag).getByRole('button', { name: 'Not all found' }));
     const dialog = await screen.findByRole('dialog', { name: /Penne: not all found/ });
     await userEvent.clear(within(dialog).getByLabelText('Units found'));
@@ -226,7 +233,7 @@ describe('the packer view', () => {
       ),
     );
     renderApp('/admin/picking');
-    const bag = await screen.findByTestId('picking-bag');
+    const bag = await openBag();
     expect(bag).toHaveTextContent('Packed.');
     expect(within(bag).queryByRole('button', { name: /Found all/ })).not.toBeInTheDocument();
   });
@@ -286,7 +293,7 @@ describe('closing and handing over a bag', () => {
       }),
     );
     renderApp('/admin/picking');
-    const bag = await screen.findByTestId('picking-bag');
+    const bag = await openBag();
     await userEvent.click(within(bag).getByRole('button', { name: 'Bag packed' }));
     await waitFor(() => expect(calls).toEqual(['pack']));
     await userEvent.click(await within(bag).findByRole('button', { name: 'Hand to rider' }));
@@ -300,7 +307,7 @@ describe('closing and handing over a bag', () => {
       ),
     );
     renderApp('/admin/picking');
-    const bag = await screen.findByTestId('picking-bag');
+    const bag = await openBag();
     expect(within(bag).getByRole('button', { name: 'Bag packed' })).toBeDisabled();
     expect(within(bag).getByText('Finish every line to close the bag.')).toBeInTheDocument();
   });
@@ -332,5 +339,51 @@ describe('find an order', () => {
     renderApp('/admin/picking?order=GR-20');
     await screen.findByTestId('picking-bag');
     expect(asked.every((s) => !s.includes('order='))).toBe(true);
+  });
+});
+
+describe('bags as summary rows', () => {
+  const twoBags = (): PickingResult => {
+    const a = result([line()]);
+    const b = result([line({ itemId: 'item-2', orderNumber: 'GR-2026-000002', bag: 2 })], {
+      number: 'GR-2026-000002',
+      bag: 2,
+      packedAt: '2026-11-21T10:30:00.000Z',
+    });
+    return { ...a, totalOrders: 2, orders: [...a.orders, ...b.orders] };
+  };
+  const serve = () =>
+    server.use(
+      http.get(`${API}/admin/stores/mitte/picking`, () => HttpResponse.json({ data: twoBags() })),
+    );
+
+  it('starts collapsed with order, window, items and status, and opens one at a time', async () => {
+    serve();
+    renderApp('/admin/picking');
+    const bags = await screen.findAllByTestId('picking-bag');
+    expect(bags).toHaveLength(2);
+    expect(within(bags[0]!).getByText('To pick')).toBeInTheDocument();
+    expect(within(bags[0]!).getByText('1 item')).toBeInTheDocument();
+    expect(within(bags[1]!).getByText('Ready to hand over')).toBeInTheDocument();
+    const [first, second] = bags.map((b) => within(b).getAllByRole('button')[0]!);
+    expect(first).toHaveAttribute('aria-expanded', 'false');
+    expect(within(bags[0]!).queryByRole('region')).not.toBeInTheDocument();
+
+    await userEvent.click(first!);
+    expect(first).toHaveAttribute('aria-expanded', 'true');
+    expect(within(bags[0]!).getByRole('region')).toBeInTheDocument();
+    await userEvent.click(second!);
+    expect(first).toHaveAttribute('aria-expanded', 'false');
+    expect(second).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.click(second!);
+    expect(second).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('opens the bag named in the address', async () => {
+    serve();
+    renderApp('/admin/picking?order=GR-2026-000002');
+    const bags = await screen.findAllByTestId('picking-bag');
+    await waitFor(() => expect(within(bags[1]!).getByRole('region')).toBeInTheDocument());
+    expect(within(bags[0]!).queryByRole('region')).not.toBeInTheDocument();
   });
 });

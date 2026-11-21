@@ -172,5 +172,5 @@ Written by the build sessions for the owner and the next session. Newest state f
   parcel answers until then (the seed also drops the two retired articles).
 - Optional: a `RESEND_API_KEY` if you want real emails on the demo; a real Lighthouse run on the live site (no tool for it here).
 - Open follow-ups: help articles and legal pages are English only; order lines are English snapshots, so a German order page shows
-  "Strawberries"; the all-orders packer list renders up to 30 bags (very tall: use the store filter and "Find an order"); the admin
+  "Strawberries"; the admin
   area is English only under `/de-de`.

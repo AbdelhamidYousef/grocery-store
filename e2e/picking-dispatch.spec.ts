@@ -112,6 +112,8 @@ test('pick, weigh, pack and dispatch: the shopper sees "On the way" and the capt
   await admin.getByLabel('Store').selectOption('mitte');
   const bag = admin.getByTestId('picking-bag');
   await expect(bag).toContainText(number);
+  // ?order= opens that bag (the others stay summary rows).
+  await expect(bag.getByRole('button', { expanded: true }).first()).toBeVisible();
   await expect(bag.getByRole('button', { name: 'Bag packed' })).toBeDisabled();
   await bag.getByRole('button', { name: 'Found all 2' }).click();
   await expect(bag.getByText('Picked').first()).toBeVisible();
