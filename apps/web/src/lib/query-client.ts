@@ -180,5 +180,6 @@ export const keys = {
     detail: (slug: string) => ['products', 'detail', slug] as const,
     recommendations: (slug: string) => ['products', 'recommendations', slug] as const,
     byIds: (ids: readonly string[]) => ['products', 'by-ids', ...ids] as const,
+    shortDated: ['products', 'short-dated'] as const,
   },
 };

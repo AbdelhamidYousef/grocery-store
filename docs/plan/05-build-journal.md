@@ -443,3 +443,26 @@ Surprise: the existing suite needed almost no changes: only the factories (a she
 `stockAt` rewrites it). Tests that poke `inventory.quantity` straight in SQL never reach a commit.
 Learn: a number that is "the sum of other rows" is only safe when there is one writer; funnelling every
 write through one module, under the lock that already existed, is what made the invariant testable.
+
+### G6.2: best-before dates and short-dated prices
+Shared `expiry.ts`: the day classes (`expired` the day after its date, `short` for a date at most two days
+away, `regular`), `daysUntil`, `compareBestBefore` and `shortDatedPrice` (30 % off, the reduction rounded
+once half up and subtracted, so price + reduction is the normal price; tested for every price up to 50 €).
+Migration 0052 adds `cart_items.short_dated` and `order_items.short_dated`. `stock/short-dated.ts` counts the
+offer: units in batches dated today..today+2, minus short-dated units of pending orders at that store, capped
+by `quantity - reserved`; nothing is stored. The cart reads it inside `loadCart`, checkout inside the same
+transaction as the reservation (after `lockInventory`, and again explicitly before `reserveStock`), a retried
+payment leaves its own earlier attempt out (`exceptCartId`). A short-dated cart line is priced as a fixed price
+(like a trial size or a kit: no sale, member price or code on top), drawn from short-dated batches at payment
+(`order_item_batches.short_dated`). The PDP variant carries `bestBefore` ("at least": the oldest regular date,
+the oldest short date when every pack is short) and `shortDated: { units, bestBefore, priceCents, percentOff }`;
+`GET /products/short-dated` gives the cards of the store's deals. Web: "Best before at least 25 Nov" under the
+SKU line, the offer box with its own "Add short-dated" button, the line mark in the cart ("Short date · Best
+before 23 Nov, 30 % off"), and a "Short-dated deals" shelf on the home page (a new home slot) and on the plain
+first page of a department. Tests: a race for the last short-dated pack (one wins, one gets 409), the count
+minus held units, a cancel back into the same short batch.
+Surprise: the first idea (two cart lines per variant, one normal and one short) would have put `variantId` +
+`shortDated` into every key of the pricing engine and of the order snapshot; one line per variant (choosing the
+other offer switches it) needed none of that.
+Learn: count what you can derive (units in short batches minus held) instead of storing a second reservation
+number; the one lock that already guards the stock row guards the count too.

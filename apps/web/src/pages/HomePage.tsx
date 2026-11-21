@@ -72,6 +72,8 @@ export default function HomePage() {
         <DealsSection />
       </Section>
 
+      {slots.filter((s) => s.id === 'short-dated').map(renderSlot)}
+
       <Section id="bestsellers">
         <h2 className="mb-5 text-2xl font-bold sm:text-3xl">{t('shell.home.bestsellers')}</h2>
         {isError ? (
@@ -105,7 +107,9 @@ export default function HomePage() {
         <FoodBankTeaser />
       </Section>
 
-      {slots.filter((s) => s.id !== 'seasonal' && s.id !== 'usuals').map(renderSlot)}
+      {slots
+        .filter((s) => s.id !== 'seasonal' && s.id !== 'short-dated' && s.id !== 'usuals')
+        .map(renderSlot)}
     </div>
   );
 }

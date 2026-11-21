@@ -5,6 +5,7 @@ import { catalog } from './en/catalog';
 import { checkout } from './en/checkout';
 import { content } from './en/content';
 import { delivery } from './en/delivery';
+import { expiry } from './en/expiry';
 import { loyalty } from './en/loyalty';
 import { pdp } from './en/pdp';
 import { returns } from './en/returns';
@@ -27,4 +28,5 @@ export const en = {
   ...loyalty,
   ...content,
   ...delivery,
+  ...expiry,
 };

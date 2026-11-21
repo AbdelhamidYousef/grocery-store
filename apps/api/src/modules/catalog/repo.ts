@@ -880,3 +880,13 @@ export async function unitsSoldSince(
     .groupBy(productVariants.productId);
   return new Map(rows.map((r) => [r.productId, r.units]));
 }
+
+/** The product each of these variants belongs to. */
+export async function productIdsOfVariants(variantIds: string[]): Promise<Map<string, string>> {
+  if (variantIds.length === 0) return new Map();
+  const rows = await db
+    .select({ id: productVariants.id, productId: productVariants.productId })
+    .from(productVariants)
+    .where(inArray(productVariants.id, variantIds));
+  return new Map(rows.map((r) => [r.id, r.productId]));
+}

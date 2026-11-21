@@ -33,7 +33,12 @@ const add = { body: AddCartItemSchema };
 cartRouter.post('/cart/items', validate(add), async (req, res) => {
   const { body } = valid(req, add);
   respond(res, CartResponseSchema, {
-    data: await service.addItem(cartIdOf(req), body.variantId, body.quantity),
+    data: await service.addItem(
+      cartIdOf(req),
+      body.variantId,
+      body.quantity,
+      body.shortDated === true,
+    ),
   });
 });
 

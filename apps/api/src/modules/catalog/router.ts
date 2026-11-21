@@ -54,6 +54,12 @@ catalogRouter.get('/products/by-ids', validate(byIds), async (req, res) => {
   });
 });
 
+catalogRouter.get('/products/short-dated', async (req, res) => {
+  respond(res, ByIdsResponseSchema, {
+    data: await service.listShortDatedCards({ isMember: req.user !== null }),
+  });
+});
+
 catalogRouter.get('/products/:slug/recommendations', validate(bySlug), async (req, res) => {
   const { params } = valid(req, bySlug);
   respond(res, RecommendationsResponseSchema, {

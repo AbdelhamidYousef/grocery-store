@@ -5,6 +5,7 @@ import { catalog } from './de/catalog';
 import { checkout } from './de/checkout';
 import { content } from './de/content';
 import { delivery } from './de/delivery';
+import { expiry } from './de/expiry';
 import { loyalty } from './de/loyalty';
 import { pdp } from './de/pdp';
 import { returns } from './de/returns';
@@ -28,4 +29,5 @@ export const de: Record<keyof typeof en, Entry> = {
   ...loyalty,
   ...content,
   ...delivery,
+  ...expiry,
 };

@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { check, index, integer, jsonb, pgTable, text, uuid } from 'drizzle-orm/pg-core';
+import { boolean, check, index, integer, jsonb, pgTable, text, uuid } from 'drizzle-orm/pg-core';
 
 import { createdAt, id, updatedAt } from './columns.ts';
 import { orders } from './orders.ts';
@@ -22,6 +22,9 @@ export const orderItems = pgTable(
     imageUrl: text('image_url'),
     unitPriceCents: integer('unit_price_cents').notNull(),
     quantity: integer('quantity').notNull(),
+    // Sold as a short-dated offer: the packs come from short-dated batches, and until payment the
+    // units count against the store's short-dated availability.
+    shortDated: boolean('short_dated').notNull().default(false),
     lineTotalCents: integer('line_total_cents').notNull(),
     // This line's share of the order-level discounts and credits (largest-remainder split by the
     // pricing engine). The single source for refund amounts (phase 22).

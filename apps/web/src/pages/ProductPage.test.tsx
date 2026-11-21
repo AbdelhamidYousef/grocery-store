@@ -412,3 +412,49 @@ describe('product tabs', () => {
     expect(screen.queryByTestId('delivery-next')).toBeNull();
   });
 });
+
+describe('product page: best before and short-dated offer', () => {
+  const offer = { units: 3, bestBefore: '2026-11-23', priceCents: 769, percentOff: 30 };
+  const food = (over: Parameters<typeof makeVariant>[0]) =>
+    makeProduct({ variants: [makeVariant({ isDefault: true, ...over })] });
+
+  it('shows the best-before date and the offer next to the normal add button', async () => {
+    server.use(
+      http.get(`${API}/products/rope-tug`, () =>
+        HttpResponse.json({ data: food({ bestBefore: '2026-11-25', shortDated: offer }) }),
+      ),
+    );
+    renderApp('/products/rope-tug');
+    expect(await screen.findByTestId('best-before')).toHaveTextContent(
+      'Best before at least 25 Nov',
+    );
+    expect(screen.getByTestId('short-dated-offer')).toHaveTextContent(
+      '3 packs, best before 23 Nov, 30 % off',
+    );
+    expect(screen.getByRole('button', { name: 'Add to cart' })).toBeInTheDocument();
+  });
+
+  it('adds the short-dated packs through their own button, flagged for the API', async () => {
+    let body: unknown;
+    server.use(
+      http.get(`${API}/products/rope-tug`, () =>
+        HttpResponse.json({ data: food({ bestBefore: '2026-11-25', shortDated: offer }) }),
+      ),
+      http.post(`${API}/cart/items`, async ({ request }) => {
+        body = await request.json();
+        return HttpResponse.json({ error: { code: 'CONFLICT', message: 'stop' } }, { status: 409 });
+      }),
+    );
+    renderApp('/products/rope-tug');
+    await userEvent.click(await screen.findByTestId('add-short-dated'));
+    await screen.findByText('stop');
+    expect(body).toEqual({ variantId: 'v1', quantity: 1, shortDated: true });
+  });
+
+  it('shows neither for non-food', async () => {
+    renderApp('/products/rope-tug');
+    await screen.findByRole('tab', { name: 'Description' });
+    expect(screen.queryByTestId('best-before')).toBeNull();
+    expect(screen.queryByTestId('short-dated-offer')).toBeNull();
+  });
+});

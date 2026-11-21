@@ -97,6 +97,7 @@ export async function setStore(
 export type LineRow = {
   itemId: string;
   quantity: number;
+  shortDated: boolean;
   variantId: string;
   variantName: string;
   sku: string;
@@ -130,6 +131,7 @@ export async function listLines(
       .select({
         itemId: cartItems.id,
         quantity: cartItems.quantity,
+        shortDated: cartItems.shortDated,
         variantId: productVariants.id,
         variantName: productVariants.name,
         sku: productVariants.sku,
@@ -190,6 +192,20 @@ export async function setItemQuantity(
   await tx
     .update(cartItems)
     .set({ quantity, ...(lastSeenPriceCents !== undefined && { lastSeenPriceCents }) })
+    .where(eq(cartItems.id, itemId));
+}
+
+// Switches a line between the normal and the short-dated offer (one line per variant).
+export async function setItemMode(
+  tx: Tx,
+  itemId: string,
+  shortDated: boolean,
+  quantity: number,
+  lastSeenPriceCents: number,
+): Promise<void> {
+  await tx
+    .update(cartItems)
+    .set({ shortDated, quantity, lastSeenPriceCents })
     .where(eq(cartItems.id, itemId));
 }
 
@@ -275,8 +291,11 @@ export async function insertItem(
   variantId: string,
   quantity: number,
   lastSeenPriceCents: number | null,
+  shortDated = false,
 ): Promise<void> {
-  await tx.insert(cartItems).values({ cartId, variantId, quantity, lastSeenPriceCents });
+  await tx
+    .insert(cartItems)
+    .values({ cartId, variantId, quantity, lastSeenPriceCents, shortDated });
 }
 
 export async function deleteAllItems(tx: Tx, cartId: string): Promise<void> {

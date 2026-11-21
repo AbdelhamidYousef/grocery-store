@@ -13,6 +13,9 @@ export const MAX_LINE_QUANTITY = 99;
 export const AddCartItemSchema = z.object({
   variantId: z.uuid(),
   quantity: z.number().int().min(1).max(MAX_LINE_QUANTITY),
+  // Buy the short-dated packs of this variant (30 % off, best before in two days or less) instead
+  // of the normal ones. A variant is one cart line, so choosing the offer switches the line to it.
+  shortDated: z.boolean().optional(),
 });
 export type AddCartItemInput = z.input<typeof AddCartItemSchema>;
 
@@ -46,6 +49,10 @@ export const CartItemSchema = z.object({
   available: z.number().int().min(0),
   // The most the stepper may offer: min(99, available).
   maxQty: z.number().int().min(0),
+  // A short-dated line: priced 30 % off and filled only from short-dated packs.
+  shortDated: z.boolean(),
+  // The oldest short-dated pack's best-before date ("YYYY-MM-DD") of a short-dated line; else null.
+  bestBefore: z.string().nullable(),
 });
 export type CartItem = z.infer<typeof CartItemSchema>;
 

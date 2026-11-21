@@ -1,6 +1,7 @@
 import {
   ErrorCode,
   MAX_LINE_QUANTITY,
+  shortDatedPrice,
   sumCents,
   type BulkAddFailure,
   type Cart,
@@ -15,8 +16,9 @@ import { AppError, conflict, notFound } from '../../lib/errors.ts';
 import { bundleComponentsOf, listActiveShippingMethods } from '../checkout/repo.ts';
 import { estimateRule, priceBeforeThreshold } from '../checkout/shipping.ts';
 import { cartDelivery, clearDelivery, putExpress, putSlot } from '../delivery/holds.ts';
-import { currentDelivery, currentStore } from '../i18n/context.ts';
+import { currentDelivery, currentStore, currentStoreId } from '../i18n/context.ts';
 import * as promotions from '../promotions/service.ts';
+import { shortDatedAvailability } from '../stock/short-dated.ts';
 import { customerKey, isRedeemed, trialLimit } from '../trials/service.ts';
 
 import { getOrCreateUserCart, guestExpiry, userExpiry } from './identity.ts';
@@ -112,6 +114,16 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
     tx,
     lines.map((l) => l.variantId),
   );
+  // Short-dated lines are filled from short-dated packs only: counted per variant for this store,
+  // here inside the caller's transaction (checkout has already locked the stock rows). A kit has
+  // no packs of its own, so a short-dated flag on one is ignored.
+  const shortLines = lines.filter((l) => l.shortDated && !l.isBundle);
+  const shortStock = await shortDatedAvailability(
+    tx,
+    currentStoreId(),
+    shortLines.map((l) => l.variantId),
+    { exceptCartId: cartId },
+  );
   const demand = new Map<string, number>();
   const warnings: CartWarning[] = [];
   const removeIds: string[] = [];
@@ -141,7 +153,12 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
 
     // What is left for this line after the lines above it took their components (a kit and its
     // own part on a separate line draw on the same units).
-    const available = capacity(plan, demand, line.variantId);
+    const shortDated = line.shortDated && !line.isBundle;
+    const shortOffer = shortDated ? shortStock.get(line.variantId) : undefined;
+    const unitCents = shortDated ? shortDatedPrice(line.priceCents) : line.priceCents;
+    const available = shortDated
+      ? Math.min(capacity(plan, demand, line.variantId), shortOffer?.units ?? 0)
+      : capacity(plan, demand, line.variantId);
     const maxQty = Math.min(MAX_LINE_QUANTITY, available);
     let quantity = line.quantity;
 
@@ -173,7 +190,7 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
     if (available > 0) addDemand(plan, demand, line.variantId, quantity);
 
     const image = pickImage(images, line);
-    const lineTotal = line.priceCents * quantity;
+    const lineTotal = unitCents * quantity;
     items.push({
       id: line.itemId,
       variantId: line.variantId,
@@ -184,11 +201,13 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
       sku: line.sku,
       imageUrl: image?.url ?? null,
       imageAlt: image?.alt ?? null,
-      unitPriceCents: line.priceCents,
+      unitPriceCents: unitCents,
       quantity,
       lineTotalCents: lineTotal,
       available,
       maxQty,
+      shortDated,
+      bestBefore: shortOffer?.bestBefore ?? null,
     });
 
     // Sold-out lines are shown but never counted: the subtotal is what can actually be bought.
@@ -198,9 +217,10 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
         variantId: line.variantId,
         productId: line.productId,
         quantity,
-        unitPriceCents: line.priceCents,
-        // Trial sizes and kits both price at their own fixed price.
-        isTrial: line.isTrial || line.isBundle,
+        unitPriceCents: unitCents,
+        // Trial sizes, kits and short-dated packs all price at their own fixed price: no sale or
+        // member price, no code or order discount on top of an offer that is already 30 % off.
+        isTrial: line.isTrial || line.isBundle || shortDated,
       });
       weightGrams += line.weightGrams * quantity;
     }
@@ -314,28 +334,48 @@ async function addLine(
   cartId: string,
   variantId: string,
   quantity: number,
+  shortDated = false,
 ): Promise<void> {
   const stock = await repo.findPurchasable(tx, variantId);
   if (!stock) throw notFound('Product variant not found');
+  if (shortDated && (await bundleComponentsOf(tx, [variantId])).has(variantId)) {
+    throw conflict(ErrorCode.CONFLICT, 'A kit has no short-dated offer');
+  }
   // Stock left for this variant once the OTHER lines (kits expanded) have their share.
   const others = await demandOfOthers(tx, cartId, variantId, variantId);
-  const maxQty = Math.min(MAX_LINE_QUANTITY, capacity(others.plan, others.demand, variantId));
+  let maxQty = Math.min(MAX_LINE_QUANTITY, capacity(others.plan, others.demand, variantId));
+  if (shortDated) {
+    // The short-dated packs are a smaller pool inside that stock.
+    const offer = (
+      await shortDatedAvailability(tx, currentStoreId(), [variantId], { exceptCartId: cartId })
+    ).get(variantId);
+    maxQty = Math.min(maxQty, offer?.units ?? 0);
+  }
 
   const existing = await repo.findItemByVariant(tx, cartId, variantId);
-  const inCart = existing?.quantity ?? 0;
+  // A variant is one line: choosing the other offer switches the line and starts its count again.
+  const switching = existing !== undefined && existing.shortDated !== shortDated;
+  const inCart = existing && !switching ? existing.quantity : 0;
   if (stock.isTrial) await assertTrialAddable(tx, cart, variantId, inCart + quantity);
   // Adding is cumulative (the contract says "adds to existing qty"), and the total is what is
   // checked: 3 in the cart plus 3 more must fit in stock together.
   if (inCart + quantity > maxQty) {
     throw outOfStock({ variantId, maxQty, inCart, requested: quantity });
   }
-  if (existing) {
+  if (existing && switching) {
+    await repo.setItemMode(tx, existing.id, shortDated, quantity, stock.priceCents);
+  } else if (existing) {
     await repo.setItemQuantity(tx, existing.id, inCart + quantity, stock.priceCents);
-  } else await repo.insertItem(tx, cartId, variantId, quantity, stock.priceCents);
+  } else await repo.insertItem(tx, cartId, variantId, quantity, stock.priceCents, shortDated);
 }
 
-export async function addItem(cartId: string, variantId: string, quantity: number): Promise<Cart> {
-  return mutate(cartId, (tx, cart) => addLine(tx, cart, cartId, variantId, quantity));
+export async function addItem(
+  cartId: string,
+  variantId: string,
+  quantity: number,
+  shortDated = false,
+): Promise<Cart> {
+  return mutate(cartId, (tx, cart) => addLine(tx, cart, cartId, variantId, quantity, shortDated));
 }
 
 // All or nothing: every line is tried inside ONE transaction and the problems of every line are
@@ -384,10 +424,15 @@ export async function updateItem(cartId: string, itemId: string, quantity: numbe
     if (!stock) throw notFound('Product variant not found');
     if (stock.isTrial) await assertTrialAddable(tx, cart, item.variantId, quantity);
     const others = await demandOfOthers(tx, cartId, item.variantId, item.variantId);
-    const maxQty = Math.min(
-      MAX_LINE_QUANTITY,
-      capacity(others.plan, others.demand, item.variantId),
-    );
+    let maxQty = Math.min(MAX_LINE_QUANTITY, capacity(others.plan, others.demand, item.variantId));
+    if (item.shortDated) {
+      const offer = (
+        await shortDatedAvailability(tx, currentStoreId(), [item.variantId], {
+          exceptCartId: cartId,
+        })
+      ).get(item.variantId);
+      maxQty = Math.min(maxQty, offer?.units ?? 0);
+    }
     if (quantity > maxQty) {
       throw outOfStock({
         variantId: item.variantId,
@@ -519,7 +564,14 @@ export async function mergeGuestCart(guestCartId: string, userId: string): Promi
       // remembered, and a guest-only line brings its memory along, so a pending change still warns.
       if (existing) await repo.setItemQuantity(tx, existing.id, quantity);
       else {
-        await repo.insertItem(tx, userCart.id, line.variantId, quantity, line.lastSeenPriceCents);
+        await repo.insertItem(
+          tx,
+          userCart.id,
+          line.variantId,
+          quantity,
+          line.lastSeenPriceCents,
+          line.shortDated,
+        );
       }
       result.merged += 1;
       if (quantity < wanted) result.clamped += 1;

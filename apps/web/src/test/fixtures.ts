@@ -154,6 +154,8 @@ export function makeVariant(overrides: Partial<Variant> = {}): Variant {
     sale: null,
     hasMemberPrice: false,
     member: null,
+    bestBefore: null,
+    shortDated: null,
     constituents: [],
     ...overrides,
   };
@@ -269,6 +271,8 @@ export function makeCartItem(overrides: Partial<WebCartItem> = {}): WebCartItem 
     lineTotalCents: 1099,
     available: 10,
     maxQty: 10,
+    shortDated: false,
+    bestBefore: null,
     ...overrides,
   };
 }

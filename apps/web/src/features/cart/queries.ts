@@ -186,9 +186,13 @@ export function useAddToCartAction(product: { id: string; name: string }) {
   const navigate = useNavigate();
   return {
     pending: add.isPending,
-    add: (variant: Pick<Variant, 'id' | 'sku' | 'priceCents'>, quantity: number) =>
+    add: (
+      variant: Pick<Variant, 'id' | 'sku' | 'priceCents'>,
+      quantity: number,
+      options: { shortDated?: boolean } = {},
+    ) =>
       add.mutate(
-        { variantId: variant.id, quantity },
+        { variantId: variant.id, quantity, ...(options.shortDated && { shortDated: true }) },
         {
           onSuccess: () => {
             track({

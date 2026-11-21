@@ -1,3 +1,4 @@
+import { SHORT_DATED_PERCENT_OFF } from '@store/shared';
 import { Link } from 'react-router-dom';
 
 import type { CartWarning, WebCart, WebCartItem } from '../../api/cart';
@@ -9,6 +10,7 @@ import { cn } from '../../lib/cn';
 import { image600 } from '../../lib/images';
 import { TEST_IDS } from '../../lib/test-ids';
 import { QuantityStepper } from '../catalog/QuantityStepper';
+import { formatBestBefore } from '../expiry/format';
 
 import { noticeKey } from './queries';
 
@@ -132,6 +134,19 @@ export function CartLine({
             </p>
           )}
         </div>
+
+        {item.shortDated && item.bestBefore && (
+          <p
+            data-testid={TEST_IDS.cartLineShortDated}
+            className="flex flex-wrap items-center gap-2 text-sm font-semibold"
+          >
+            <Badge tone="primary">{t('expiry.cart.badge')}</Badge>
+            {t('expiry.cart.note', {
+              date: formatBestBefore(item.bestBefore, fmt.locale),
+              percent: SHORT_DATED_PERCENT_OFF,
+            })}
+          </p>
+        )}
 
         {soldOut && (
           <p data-testid={TEST_IDS.cartLineWarning} className="text-sm font-semibold text-danger">

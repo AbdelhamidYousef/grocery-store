@@ -1,4 +1,5 @@
 import {
+  ByIdsResponseSchema,
   CategoryResponseSchema,
   CategoryTreeResponseSchema,
   ProductDetailResponseSchema,
@@ -81,6 +82,17 @@ export async function fetchProduct(slug: string, signal?: AbortSignal) {
   return (
     await apiFetch(`/products/${encodeURIComponent(slug)}`, {
       schema: ProductDetailResponseSchema,
+      ...(signal && { signal }),
+    })
+  ).data;
+}
+
+// "Short-dated deals": the products the shopper's store has short-dated packs of (the store comes
+// from the X-Postcode header, like every shelf).
+export async function fetchShortDated(signal?: AbortSignal) {
+  return (
+    await apiFetch('/products/short-dated', {
+      schema: ByIdsResponseSchema,
       ...(signal && { signal }),
     })
   ).data;

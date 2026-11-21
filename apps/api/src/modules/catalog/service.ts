@@ -5,6 +5,8 @@ import {
   badgeFromSlug,
   badgeSlug,
   buildQuickChips,
+  SHORT_DATED_PERCENT_OFF,
+  shortDatedPrice,
   unitPriceCents,
   type AllergenSlug,
   type Badge,
@@ -21,6 +23,7 @@ import {
 
 import { db } from '../../db/client.ts';
 import { notFound } from '../../lib/errors.ts';
+import { currentStoreId } from '../i18n/context.ts';
 import { loadTranslations, overlay, pick, resolveSlug } from '../i18n/translations.ts';
 import {
   memberPricesForProducts,
@@ -28,6 +31,11 @@ import {
   syncFlashSales,
 } from '../promotions/service.ts';
 import { noticesForVariants } from '../safety/service.ts';
+import {
+  bestBeforeAtLeast,
+  shortDatedAvailability,
+  variantsWithShortDated,
+} from '../stock/short-dated.ts';
 
 import { getBadgeIndex, type BadgeIndex } from './badge-index.ts';
 import * as bundlesRepo from './bundles-repo.ts';
@@ -387,6 +395,21 @@ export async function listCardsByIds(
   return buildCards(rows, await getBadgeIndex(), viewer);
 }
 
+// "Short-dated deals": the products the browsed store has short-dated packs of right now (some
+// still free after pending orders), best-before soonest first, as the usual cards.
+export async function listShortDatedCards(
+  viewer: Viewer = GUEST,
+  limit = 12,
+): Promise<ProductCard[]> {
+  const storeId = currentStoreId();
+  const variantIds = await variantsWithShortDated(db, storeId);
+  const offers = await shortDatedAvailability(db, storeId, variantIds);
+  const live = [...offers].sort((a, b) => a[1].bestBefore.localeCompare(b[1].bestBefore));
+  const owners = await repo.productIdsOfVariants(live.map(([id]) => id));
+  const ids = [...new Set(live.map(([id]) => owners.get(id)).filter((id): id is string => !!id))];
+  return listCardsInOrder(ids.slice(0, limit), viewer, { inStockOnly: true });
+}
+
 // The same cards in the order the caller asked for (recently viewed, recommendations); ids that
 // are not on sale (archived, draft, unbuyable) are simply absent from the answer.
 export async function listCardsInOrder(
@@ -459,8 +482,17 @@ export async function getProduct(
   await syncFlashSales(db);
   const offers = await saleOffersForProducts([rows.product.id]);
   const members = await memberPricesForProducts([rows.product.id]);
+  // Best-before dates and the short-dated offer of the store being browsed (counted, see
+  // stock/short-dated.ts). Kits have no packs of their own, so they never show either.
+  const storeId = currentStoreId();
+  const variantIds = rows.variants.map((v) => v.id);
+  const [bestBefores, shortStock] = await Promise.all([
+    bestBeforeAtLeast(db, storeId, variantIds),
+    shortDatedAvailability(db, storeId, variantIds),
+  ]);
   const variants = rows.variants.map((v) => {
     const availableUnits = v.quantity - v.reserved;
+    const short = shortStock.get(v.id);
     return {
       id: v.id,
       sku: v.sku,
@@ -480,6 +512,15 @@ export async function getProduct(
       swatchHex: v.swatchHex,
       sale: offers.byVariant.get(v.id) ?? null,
       ...memberFields(members.byVariant.get(v.id), viewer.isMember),
+      bestBefore: bestBefores.get(v.id) ?? null,
+      shortDated: short
+        ? {
+            units: short.units,
+            bestBefore: short.bestBefore,
+            priceCents: shortDatedPrice(v.priceCents),
+            percentOff: SHORT_DATED_PERCENT_OFF,
+          }
+        : null,
       // Fixed display order (protein first), not insertion order.
       constituents: sortConstituents(rows.constituents.get(v.id) ?? []),
     };

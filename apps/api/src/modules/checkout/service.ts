@@ -28,6 +28,7 @@ import * as loyalty from '../loyalty/service.ts';
 import { toOrderDto, totalsOf } from '../orders/view.ts';
 import * as promotionsRepo from '../promotions/repo.ts';
 import * as promotions from '../promotions/service.ts';
+import { shortDatedAvailability } from '../stock/short-dated.ts';
 import { assertTrialAllowed, customerKey } from '../trials/service.ts';
 
 import { cancelPendingOrder, releaseReservations } from './orders.ts';
@@ -268,6 +269,24 @@ async function reserveAndSave(
         components: kitParts.get(i.variantId),
       })),
     );
+    // Short-dated lines: counted here, under the stock row locks taken above, so two checkouts cannot
+    // both take the last short-dated pack (units in short batches minus those pending orders hold).
+    const shortLines = cart.items.filter((i) => i.shortDated && i.available > 0);
+    if (shortLines.length > 0) {
+      const offers = await shortDatedAvailability(
+        tx,
+        storeId,
+        shortLines.map((i) => i.variantId),
+        { exceptCartId: cartId },
+      );
+      for (const line of shortLines) {
+        if (line.quantity > (offers.get(line.variantId)?.units ?? 0)) {
+          throw conflict(ErrorCode.OUT_OF_STOCK, 'A short-dated offer just sold out', {
+            variantId: line.variantId,
+          });
+        }
+      }
+    }
     for (const item of held.sort((a, b) => a.variantId.localeCompare(b.variantId))) {
       if (!(await repo.reserveStock(tx, storeId, item.variantId, item.quantity))) {
         // The cart check already plans per-component demand across all lines, so this only trips if stock
@@ -333,6 +352,7 @@ async function reserveAndSave(
           imageUrl: i.imageUrl,
           unitPriceCents,
           quantity: i.quantity,
+          shortDated: i.shortDated,
           lineTotalCents: unitPriceCents * i.quantity,
           discountCents: line?.lineDiscountCents ?? 0,
           bundleComponents: kitParts.get(i.variantId) ?? null,

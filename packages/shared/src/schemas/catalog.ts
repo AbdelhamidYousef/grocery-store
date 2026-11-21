@@ -157,6 +157,17 @@ export type ProductListResponse = z.infer<typeof ProductListResponseSchema>;
 
 // ---------- product detail ----------
 
+// The short-dated packs a store has of a variant right now (best before in two days or less), sold
+// 30 % off. `units` is counted, not stored: packs in short batches minus those held by unpaid orders.
+export const ShortDatedOfferSchema = z.object({
+  units: z.number().int().min(1),
+  // The oldest date among them ("YYYY-MM-DD").
+  bestBefore: z.string(),
+  priceCents: z.number().int().min(0),
+  percentOff: z.number().int().min(1).max(99),
+});
+export type ShortDatedOffer = z.infer<typeof ShortDatedOfferSchema>;
+
 export const VariantSchema = z.object({
   id: z.string(),
   sku: z.string(),
@@ -177,6 +188,11 @@ export const VariantSchema = z.object({
   sale: SaleOfferSchema.nullable(),
   hasMemberPrice: z.boolean(),
   member: MemberOfferSchema.nullable(),
+  // "Best before at least ...": the oldest date the store could send of the normal packs. Null for
+  // anything that does not expire, and when the store has none.
+  bestBefore: z.string().nullable(),
+  // The short-dated offer next to the normal one; null when the store has no such packs.
+  shortDated: ShortDatedOfferSchema.nullable(),
   // Guaranteed analysis per 100 g (empty for a toy). The tab shows the selected variant's.
   constituents: z.array(ConstituentSchema),
 });

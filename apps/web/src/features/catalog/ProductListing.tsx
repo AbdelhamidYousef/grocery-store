@@ -10,6 +10,7 @@ import { Skeleton } from '../../components/ui/Skeleton';
 import { UnitPriceNote } from '../../components/ui/UnitPrice';
 import { useT } from '../../i18n';
 import { TEST_IDS } from '../../lib/test-ids';
+import { ShortDatedShelf } from '../expiry/ShortDatedShelf';
 import { departmentName } from '../navigation/department-names';
 import { useStore } from '../stores/StoreContext';
 
@@ -190,6 +191,13 @@ export function ProductListing({ listId, category, q, collection, brand }: Produ
           update={update}
           onClear={clear}
         />
+
+        {/* The store's short-dated deals head the plain, first page of a department or search. */}
+        {!filtered && meta.page === 1 && !hasSearch && category && (
+          <div className="mb-8 empty:hidden">
+            <ShortDatedShelf />
+          </div>
+        )}
 
         {data.data.length === 0 ? (
           <EmptyState

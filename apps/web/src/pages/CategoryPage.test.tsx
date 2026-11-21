@@ -7,6 +7,28 @@ import { makeCard, makeList } from '../test/fixtures';
 import { renderApp } from '../test/render';
 import { API, server } from '../test/server';
 
+describe('category page: short-dated deals', () => {
+  const deals = () =>
+    server.use(
+      http.get(`${API}/products/short-dated`, () =>
+        HttpResponse.json({ data: [makeCard({ id: 'd1', name: 'Greek yoghurt' })] }),
+      ),
+    );
+
+  it('heads the plain first page with the shelf', async () => {
+    deals();
+    renderApp('/c/dairy-eggs');
+    expect(await screen.findByTestId('short-dated-shelf')).toHaveTextContent('Greek yoghurt');
+  });
+
+  it('leaves the shelf out once a filter or the next page is chosen', async () => {
+    deals();
+    renderApp('/c/dairy-eggs?inStock=true');
+    await screen.findAllByTestId('product-card');
+    expect(screen.queryByTestId('short-dated-shelf')).toBeNull();
+  });
+});
+
 describe('category page', () => {
   it('shows the category, a result count and the products', async () => {
     renderApp('/c/dairy-eggs');

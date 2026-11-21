@@ -40,3 +40,15 @@ export function compareBestBefore(a: string | null, b: string | null): number {
   if (b === null) return -1;
   return a < b ? -1 : 1;
 }
+
+/** Short-dated packs are sold this many percent below the normal price. */
+export const SHORT_DATED_PERCENT_OFF = 30;
+
+/**
+ * The price of one short-dated pack: `unitCents` minus 30 %, in whole cents. The reduction is
+ * rounded once (half up) and subtracted, so price + reduction is always exactly the normal price.
+ */
+export function shortDatedPrice(unitCents: number): number {
+  const off = Math.floor((unitCents * SHORT_DATED_PERCENT_OFF + 50) / 100);
+  return unitCents - off;
+}

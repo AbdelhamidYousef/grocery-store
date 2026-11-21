@@ -365,6 +365,13 @@
       "when": 1795248514641,
       "tag": "0051_stock_batches",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1795250180337,
+      "tag": "0052_short_dated_lines",
+      "breakpoints": true
     }
   ]
 }

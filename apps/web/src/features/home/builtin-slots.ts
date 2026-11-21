@@ -2,6 +2,7 @@ import { createElement } from 'react';
 
 import { readRecentlyViewed } from '../../lib/recently-viewed';
 import { RecentlyViewed } from '../catalog/pdp/RecentlyViewed';
+import { ShortDatedShelf } from '../expiry/ShortDatedShelf';
 import { SeasonalCollectionSlot } from '../merchandising/SeasonalCollectionSlot';
 import { NewsletterSlot } from '../newsletter/NewsletterSlot';
 
@@ -11,6 +12,9 @@ import { registerHomeSlot } from './slots';
 // Slots whose component already exists. The phases that add the others (recently viewed,
 // newsletter) register theirs the same way, from their own feature folder.
 registerHomeSlot({ id: 'seasonal', render: () => createElement(SeasonalCollectionSlot) });
+
+// G6: the store's short-dated deals; the shelf renders nothing when the store has none.
+registerHomeSlot({ id: 'short-dated', render: () => createElement(ShortDatedShelf) });
 
 // Phase 16: the visitor's own recently viewed products. Nothing renders for a first-time visitor
 // (the synchronous check below) and the strip drops itself if none of the ids is still on sale.

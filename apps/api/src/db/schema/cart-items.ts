@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { check, index, integer, pgTable, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { boolean, check, index, integer, pgTable, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 
 import { carts } from './carts.ts';
 import { createdAt, id, updatedAt } from './columns.ts';
@@ -20,6 +20,8 @@ export const cartItems = pgTable(
       .notNull()
       .references(() => productVariants.id),
     quantity: integer('quantity').notNull(),
+    // The shopper chose the short-dated offer: 30 % off, filled from short-dated packs only.
+    shortDated: boolean('short_dated').notNull().default(false),
     // Null for lines created before this column existed: nothing to compare, so no warning.
     lastSeenPriceCents: integer('last_seen_price_cents'),
     createdAt: createdAt(),
