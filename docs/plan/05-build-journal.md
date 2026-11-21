@@ -184,3 +184,24 @@ together and would not pass the gates apart).
 Gates green: shared 270, web 920, API 1,377 + 2 skipped (e2e at phase end).
 Learn: when a column other data depends on changes, do it in one migration in three moves (add,
 backfill, drop), so no row is ever left pointing at nothing.
+
+### G3.4: product photos
+All 120 products have a photo. 29 more grids (02 to 30) were generated in Gemini on 2026-11-21 by a
+Playwright batch script: new chat, paste the prompt, wait for the image, copy it out through a canvas
+and post it to a small local receiver that writes `grid-NN.png`. The script stops on the first text
+reply, which is how the daily limit showed up at grid 22; grids 22 to 30 ran on a second login.
+`tools/crop-grids.mjs` cut them into 116 squares and `pnpm images:process` made the WebP pair (4.8 MB
+in total for the catalogue). Two grids needed care: grid 21 came back with A to D letters in the
+corners, painted out with the background colour before cropping; every crop was checked on one
+contact sheet. `CREDITS.md` lists all 120 files with their grid and quadrant.
+
+QA sweep (all 10 department pages at 1280 and 375 px): no broken image, no placeholder left, no
+long-name outlier (longest "Quark, 40 percent fat in dry matter"). It found three things, all fixed:
+- every page was 43 px wider than a 1280 px screen (the department bar; see the decisions log);
+- the German menu was empty: navigation matched departments by slug, and German slugs are
+  translated. A regression test sends `X-Store-View: de-de`;
+- Pawsome copy left in the search placeholder ("Search toys, beds, treats"), the developers page and
+  the agent tool examples (a "Rope Tug"); now milk, bread and apples.
+Learn: a sweep that measures the same thing on every page (width, broken images, longest name) finds
+the outliers that a look at one page misses; the German menu bug only shows when the store view
+changes.
