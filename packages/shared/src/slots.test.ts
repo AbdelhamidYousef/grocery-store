@@ -72,12 +72,12 @@ describe('slotsForDay', () => {
 });
 
 describe('days', () => {
-  it('lists seven days starting with the shop-zone today, not the UTC one', () => {
+  it('lists six days starting with the shop-zone today, not the UTC one', () => {
     // 23:30Z on 22 Nov is already 00:30 on 23 Nov in Berlin.
     const keys = slotDayKeys(at('2026-11-22T23:30:00Z'));
     expect(keys[0]).toBe('2026-11-23');
-    expect(keys).toHaveLength(7);
-    expect(keys[6]).toBe('2026-11-29');
+    expect(keys).toHaveLength(6);
+    expect(keys[5]).toBe('2026-11-28');
   });
 
   it('counts calendar days across a change day', () => {
@@ -86,9 +86,9 @@ describe('days', () => {
     expect(addDays('2026-12-31', 1)).toBe('2027-01-01');
   });
 
-  it('creates 7 x 14 slots for the horizon, with the right count on a change day', () => {
-    expect(slotsForHorizon(at('2026-11-23T10:00:00Z'))).toHaveLength(98);
-    expect(slotsForHorizon(at('2027-03-26T10:00:00Z'))).toHaveLength(98);
+  it('creates 6 x 14 slots for the horizon, with the right count on a change day', () => {
+    expect(slotsForHorizon(at('2026-11-23T10:00:00Z'))).toHaveLength(84);
+    expect(slotsForHorizon(at('2027-03-26T10:00:00Z'))).toHaveLength(84);
   });
 
   it('zonedInstant moves a non-existent spring wall time one hour later', () => {

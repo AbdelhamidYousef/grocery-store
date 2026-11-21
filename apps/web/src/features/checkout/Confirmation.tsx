@@ -167,7 +167,12 @@ export function Confirmation({ number }: { number: string }) {
               {t('checkout.confirmation.yourOrder')}
             </h2>
             <div className="mt-4">
-              <OrderSummary items={order.data.items} totals={order.data.totals} />
+              <OrderSummary
+                items={order.data.items}
+                totals={order.data.totals}
+                authorizedCents={order.data.authorizedCents}
+                capturedCents={order.data.capturedCents}
+              />
             </div>
           </section>
           <section

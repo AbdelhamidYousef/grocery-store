@@ -460,6 +460,22 @@ export const AdminTransitionSchema = z.object({
 });
 export type AdminTransition = z.input<typeof AdminTransitionSchema>;
 
+// "Capture now": takes the money of an authorised order. For weighed lines the packed grams can be
+// given (until picking does it); a weighed line without grams is charged at its estimate. The amount
+// is never sent: the server works it out from the order, so the page cannot ask for more than is owed.
+export const AdminCaptureSchema = z.object({
+  weights: z
+    .array(
+      z.object({
+        orderItemId: z.uuid(),
+        grams: z.number().int().min(1).max(100_000),
+      }),
+    )
+    .max(100)
+    .optional(),
+});
+export type AdminCapture = z.input<typeof AdminCaptureSchema>;
+
 // ---------- customers ----------
 
 export const AdminCustomerListQuerySchema = PaginationQuerySchema.extend({

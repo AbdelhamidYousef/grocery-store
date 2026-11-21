@@ -9,6 +9,7 @@ import { db } from '../db/client.ts';
 import { jobRuns } from '../db/schema/index.ts';
 import type { PaymentGateway } from '../lib/stripe.ts';
 import { sweepOrphanUploads } from '../lib/upload-refs.ts';
+import { captureOverdue } from '../modules/checkout/capture.ts';
 import { releaseOldHolds } from '../modules/delivery/holds.ts';
 import { generateSlots } from '../modules/delivery/slot-generation.ts';
 import type { Outbox } from '../modules/mail/outbox.ts';
@@ -202,6 +203,15 @@ registerJob({
   name: 'write-off-expired',
   every: 'daily',
   run: (ctx) => db.transaction((tx) => writeOffExpired(tx, ctx.now)),
+});
+
+// Manual capture (G6): a card authorisation lasts 7 days at Stripe, so an order still not captured 5
+// days after it was authorised is captured at its estimate (weighed lines as weighed, if they were).
+// Hourly: the cut-off is a moment, not a day.
+registerJob({
+  name: 'capture-overdue',
+  every: 'hourly',
+  run: (ctx) => captureOverdue({ gateway: ctx.gateway, log: ctx.log }, ctx.now),
 });
 
 // Housekeeping only: a hold stops counting at its own `expires_at`, so a late or missed run never

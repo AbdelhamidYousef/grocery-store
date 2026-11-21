@@ -1,5 +1,6 @@
 import {
   ErrorCode,
+  authorisationCents,
   sumCents,
   type CheckoutRequest,
   type Order,
@@ -158,7 +159,11 @@ async function reserveAndSave(
     if (pending) {
       existingPayment = await repo.findPaymentByOrder(tx, pending.id);
       // Once the card is being charged the amount can no longer change under it.
-      if (existingPayment?.status === 'processing' || existingPayment?.status === 'succeeded') {
+      if (
+        existingPayment?.status === 'processing' ||
+        existingPayment?.status === 'succeeded' ||
+        existingPayment?.status === 'authorized'
+      ) {
         throw conflict(ErrorCode.CONFLICT, 'A payment for this cart is already in progress');
       }
       await releaseReservations(tx, heldAt, pendingItems);
@@ -255,6 +260,15 @@ async function reserveAndSave(
     // Tax is out of scope for this project; the column stays so orders look like real ones.
     const taxCents = 0;
     const totalCents = sumCents([priced.totalCents, taxCents]);
+    // The card is AUTHORISED at checkout and captured after packing (manual capture): for the weighed
+    // lines the estimate plus a 15 % buffer, for anything else exactly the total. A retried payment
+    // whose first attempt was an automatic-capture intent (made before G6) stays automatic.
+    const manualCapture = existingPayment ? existingPayment.captureMethod === 'manual' : true;
+    const unitOf = new Map(priced.lines.map((l) => [l.variantId, l.unitCents]));
+    const weighedLineCents = cart.items
+      .filter((i) => i.weight !== null && i.available > 0)
+      .map((i) => (unitOf.get(i.variantId) ?? i.unitPriceCents) * i.quantity);
+    const authorizedCents = manualCapture ? authorisationCents(totalCents, weighedLineCents) : null;
 
     // Variant-id order again for the writes (locks are already held, but one order everywhere is
     // easier to reason about).
@@ -325,6 +339,7 @@ async function reserveAndSave(
       notes: input.notes ?? null,
       cartId,
       darkStoreId: storeId,
+      authorizedCents,
       ...delivery,
     };
     const order = pending
@@ -353,6 +368,7 @@ async function reserveAndSave(
           unitPriceCents,
           quantity: i.quantity,
           shortDated: i.shortDated,
+          pricePerKgCents: i.weight?.pricePerKgCents ?? null,
           lineTotalCents: unitPriceCents * i.quantity,
           discountCents: line?.lineDiscountCents ?? 0,
           bundleComponents: kitParts.get(i.variantId) ?? null,
@@ -413,8 +429,10 @@ async function reserveAndSave(
       existingPayment ??
       (await repo.insertPayment(tx, {
         orderId: order.id,
-        amountCents: totalCents,
+        // What the intent will be created for: the authorised amount (the webhook compares it).
+        amountCents: authorizedCents ?? totalCents,
         currency: order.currency,
+        captureMethod: manualCapture ? 'manual' : 'automatic',
       }));
     return { order, payment };
   });
@@ -435,12 +453,17 @@ async function attachPaymentIntent(
   // Without a stored intent there is nothing to retry against, so a failure must not keep the
   // stock held. With one, the shopper can simply try again on the same intent.
   const hadIntent = payment.providerPaymentIntentId !== null;
+  // The intent is for the authorised amount: the total, plus the weighing buffer on weighed lines
+  // (orders from before manual capture have none and are charged their total at once).
+  const amountCents = order.authorizedCents ?? order.totalCents;
+  const captureMethod = payment.captureMethod;
   try {
     if (!payment.providerPaymentIntentId) {
       // One intent per order for its whole life, hence a key made from the order id alone: a
       // retry after a timeout, a crash or a double click gets the same intent back from Stripe.
       const intent = await gateway.createPaymentIntent({
-        amountCents: order.totalCents,
+        amountCents,
+        captureMethod,
         currency: order.currency,
         orderId: order.id,
         orderNumber: order.number,
@@ -450,14 +473,19 @@ async function attachPaymentIntent(
       if (!intent.clientSecret) throw paymentProvider('Stripe returned no client secret');
       await repo.updatePayment(db, payment.id, {
         providerPaymentIntentId: intent.id,
-        amountCents: order.totalCents,
+        amountCents,
         currency: order.currency,
       });
       return intent.clientSecret;
     }
 
     let intent = await gateway.retrievePaymentIntent(payment.providerPaymentIntentId);
-    if (intent.status === 'succeeded' || intent.status === 'processing') {
+    // `requires_capture` is the paid state of a manual-capture intent: also "already in progress".
+    if (
+      intent.status === 'succeeded' ||
+      intent.status === 'processing' ||
+      intent.status === 'requires_capture'
+    ) {
       throw conflict(ErrorCode.CONFLICT, 'A payment for this cart is already in progress');
     }
     // The shopper switched store (currency) after the intent was made: an intent's currency can
@@ -468,7 +496,8 @@ async function attachPaymentIntent(
     if (intent.currency.toLowerCase() !== order.currency.toLowerCase()) {
       if (intent.status !== 'canceled') await gateway.cancelPaymentIntent(intent.id);
       const fresh = await gateway.createPaymentIntent({
-        amountCents: order.totalCents,
+        amountCents,
+        captureMethod,
         currency: order.currency,
         orderId: order.id,
         orderNumber: order.number,
@@ -478,7 +507,7 @@ async function attachPaymentIntent(
       if (!fresh.clientSecret) throw paymentProvider('Stripe returned no client secret');
       await repo.updatePayment(db, payment.id, {
         providerPaymentIntentId: fresh.id,
-        amountCents: order.totalCents,
+        amountCents,
         currency: order.currency,
       });
       return fresh.clientSecret;
@@ -487,8 +516,8 @@ async function attachPaymentIntent(
       throw conflict(ErrorCode.CONFLICT, 'This payment was cancelled; reload and try again');
     }
     // The cart changed since the intent was made: the shopper must be asked for the new total.
-    if (intent.amountCents !== order.totalCents) {
-      intent = await gateway.updatePaymentIntentAmount(intent.id, order.totalCents);
+    if (intent.amountCents !== amountCents) {
+      intent = await gateway.updatePaymentIntentAmount(intent.id, amountCents);
     }
     if (!intent.clientSecret) throw paymentProvider('Stripe returned no client secret');
     // Recorded only after Stripe accepted it, so `payments.amount_cents` always names what the

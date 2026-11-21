@@ -39,6 +39,20 @@ export const en = {
   'confirm.track': 'Track your order',
   'confirm.trackNote': '(you will need the email address you ordered with).',
 
+  // Manual capture (G6): what is held on the card and what was taken.
+  'confirm.held': '{amount} is held on your card and charged when we pack your order.',
+  'confirm.heldWeighed':
+    'We hold up to {amount} on your card and charge what your bag weighs: the final price comes after weighing.',
+
+  // ----- final bill (after the money is taken) -----
+  'bill.subject': 'Your final bill for Grocery order {number}',
+  'bill.preheader': 'We took {amount} for order {number}.',
+  'bill.heading': 'Your final bill',
+  'bill.intro': 'Hi {name}, we packed order {number} and took {amount} from your card.',
+  'bill.weighed': 'Weighed: {product}, {grams} g, {price}',
+  'bill.held': 'We had held {amount}; the rest of the hold is released.',
+  'bill.total': 'Charged',
+
   // ----- order shipped -----
   'shipped.subject': 'Your Grocery order {number} is on its way',
   'shipped.good': 'Good news, {name}: order {number} has shipped!',

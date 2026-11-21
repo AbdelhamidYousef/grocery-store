@@ -30,6 +30,8 @@ export function toOrderDto(
     shippingAddress: order.shippingAddress,
     billingAddress: order.billingAddress,
     notes: order.notes,
+    authorizedCents: order.authorizedCents,
+    capturedCents: order.capturedCents,
     items: items.map((i) => ({
       id: i.id,
       productName: i.productName,
@@ -39,6 +41,10 @@ export function toOrderDto(
       unitPriceCents: i.unitPriceCents,
       quantity: i.quantity,
       lineTotalCents: i.lineTotalCents,
+      pricePerKgCents: i.pricePerKgCents,
+      weighedGrams: i.weighedGrams,
+      finalCents: i.finalCents,
+      shortDated: i.shortDated,
     })),
     delivery:
       order.deliveryKind && order.deliveryFrom && order.deliveryTo

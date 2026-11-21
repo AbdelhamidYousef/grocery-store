@@ -485,3 +485,34 @@ through on a weighed row (`true and null` is NULL, which a CHECK accepts); spell
 test now tries it. (I also had to regenerate the migration, so a test database that already applied the first
 0053 needed those columns dropped by hand.)
 Learn: in SQL a CHECK only rejects `false`; when a column may be null, say `is not null` in the rule.
+
+### G6.4: manual capture (API, risky)
+Migration 0054: `payment_status` gains `authorized`; `orders.authorized_cents` / `captured_cents` (CHECK: captured
+never above authorised); `order_items.price_per_kg_cents` (snapshot at checkout), `weighed_grams`, `final_cents`;
+`payments.capture_method` (`automatic` for every row before this, `manual` for every new checkout, so both paths
+live side by side). Gateway: `createPaymentIntent({ captureMethod })`, `capturePaymentIntent(id, amount, key)`,
+`amountCapturableCents` on the intent; the fake mirrors Stripe (`requires_capture` after the shopper's confirm,
+`succeeded` after a capture, a key is answered once, more than authorised or a capture of an unauthorised
+intent is refused). Checkout authorises `authorisationCents(total, weighed lines)` (total plus 15 % of the
+weighed lines; exactly the total without any). The webhook treats `payment_intent.amount_capturable_updated`
+(status `requires_capture`) as "payment secured" through the same `confirmPayment` (amount must equal the
+authorised amount; stock commit, history, confirmation mail unchanged; payment row `authorized`); a plain
+`payment_intent.succeeded` still pays an automatic-capture order exactly as before, and a `succeeded` for an
+authorised order records a capture made elsewhere (dashboard) once. The stale-order sweeper now recovers
+`requires_capture` instead of cancelling it. `modules/checkout/capture.ts`: `capturePayment` (the primitive: amount
+above the authorised one or not positive is a 422 BEFORE Stripe is called; key `capture:<order id>`; recorded once
+under the order and payment locks; queues the "final bill" mail), `finalizeOrder` (freezes the packed grams of
+weighed lines, works out total + (final - estimate) per weighed line, caps it at the hold, then captures),
+`captureOverdue` (hourly job `capture-overdue`: authorised more than 5 days ago, captured at the estimate or at the
+weights that exist). Cancelling or refunding an authorised order cancels the intent (no refund; the payment ends
+`failed` with the reason, as for unpaid cancels); one captured meanwhile is refunded; returns refuse an
+uncaptured order. Admin: `POST /admin/orders/:number/capture` (the body has grams, never an amount) and a
+"Capture now" panel. Emails: the confirmation says what is held ("We hold up to X and charge what your bag
+weighs"), the new final-bill mail says what was charged (EN + DE). Slots go 6 days ahead. Web: the order summary
+(confirmation and account) shows the hold, then the final bill with the weighed lines.
+Surprise: the existing suite barely moved: `simulate` (the test hook that stands in for Stripe) now turns "the
+shopper paid" into the authorisation event for a manual-capture order and tells the fake to move its intent, so
+only the tests that assert the payment row or refund a paid order changed (payment `authorized`; a refund needs a
+capture first, which is also the real order of things; `deliveredOrder` captures).
+Learn: model the provider's state machine in the fake (authorised, then captured), not just its answers; the
+bug a fake that says "ok" to everything hides is the capture of something never authorised.

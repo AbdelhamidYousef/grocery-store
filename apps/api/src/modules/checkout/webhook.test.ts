@@ -37,6 +37,7 @@ function gatewayWithRealSignatures(stripe: FakeStripe): PaymentGateway {
     createPaymentIntent: (i) => stripe.createPaymentIntent(i),
     updatePaymentIntentAmount: (id, a) => stripe.updatePaymentIntentAmount(id, a),
     retrievePaymentIntent: (id) => stripe.retrievePaymentIntent(id),
+    capturePaymentIntent: (id, a, k) => stripe.capturePaymentIntent(id, a, k),
     cancelPaymentIntent: (id) => stripe.cancelPaymentIntent(id),
     refundPaymentIntent: (id, key) => stripe.refundPaymentIntent(id, key),
     listRefunds: (id) => stripe.listRefunds(id),

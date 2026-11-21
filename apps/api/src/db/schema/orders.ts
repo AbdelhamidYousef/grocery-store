@@ -74,6 +74,12 @@ export const orders = pgTable(
     donationCents: integer('donation_cents').notNull().default(0),
     taxCents: integer('tax_cents').notNull().default(0),
     totalCents: integer('total_cents').notNull(),
+    // What the card was authorised for at checkout: the total at the estimate plus the buffer on
+    // weighed lines (shared/weight.ts). Null for orders paid before manual capture (charged in full
+    // at once). The capture can be lower than this, never higher.
+    authorizedCents: integer('authorized_cents'),
+    // What was really taken, once (null until captured; also null for the automatic-capture orders).
+    capturedCents: integer('captured_cents'),
     // Money handed back so far, by a whole-order refund or by refunded returns (phase 22). Analytics
     // reads net revenue as total - refunded, so a partial return needs no guessing from statuses.
     refundedCents: integer('refunded_cents').notNull().default(0),
@@ -117,6 +123,12 @@ export const orders = pgTable(
     check(
       'orders_delivery_kind_check',
       sql`${t.deliveryKind} is null or ${t.deliveryKind} in ('slot', 'express')`,
+    ),
+    // The money taken can never exceed what the card was authorised for (the services refuse earlier;
+    // this is the last line of defence).
+    check(
+      'orders_capture_check',
+      sql`${t.capturedCents} is null or (${t.capturedCents} >= 0 and ${t.authorizedCents} is not null and ${t.capturedCents} <= ${t.authorizedCents})`,
     ),
     check(
       'orders_refunded_check',

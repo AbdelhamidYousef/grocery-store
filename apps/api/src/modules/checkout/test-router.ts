@@ -25,6 +25,7 @@ const SimulateSchema = z.object({
   type: z
     .enum([
       'payment_intent.succeeded',
+      'payment_intent.amount_capturable_updated',
       'payment_intent.payment_failed',
       'payment_intent.canceled',
       'charge.refunded',
@@ -76,6 +77,7 @@ export function createTestRouter(deps: {
 
     const intentId = payment.providerPaymentIntentId;
     let amount = payment.amountCents;
+    let realCapturable = 0;
     let amountReceived = body.amountReceivedCents ?? payment.amountCents;
     let currency = (body.currency ?? payment.currency).toLowerCase();
     if (deps.realStripe) {
@@ -89,19 +91,38 @@ export function createTestRouter(deps: {
       const real = await deps.payments.retrievePaymentIntent(intentId);
       amount = real.amountCents;
       amountReceived = real.amountReceivedCents;
+      realCapturable = real.amountCapturableCents;
       currency = real.currency;
+    }
+    // A card confirmed on a manual-capture intent is AUTHORISED, not charged: Stripe says so with
+    // `amount_capturable_updated` (status `requires_capture`). So "the shopper paid" (the default
+    // type) becomes that event for such an order, and every test that pays keeps reading the same.
+    // `succeeded` of an order that is already paid is what a capture sends, and stays as it is.
+    const authorising =
+      body.type === 'payment_intent.amount_capturable_updated' ||
+      (body.type === 'payment_intent.succeeded' &&
+        payment.captureMethod === 'manual' &&
+        order.status === 'pending_payment');
+    const capturable = deps.realStripe
+      ? realCapturable
+      : (body.amountReceivedCents ?? payment.amountCents);
+    // With the fake gateway, "the shopper confirmed the card" also moves ITS intent (to
+    // `requires_capture`, as Stripe does), so a later capture finds it authorised.
+    if (authorising && !deps.realStripe) {
+      (deps.payments as { confirm?: (id: string) => void }).confirm?.(intentId);
     }
     const intent = {
       id: intentId,
       object: 'payment_intent',
       amount,
-      amount_received: amountReceived,
+      amount_received: authorising ? 0 : amountReceived,
+      ...(authorising && { amount_capturable: capturable, status: 'requires_capture' }),
       currency,
       ...(body.errorMessage && { last_payment_error: { message: body.errorMessage } }),
     };
     const event: StripeEvent = {
       id: `evt_sim_${randomUUID()}`,
-      type: body.type,
+      type: authorising ? 'payment_intent.amount_capturable_updated' : body.type,
       data: {
         object:
           body.type === 'charge.refunded'

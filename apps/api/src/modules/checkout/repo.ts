@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 
 import { db, type Tx } from '../../db/client.ts';
 import {
@@ -277,6 +277,19 @@ export async function updateOrder(
   const [row] = await tx.update(orders).set(values).where(eq(orders.id, orderId)).returning();
   if (!row) throw new Error('order update matched no row');
   return row;
+}
+
+// Records what a weighed line really weighed and costs (frozen: called once per line).
+export async function setWeighing(
+  tx: Tx,
+  itemId: string,
+  grams: number,
+  finalCents: number,
+): Promise<void> {
+  await tx
+    .update(orderItems)
+    .set({ weighedGrams: grams, finalCents })
+    .where(and(eq(orderItems.id, itemId), isNull(orderItems.weighedGrams)));
 }
 
 export async function replaceOrderItems(

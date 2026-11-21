@@ -262,3 +262,96 @@ describe('admin order detail', () => {
     expect(screen.getByText(detail.order.items[0]!.productName).className).toContain('break-words');
   });
 });
+
+describe('admin order detail: capture now', () => {
+  const weighedItem = {
+    id: 'oi-w',
+    productName: 'Bananas',
+    variantName: 'Standard',
+    sku: 'GR-BAN',
+    imageUrl: null,
+    unitPriceCents: 189,
+    quantity: 2,
+    lineTotalCents: 378,
+    pricePerKgCents: 378,
+    weighedGrams: null,
+    finalCents: null,
+    shortDated: false,
+  };
+  function authorised(over: { capturedCents?: number | null } = {}) {
+    const base = makeAdminOrderDetail();
+    return makeAdminOrderDetail({
+      order: {
+        ...base.order,
+        authorizedCents: 4354,
+        capturedCents: over.capturedCents ?? null,
+        items: [...base.order.items, weighedItem],
+      },
+      payment: { ...base.payment!, status: over.capturedCents ? 'succeeded' : 'authorized' },
+    });
+  }
+  // The "database": a capture replaces it, and the next GET returns the new state.
+  let current = authorised();
+  const serve = (detail: ReturnType<typeof authorised>) => {
+    current = detail;
+    server.use(
+      http.get(`${API}/admin/orders/${NUMBER}`, () => HttpResponse.json({ data: current })),
+    );
+  };
+
+  it('offers it for an authorised order and sends the typed grams, never an amount', async () => {
+    let body: unknown;
+    serve(authorised());
+    server.use(
+      http.post(`${API}/admin/orders/${NUMBER}/capture`, async ({ request }) => {
+        body = await request.json();
+        current = authorised({ capturedCents: 4297 });
+        return HttpResponse.json({ data: current });
+      }),
+    );
+    renderApp(`/admin/orders/${NUMBER}`);
+    const panel = within(await screen.findByTestId('admin-capture'));
+    expect(panel.getByText(/€43\.54 is held on the card/)).toBeInTheDocument();
+    await userEvent.type(panel.getByLabelText('Bananas: grams packed'), '940');
+    await userEvent.click(panel.getByRole('button', { name: 'Capture now' }));
+    await waitFor(() => expect(body).toEqual({ weights: [{ orderItemId: 'oi-w', grams: 940 }] }));
+    expect(await screen.findByTestId('admin-captured')).toHaveTextContent(
+      'Captured €42.97 of €43.54 authorised',
+    );
+    expect(screen.queryByTestId('admin-capture')).not.toBeInTheDocument();
+  });
+
+  it('captures at the estimate when no weight is typed', async () => {
+    let body: unknown;
+    serve(authorised());
+    server.use(
+      http.post(`${API}/admin/orders/${NUMBER}/capture`, async ({ request }) => {
+        body = await request.json();
+        return HttpResponse.json({ data: authorised({ capturedCents: 4297 }) });
+      }),
+    );
+    renderApp(`/admin/orders/${NUMBER}`);
+    await userEvent.click(
+      await within(await screen.findByTestId('admin-capture')).findByRole('button', {
+        name: 'Capture now',
+      }),
+    );
+    await waitFor(() => expect(body).toEqual({}));
+  });
+
+  it('is not offered for an order charged in full or already captured', async () => {
+    serve(makeAdminOrderDetail());
+    renderApp(`/admin/orders/${NUMBER}`);
+    await screen.findByRole('heading', { name: NUMBER });
+    expect(screen.queryByTestId('admin-capture')).not.toBeInTheDocument();
+  });
+
+  it('warns that cancelling releases the hold instead of refunding it', async () => {
+    serve(authorised());
+    renderApp(`/admin/orders/${NUMBER}`);
+    await userEvent.click(await screen.findByRole('button', { name: 'Cancel order' }));
+    expect(
+      await screen.findByText(/The hold on the customer card is released/),
+    ).toBeInTheDocument();
+  });
+});

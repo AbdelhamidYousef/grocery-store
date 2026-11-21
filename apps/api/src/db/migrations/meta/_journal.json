@@ -379,6 +379,13 @@
       "when": 1795251658191,
       "tag": "0053_sold_by_weight",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1795252362308,
+      "tag": "0054_manual_capture",
+      "breakpoints": true
     }
   ]
 }

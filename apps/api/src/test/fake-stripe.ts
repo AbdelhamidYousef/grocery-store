@@ -8,7 +8,7 @@ import type {
   StripeEvent,
 } from '../lib/stripe.ts';
 
-type Method = 'create' | 'update' | 'retrieve' | 'cancel' | 'refund' | 'list_refunds';
+type Method = 'create' | 'update' | 'retrieve' | 'cancel' | 'refund' | 'list_refunds' | 'capture';
 
 // An in-memory PaymentGateway for the order, stock, totals and idempotency tests. It reproduces the
 // one Stripe behaviour those tests lean on (the same idempotency key returns the same intent) and
@@ -24,6 +24,11 @@ export class FakeStripe implements PaymentGateway {
   readonly refunded: string[] = [];
   // One answer per idempotency key: replaying a key returns the first refund and moves no money.
   private refundsByKey = new Map<string, RefundInfo>();
+  // One answer per capture key, and the intents that were created for manual capture.
+  private capturesByKey = new Map<string, PaymentIntentInfo>();
+  private manual = new Set<string>();
+  /** Every capture asked for: intent, amount, key (one entry per distinct key). */
+  readonly captured: { id: string; amountCents: number; key: string }[] = [];
   private records = new Map<string, RefundRecord[]>();
   private refundedCentsByIntent = new Map<string, number>();
   private failures: Method[] = [];
@@ -54,13 +59,23 @@ export class FakeStripe implements PaymentGateway {
   }
 
   // Test helper: move an intent to another state, as Stripe would after a payment attempt.
+  // `requires_capture` is an authorised manual intent (the amount can be captured); `succeeded`
+  // means the money was taken.
   setStatus(id: string, status: string, amountReceivedCents?: number): void {
     const pi = this.require(id);
+    const authorising = status === 'requires_capture';
     this.intents.set(id, {
       ...pi,
       status,
-      amountReceivedCents: amountReceivedCents ?? (status === 'succeeded' ? pi.amountCents : 0),
+      amountReceivedCents:
+        amountReceivedCents ?? (status === 'succeeded' && !authorising ? pi.amountCents : 0),
+      amountCapturableCents: authorising ? pi.amountCents : 0,
     });
+  }
+
+  /** The shopper confirmed the card: a manual intent is authorised, an automatic one succeeds. */
+  confirm(id: string): void {
+    this.setStatus(id, this.manual.has(id) ? 'requires_capture' : 'succeeded');
   }
 
   private enter(method: Method, ...args: unknown[]): void {
@@ -89,10 +104,12 @@ export class FakeStripe implements PaymentGateway {
         status: 'requires_payment_method',
         amountCents: input.amountCents,
         amountReceivedCents: 0,
+        amountCapturableCents: 0,
         currency: input.currency.toLowerCase(),
         clientSecret: `${id}_secret_fake`,
       };
       this.intents.set(id, pi);
+      if (input.captureMethod === 'manual') this.manual.add(id);
       this.byKey.set(input.idempotencyKey, id);
       return pi;
     });
@@ -114,13 +131,46 @@ export class FakeStripe implements PaymentGateway {
     });
   }
 
+  // Mirrors Stripe where tests lean on it: only an authorised intent can be captured, never for more
+  // than was authorised, and the key is answered once (a replay returns the first capture).
+  capturePaymentIntent(
+    id: string,
+    amountCents: number,
+    idempotencyKey: string,
+  ): Promise<PaymentIntentInfo> {
+    return Promise.resolve().then(() => {
+      this.enter('capture', id, amountCents, idempotencyKey);
+      const replay = this.capturesByKey.get(idempotencyKey);
+      if (replay) return replay;
+      const pi = this.require(id);
+      if (pi.status !== 'requires_capture') {
+        throw paymentProvider(`Cannot capture ${id}: it is ${pi.status}, not requires_capture`);
+      }
+      if (amountCents <= 0 || amountCents > pi.amountCapturableCents) {
+        throw paymentProvider(
+          `Capture of ${amountCents} exceeds the ${pi.amountCapturableCents} authorised on ${id}`,
+        );
+      }
+      const done: PaymentIntentInfo = {
+        ...pi,
+        status: 'succeeded',
+        amountReceivedCents: amountCents,
+        amountCapturableCents: 0,
+      };
+      this.intents.set(id, done);
+      this.capturesByKey.set(idempotencyKey, done);
+      this.captured.push({ id, amountCents, key: idempotencyKey });
+      return done;
+    });
+  }
+
   cancelPaymentIntent(id: string): Promise<PaymentIntentInfo> {
     return Promise.resolve().then(() => {
       this.enter('cancel', id);
       this.cancelled.push(id);
       const pi = this.require(id);
       if (pi.status === 'succeeded') return pi;
-      const cancelled = { ...pi, status: 'canceled' };
+      const cancelled = { ...pi, status: 'canceled', amountCapturableCents: 0 };
       this.intents.set(id, cancelled);
       return cancelled;
     });

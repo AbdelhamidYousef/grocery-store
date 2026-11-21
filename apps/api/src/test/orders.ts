@@ -1,11 +1,14 @@
 import { and, eq } from 'drizzle-orm';
 import type { Express } from 'express';
+import { pino } from 'pino';
 import request from 'supertest';
 
 import { db } from '../db/client.ts';
 import { inventory, orderStatusHistory, orders } from '../db/schema/index.ts';
 import { DEFAULT_STORE_ID } from '../db/seed/delivery.ts';
+import type { PaymentGateway } from '../lib/stripe.ts';
 import { createSession } from '../modules/auth/sessions.ts';
+import { finalizeOrder } from '../modules/checkout/capture.ts';
 
 import { TEST_HOOK_SECRET } from './app.ts';
 import { createProduct, createUser } from './factories.ts';
@@ -60,6 +63,7 @@ export function simulate(
   orderNumber: string,
   type:
     | 'payment_intent.succeeded'
+    | 'payment_intent.amount_capturable_updated'
     | 'payment_intent.canceled'
     | 'charge.refunded' = 'payment_intent.succeeded',
 ) {
@@ -81,6 +85,16 @@ export async function stockOf(variantId: string, storeId: string = DEFAULT_STORE
 export async function orderByNumber(number: string) {
   const [row] = await db.select().from(orders).where(eq(orders.number, number));
   return row!;
+}
+
+// Takes the money of an authorised order (what picking, the admin or the overdue job do): a paid
+// order of this app is only AUTHORISED until then, so tests of refunds and returns capture first.
+export async function captureOrder(app: Express, number: string) {
+  const order = await orderByNumber(number);
+  const gateway = app.locals.testGateway as PaymentGateway;
+  return finalizeOrder({ gateway, log: pino({ level: 'silent' }) }, order.id, {
+    actor: 'test:capture',
+  });
 }
 
 // A signed-in browser for an existing or new user.
@@ -127,6 +141,8 @@ export async function deliveredOrder(
     ...(opts.stock !== undefined && { stock: opts.stock }),
   });
   await simulate(app, placed.number);
+  // A delivered order has been captured (packing takes the money); returns refund what was taken.
+  await captureOrder(app, placed.number);
   await markDelivered(placed.number, opts.daysAgo ?? 1);
   return { ...placed, buyer };
 }

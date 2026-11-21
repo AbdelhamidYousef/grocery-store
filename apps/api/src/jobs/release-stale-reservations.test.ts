@@ -151,6 +151,7 @@ describe('releaseStaleReservations', () => {
       createPaymentIntent: (i) => stripe.createPaymentIntent(i),
       updatePaymentIntentAmount: (id, a) => stripe.updatePaymentIntentAmount(id, a),
       retrievePaymentIntent: (id) => stripe.retrievePaymentIntent(id),
+      capturePaymentIntent: (id, a, k) => stripe.capturePaymentIntent(id, a, k),
       cancelPaymentIntent: async (id) => {
         stripe.setStatus(id, 'succeeded');
         return stripe.retrievePaymentIntent(id);

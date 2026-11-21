@@ -42,7 +42,8 @@ export function makeTestApp(
     outbox?: Outbox;
   } = {},
 ) {
-  return createApp({
+  const payments = opts.payments ?? new FakeStripe();
+  const app = createApp({
     logger: opts.logger ?? pino({ level: 'silent' }),
     // The real test database by default: most tests want the app exactly as it runs.
     pingDb:
@@ -50,7 +51,7 @@ export function makeTestApp(
       (async () => {
         await db.execute(sql`select 1`);
       }),
-    payments: opts.payments ?? new FakeStripe(),
+    payments,
     outbox: withTrackedKicks(
       opts.outbox ??
         createOutbox({ transport: new MemoryTransport(), log: pino({ level: 'silent' }) }),
@@ -73,4 +74,7 @@ export function makeTestApp(
       ...opts.config,
     },
   });
+  // Test helpers (captureOrder, deliveredOrder) reach the same gateway the app uses.
+  app.locals.testGateway = payments;
+  return app;
 }

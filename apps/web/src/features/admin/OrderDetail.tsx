@@ -14,6 +14,7 @@ import {
   ORDER_STATUS_TONE,
   stripePaymentUrl,
 } from './order-status';
+import { OrderCapture } from './OrderCapture';
 import { OrderTransitions } from './OrderTransitions';
 import { useAdminOrder } from './queries';
 
@@ -75,6 +76,7 @@ function Body({ detail }: { detail: AdminOrderDetail }) {
           Actions
         </h3>
         <OrderTransitions detail={detail} />
+        <OrderCapture detail={detail} />
       </section>
 
       <section aria-labelledby="order-items" className="flex flex-col gap-3">
@@ -119,7 +121,12 @@ function Body({ detail }: { detail: AdminOrderDetail }) {
                   </td>
                   <td className="px-3 py-2 text-right">{item.quantity}</td>
                   <td className="whitespace-nowrap px-3 py-2 text-right">
-                    {money(item.lineTotalCents)}
+                    {money(item.finalCents ?? item.lineTotalCents)}
+                    {item.weighedGrams !== null && (
+                      <span className="block text-xs text-muted">
+                        {item.weighedGrams} g weighed
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -191,6 +198,16 @@ function Body({ detail }: { detail: AdminOrderDetail }) {
                   {payment.status.replace('_', ' ')},{' '}
                   {formatMoney(payment.amountCents, payment.currency)}
                 </p>
+                {order.capturedCents !== null && (
+                  <p data-testid={TEST_IDS.adminCaptured}>
+                    Captured {formatMoney(order.capturedCents, payment.currency)} of{' '}
+                    {formatMoney(
+                      order.authorizedCents ?? order.totals.totalCents,
+                      payment.currency,
+                    )}{' '}
+                    authorised
+                  </p>
+                )}
                 {payment.lastError && (
                   <p className="break-words text-danger">{payment.lastError}</p>
                 )}

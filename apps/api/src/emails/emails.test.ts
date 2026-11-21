@@ -31,6 +31,8 @@ const order: Order = {
   },
   billingAddress: null,
   notes: null,
+  authorizedCents: null,
+  capturedCents: null,
   items: [
     {
       id: 'i1',
@@ -41,6 +43,10 @@ const order: Order = {
       unitPriceCents: 1299,
       quantity: 2,
       lineTotalCents: 2598,
+      pricePerKgCents: null,
+      weighedGrams: null,
+      finalCents: null,
+      shortDated: false,
     },
   ],
   placedAt: null,

@@ -9,8 +9,11 @@ export const SLOT_RULES = {
   lengthMinutes: 60,
   /** A slot stops being bookable this long before it starts. */
   cutoffMinutes: 60,
-  /** Slots exist for today and the days after it, this many days in all. */
-  daysAhead: 7,
+  /**
+   * Slots exist for today and the days after it, six days in all: a card hold lasts 7 days at
+   * Stripe (manual capture, G6), and an order is captured when it is packed.
+   */
+  daysAhead: 6,
   /** How long a chosen slot is held for the cart. */
   holdMinutes: 15,
   /** Express delivery window and the period its rider limit is counted over. */

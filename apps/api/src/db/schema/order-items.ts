@@ -29,6 +29,12 @@ export const orderItems = pgTable(
     // This line's share of the order-level discounts and credits (largest-remainder split by the
     // pricing engine). The single source for refund amounts (phase 22).
     discountCents: integer('discount_cents').notNull().default(0),
+    // Sold by weight: the price per kg at checkout (null for any other line), the grams once packed
+    // and the line's real price from them (`round(pricePerKg x grams / 1000)`, shared/weight.ts).
+    // `line_total_cents` stays the estimate the order was priced at.
+    pricePerKgCents: integer('price_per_kg_cents'),
+    weighedGrams: integer('weighed_grams'),
+    finalCents: integer('final_cents'),
     // For a kit: the components one kit expanded to AT CHECKOUT ([{variantId, qty}] per kit). Stock
     // paths (release, commit, restock) read this, never the live `bundle_items`, so editing a kit
     // later cannot change what an existing order holds. Null for a plain variant.

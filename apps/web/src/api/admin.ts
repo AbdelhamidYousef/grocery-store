@@ -9,6 +9,7 @@ import {
   AdminVariantResponseSchema,
   type AdminInventoryResult,
   type AdminOrderDetail,
+  type AdminCapture,
   type AdminTransition,
   type OrderStatus,
   type AdminInventorySet,
@@ -186,6 +187,21 @@ export async function fetchAdminOrder(
     await apiFetch(`/admin/orders/${encodeURIComponent(number)}`, {
       schema: AdminOrderDetailResponseSchema,
       ...(signal && { signal }),
+    })
+  ).data;
+}
+
+// Takes the money of an authorised order now (picking will do it later). The server works out the
+// amount; the page can only say how much the weighed lines weighed.
+export async function captureAdminOrder(
+  number: string,
+  input: AdminCapture,
+): Promise<AdminOrderDetail> {
+  return (
+    await apiFetch(`/admin/orders/${encodeURIComponent(number)}/capture`, {
+      method: 'POST',
+      body: input,
+      schema: AdminOrderDetailResponseSchema,
     })
   ).data;
 }

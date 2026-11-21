@@ -296,6 +296,11 @@ export async function refund(
     if (!payment?.providerPaymentIntentId) {
       throw conflict(ErrorCode.CONFLICT, 'This order has no payment to refund');
     }
+    // Nothing is taken from the card until the order is captured: a refund of an authorisation
+    // would fail at Stripe. (A delivered order is captured: picking, the admin or the overdue job.)
+    if (payment.status === 'authorized') {
+      throw conflict(ErrorCode.CONFLICT, 'Capture the payment first: nothing has been charged yet');
+    }
     // Stripe forgets the idempotency key after 24 h, so a retry made days after a crash between
     // step 2 and step 3 could refund again. Our refund carries the return's id: look for it first.
     const already = (await deps.gateway.listRefunds(payment.providerPaymentIntentId)).find(

@@ -14,6 +14,8 @@ export interface TransitionContext {
   /** 'system:webhook', 'system:reconciler', 'customer', 'admin:<email>'. */
   actor: string;
   note?: string | null;
+  /** For `paid`: the card is only authorised (manual capture), nothing is taken yet. */
+  authorized?: boolean;
   /** The change reports something the payment provider already did (see PROVIDER_ONLY_TRANSITIONS). */
   fromProvider?: boolean;
   /**
@@ -67,7 +69,22 @@ export async function applyTransition(
 
   if (payment) {
     if (to === 'paid') {
-      await repo.updatePayment(tx, payment.id, { status: 'succeeded', lastError: null });
+      // `authorized` until finalizeOrder captures it; `succeeded` when the money is already taken.
+      await repo.updatePayment(tx, payment.id, {
+        status: ctx.authorized === true ? 'authorized' : 'succeeded',
+        lastError: null,
+      });
+    } else if (to === 'cancelled' && payment.status === 'authorized') {
+      // Only a hold, never charged: the intent was cancelled by the caller, nothing to refund.
+      await repo.updatePayment(tx, payment.id, {
+        status: 'failed',
+        lastError: ctx.note ?? 'Authorisation released',
+      });
+    } else if (to === 'refunded' && payment.status === 'authorized') {
+      await repo.updatePayment(tx, payment.id, {
+        status: 'failed',
+        lastError: ctx.note ?? 'Authorisation released',
+      });
     } else if (to === 'refunded' || (to === 'cancelled' && from !== 'pending_payment')) {
       await repo.updatePayment(tx, payment.id, { status: 'refunded' });
     } else if (to === 'cancelled' && payment.status !== 'succeeded') {

@@ -353,6 +353,8 @@ export function makeOrder(overrides: Partial<Order> = {}): Order {
     },
     billingAddress: null,
     notes: null,
+    authorizedCents: null,
+    capturedCents: null,
     items: [
       {
         id: 'oi1',
@@ -363,6 +365,10 @@ export function makeOrder(overrides: Partial<Order> = {}): Order {
         unitPriceCents: 1099,
         quantity: 2,
         lineTotalCents: 2198,
+        pricePerKgCents: null,
+        weighedGrams: null,
+        finalCents: null,
+        shortDated: false,
       },
     ],
     delivery: null,
@@ -560,6 +566,8 @@ export function makeAdminOrderDetail(
       },
       billingAddress: null,
       notes: null,
+      authorizedCents: null,
+      capturedCents: null,
       items: [
         {
           id: 'oi1',
@@ -570,6 +578,10 @@ export function makeAdminOrderDetail(
           unitPriceCents: 1099,
           quantity: 2,
           lineTotalCents: 2198,
+          pricePerKgCents: null,
+          weighedGrams: null,
+          finalCents: null,
+          shortDated: false,
         },
         {
           id: 'oi2',
@@ -580,6 +592,10 @@ export function makeAdminOrderDetail(
           unitPriceCents: 1600,
           quantity: 1,
           lineTotalCents: 1600,
+          pricePerKgCents: null,
+          weighedGrams: null,
+          finalCents: null,
+          shortDated: false,
         },
       ],
       delivery: null,

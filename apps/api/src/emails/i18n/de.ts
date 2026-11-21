@@ -23,6 +23,18 @@ export const de: Record<EmailKey, TextEntry> = {
   'order.arrivesExpress': 'Express, bis {time}',
   'order.deliveringTo': 'Wir liefern an:',
 
+  'confirm.held':
+    '{amount} ist auf deiner Karte reserviert und wird abgebucht, sobald wir deine Bestellung packen.',
+  'confirm.heldWeighed':
+    'Wir reservieren bis zu {amount} auf deiner Karte und buchen ab, was deine Tüte wiegt: der Endpreis steht nach dem Wiegen fest.',
+  'bill.subject': 'Deine Schlussrechnung für die Grocery-Bestellung {number}',
+  'bill.preheader': 'Wir haben {amount} für Bestellung {number} abgebucht.',
+  'bill.heading': 'Deine Schlussrechnung',
+  'bill.intro':
+    'Hallo {name}, wir haben die Bestellung {number} gepackt und {amount} von deiner Karte abgebucht.',
+  'bill.weighed': 'Gewogen: {product}, {grams} g, {price}',
+  'bill.held': 'Reserviert waren {amount}; der Rest der Reservierung wird freigegeben.',
+  'bill.total': 'Abgebucht',
   'confirm.subject': 'Deine Grocery-Bestellung {number} ist bestätigt',
   'confirm.thanks': 'Danke für deine Bestellung, {name}.',
   'confirm.paid': 'Die Bestellung {number} ist bezahlt und wir machen sie versandfertig.',

@@ -1,4 +1,5 @@
 import {
+  AdminCaptureSchema,
   AdminCustomerListQuerySchema,
   AdminCustomerListResponseSchema,
   AdminOrderDetailResponseSchema,
@@ -49,6 +50,22 @@ export function createAdminOrdersRouter(deps: {
       body.note,
     );
     // The shipped email (if any) was queued by the transition; send it now, best effort.
+    deps.outbox.kick();
+    respond(res, AdminOrderDetailResponseSchema, { data: detail });
+  });
+
+  // Takes the money of an authorised order now (picking will do it in G8). The amount is worked out
+  // from the order, never read from the request.
+  const capture = { params: OrderNumberParamsSchema, body: AdminCaptureSchema };
+  router.post('/orders/:number/capture', validate(capture), async (req, res) => {
+    const { params, body } = valid(req, capture);
+    setAudit(res, 'order.capture', params.number);
+    const detail = await service.capture(
+      { gateway: deps.payments, log: req.log },
+      params.number,
+      adminActor(req),
+      body.weights,
+    );
     deps.outbox.kick();
     respond(res, AdminOrderDetailResponseSchema, { data: detail });
   });

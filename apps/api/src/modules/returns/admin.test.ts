@@ -452,7 +452,13 @@ describe('admin returns: refund safety', () => {
     // A real order with a 200 round-up: total = lines + shipping + donation.
     await db
       .update(orders)
-      .set({ donationCents: 200, totalCents: order.totalCents + 200 })
+      // (the card was charged that total too: authorised and captured follow it)
+      .set({
+        donationCents: 200,
+        totalCents: order.totalCents + 200,
+        authorizedCents: order.totalCents + 200,
+        capturedCents: order.totalCents + 200,
+      })
       .where(eq(orders.id, order.id));
     const a = await requestReturn(o, [{ orderItemId: line!.id, quantity: 1 }]);
     const b = await requestReturn(o, [{ orderItemId: line!.id, quantity: 1 }]);

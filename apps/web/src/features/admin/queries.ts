@@ -1,5 +1,6 @@
 import type {
   AdminInventorySet,
+  AdminCapture,
   AdminTransition,
   AdminVariantInput,
   AdminVariantUpdate,
@@ -16,6 +17,7 @@ import {
   fetchAdminProducts,
   fetchAdminStats,
   setAdminInventory,
+  captureAdminOrder,
   transitionAdminOrder,
   updateAdminProduct,
   updateAdminVariant,
@@ -132,6 +134,21 @@ export function useAdminOrder(number: string | undefined) {
     queryFn: ({ signal }) => fetchAdminOrder(number ?? '', signal),
     enabled: !!number,
     staleTime: ADMIN_STALE_MS,
+  });
+}
+
+export function useCaptureAdminOrder(number: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: AdminCapture) => captureAdminOrder(number, input),
+    onSuccess: (detail) => {
+      queryClient.setQueryData(keys.admin.order(number), detail);
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: keys.admin.orders, exact: false }),
+        queryClient.invalidateQueries({ queryKey: keys.account.orders }),
+      ]);
+    },
+    onError: () => queryClient.invalidateQueries({ queryKey: keys.admin.order(number) }),
   });
 }
 

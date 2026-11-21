@@ -14,16 +14,16 @@ const slotsOf = (storeId: string) =>
   db.select().from(deliverySlots).where(eq(deliverySlots.storeId, storeId));
 
 describe('generateSlots', () => {
-  it('creates 7 days of one-hour slots for each of the four stores', async () => {
+  it('creates 6 days of one-hour slots for each of the four stores', async () => {
     const result = await generateSlots(db, NOW);
-    expect(result).toEqual({ stores: 4, created: 4 * 7 * 14 });
+    expect(result).toEqual({ stores: 4, created: 4 * 6 * 14 });
     const rows = (await slotsOf(DEFAULT_STORE_ID)).sort(
       (a, b) => a.startsAt.getTime() - b.startsAt.getTime(),
     );
-    expect(rows).toHaveLength(98);
+    expect(rows).toHaveLength(84);
     expect(rows[0]!.startsAt.toISOString()).toBe('2026-11-23T07:00:00.000Z'); // 08:00 Berlin
     expect(rows[0]!.capacity).toBe(8);
-    expect(rows[97]!.endsAt.toISOString()).toBe('2026-11-29T21:00:00.000Z'); // 22:00 Berlin, day 7
+    expect(rows[83]!.endsAt.toISOString()).toBe('2026-11-28T21:00:00.000Z'); // 22:00 Berlin, day 6
   });
 
   it('is idempotent: a second run creates nothing and changes nothing', async () => {
@@ -45,9 +45,9 @@ describe('generateSlots', () => {
       .set({ opensAt: '10:00', closesAt: '14:00', slotCapacity: 3 })
       .where(eq(darkStores.id, DEFAULT_STORE_ID));
     await db.update(darkStores).set({ active: false }).where(eq(darkStores.slug, 'neukoelln'));
-    expect(await generateSlots(db, NOW)).toEqual({ stores: 3, created: 7 * 4 + 2 * 7 * 14 });
+    expect(await generateSlots(db, NOW)).toEqual({ stores: 3, created: 6 * 4 + 2 * 6 * 14 });
     const rows = await slotsOf(DEFAULT_STORE_ID);
-    expect(rows).toHaveLength(28);
+    expect(rows).toHaveLength(24);
     expect(rows.every((r) => r.capacity === 3)).toBe(true);
   });
 

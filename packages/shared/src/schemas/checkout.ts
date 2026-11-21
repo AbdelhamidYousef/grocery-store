@@ -22,6 +22,8 @@ export type OrderStatus = z.infer<typeof OrderStatusSchema>;
 export const PaymentStatusSchema = z.enum([
   'requires_payment',
   'processing',
+  // The card is held for the authorised amount; the money is taken after packing (manual capture).
+  'authorized',
   'succeeded',
   'failed',
   'refunded',
@@ -113,6 +115,12 @@ export const OrderItemSchema = z.object({
   unitPriceCents: z.number().int().min(0),
   quantity: z.number().int().min(1),
   lineTotalCents: z.number().int().min(0),
+  // Sold by weight: the price per kg it was ordered at (null for any other line), the grams once
+  // packed and the real price of those grams. `lineTotalCents` stays the estimate it was priced at.
+  pricePerKgCents: z.number().int().nullable(),
+  weighedGrams: z.number().int().nullable(),
+  finalCents: z.number().int().nullable(),
+  shortDated: z.boolean(),
 });
 export type OrderItem = z.infer<typeof OrderItemSchema>;
 
@@ -127,6 +135,10 @@ export const OrderSchema = z.object({
   // Null means "same as shipping".
   billingAddress: OrderAddressSchema.nullable(),
   notes: z.string().nullable(),
+  // Manual capture: what the card was held for, and what was really taken (null until it was).
+  // Both null for orders paid before manual capture existed.
+  authorizedCents: z.number().int().nullable(),
+  capturedCents: z.number().int().nullable(),
   items: z.array(OrderItemSchema),
   // The promised delivery window; null for orders placed before slots existed.
   delivery: OrderDeliverySchema.nullable(),

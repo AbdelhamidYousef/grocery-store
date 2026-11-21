@@ -17,7 +17,13 @@ const sdk = vi.hoisted(() => {
   }
   return {
     StripeError,
-    paymentIntents: { create: vi.fn(), update: vi.fn(), retrieve: vi.fn(), cancel: vi.fn() },
+    paymentIntents: {
+      create: vi.fn(),
+      update: vi.fn(),
+      retrieve: vi.fn(),
+      cancel: vi.fn(),
+      capture: vi.fn(),
+    },
     refunds: { create: vi.fn(), list: vi.fn() },
   };
 });
@@ -39,6 +45,7 @@ const pi = (over: Partial<Stripe.PaymentIntent> = {}) =>
     status: 'requires_payment_method',
     amount: 1234,
     amount_received: 0,
+    amount_capturable: 0,
     currency: 'eur',
     client_secret: 'pi_1_secret',
     ...over,
@@ -66,6 +73,7 @@ describe('createPaymentIntent', () => {
       status: 'requires_payment_method',
       amountCents: 1234,
       amountReceivedCents: 0,
+      amountCapturableCents: 0,
       currency: 'eur',
       clientSecret: 'pi_1_secret',
     });
@@ -76,6 +84,29 @@ describe('createPaymentIntent', () => {
         metadata: { orderId: 'o-1', orderNumber: 'PAW-1' },
       }),
       { idempotencyKey: 'order-o-1' },
+    );
+  });
+
+  it('asks Stripe to only authorise when capture is manual, and charges at once otherwise', async () => {
+    sdk.paymentIntents.create.mockResolvedValue(pi());
+    const base = {
+      amountCents: 1234,
+      currency: 'EUR',
+      orderId: 'o-1',
+      orderNumber: 'GR-1',
+      email: 'ada@grocery.test',
+    };
+    await gateway.createPaymentIntent({ ...base, idempotencyKey: 'k1', captureMethod: 'manual' });
+    await gateway.createPaymentIntent({ ...base, idempotencyKey: 'k2' });
+    expect(sdk.paymentIntents.create).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ capture_method: 'manual' }),
+      { idempotencyKey: 'k1' },
+    );
+    expect(sdk.paymentIntents.create).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ capture_method: 'automatic' }),
+      { idempotencyKey: 'k2' },
     );
   });
 
@@ -107,6 +138,30 @@ describe('update and retrieve', () => {
     expect((await gateway.retrievePaymentIntent('pi_1')).status).toBe('succeeded');
     sdk.paymentIntents.retrieve.mockRejectedValueOnce(new Error('boom'));
     await expect(gateway.retrievePaymentIntent('pi_1')).rejects.toMatchObject({ status: 502 });
+  });
+});
+
+describe('capturePaymentIntent', () => {
+  it('captures the given amount with the idempotency key and maps what Stripe took', async () => {
+    sdk.paymentIntents.capture.mockResolvedValue(
+      pi({ status: 'succeeded', amount_received: 1100, amount_capturable: 0 }),
+    );
+    const info = await gateway.capturePaymentIntent('pi_1', 1100, 'capture:o-1');
+    expect(info).toMatchObject({ status: 'succeeded', amountReceivedCents: 1100 });
+    expect(sdk.paymentIntents.capture).toHaveBeenCalledWith(
+      'pi_1',
+      { amount_to_capture: 1100 },
+      { idempotencyKey: 'capture:o-1' },
+    );
+  });
+
+  it('reports a refusal (more than authorised, not capturable) as a 502', async () => {
+    sdk.paymentIntents.capture.mockRejectedValue(
+      new sdk.StripeError('too much', 'amount_too_large'),
+    );
+    await expect(gateway.capturePaymentIntent('pi_1', 99_999, 'k')).rejects.toMatchObject({
+      status: 502,
+    });
   });
 });
 

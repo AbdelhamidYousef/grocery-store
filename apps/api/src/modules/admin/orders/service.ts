@@ -4,6 +4,7 @@ import type { Logger } from 'pino';
 import { db } from '../../../db/client.ts';
 import { notFound } from '../../../lib/errors.ts';
 import type { PaymentGateway } from '../../../lib/stripe.ts';
+import { finalizeOrder, type Weighing } from '../../checkout/capture.ts';
 import * as checkoutRepo from '../../checkout/repo.ts';
 import { transitionOrder } from '../../orders/service.ts';
 import { requestableNext } from '../../orders/state-machine.ts';
@@ -38,6 +39,18 @@ export async function listOrders(query: {
     createdAt: r.createdAt.toISOString(),
   }));
   return { data, meta: page(query.page, query.limit, total) };
+}
+
+export async function capture(
+  deps: { gateway: PaymentGateway; log: Logger },
+  number: string,
+  actor: string,
+  weights?: Weighing[],
+): Promise<AdminOrderDetail> {
+  const order = await checkoutRepo.findOrderByNumber(number);
+  if (!order) throw notFound('Order not found');
+  await finalizeOrder(deps, order.id, { actor, ...(weights && { weights }) });
+  return getOrderDetail(number);
 }
 
 export async function getOrderDetail(number: string): Promise<AdminOrderDetail> {

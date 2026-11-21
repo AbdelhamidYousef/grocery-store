@@ -16,6 +16,8 @@ export interface PaymentIntentInfo {
   status: string;
   amountCents: number;
   amountReceivedCents: number;
+  /** What a `requires_capture` intent can still be captured for (0 in every other state). */
+  amountCapturableCents: number;
   /** Lower-case ISO code, as Stripe returns it. */
   currency: string;
   /** Null only if Stripe omitted it; checkout treats that as a provider error. */
@@ -28,6 +30,9 @@ export interface CreatePaymentIntentInput {
   orderId: string;
   orderNumber: string;
   email: string;
+  // 'manual': the card is only authorised when the shopper pays (status `requires_capture`) and the
+  // money is taken later with `capturePaymentIntent`. Default 'automatic' (charged at once).
+  captureMethod?: 'automatic' | 'manual';
   // Same key + same parameters = same PaymentIntent back, however many times we retry. See below.
   idempotencyKey: string;
 }
@@ -65,6 +70,15 @@ export interface PaymentGateway {
   // Changing the amount of a not-yet-paid intent (the shopper edited their cart before paying).
   updatePaymentIntentAmount(id: string, amountCents: number): Promise<PaymentIntentInfo>;
   retrievePaymentIntent(id: string): Promise<PaymentIntentInfo>;
+  // Takes the money of an authorised (`requires_capture`) intent: `amountCents` may be LESS than was
+  // authorised (the rest of the hold is released), never more (Stripe refuses). Idempotent per key:
+  // a retry with the same key returns the first capture and takes nothing twice. The services refuse
+  // an amount above the authorised one before this is ever called.
+  capturePaymentIntent(
+    id: string,
+    amountCents: number,
+    idempotencyKey: string,
+  ): Promise<PaymentIntentInfo>;
   // Idempotent: cancelling an already-cancelled intent returns it instead of throwing.
   cancelPaymentIntent(id: string): Promise<PaymentIntentInfo>;
   // Returns money to the customer: the whole remaining charge, or `amountCents` of it (a partial
@@ -91,6 +105,7 @@ function toInfo(pi: Stripe.PaymentIntent): PaymentIntentInfo {
     status: pi.status,
     amountCents: pi.amount,
     amountReceivedCents: pi.amount_received,
+    amountCapturableCents: pi.amount_capturable,
     currency: pi.currency,
     clientSecret: pi.client_secret,
   };
@@ -139,6 +154,8 @@ export function createStripeGateway(options: StripeGatewayOptions): PaymentGatew
               currency: input.currency.toLowerCase(),
               // Lets Stripe offer whatever payment methods the dashboard enables, without a code change.
               automatic_payment_methods: { enabled: true },
+              // 'manual' holds the money on the card without taking it (7 days at Stripe).
+              capture_method: input.captureMethod ?? 'automatic',
               receipt_email: input.email,
               description: `Grocery order ${input.orderNumber}`,
               // The webhook finds the order from our own table by intent id; the metadata is for
@@ -152,6 +169,17 @@ export function createStripeGateway(options: StripeGatewayOptions): PaymentGatew
 
     updatePaymentIntentAmount: (id, amountCents) =>
       call(async () => toInfo(await stripe.paymentIntents.update(id, { amount: amountCents }))),
+
+    capturePaymentIntent: (id, amountCents, idempotencyKey) =>
+      call(async () =>
+        toInfo(
+          await stripe.paymentIntents.capture(
+            id,
+            { amount_to_capture: amountCents },
+            { idempotencyKey },
+          ),
+        ),
+      ),
 
     retrievePaymentIntent: (id) =>
       call(async () => toInfo(await stripe.paymentIntents.retrieve(id))),
@@ -228,6 +256,7 @@ export function createUnconfiguredGateway(): PaymentGateway {
     createPaymentIntent: reject,
     updatePaymentIntentAmount: reject,
     retrievePaymentIntent: reject,
+    capturePaymentIntent: reject,
     cancelPaymentIntent: reject,
     refundPaymentIntent: reject,
     listRefunds: reject,

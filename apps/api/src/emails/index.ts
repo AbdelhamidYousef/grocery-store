@@ -4,6 +4,7 @@ import { contactAck, contactNotify } from './contact.ts';
 import { emailText } from './i18n/index.ts';
 import { newsletterConfirm, newsletterWelcome } from './newsletter.ts';
 import { orderConfirmation } from './order-confirmation.ts';
+import { orderFinalBill } from './order-final-bill.ts';
 import { orderShipped } from './order-shipped.ts';
 import { RETURN_EMAIL_KINDS, returnUpdate } from './return-update.ts';
 import { reviewApproved } from './review-approved.ts';
@@ -16,7 +17,12 @@ export type { Email } from './layout.ts';
 // Which emails exist. The outbox stores the kind, the order id (when there is one) and a small
 // JSON payload; the content is rendered from those when the email is sent, so a template fix
 // reaches emails still waiting to go out.
-export const ORDER_EMAIL_KINDS = ['order_confirmation', 'order_shipped', 'withdrawal_ack'] as const;
+export const ORDER_EMAIL_KINDS = [
+  'order_confirmation',
+  'order_final_bill',
+  'order_shipped',
+  'withdrawal_ack',
+] as const;
 export type OrderEmailKind = (typeof ORDER_EMAIL_KINDS)[number];
 
 // Not about one order: the payload carries everything.
@@ -46,6 +52,8 @@ export function renderEmail(
   switch (kind) {
     case 'order_confirmation':
       return orderConfirmation(order, x);
+    case 'order_final_bill':
+      return orderFinalBill(order, x);
     case 'order_shipped':
       return orderShipped(order, x);
     case 'withdrawal_ack':

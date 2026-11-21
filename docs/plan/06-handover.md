@@ -50,7 +50,10 @@ Written by the build sessions for the owner and the next session. Newest state f
   writer; `expectBatchInvariant()` in `test/stock.ts` guards sum(batches) = `inventory.quantity`). G6.2 done: best-before
   on the PDP and the 30 % short-dated offer (migration 0052; `stock/short-dated.ts` counts it; shelf on home and
   department pages; one cart line per variant). G6.3 done: items sold by weight (migration 0053; `shared/weight.ts`
-  owns every weighed-money rule; weighed items have no short-dated offer).
+  owns every weighed-money rule; weighed items have no short-dated offer). G6.4 done: manual capture (migration
+  0054; checkout authorises total + 15 % of weighed lines; `checkout/capture.ts` has `capturePayment`, `finalizeOrder`
+  and the hourly `capture-overdue`; admin "Capture now"; cancelling an authorised order cancels the intent;
+  `payments.capture_method` keeps the automatic path for old orders; slots 6 days ahead).
 - **Open follow-ups** (small, not blocking):
   - Reseed before the first public deploy: a database migrated from G3 has identical shelves in every store (`pnpm db:reset`).
   - e2e "back in stock" fails under full-suite load (it waits for a mail through two `pnpm` spawns) and passes alone; give it a longer timeout or call the job in-process.

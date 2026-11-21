@@ -7,7 +7,7 @@ import { orderStatusHistory, orders, payments } from '../../db/schema/index.ts';
 import { makeTestApp } from '../../test/app.ts';
 import { createShippingMethods } from '../../test/factories.ts';
 import { FakeStripe } from '../../test/fake-stripe.ts';
-import { orderByNumber, placeOrder, simulate, stockOf } from '../../test/orders.ts';
+import { captureOrder, orderByNumber, placeOrder, simulate, stockOf } from '../../test/orders.ts';
 import { expectBatchInvariant } from '../../test/stock.ts';
 
 import { transitionOrder } from './service.ts';
@@ -82,9 +82,22 @@ describe('transitionOrder (side effects through the state machine)', () => {
     expect((await orderByNumber(number)).status).toBe('pending_payment');
   });
 
-  it('cancelling a paid order refunds in Stripe and puts the units back on the shelf', async () => {
+  it('cancelling an authorised order cancels the intent (no refund) and puts the units back', async () => {
     const { number, variantId } = await placeOrder(app, { stock: 10, quantity: 2 });
     await simulate(app, number);
+    expect(await stockOf(variantId)).toEqual({ quantity: 8, reserved: 0 });
+    await move(number, 'cancelled', 'customer asked');
+    expect(fake.refunded).toHaveLength(0);
+    expect(fake.cancelled).toHaveLength(1);
+    expect(await stockOf(variantId)).toEqual({ quantity: 10, reserved: 0 });
+    const [payment] = await db.select().from(payments);
+    expect(payment?.status).toBe('failed');
+  });
+
+  it('cancelling a captured order refunds in Stripe and puts the units back on the shelf', async () => {
+    const { number, variantId } = await placeOrder(app, { stock: 10, quantity: 2 });
+    await simulate(app, number);
+    await captureOrder(app, number);
     expect(await stockOf(variantId)).toEqual({ quantity: 8, reserved: 0 });
     await move(number, 'cancelled', 'customer asked');
     expect(fake.refunded).toHaveLength(1);
@@ -109,11 +122,14 @@ describe('transitionOrder (side effects through the state machine)', () => {
 
     const b = await placeOrder(app, { stock: 10, quantity: 2 });
     await simulate(app, b.number);
+    await captureOrder(app, b.number);
     for (const to of ['processing', 'shipped', 'delivered', 'refunded'] as const) {
       await move(b.number, to);
     }
     expect(await stockOf(b.variantId)).toEqual({ quantity: 8, reserved: 0 });
-    expect(fake.refunded).toHaveLength(2);
+    // The authorised one only had its hold released; the captured one was refunded.
+    expect(fake.cancelled).toHaveLength(1);
+    expect(fake.refunded).toHaveLength(1);
   });
 
   it('a Stripe refund of a shipped order (dashboard) is recorded without restocking', async () => {
@@ -137,6 +153,7 @@ describe('transitionOrder (side effects through the state machine)', () => {
   it('does not touch the database when Stripe refuses the refund', async () => {
     const { number, variantId } = await placeOrder(app, { stock: 10, quantity: 2 });
     await simulate(app, number);
+    await captureOrder(app, number);
     fake.failNext('refund');
     await expect(move(number, 'cancelled')).rejects.toMatchObject({ status: 502 });
     expect((await orderByNumber(number)).status).toBe('paid');

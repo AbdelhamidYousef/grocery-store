@@ -6,7 +6,14 @@ import { makeTestApp } from '../../../test/app.ts';
 import { createShippingMethods, createUser } from '../../../test/factories.ts';
 import { FakeStripe } from '../../../test/fake-stripe.ts';
 import { bodyOf, errorOf } from '../../../test/http.ts';
-import { orderByNumber, placeOrder, signedIn, simulate, stockOf } from '../../../test/orders.ts';
+import {
+  captureOrder,
+  orderByNumber,
+  placeOrder,
+  signedIn,
+  simulate,
+  stockOf,
+} from '../../../test/orders.ts';
 import type { Shopper } from '../../../test/shopper.ts';
 import { createOutbox } from '../../mail/outbox.ts';
 
@@ -54,7 +61,7 @@ describe('GET /admin/orders', () => {
     expect(second.data[0]).toMatchObject({
       number: a.number,
       itemCount: 3,
-      paymentStatus: 'succeeded',
+      paymentStatus: 'authorized',
     });
   });
 
@@ -86,7 +93,7 @@ describe('GET /admin/orders/:number', () => {
     const { data } = bodyOf<Detail>(await admin.shopper.call('get', `/admin/orders/${number}`));
     expect(data.order).toMatchObject({ number, status: 'paid' });
     expect(data.payment).toMatchObject({
-      status: 'succeeded',
+      status: 'authorized',
       providerPaymentIntentId: expect.stringMatching(/^pi_fake_\d+$/) as string,
     });
     expect(data.customer?.email).toBe('buyer@grocery.test');
@@ -154,9 +161,21 @@ describe('POST /admin/orders/:number/transition', () => {
     expect((await orderByNumber(number)).status).toBe('pending_payment');
   });
 
-  it('cancelling a paid order refunds it in Stripe and restocks', async () => {
+  it('cancelling an authorised order releases the hold (no refund) and restocks', async () => {
     const { number, variantId } = await placeOrder(app, { stock: 10, quantity: 2 });
     await simulate(app, number);
+    const res = await move(number, { to: 'cancelled', note: 'Customer changed their mind' });
+    expect(res.status).toBe(200);
+    expect(fake.refunded).toEqual([]);
+    expect(fake.cancelled).toHaveLength(1);
+    expect(await stockOf(variantId)).toEqual({ quantity: 10, reserved: 0 });
+    expect(bodyOf<Detail>(res).data.payment?.status).toBe('failed');
+  });
+
+  it('cancelling a captured order refunds it in Stripe and restocks', async () => {
+    const { number, variantId } = await placeOrder(app, { stock: 10, quantity: 2 });
+    await simulate(app, number);
+    await captureOrder(app, number);
     const refundsBefore = fake.refunded.length;
     const res = await move(number, { to: 'cancelled', note: 'Customer changed their mind' });
     expect(res.status).toBe(200);

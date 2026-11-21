@@ -1,4 +1,4 @@
-import type { OrderAddress, OrderItem, OrderTotals } from '@store/shared';
+import { formatGrams, type OrderAddress, type OrderItem, type OrderTotals } from '@store/shared';
 
 import { useT } from '../../i18n';
 import { useFormat } from '../../i18n/format';
@@ -12,9 +12,16 @@ export interface SummaryLine {
   quantity: number;
   lineTotalCents: number;
   imageUrl: string | null;
+  /** "Weighed 470 g": set once a weighed line has been packed. */
+  note?: string | undefined;
+  /** What a weighed line really came to (shown instead of the estimate once known). */
+  finalCents?: number | null | undefined;
+  weighedGrams?: number | null | undefined;
 }
 
-export const linesOfOrder = (items: OrderItem[]): SummaryLine[] =>
+export const linesOfOrder = (
+  items: OrderItem[],
+): (SummaryLine & { weighedGrams?: number | null })[] =>
   items.map((i) => ({
     key: i.id,
     name: i.productName,
@@ -22,6 +29,8 @@ export const linesOfOrder = (items: OrderItem[]): SummaryLine[] =>
     quantity: i.quantity,
     lineTotalCents: i.lineTotalCents,
     imageUrl: i.imageUrl,
+    finalCents: i.finalCents,
+    weighedGrams: i.weighedGrams,
   }));
 
 // The picture box has a fixed size, so a long name or a missing image never changes the layout.
@@ -53,9 +62,19 @@ export function SummaryLines({ lines, currency }: { lines: SummaryLine[]; curren
             <p className="break-words text-sm text-muted">
               {line.variant} · {t('checkout.summary.qty', { quantity: line.quantity })}
             </p>
+            {line.finalCents !== null && line.finalCents !== undefined && (
+              <p
+                data-testid={TEST_IDS.orderItemWeighed}
+                className="break-words text-sm font-semibold text-primary-strong"
+              >
+                {t('weight.weighed', {
+                  weight: formatGrams(line.weighedGrams ?? 0, fmt.locale),
+                })}
+              </p>
+            )}
           </div>
           <p className="shrink-0 font-display font-bold">
-            {fmt.money(line.lineTotalCents, currency)}
+            {fmt.money(line.finalCents ?? line.lineTotalCents, currency)}
           </p>
         </li>
       ))}
@@ -105,8 +124,22 @@ export function TotalsList({
 
 // What was bought and what it came to, as the server recorded it. Used by the confirmation page
 // and the order history detail, so both read the same.
-export function OrderSummary({ items, totals }: { items: OrderItem[]; totals: OrderTotals }) {
+export function OrderSummary({
+  items,
+  totals,
+  authorizedCents = null,
+  capturedCents = null,
+}: {
+  items: OrderItem[];
+  totals: OrderTotals;
+  /** Manual capture: what the card is held for (null for an order charged in full at once). */
+  authorizedCents?: number | null;
+  /** What was really taken, once it was (the final bill). */
+  capturedCents?: number | null;
+}) {
   const { t } = useT();
+  const fmt = useFormat();
+  const weighed = items.some((i) => i.pricePerKgCents !== null);
   return (
     <div data-testid={TEST_IDS.orderSummary} className="flex flex-col gap-4">
       <SummaryLines lines={linesOfOrder(items)} currency={totals.currency} />
@@ -125,8 +158,32 @@ export function OrderSummary({ items, totals }: { items: OrderItem[]; totals: Or
             ? [{ label: t('checkout.summary.tax'), cents: totals.taxCents }]
             : []),
         ]}
-        total={{ cents: totals.totalCents, fallback: '' }}
+        total={{ cents: capturedCents ?? totals.totalCents, fallback: '' }}
       />
+      {capturedCents !== null ? (
+        <p
+          data-testid={TEST_IDS.orderFinalBill}
+          className="rounded-control bg-primary-soft p-3 text-sm font-semibold text-primary-strong"
+        >
+          {authorizedCents !== null && authorizedCents > capturedCents
+            ? t('weight.finalBillReleased', {
+                amount: fmt.money(capturedCents, totals.currency),
+                held: fmt.money(authorizedCents, totals.currency),
+              })
+            : t('weight.finalBill', { amount: fmt.money(capturedCents, totals.currency) })}
+        </p>
+      ) : (
+        authorizedCents !== null && (
+          <p
+            data-testid={TEST_IDS.orderHeld}
+            className="rounded-control bg-dept-soft p-3 text-sm font-semibold"
+          >
+            {t(weighed ? 'weight.heldWeighed' : 'weight.held', {
+              amount: fmt.money(authorizedCents, totals.currency),
+            })}
+          </p>
+        )
+      )}
     </div>
   );
 }

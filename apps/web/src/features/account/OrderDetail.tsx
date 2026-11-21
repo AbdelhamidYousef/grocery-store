@@ -129,7 +129,12 @@ export function OrderDetail() {
         <div className="min-w-0">
           <h3 className="font-display text-xl font-bold">{t('account.order.items')}</h3>
           <div className="mt-3">
-            <OrderSummary items={order.items} totals={order.totals} />
+            <OrderSummary
+              items={order.items}
+              totals={order.totals}
+              authorizedCents={order.authorizedCents}
+              capturedCents={order.capturedCents}
+            />
           </div>
           <ReturnsSection
             orderNumber={order.number}

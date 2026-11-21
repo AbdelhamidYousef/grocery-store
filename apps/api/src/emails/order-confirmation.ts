@@ -20,6 +20,15 @@ import {
 const trackUrl = (number: string, x: EmailText) =>
   x.url(env.WEB_ORIGIN, `/track-order?number=${encodeURIComponent(number)}`);
 
+// What is held on the card (manual capture): up to the authorised amount, and for weighed lines the
+// final price comes after weighing. Nothing for an order paid before manual capture.
+function heldLine(order: Order, x: EmailText): string | null {
+  if (order.authorizedCents === null) return null;
+  const amount = x.money(order.authorizedCents, order.totals.currency);
+  const weighed = order.items.some((i) => i.pricePerKgCents !== null);
+  return x.t(weighed ? 'confirm.heldWeighed' : 'confirm.held', { amount });
+}
+
 // Sent once, in the same transaction that marks the order paid (via the outbox).
 export function orderConfirmation(order: Order, x: EmailText): Email {
   const address = addressLines(order.shippingAddress);
@@ -32,6 +41,7 @@ export function orderConfirmation(order: Order, x: EmailText): Email {
     '',
     itemsText(order, x),
     ...(deliveryLine(order, x) ? ['', deliveryLine(order, x)!] : []),
+    ...(heldLine(order, x) ? ['', heldLine(order, x)!] : []),
     '',
     x.t('order.shippingTo'),
     ...address,
@@ -48,6 +58,7 @@ export function orderConfirmation(order: Order, x: EmailText): Email {
       paragraph(htmlOf(x, 'confirm.intro', { name, number: order.number }, ['number'])),
       itemsTable(order, x),
       deliveryBlock(order, x),
+      ...(heldLine(order, x) ? [paragraph(escapeHtml(heldLine(order, x)!))] : []),
       paragraph(
         `<strong>${escapeHtml(x.t('order.shippingTo').replace(/:$/, ''))}</strong><br>${address.map(escapeHtml).join('<br>')}`,
       ),

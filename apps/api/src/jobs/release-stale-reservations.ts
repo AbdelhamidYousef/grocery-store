@@ -68,14 +68,25 @@ export async function releaseStaleReservations(opts: {
     );
     result[cancelled ? 'released' : 'skipped'] += 1;
   };
-  const recover = async (intent: { id: string; amountReceivedCents: number; currency: string }) => {
+  const recover = async (intent: {
+    id: string;
+    status: string;
+    amountReceivedCents: number;
+    amountCapturableCents: number;
+    currency: string;
+  }) => {
+    // `requires_capture` = authorised (manual capture): the money is held, not taken.
+    const authorized = intent.status === 'requires_capture';
     const outcome = await db.transaction((tx) =>
       confirmPayment(
         tx,
         {
           paymentIntentId: intent.id,
-          amountReceivedCents: intent.amountReceivedCents,
+          amountReceivedCents: authorized
+            ? intent.amountCapturableCents
+            : intent.amountReceivedCents,
           currency: intent.currency,
+          authorized,
         },
         ACTOR,
         log,
@@ -96,7 +107,9 @@ export async function releaseStaleReservations(opts: {
       }
 
       const intent = await gateway.retrievePaymentIntent(payment.providerPaymentIntentId);
-      if (intent.status === 'succeeded') {
+      // Authorised or paid: the shopper got through. Never cancel such an intent (cancelling a
+      // `requires_capture` intent would release the hold of an order they have paid for).
+      if (intent.status === 'succeeded' || intent.status === 'requires_capture') {
         await recover(intent);
         continue;
       }
@@ -108,7 +121,7 @@ export async function releaseStaleReservations(opts: {
       // Cancel the intent first. If the shopper paid in the meantime Stripe refuses and reports
       // `succeeded`, and then the right move is to confirm, not to cancel.
       const after = await gateway.cancelPaymentIntent(intent.id);
-      if (after.status === 'succeeded') await recover(after);
+      if (after.status === 'succeeded' || after.status === 'requires_capture') await recover(after);
       else await release(orderId, 'Payment not completed within 30 minutes');
     } catch (err) {
       result.failed += 1;

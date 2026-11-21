@@ -63,6 +63,14 @@ export async function transitionOrder(
           );
         }
       }
+    } else if (intentId && payment?.status === 'authorized') {
+      // Only a hold, nothing was taken: cancelling the intent releases it (no refund exists to make).
+      // If the money was captured in the meantime (the capture job, the Stripe dashboard) Stripe
+      // answers `succeeded` instead, and then it is a real charge to give back.
+      const after = await deps.gateway.cancelPaymentIntent(intentId);
+      if (after.status === 'succeeded') {
+        await deps.gateway.refundPaymentIntent(intentId, `refund:${seen.id}`);
+      }
     } else if (intentId) {
       await deps.gateway.refundPaymentIntent(intentId, `refund:${seen.id}`);
     }

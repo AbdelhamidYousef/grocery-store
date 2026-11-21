@@ -14,7 +14,10 @@ import * as repo from './repo.ts';
 const PaymentIntentObject = z.object({
   id: z.string(),
   amount_received: z.number().int().default(0),
+  // Only on `requires_capture`: what the card can still be charged for (the authorised amount).
+  amount_capturable: z.number().int().default(0),
   currency: z.string(),
+  status: z.string().optional(),
   last_payment_error: z.object({ message: z.string().nullish() }).nullish(),
 });
 const ChargeObject = z.object({
@@ -39,8 +42,14 @@ export type ConfirmOutcome =
 
 export interface PaymentSucceeded {
   paymentIntentId: string;
+  /** The money taken (`succeeded`) or, when `authorized`, the amount the card is held for. */
   amountReceivedCents: number;
   currency: string;
+  /**
+   * True for `requires_capture` (G6): the card is authorised for the amount, nothing is taken yet.
+   * It secures the order exactly as `succeeded` did (stock, emails); only the payment row differs.
+   */
+  authorized?: boolean;
 }
 
 // Turns a confirmed payment into a paid order. The only code that moves an order to `paid`: the
@@ -70,9 +79,12 @@ export async function confirmPayment(
     // Money arrived for an order we had already given up on (e.g. the sweeper cancelled it a
     // moment before the customer's card went through). We cannot ship it silently: record it
     // loudly so a human refunds it.
-    const note = `Payment of ${event.amountReceivedCents} received after the order was cancelled: refund needed`;
+    const note = `Payment of ${event.amountReceivedCents} ${event.authorized ? 'authorised' : 'received'} after the order was cancelled: ${event.authorized ? 'cancel the authorisation' : 'refund needed'}`;
     log.error({ orderId: order.id, paymentIntentId: event.paymentIntentId }, `ALARM: ${note}`);
-    await repo.updatePayment(tx, payment.id, { status: 'succeeded', lastError: note });
+    await repo.updatePayment(tx, payment.id, {
+      status: event.authorized ? 'authorized' : 'succeeded',
+      lastError: note,
+    });
     await repo.insertHistory(tx, {
       orderId: order.id,
       fromStatus: 'cancelled',
@@ -82,16 +94,27 @@ export async function confirmPayment(
     });
     return 'paid_after_cancel';
   }
-  // Paid already (a duplicate signal from the other path) or further along: nothing to do.
-  if (order.status !== 'pending_payment') return 'already_handled';
+  // Paid already (a duplicate signal from the other path) or further along: nothing to do, except
+  // that a `succeeded` for an authorised payment is a capture this app did not record (it was made
+  // in the Stripe dashboard, or the process died between Stripe and our write): record it once.
+  if (order.status !== 'pending_payment') {
+    if (!event.authorized && payment.status === 'authorized' && order.capturedCents === null) {
+      await repo.updateOrder(tx, order.id, { capturedCents: event.amountReceivedCents });
+      await repo.updatePayment(tx, payment.id, { status: 'succeeded' });
+    }
+    return 'already_handled';
+  }
 
   // The amount that actually landed must be the amount we asked for. It always is unless
   // something is badly wrong (a tampered intent, a bug in the update path), and then shipping
   // goods against it would be the expensive mistake. Leave the order pending and shout.
-  const sameAmount = event.amountReceivedCents === order.totalCents;
+  // What the card is asked for is the authorised amount (total plus the weighing buffer); orders
+  // from before manual capture have none and are charged their total.
+  const expectedCents = order.authorizedCents ?? order.totalCents;
+  const sameAmount = event.amountReceivedCents === expectedCents;
   const sameCurrency = event.currency.toLowerCase() === order.currency.toLowerCase();
   if (!sameAmount || !sameCurrency) {
-    const note = `Amount mismatch: received ${event.amountReceivedCents} ${event.currency}, expected ${order.totalCents} ${order.currency}`;
+    const note = `Amount mismatch: received ${event.amountReceivedCents} ${event.currency}, expected ${expectedCents} ${order.currency}`;
     log.error({ orderId: order.id, paymentIntentId: event.paymentIntentId }, `ALARM: ${note}`);
     await repo.updatePayment(tx, payment.id, { lastError: note });
     await repo.insertHistory(tx, {
@@ -105,7 +128,13 @@ export async function confirmPayment(
   }
 
   // Stock commit, payment row, cart and history all happen inside the state machine.
-  await applyTransition(tx, order, 'paid', { actor });
+  // (The transition sets the payment row: `authorized` for a manual-capture payment, `succeeded` for
+  // an automatic one, which also has the money in hand.)
+  await applyTransition(tx, order, 'paid', { actor, authorized: event.authorized === true });
+  // A manual-capture intent that arrives already captured (made in the dashboard): record the take.
+  if (!event.authorized && payment.captureMethod === 'manual') {
+    await repo.updateOrder(tx, order.id, { capturedCents: event.amountReceivedCents });
+  }
   // The confirmation email was queued by applyTransition, in this same transaction.
   return 'paid';
 }
@@ -159,6 +188,24 @@ async function dispatch(tx: Tx, event: StripeEvent, log: Logger): Promise<void> 
           paymentIntentId: intent.id,
           amountReceivedCents: intent.amount_received,
           currency: intent.currency,
+        },
+        actor,
+        log,
+      );
+      return;
+    }
+    case 'payment_intent.amount_capturable_updated': {
+      // Manual capture: the shopper's card is authorised. Anything but `requires_capture` here (a
+      // partial capture also fires this event) is not a new authorisation.
+      const intent = parseObject(PaymentIntentObject, event.data.object, event.type);
+      if (intent.status !== 'requires_capture') return;
+      await confirmPayment(
+        tx,
+        {
+          paymentIntentId: intent.id,
+          amountReceivedCents: intent.amount_capturable,
+          currency: intent.currency,
+          authorized: true,
         },
         actor,
         log,

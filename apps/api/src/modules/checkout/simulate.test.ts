@@ -52,7 +52,8 @@ describe('POST /test/webhooks/simulate (NODE_ENV=test only)', () => {
     const status = await guest.call('get', `/checkout/orders/${number}/status`);
     expect(bodyOf<{ data: unknown }>(status).data).toEqual({
       status: 'paid',
-      paymentStatus: 'succeeded',
+      // The card is authorised (manual capture), the money is taken after packing.
+      paymentStatus: 'authorized',
     });
     const [stock] = await db.select().from(inventory).where(eq(inventory.variantId, variantId));
     expect(stock).toMatchObject({ quantity: 8, reserved: 0 });
@@ -196,10 +197,10 @@ describe('with a real Stripe key (the gateway answers what Stripe holds)', () =>
     return bodyOf<{ data: { orderNumber: string } }>(res).data.orderNumber;
   }
 
-  it('marks the order paid when Stripe says the full amount was received', async () => {
+  it('marks the order paid when Stripe says the full amount is authorised', async () => {
     const number = await pendingOnReal();
     const [payment] = await db.select().from(payments);
-    fake.setStatus(payment!.providerPaymentIntentId!, 'succeeded');
+    fake.setStatus(payment!.providerPaymentIntentId!, 'requires_capture');
     const res = await simulate({ orderNumber: number }, real);
     expect(res.status).toBe(200);
     expect(fake.callsTo('retrieve')).toHaveLength(1);

@@ -7,6 +7,7 @@ import { orders } from './orders.ts';
 export const paymentStatus = pgEnum('payment_status', [
   'requires_payment',
   'processing',
+  'authorized',
   'succeeded',
   'failed',
   'refunded',
@@ -30,6 +31,11 @@ export const payments = pgTable(
     // Must equal the order total; the webhook handler verifies it before marking the order paid.
     amountCents: integer('amount_cents').notNull(),
     currency: char('currency', { length: 3 }).notNull().default('EUR'),
+    // 'manual': the card is authorised at checkout and captured after packing (G6); 'automatic' is
+    // an intent created before that, charged in full at once. The code paths differ only here.
+    captureMethod: text('capture_method', { enum: ['automatic', 'manual'] })
+      .notNull()
+      .default('automatic'),
     lastError: text('last_error'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),

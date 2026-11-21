@@ -21,8 +21,16 @@ function consequence(detail: AdminOrderDetail, to: OrderStatus): string {
   if (to === 'cancelled' && status === 'pending_payment') {
     return 'The customer has not paid. The payment attempt is cancelled and the reserved stock is released.';
   }
+  // An authorised payment holds money on the card without taking it: cancelling releases the hold.
+  const held = detail.payment?.status === 'authorized';
+  if (to === 'cancelled' && held) {
+    return 'The hold on the customer card is released (nothing was charged) and the units go back on sale.';
+  }
   if (to === 'cancelled') {
     return 'The payment is refunded in Stripe and the units go back on sale.';
+  }
+  if (held) {
+    return 'The hold on the customer card is released (nothing was charged).';
   }
   return 'The payment is refunded in Stripe. Units that already shipped are not put back on sale automatically: once they are inspected, add them back from the product page with the reason Return.';
 }
