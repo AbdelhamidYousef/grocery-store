@@ -25,6 +25,7 @@ import {
 
 import { brands } from './brands.ts';
 import { seedBundles } from './bundles.ts';
+import { collectionSeedData } from './catalogue.ts';
 import { categories } from './categories.ts';
 import { seedCharity } from './charity.ts';
 import { collections, windowDates } from './collections.ts';
@@ -57,6 +58,12 @@ import { DEMO_PASSWORD, demoUsers, hashDemoPassword } from './users.ts';
 const excluded = (column: string) => sql.raw(`excluded."${column}"`);
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+const listIndex = (collection: string, product: string): number => {
+  const list: readonly string[] | undefined = collectionSeedData[collection];
+  const i = list?.indexOf(product) ?? -1;
+  return i < 0 ? Number.MAX_SAFE_INTEGER : i;
+};
 
 export async function runSeed(now = new Date()) {
   // A typo in any seed file fails here, naming the product, before the database is touched.
@@ -315,6 +322,9 @@ export async function runSeed(now = new Date()) {
             return expandVariants(p).some((v) => !v.isTrial && v.priceCents < 200);
           return p.collections?.includes(c.slug) ?? false;
         })
+        // A listed collection keeps the order it is written in (the seasonal strip shows its first
+        // four); computed ones keep catalogue order.
+        .sort((a, b) => listIndex(c.slug, a.slug) - listIndex(c.slug, b.slug))
         .map((p, position) => ({
           collectionId: collectionId.get(c.slug) ?? '',
           productId: productId.get(p.slug) ?? '',

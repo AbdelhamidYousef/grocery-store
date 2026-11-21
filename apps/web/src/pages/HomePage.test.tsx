@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { clearHomeSlots, registerHomeSlot } from '../features/home/slots';
 import * as tracking from '../lib/track';
-import { makeCard, makeHome, makeList } from '../test/fixtures';
+import { makeCard, makeCategory, makeHome, makeList } from '../test/fixtures';
 import { renderApp } from '../test/render';
 import { server, API } from '../test/server';
 
@@ -37,6 +37,21 @@ describe('home page', () => {
     expect(await screen.findByTestId('guides-teaser')).toBeInTheDocument();
     expect(await screen.findByTestId('rating-summary')).toHaveTextContent('4.8 out of 5');
     expect(spy).toHaveBeenCalledWith({ name: 'view_home' });
+  });
+
+  it('counts a department whose category slug is translated (German store)', async () => {
+    server.use(
+      http.get(`${API}/categories`, () =>
+        HttpResponse.json({
+          data: [
+            makeCategory({ slug: 'milch-eier', departmentSlug: 'dairy-eggs', productCount: 7 }),
+          ],
+        }),
+      ),
+    );
+    renderApp('/');
+    const dairy = await screen.findByText('7 products');
+    expect(dairy.closest('[data-dept]')).toHaveAttribute('data-dept', 'dairy-eggs');
   });
 
   it('shows the admin hero slides as offer cards', async () => {
