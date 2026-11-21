@@ -155,21 +155,23 @@ Written by the build sessions for the owner and the next session. Newest state f
   the Berlin-only wording everywhere (checkout hint, help, shipping page, labels, emails) and exclamation marks in system text.
   README case study with Mermaid diagrams and live screenshots, `CREDITS.md` complete. Gates green: shared 338, web 1,048, API 1,665
   + 3 skipped, e2e 86 + 1 skipped (under heavy machine load one journey spec timed out once and passed on re-run). **Project
-  complete** apart from the items below. Not pushed (the lead pushes; every push redeploys).
+  complete** apart from the items below. Pushed and live.
 - **Final QA done** (2026-11-21): checkout steps, confirmation, account order, tracking, packer view and admin order checked at 1280/768/375
-  px in EN and DE. Fixed the paid-order wording (Payment secured / Charged, admin too) and the German origin, tags and delivery kind. Not pushed.
+  px in EN and DE. Fixed the paid-order wording (Payment secured / Charged, admin too) and the German origin, tags and delivery kind. Packer view bags now collapse to summary rows (page 11,121 → 5,101 px at 1280). Pushed and live.
 - **Open follow-ups** (small, not blocking):
   - (Closed before G9.1) The admin status button refuses "shipped" for a manual-capture order and points to the packer view; admin variant forms create and edit weighed variants (price per kg and nominal grams; the unit price is derived).
   - The admin "Capture now" and the overdue job stay as a safety net beside dispatch (which captures with the packed grams).
   - The e2e API now needs a `JOBS_SECRET` (set by `playwright.config.ts`); a hand-started e2e server without it makes the back-in-stock spec fail with 404.
-  - Reseed before the first public deploy: a database migrated from G3 has identical shelves in every store (`pnpm db:reset`).
+  - Full e2e at 5 workers on a busy machine (load 20+) fails a different spec or two each run, all passing alone; at
+    `pnpm exec playwright test --workers=3` the suite is green (86 + 1 skipped, 2026-11-21). Two load-sensitive specs were
+    hardened at the cause (`delivery-areas` frees stock on top of earlier reservations; `pdp-depth` waits for its request).
   - The `release-slot-holds` cadence is 5 minutes: a scheduler that calls `POST /internal/jobs/run` hourly only runs it hourly, which is harmless (holds expire by themselves).
   - Express availability and slot status depend on the time of day (Berlin), so a spec must never assert "express is on".
 
 ## Waiting on you
 
-- Run `pnpm db:seed` against Neon (direct URL, through the shell) once after the push: the live help centre still shows the old
-  parcel answers until then (the seed also drops the two retired articles).
+- Nothing blocking. The live database was migrated and re-seeded after the G11 push (2026-11-21), so the help centre shows the
+  new answers.
 - Optional: a `RESEND_API_KEY` if you want real emails on the demo; a real Lighthouse run on the live site (no tool for it here).
 - Open follow-ups: help articles and legal pages are English only; order lines are English snapshots, so a German order page shows
   "Strawberries"; the admin
