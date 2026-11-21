@@ -5,12 +5,15 @@ import type {
   AddressUpdateSchema,
   ChangePasswordSchema,
   OrderSummary,
+  SubstitutionSettings,
   UpdateProfileSchema,
   User,
 } from '@store/shared';
+import { eq } from 'drizzle-orm';
 import type { z } from 'zod';
 
 import { db } from '../../db/client.ts';
+import { users } from '../../db/schema/index.ts';
 import { notFound, validation } from '../../lib/errors.ts';
 import { hash, verify } from '../auth/password.ts';
 import * as authRepo from '../auth/repo.ts';
@@ -35,6 +38,29 @@ export async function updateProfile(
   const row = await repo.updateUserNames(userId, input);
   if (!row) throw notFound('Account not found');
   return toUser(row);
+}
+
+export async function getSubstitutionSettings(userId: string): Promise<SubstitutionSettings> {
+  const [row] = await db
+    .select({ pref: users.defaultSubstitution })
+    .from(users)
+    .where(eq(users.id, userId));
+  if (!row) throw notFound('Account not found');
+  // The column shares the cart's enum, but a default can never be one particular product.
+  return { defaultSubstitution: row.pref === 'none' ? 'none' : 'best_match' };
+}
+
+export async function setSubstitutionSettings(
+  userId: string,
+  defaultSubstitution: SubstitutionSettings['defaultSubstitution'],
+): Promise<SubstitutionSettings> {
+  const rows = await db
+    .update(users)
+    .set({ defaultSubstitution })
+    .where(eq(users.id, userId))
+    .returning({ id: users.id });
+  if (rows.length === 0) throw notFound('Account not found');
+  return { defaultSubstitution };
 }
 
 export async function changePassword(

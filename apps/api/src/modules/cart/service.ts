@@ -9,16 +9,18 @@ import {
   type CartWarning,
   type CartPricing,
   type OutOfStockDetails,
+  type SetSubstitutionInput,
 } from '@store/shared';
 
 import { db, type Tx } from '../../db/client.ts';
-import { AppError, conflict, notFound } from '../../lib/errors.ts';
+import { AppError, conflict, notFound, unprocessable } from '../../lib/errors.ts';
 import { bundleComponentsOf, listActiveShippingMethods } from '../checkout/repo.ts';
 import { estimateRule, priceBeforeThreshold } from '../checkout/shipping.ts';
 import { cartDelivery, clearDelivery, putExpress, putSlot } from '../delivery/holds.ts';
 import { currentDelivery, currentStore, currentStoreId } from '../i18n/context.ts';
 import * as promotions from '../promotions/service.ts';
 import { shortDatedAvailability } from '../stock/short-dated.ts';
+import * as substitutions from '../substitutions/service.ts';
 import { customerKey, isRedeemed, trialLimit } from '../trials/service.ts';
 
 import { getOrCreateUserCart, guestExpiry, userExpiry } from './identity.ts';
@@ -208,6 +210,10 @@ export async function loadCart(tx: Tx, cartId: string): Promise<Cart> {
       maxQty,
       shortDated,
       bestBefore: shortOffer?.bestBefore ?? null,
+      // A "specific" choice whose product is gone reads as a best match (the FK set it to null).
+      substitution:
+        line.substitution === 'specific' && !line.substitute ? 'best_match' : line.substitution,
+      substitute: line.substitution === 'specific' ? line.substitute : null,
       weight:
         line.soldByWeight && line.pricePerKgCents !== null && line.nominalGrams !== null
           ? { pricePerKgCents: line.pricePerKgCents, nominalGrams: line.nominalGrams }
@@ -373,7 +379,16 @@ async function addLine(
     await repo.setItemMode(tx, existing.id, shortDated, quantity, stock.priceCents);
   } else if (existing) {
     await repo.setItemQuantity(tx, existing.id, inCart + quantity, stock.priceCents);
-  } else await repo.insertItem(tx, cartId, variantId, quantity, stock.priceCents, shortDated);
+  } else {
+    // A new line starts with the account's preference (a guest has the shop's default).
+    const substitution = cart.userId
+      ? await repo.defaultSubstitutionOf(tx, cart.userId)
+      : 'best_match';
+    await repo.insertItem(tx, cartId, variantId, quantity, stock.priceCents, shortDated, {
+      substitution,
+      substituteVariantId: null,
+    });
+  }
 }
 
 export async function addItem(
@@ -450,6 +465,40 @@ export async function updateItem(cartId: string, itemId: string, quantity: numbe
     }
     await repo.setItemQuantity(tx, item.id, quantity, stock.priceCents);
   });
+}
+
+// "If it's missing": best match, refund it, or a product the shopper picked from the line's own
+// best-match list (so it is always safe, in stock and about the same price).
+export async function setSubstitution(
+  cartId: string,
+  itemId: string,
+  input: SetSubstitutionInput,
+): Promise<Cart> {
+  return mutate(cartId, async (tx) => {
+    const item = await repo.findItemInCart(tx, cartId, itemId);
+    if (!item) throw notFound('Cart item not found');
+    if (input.substitution !== 'specific' || !input.substituteVariantId) {
+      await repo.setItemSubstitution(tx, item.id, input.substitution, null);
+      return;
+    }
+    const options = await substitutions.matchesFor(
+      tx,
+      item.variantId,
+      currentStoreId(),
+      currentStore().currency,
+    );
+    if (!options?.matches.some((m) => m.variantId === input.substituteVariantId)) {
+      throw unprocessable('That product is not a safe replacement for this item');
+    }
+    await repo.setItemSubstitution(tx, item.id, 'specific', input.substituteVariantId);
+  });
+}
+
+export async function setSubstitutionForAll(
+  cartId: string,
+  substitution: 'best_match' | 'none',
+): Promise<Cart> {
+  return mutate(cartId, (tx) => repo.setAllSubstitutions(tx, cartId, substitution));
 }
 
 export async function removeItem(cartId: string, itemId: string): Promise<Cart> {
@@ -578,6 +627,7 @@ export async function mergeGuestCart(guestCartId: string, userId: string): Promi
           quantity,
           line.lastSeenPriceCents,
           line.shortDated,
+          { substitution: line.substitution, substituteVariantId: line.substituteVariantId },
         );
       }
       result.merged += 1;

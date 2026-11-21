@@ -45,3 +45,4 @@ export * from './returns.ts';
 export * from './translations.ts';
 export * from './variant-prices.ts';
 export * from './stock-batches.ts';
+export * from './substitution.ts';

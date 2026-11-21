@@ -10,6 +10,8 @@ import {
   OrderNumberParamsSchema,
   PaginationQuerySchema,
   ProfileResponseSchema,
+  SubstitutionSettingsResponseSchema,
+  SubstitutionSettingsSchema,
   UpdateProfileSchema,
 } from '@store/shared';
 import { Router as ExpressRouter, type Router } from 'express';
@@ -38,6 +40,20 @@ export function createAccountRouter(opts: { authRateLimit: RateLimitOptions }): 
     const { body } = valid(req, profile);
     respond(res, ProfileResponseSchema, {
       data: { user: await service.updateProfile(userId(req), body) },
+    });
+  });
+
+  // The "if it's missing" choice new cart lines start with (phase G7).
+  router.get('/account/substitution', async (req, res) => {
+    respond(res, SubstitutionSettingsResponseSchema, {
+      data: await service.getSubstitutionSettings(userId(req)),
+    });
+  });
+  const substitution = { body: SubstitutionSettingsSchema };
+  router.put('/account/substitution', validate(substitution), async (req, res) => {
+    const { body } = valid(req, substitution);
+    respond(res, SubstitutionSettingsResponseSchema, {
+      data: await service.setSubstitutionSettings(userId(req), body.defaultSubstitution),
     });
   });
 

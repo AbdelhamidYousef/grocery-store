@@ -545,3 +545,24 @@ that is already running.
    is called, and what stops two "Capture now" clicks (or the capture job and a click) from taking the money twice?
 4. An order is authorised but not yet captured and the customer cancels. Why is the intent cancelled instead of
    refunded, what does the payment row end up as, and what happens if the money was captured a second earlier?
+
+### G7.1: preferences per line
+Migration 0055: enums `substitution_preference` (`best_match | specific | none`), `pick_status`, `swap_status`
+(the last two are used from G7.2); `cart_items` and `order_items` gain `substitution` (default `best_match`) and
+`substitute_variant_id` (FK, SET NULL: a deleted product falls back to a best match); `users.default_substitution`.
+Shared `substitutions.ts` is the rule an interviewer asks about, pure and unit-tested: `bestMatches(original,
+candidates, limit)` keeps a candidate only if it is a different variant, in the SAME subcategory, in stock, priced
+within +-30 % (integer arithmetic) and SAFE (`isSafeSubstitute`: no allergen the original lacks, every dietary tag
+the original has, food rules skipped for a non-food original), then ranks by closeness of price, then the cheaper,
+then id. `swapUnitCents` is min(original, substitute). API: `modules/substitutions` (repo loads facts at ONE store,
+service wraps the shared rule), `GET /products/:slug/substitutes?variantId=` (top 5 at the shopper's store, so a
+"specific" choice is safe by construction), `PUT /cart/items/:id/substitution` (a specific product must be in that
+line's own list, else 422), `PUT /cart/substitution` ("apply to all": best match or refund, a specific product
+belongs to one line), `GET/PUT /account/substitution` (the default new lines start with; a separate endpoint, not a
+field of the strict session user). A new line starts with the account default (guest: best match), a guest merge
+keeps each line's choice, checkout copies it to the order line. Web: "If it is missing" select on each cart line (page,
+not the drawer) with a dialog listing the five safe products, "Same for every item", and the account default on the
+profile page; EN + DE ("du").
+Surprise: nothing in the existing suite changed except the cart fixture; the new columns have defaults.
+Learn: when a rule must hold in three places (the list, the save, the packer), write it once as a pure function over
+plain facts and let each place only load the facts; the SQL then needs no copy of the rule.

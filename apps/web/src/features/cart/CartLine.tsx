@@ -11,6 +11,7 @@ import { image600 } from '../../lib/images';
 import { TEST_IDS } from '../../lib/test-ids';
 import { QuantityStepper } from '../catalog/QuantityStepper';
 import { formatBestBefore } from '../expiry/format';
+import { SubstitutionControl } from '../substitutions/SubstitutionControl';
 import { WeightLine } from '../weight/Weight';
 
 import { noticeKey } from './queries';
@@ -156,6 +157,8 @@ export function CartLine({
             })}
           </p>
         )}
+
+        {!compact && !soldOut && <SubstitutionControl item={item} currency={currency} />}
 
         {soldOut && (
           <p data-testid={TEST_IDS.cartLineWarning} className="text-sm font-semibold text-danger">

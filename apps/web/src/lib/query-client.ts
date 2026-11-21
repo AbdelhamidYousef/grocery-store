@@ -91,6 +91,7 @@ export const keys = {
   account: {
     all: ['account'] as const,
     addresses: ['account', 'addresses'] as const,
+    substitution: ['account', 'substitution'] as const,
     // Everything below shares this prefix, so one invalidation refreshes the list and any detail.
     orders: ['account', 'orders'] as const,
     orderList: (page: number) => ['account', 'orders', 'list', page] as const,

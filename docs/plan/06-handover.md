@@ -58,6 +58,11 @@ Written by the build sessions for the owner and the next session. Newest state f
   "back in stock" spec is fixed (the job runs in the API through `POST /internal/jobs/run` with `force`, which is
   refused in production). Gates green: shared 291, web 988, API 1,520 + 3 skipped, e2e 78 + 1 skipped. A database
   migrated from G5 needs `pnpm db:migrate && pnpm db:seed` (batches, weighed variants). Not pushed.
+- **G7.1 done** (2026-11-21, G7 in progress): substitution preference per line. Migration 0055 (`substitution`,
+  `substitute_variant_id` on cart and order lines, `users.default_substitution`, the `pick_status` / `swap_status`
+  enums for G7.2). Shared `substitutions.ts` has the pure `bestMatches` (safe before similar), API
+  `GET /products/:slug/substitutes`, cart `PUT /cart/items/:id/substitution` and `PUT /cart/substitution`, account
+  `GET/PUT /account/substitution`; web: select on each cart line, pick dialog, "same for every item", account default.
   Paid orders are only AUTHORISED until captured: tests that refund or return a paid order capture it first
   (`captureOrder` / `deliveredOrder` in `test/orders.ts`); `simulate` turns "the shopper paid" into the
   authorisation event for a manual-capture order.

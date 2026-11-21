@@ -372,6 +372,9 @@ async function reserveAndSave(
           lineTotalCents: unitPriceCents * i.quantity,
           discountCents: line?.lineDiscountCents ?? 0,
           bundleComponents: kitParts.get(i.variantId) ?? null,
+          // What to do if it is missing at packing (G7), copied from the cart line.
+          substitution: i.substitution,
+          substituteVariantId: i.substitute?.variantId ?? null,
         };
       }),
       ...(gift

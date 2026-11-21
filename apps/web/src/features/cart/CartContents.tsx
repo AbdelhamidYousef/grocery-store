@@ -1,5 +1,6 @@
 import type { WebCart } from '../../api/cart';
 import { useT } from '../../i18n';
+import { ApplyToAll } from '../substitutions/ApplyToAll';
 
 import { CartLine } from './CartLine';
 import { CartNotices, useBannerNotices } from './CartNotices';
@@ -39,6 +40,7 @@ export function CartContents({
         ))}
         <GiftLine pricing={cart.pricing} currency={cart.currency} />
       </ul>
+      {!compact && cart.items.some((i) => i.available > 0) && <ApplyToAll />}
     </>
   );
 }

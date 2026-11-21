@@ -11,6 +11,7 @@ import { useT } from '../../i18n';
 import { FormAlert } from '../auth/AuthCard';
 import { useAuth } from '../auth/AuthProvider';
 import { applyFieldErrors, formErrorMessage } from '../auth/form-errors';
+import { SubstitutionDefault } from '../substitutions/SubstitutionDefault';
 
 import { useUpdateProfile } from './queries';
 
@@ -90,6 +91,7 @@ export function ProfileSection() {
           {t('account.profile.save')}
         </Button>
       </form>
+      <SubstitutionDefault />
     </section>
   );
 }

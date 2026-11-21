@@ -4,6 +4,7 @@ import { boolean, check, index, integer, jsonb, pgTable, text, uuid } from 'driz
 import { createdAt, id, updatedAt } from './columns.ts';
 import { orders } from './orders.ts';
 import { productVariants } from './product-variants.ts';
+import { substitutionPreference } from './substitution.ts';
 
 // A snapshot of what was bought, not a reference to the live catalog: renaming, re-pricing or
 // deleting a product later must not rewrite history or change an old invoice.
@@ -39,6 +40,11 @@ export const orderItems = pgTable(
     // paths (release, commit, restock) read this, never the live `bundle_items`, so editing a kit
     // later cannot change what an existing order holds. Null for a plain variant.
     bundleComponents: jsonb('bundle_components').$type<{ variantId: string; qty: number }[]>(),
+    // Copied from the cart line: what to do if the item is missing when the bag is packed.
+    substitution: substitutionPreference('substitution').notNull().default('best_match'),
+    substituteVariantId: uuid('substitute_variant_id').references(() => productVariants.id, {
+      onDelete: 'set null',
+    }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

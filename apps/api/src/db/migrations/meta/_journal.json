@@ -386,6 +386,13 @@
       "when": 1795252362308,
       "tag": "0054_manual_capture",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1795255773809,
+      "tag": "0055_substitution_preferences",
+      "breakpoints": true
     }
   ]
 }

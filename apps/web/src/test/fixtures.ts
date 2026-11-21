@@ -276,6 +276,8 @@ export function makeCartItem(overrides: Partial<WebCartItem> = {}): WebCartItem 
     weight: null,
     shortDated: false,
     bestBefore: null,
+    substitution: 'best_match',
+    substitute: null,
     ...overrides,
   };
 }

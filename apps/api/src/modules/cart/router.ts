@@ -1,10 +1,12 @@
 import {
   AddCartItemSchema,
   ApplyCodeSchema,
+  ApplySubstitutionToAllSchema,
   BulkAddCartItemsSchema,
   CartItemParamsSchema,
   CartResponseSchema,
   PutCartSlotSchema,
+  SetSubstitutionSchema,
   UpdateCartItemSchema,
 } from '@store/shared';
 import { Router as ExpressRouter, type Router } from 'express';
@@ -61,6 +63,23 @@ const byId = { params: CartItemParamsSchema };
 cartRouter.delete('/cart/items/:id', validate(byId), async (req, res) => {
   const { params } = valid(req, byId);
   respond(res, CartResponseSchema, { data: await service.removeItem(cartIdOf(req), params.id) });
+});
+
+// "If it's missing" (phase G7): per line, or one choice for every line.
+const setSub = { params: CartItemParamsSchema, body: SetSubstitutionSchema };
+cartRouter.put('/cart/items/:id/substitution', validate(setSub), async (req, res) => {
+  const { params, body } = valid(req, setSub);
+  respond(res, CartResponseSchema, {
+    data: await service.setSubstitution(cartIdOf(req), params.id, body),
+  });
+});
+
+const setAllSub = { body: ApplySubstitutionToAllSchema };
+cartRouter.put('/cart/substitution', validate(setAllSub), async (req, res) => {
+  const { body } = valid(req, setAllSub);
+  respond(res, CartResponseSchema, {
+    data: await service.setSubstitutionForAll(cartIdOf(req), body.substitution),
+  });
 });
 
 const applyCode = { body: ApplyCodeSchema };

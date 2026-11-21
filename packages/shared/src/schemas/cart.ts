@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { SubstitutionPreferenceSchema } from '../substitutions.ts';
+
 import { IdParamsSchema } from './account.ts';
 import { DataSchema } from './common.ts';
 import { CartPricingSchema } from './promotions.ts';
@@ -60,6 +62,11 @@ export const CartItemSchema = z.object({
   shortDated: z.boolean(),
   // The oldest short-dated pack's best-before date ("YYYY-MM-DD") of a short-dated line; else null.
   bestBefore: z.string().nullable(),
+  // What to do if the item is missing when the bag is packed, and for "specific" which product.
+  substitution: SubstitutionPreferenceSchema,
+  substitute: z
+    .object({ variantId: z.string(), productName: z.string(), variantName: z.string() })
+    .nullable(),
 });
 export type CartItem = z.infer<typeof CartItemSchema>;
 

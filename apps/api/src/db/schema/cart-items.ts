@@ -4,6 +4,7 @@ import { boolean, check, index, integer, pgTable, uniqueIndex, uuid } from 'driz
 import { carts } from './carts.ts';
 import { createdAt, id, updatedAt } from './columns.ts';
 import { productVariants } from './product-variants.ts';
+import { substitutionPreference } from './substitution.ts';
 
 // The cart is always re-priced from the catalog on read, so no price here is ever *charged*.
 // `last_seen_price_cents` only remembers what the shopper last saw, to power the "price changed"
@@ -22,6 +23,12 @@ export const cartItems = pgTable(
     quantity: integer('quantity').notNull(),
     // The shopper chose the short-dated offer: 30 % off, filled from short-dated packs only.
     shortDated: boolean('short_dated').notNull().default(false),
+    // If the item is missing at packing: best match, a product the shopper chose, or just refund it.
+    substitution: substitutionPreference('substitution').notNull().default('best_match'),
+    // The chosen product for `specific` (SET NULL: a deleted variant falls back to a best match).
+    substituteVariantId: uuid('substitute_variant_id').references(() => productVariants.id, {
+      onDelete: 'set null',
+    }),
     // Null for lines created before this column existed: nothing to compare, so no warning.
     lastSeenPriceCents: integer('last_seen_price_cents'),
     createdAt: createdAt(),

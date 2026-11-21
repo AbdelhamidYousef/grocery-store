@@ -1,4 +1,6 @@
+import type { SubstitutionPreference } from '@store/shared';
 import { and, asc, eq, gt, inArray, isNull, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 
 import { inventoryAt, stockQuantity, stockReserved } from '../../db/available.ts';
 import { db, type Tx } from '../../db/client.ts';
@@ -9,6 +11,7 @@ import {
   productImages,
   productVariants,
   products,
+  users,
 } from '../../db/schema/index.ts';
 import { currentStore } from '../i18n/context.ts';
 import { hasPriceIn, priceIn } from '../i18n/prices.ts';
@@ -120,6 +123,8 @@ export type LineRow = {
   productStatus: 'draft' | 'active' | 'archived';
   stock: number | null;
   reserved: number | null;
+  substitution: SubstitutionPreference;
+  substitute: { variantId: string; productName: string; variantName: string } | null;
 };
 
 // One query joins everything a priced line needs. `inventory` is a LEFT join so a variant that
@@ -129,40 +134,53 @@ export async function listLines(
   cartId: string,
   currency: string = currentStore().currency,
 ): Promise<LineRow[]> {
-  return (
-    tx
-      .select({
-        itemId: cartItems.id,
-        quantity: cartItems.quantity,
-        shortDated: cartItems.shortDated,
-        variantId: productVariants.id,
-        variantName: productVariants.name,
-        sku: productVariants.sku,
-        priceCents: sql<number | null>`${priceIn(currency)}`,
-        lastSeenPriceCents: cartItems.lastSeenPriceCents,
-        currency: sql<string>`${currency}::char(3)`,
-        weightGrams: productVariants.weightGrams,
-        isTrial: productVariants.isTrial,
-        isBundle: sql<boolean>`exists (select 1 from bundle_items where bundle_variant_id = ${productVariants.id})`,
-        soldByWeight: productVariants.soldByWeight,
-        pricePerKgCents: productVariants.pricePerKgCents,
-        nominalGrams: productVariants.nominalGrams,
-        variantStatus: productVariants.status,
-        productId: products.id,
-        productName: products.name,
-        productSlug: products.slug,
-        productStatus: products.status,
-        stock: stockQuantity(productVariants.id),
-        reserved: stockReserved(productVariants.id),
-      })
-      .from(cartItems)
-      .innerJoin(productVariants, eq(productVariants.id, cartItems.variantId))
-      .innerJoin(products, eq(products.id, productVariants.productId))
-      .leftJoin(inventory, inventoryAt(productVariants.id))
-      .where(eq(cartItems.cartId, cartId))
-      // Stable order: the lines do not jump around when one is edited.
-      .orderBy(asc(cartItems.createdAt), asc(cartItems.id))
-  );
+  const subVariant = alias(productVariants, 'sub_variant');
+  const subProduct = alias(products, 'sub_product');
+  const rows = await tx
+    .select({
+      substitution: cartItems.substitution,
+      subVariantId: subVariant.id,
+      subVariantName: subVariant.name,
+      subProductName: subProduct.name,
+      itemId: cartItems.id,
+      quantity: cartItems.quantity,
+      shortDated: cartItems.shortDated,
+      variantId: productVariants.id,
+      variantName: productVariants.name,
+      sku: productVariants.sku,
+      priceCents: sql<number | null>`${priceIn(currency)}`,
+      lastSeenPriceCents: cartItems.lastSeenPriceCents,
+      currency: sql<string>`${currency}::char(3)`,
+      weightGrams: productVariants.weightGrams,
+      isTrial: productVariants.isTrial,
+      isBundle: sql<boolean>`exists (select 1 from bundle_items where bundle_variant_id = ${productVariants.id})`,
+      soldByWeight: productVariants.soldByWeight,
+      pricePerKgCents: productVariants.pricePerKgCents,
+      nominalGrams: productVariants.nominalGrams,
+      variantStatus: productVariants.status,
+      productId: products.id,
+      productName: products.name,
+      productSlug: products.slug,
+      productStatus: products.status,
+      stock: stockQuantity(productVariants.id),
+      reserved: stockReserved(productVariants.id),
+    })
+    .from(cartItems)
+    .innerJoin(productVariants, eq(productVariants.id, cartItems.variantId))
+    .innerJoin(products, eq(products.id, productVariants.productId))
+    .leftJoin(inventory, inventoryAt(productVariants.id))
+    .leftJoin(subVariant, eq(subVariant.id, cartItems.substituteVariantId))
+    .leftJoin(subProduct, eq(subProduct.id, subVariant.productId))
+    .where(eq(cartItems.cartId, cartId))
+    // Stable order: the lines do not jump around when one is edited.
+    .orderBy(asc(cartItems.createdAt), asc(cartItems.id));
+  return rows.map(({ subVariantId, subVariantName, subProductName, ...line }) => ({
+    ...line,
+    substitute:
+      subVariantId && subVariantName && subProductName
+        ? { variantId: subVariantId, productName: subProductName, variantName: subVariantName }
+        : null,
+  }));
 }
 
 export type ImageRow = {
@@ -302,10 +320,49 @@ export async function insertItem(
   quantity: number,
   lastSeenPriceCents: number | null,
   shortDated = false,
+  substitution: { substitution: SubstitutionPreference; substituteVariantId: string | null } = {
+    substitution: 'best_match',
+    substituteVariantId: null,
+  },
 ): Promise<void> {
   await tx
     .insert(cartItems)
-    .values({ cartId, variantId, quantity, lastSeenPriceCents, shortDated });
+    .values({ cartId, variantId, quantity, lastSeenPriceCents, shortDated, ...substitution });
+}
+
+export async function setItemSubstitution(
+  tx: Tx,
+  itemId: string,
+  substitution: SubstitutionPreference,
+  substituteVariantId: string | null,
+): Promise<void> {
+  await tx
+    .update(cartItems)
+    .set({ substitution, substituteVariantId })
+    .where(eq(cartItems.id, itemId));
+}
+
+/** "Apply to all": every line of the cart takes this choice (a specific product is cleared). */
+export async function setAllSubstitutions(
+  tx: Tx,
+  cartId: string,
+  substitution: SubstitutionPreference,
+): Promise<void> {
+  await tx
+    .update(cartItems)
+    .set({ substitution, substituteVariantId: null })
+    .where(eq(cartItems.cartId, cartId));
+}
+
+export async function defaultSubstitutionOf(
+  tx: Tx,
+  userId: string,
+): Promise<SubstitutionPreference> {
+  const [row] = await tx
+    .select({ pref: users.defaultSubstitution })
+    .from(users)
+    .where(eq(users.id, userId));
+  return row?.pref ?? 'best_match';
 }
 
 export async function deleteAllItems(tx: Tx, cartId: string): Promise<void> {
