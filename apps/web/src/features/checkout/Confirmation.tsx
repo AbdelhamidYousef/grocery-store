@@ -20,6 +20,7 @@ import {
   useOrderStatus,
   useRefreshAfterPaid,
 } from './confirmation-queries';
+import { deliveryMethodName } from './delivery-method';
 import { OrderAddress, OrderSummary } from './OrderSummary';
 import { usePurchaseTracking } from './purchase-tracking';
 
@@ -198,7 +199,7 @@ export function Confirmation({ number }: { number: string }) {
               <h3 className="font-display text-lg font-bold">
                 {t('checkout.confirmation.shippingMethod')}
               </h3>
-              <p className="mt-1 break-words">{order.data.shippingMethod.name}</p>
+              <p className="mt-1 break-words">{deliveryMethodName(order.data.shippingMethod, t)}</p>
             </div>
             <div>
               <h3 className="font-display text-lg font-bold">

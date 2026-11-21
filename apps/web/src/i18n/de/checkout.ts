@@ -103,6 +103,8 @@ export const checkout: Record<keyof typeof enNs, Entry> = {
   'checkout.confirmation.pending.body':
     'Das dauert meist nur wenige Sekunden. Bitte lass diese Seite geöffnet.',
   'checkout.confirmation.paid.title': 'Danke. Deine Zahlung ist gesichert.',
+  'checkout.method.slot': 'Lieferung im gewählten Zeitfenster',
+  'checkout.method.express': 'Express-Lieferung (30 Minuten)',
   'checkout.confirmation.paid.body':
     'Den Endbetrag buchen wir ab, wenn wir deine Tüte packen. Eine Bestätigung ist unterwegs zu deiner E-Mail-Adresse.',
   'checkout.confirmation.timeout.title': 'Wir bestätigen deine Zahlung noch',

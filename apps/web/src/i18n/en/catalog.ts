@@ -36,6 +36,14 @@ export const catalog = {
   'catalog.facet.storageAmbient': 'Ambient',
   'catalog.facet.storageChilled': 'Chilled',
   'catalog.facet.storageFrozen': 'Frozen',
+  'catalog.origin.ecuador': 'Ecuador',
+  'catalog.origin.germany': 'Germany',
+  'catalog.origin.spain': 'Spain',
+  'catalog.origin.netherlands': 'Netherlands',
+  'catalog.origin.italy': 'Italy',
+  'catalog.origin.norway': 'Norway',
+  'catalog.origin.iceland': 'Iceland',
+  'catalog.origin.india': 'India',
 
   // Sort
   'catalog.sort.relevance': 'Best match',

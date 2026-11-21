@@ -19,11 +19,26 @@ const STORAGE_LABELS: Record<string, StringKey> = {
   frozen: 'catalog.facet.storageFrozen',
 };
 
+// The countries the catalogue names, by lower-case value. A country nobody listed (an admin typed
+// it) shows as typed.
+const ORIGIN_LABELS: Record<string, StringKey> = {
+  ecuador: 'catalog.origin.ecuador',
+  germany: 'catalog.origin.germany',
+  spain: 'catalog.origin.spain',
+  netherlands: 'catalog.origin.netherlands',
+  italy: 'catalog.origin.italy',
+  norway: 'catalog.origin.norway',
+  iceland: 'catalog.origin.iceland',
+  india: 'catalog.origin.india',
+};
+
 // Facet values are raw data ("chilled", "germany"); this makes them readable without hardcoding
 // which values exist.
 export function formatFacetValue(key: string, value: string, t: TFunction = defaultT): string {
   const storageKey = STORAGE_LABELS[value];
   if (key === 'storage' && storageKey) return t(storageKey);
+  const originKey = ORIGIN_LABELS[value.toLowerCase()];
+  if (key === 'origin' && originKey) return t(originKey);
   return capitalise(value);
 }
 

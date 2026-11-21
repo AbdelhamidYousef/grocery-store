@@ -37,6 +37,14 @@ export const catalog: Record<keyof typeof enNs, Entry> = {
   'catalog.facet.storageAmbient': 'Raumtemperatur',
   'catalog.facet.storageChilled': 'Gekühlt',
   'catalog.facet.storageFrozen': 'Tiefgekühlt',
+  'catalog.origin.ecuador': 'Ecuador',
+  'catalog.origin.germany': 'Deutschland',
+  'catalog.origin.spain': 'Spanien',
+  'catalog.origin.netherlands': 'Niederlande',
+  'catalog.origin.italy': 'Italien',
+  'catalog.origin.norway': 'Norwegen',
+  'catalog.origin.iceland': 'Island',
+  'catalog.origin.india': 'Indien',
 
   // Sort
   'catalog.sort.relevance': 'Beste Treffer',

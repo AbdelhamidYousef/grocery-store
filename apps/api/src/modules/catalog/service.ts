@@ -24,6 +24,7 @@ import {
 import { db } from '../../db/client.ts';
 import { notFound } from '../../lib/errors.ts';
 import { currentStoreId } from '../i18n/context.ts';
+import { tagName } from '../i18n/tag-names.ts';
 import { loadTranslations, overlay, pick, resolveSlug } from '../i18n/translations.ts';
 import {
   memberPricesForProducts,
@@ -252,7 +253,7 @@ async function getFacets(query: ProductListQuery, index: BadgeIndex): Promise<Fa
     brand: await translateBrandFacet(
       rows.brand.map((b) => ({ value: b.slug, label: b.name, count: b.count })),
     ),
-    tag: rows.tag.map((t) => ({ value: t.slug, label: t.name, count: t.count })),
+    tag: rows.tag.map((t) => ({ value: t.slug, label: tagName(t.slug, t.name), count: t.count })),
     diet: rows.diet,
     badge: [...badgeCounts]
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
@@ -576,7 +577,7 @@ export async function getProduct(
     attributes,
     food: foodOf(rows.product),
     brand,
-    tags: rows.tags,
+    tags: rows.tags.map((t) => ({ ...t, name: tagName(t.slug, t.name) })),
     badges,
     optionKeys,
     price: {

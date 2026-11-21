@@ -7,6 +7,7 @@ import { Skeleton } from '../../components/ui/Skeleton';
 import { useT } from '../../i18n';
 import { useFormat } from '../../i18n/format';
 import { TEST_IDS } from '../../lib/test-ids';
+import { deliveryMethodName } from '../checkout/delivery-method';
 import { OrderAddress, OrderSummary } from '../checkout/OrderSummary';
 import { deliverySentence } from '../delivery/slots';
 import { ReorderButton } from '../reorder/ReorderButton';
@@ -162,7 +163,7 @@ export function OrderDetail() {
           )}
           <div>
             <h3 className="font-display text-lg font-bold">{t('account.order.shippingMethod')}</h3>
-            <p className="mt-1 break-words">{order.shippingMethod.name}</p>
+            <p className="mt-1 break-words">{deliveryMethodName(order.shippingMethod, t)}</p>
           </div>
           <div>
             <h3 className="font-display text-lg font-bold">{t('account.order.contact')}</h3>

@@ -100,6 +100,8 @@ export const checkout = {
   'checkout.confirmation.pending.body':
     'This usually takes a few seconds. Please keep this page open.',
   'checkout.confirmation.paid.title': 'Thank you. Your payment is secured.',
+  'checkout.method.slot': 'Delivery in your slot',
+  'checkout.method.express': 'Express delivery (30 minutes)',
   'checkout.confirmation.paid.body':
     'We take the final amount when we pack your bag. A confirmation is on its way to your email.',
   'checkout.confirmation.timeout.title': 'We are still confirming your payment',

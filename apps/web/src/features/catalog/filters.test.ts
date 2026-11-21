@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { lookupFor } from '../../i18n';
+
 import {
   centsToInput,
   defaultSort,
@@ -36,6 +38,11 @@ describe('formatting', () => {
   it('makes facet values readable', () => {
     expect(formatFacetValue('storage', 'chilled')).toBe('Chilled');
     expect(formatFacetValue('origin', 'new zealand')).toBe('New zealand');
+    expect(formatFacetValue('origin', 'Spain')).toBe('Spain');
+    const de = lookupFor('de-DE').t;
+    expect(formatFacetValue('origin', 'Spain', de)).toBe('Spanien');
+    expect(formatFacetValue('origin', 'germany', de)).toBe('Deutschland');
+    expect(formatFacetValue('origin', 'New Zealand', de)).toBe('New Zealand');
   });
   it('offers best match only for a search', () => {
     expect(sortOptions(true)[0]).toBe('relevance');
