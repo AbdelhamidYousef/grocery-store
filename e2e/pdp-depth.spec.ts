@@ -44,7 +44,13 @@ test('a kit: what is inside, the saving, add to cart; and the kit offer on a par
 test('bought together: Add all puts the chosen items in the cart; delivery text; recently viewed', async ({
   page,
 }) => {
+  // The block renders after its own request (recommendations), not with the page: wait for that
+  // answer, not a fixed 5 s, which a fully loaded machine can miss.
+  const recommendations = page.waitForResponse(
+    (r) => r.url().includes('/products/kitchen-sponges-6/recommendations') && r.ok(),
+  );
   await page.goto('/products/kitchen-sponges-6');
+  await recommendations;
   const block = page.getByTestId('bought-together');
   await expect(block).toBeVisible();
   const count = await block.getByTestId('bought-together-option').count();
