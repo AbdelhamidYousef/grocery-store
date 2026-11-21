@@ -259,7 +259,7 @@ test.describe('simulated payment (fake gateway + /test/webhooks/simulate)', () =
     await page.goto('/account/orders');
     const row = page.getByTestId('order-row').filter({ hasText: orderNumber });
     await expect(row).toBeVisible();
-    await expect(row.getByTestId('order-status-badge')).toHaveText('Paid');
+    await expect(row.getByTestId('order-status-badge')).toHaveText('Payment secured');
     await row.click();
     await expect(page).toHaveURL(new RegExp(`/account/orders/${orderNumber}$`));
     await expect(page.getByTestId('page-order-detail')).toHaveAttribute('data-state', 'ready');

@@ -319,7 +319,7 @@ test.describe('orders', () => {
     await expect(page.getByTestId('admin-row')).toHaveCount(1);
     await page.getByTestId('admin-row').getByRole('link', { name: orderNumber }).click();
 
-    await expect(page.getByTestId('admin-order-status')).toContainText('Paid');
+    await expect(page.getByTestId('admin-order-status')).toContainText('Payment secured');
     // No "Mark paid" button: only Stripe can pay an order.
     await expect(page.getByRole('button', { name: 'Mark paid' })).toHaveCount(0);
     await page.getByLabel('Note (optional)').fill('Packed with care');
@@ -382,7 +382,7 @@ test.describe('orders', () => {
     const admin = await adminSession(browser);
     const page = admin.page;
     await page.goto(`/admin/orders/${paid.orderNumber}`);
-    await expect(page.getByTestId('admin-order-status')).toContainText('Paid');
+    await expect(page.getByTestId('admin-order-status')).toContainText('Payment secured');
 
     await page.getByRole('button', { name: 'Cancel order' }).click();
     const dialog = page.getByRole('dialog');
@@ -393,7 +393,7 @@ test.describe('orders', () => {
     // Backing out changes nothing.
     await dialog.getByRole('button', { name: 'Keep the order as it is' }).click();
     await expect(dialog).toHaveCount(0);
-    await expect(page.getByTestId('admin-order-status')).toContainText('Paid');
+    await expect(page.getByTestId('admin-order-status')).toContainText('Payment secured');
 
     await page.getByRole('button', { name: 'Cancel order' }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Yes, cancel order' }).click();

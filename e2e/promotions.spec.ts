@@ -265,7 +265,7 @@ test.describe('order snapshot', () => {
     const admin = await adminSession(browser);
     try {
       await admin.page.goto(`/admin/orders/${orderNumber}`);
-      await expect(admin.page.getByTestId('admin-order-status')).toHaveText('Paid');
+      await expect(admin.page.getByTestId('admin-order-status')).toHaveText('Payment secured');
       const promos = admin.page.getByTestId('admin-order-promotions');
       await expect(promos).toContainText('10%');
       await expect(promos).toContainText('€10.79');
