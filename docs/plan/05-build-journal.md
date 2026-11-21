@@ -703,3 +703,18 @@ note, which keeps the loss visible in the audit trail and the batch invariant ex
 Learn: when a rule says "write it off", first ask whether the books already did; an audit row with a zero delta is honest,
 a second deduction is not. And a network call under a row lock is cheap to test: try to take the same row from another
 connection with NOWAIT while the call runs.
+
+### G8.3: tracking page
+The existing lookup page (`/track-order`, number plus email, nothing in the URL) stays; the answer gained `fulfilment`
+(rider first name, `packedAt`, `dispatchedAt`, `deliveredAt`: times only, no address or money, null until the bag is
+packed). `TrackedOrderView` now shows the four grocery steps (Order received, Being packed, On the way, Delivered; the
+engine's statuses keep their names, `paid` is shown as "Order received" and `shipped` as "On the way" here and in the API's
+`statusLabel`), the window, and while the order is on the way a rider card: the rider's name, a progress bar
+(`role="progressbar"`) and "About 12 minutes away" from the shared `riderProgress(dispatchedAt, windowEnd, now)`, plus one
+line saying the rider is simulated. `TrackOrderPage` asks again every 30 seconds while the status is `shipped` (the same
+lookup with the same body kept in a ref; a failed refresh keeps what is on screen) and the card's clock ticks every 30
+seconds too; once the job delivers, the next refresh swaps the card for "Delivered". The swaps of G7 were already on the
+page. English and German ("du"), checked by the dictionary parity test and a German render test.
+Surprise: nothing in the API needed a new route; the page only needed three timestamps it already had on the order.
+Learn: a simulation is easiest to trust when the page computes it from facts the server stored (hand-over time, window end)
+with the same pure function the job uses, so "0 minutes away" and "Delivered" cannot disagree for long.

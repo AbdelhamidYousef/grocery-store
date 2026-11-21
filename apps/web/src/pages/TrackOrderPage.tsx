@@ -1,6 +1,6 @@
-import { TrackOrderBodySchema, type TrackedOrder } from '@store/shared';
+import { TrackOrderBodySchema, type TrackedOrder, type TrackOrderBody } from '@store/shared';
 import { useMutation } from '@tanstack/react-query';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { ApiError } from '../api/client';
@@ -41,6 +41,21 @@ export default function TrackOrderPage() {
     onError: () => setResult(null),
   });
 
+  // While the bag is on the way the page asks again every 30 seconds (the same lookup, the same
+  // body), so the rider's progress and "delivered" show up without a reload. A failed refresh keeps
+  // what is on screen.
+  const lastBody = useRef<TrackOrderBody | null>(null);
+  const refresh = useMutation({ mutationFn: trackOrder, onSuccess: setResult });
+  const { mutate: refreshNow } = refresh;
+  const onTheWay = result?.status === 'shipped';
+  useEffect(() => {
+    if (!onTheWay) return;
+    const id = window.setInterval(() => {
+      if (lastBody.current) refreshNow(lastBody.current);
+    }, 30_000);
+    return () => window.clearInterval(id);
+  }, [onTheWay, refreshNow]);
+
   const submit = (e: FormEvent) => {
     e.preventDefault();
     const parsed = TrackOrderBodySchema.safeParse({ orderNumber, email });
@@ -49,6 +64,7 @@ export default function TrackOrderPage() {
       return;
     }
     setFieldError(null);
+    lastBody.current = parsed.data;
     lookup.mutate(parsed.data);
   };
 

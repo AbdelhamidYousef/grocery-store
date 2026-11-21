@@ -52,6 +52,16 @@ export const TrackedOrderSchema = z.object({
   tracking: z.object({ carrier: z.string(), trackingNumber: z.string() }).nullable(),
   // The promised delivery window (no address or money in it); null for orders from before slots.
   delivery: OrderDeliverySchema.nullable(),
+  // The back of the shop (G8): the simulated rider. Times only, no address or money; null until the
+  // bag is handed over.
+  fulfilment: z
+    .object({
+      riderName: z.string().nullable(),
+      packedAt: z.string().nullable(),
+      dispatchedAt: z.string().nullable(),
+      deliveredAt: z.string().nullable(),
+    })
+    .nullable(),
   timeline: z.array(TrackingTimelineStepSchema),
 });
 export type TrackedOrder = z.infer<typeof TrackedOrderSchema>;

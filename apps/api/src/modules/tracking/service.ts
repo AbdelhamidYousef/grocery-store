@@ -75,6 +75,14 @@ export async function trackOrder(body: TrackOrderBody): Promise<TrackedOrder> {
             to: order.deliveryTo.toISOString(),
           }
         : null,
+    fulfilment: order.packedAt
+      ? {
+          riderName: order.riderName,
+          packedAt: order.packedAt.toISOString(),
+          dispatchedAt: order.dispatchedAt?.toISOString() ?? null,
+          deliveredAt: order.deliveredAt?.toISOString() ?? null,
+        }
+      : null,
     // `actor` and `note` stay inside: a note may be an admin's private remark.
     timeline: history.map((h) => ({
       status: h.toStatus,

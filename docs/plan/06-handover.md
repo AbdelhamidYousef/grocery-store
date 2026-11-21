@@ -90,6 +90,9 @@ Written by the build sessions for the owner and the next session. Newest state f
   `dispatch`, write-off row `not_found_at_pick`. G7 open items closed: analytics net revenue reads captured, door refusals
   claw back loyalty points. Still open: the admin "mark shipped" button (`/transition`) bypasses pack and capture (old
   `capture-overdue` and "Capture now" remain the safety net).
+- **G8.3 done** (2026-11-21): the tracking page. `fulfilment` on the tracking answer, the four grocery steps, the rider
+  card (name, progress bar, "about N minutes away", "the rider is simulated"), polling every 30 seconds while on the way,
+  EN + DE; `paid` shows as "Order received" and `shipped` as "On the way".
 
   Paid orders are only AUTHORISED until captured: tests that refund or return a paid order capture it first
   (`captureOrder` / `deliveredOrder` in `test/orders.ts`); `simulate` turns "the shopper paid" into the

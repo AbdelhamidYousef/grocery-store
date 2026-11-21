@@ -247,6 +247,7 @@ describe('the tracking page', () => {
           ],
           tracking: null,
           delivery: null,
+          fulfilment: null,
           timeline: [],
         }}
       />,

@@ -1,13 +1,77 @@
-import type { TrackedOrder } from '@store/shared';
-import { useMemo } from 'react';
+import { riderProgress, type TrackedOrder } from '@store/shared';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useT } from '../../i18n';
 import { useFormat } from '../../i18n/format';
+import { cn } from '../../lib/cn';
 import { TEST_IDS } from '../../lib/test-ids';
 import { deliverySentence } from '../delivery/slots';
 
+// The four words a shopper of a grocery shop knows. The engine's statuses keep their names; this is
+// only how they are shown.
+const STEPS = ['received', 'packing', 'onTheWay', 'delivered'] as const;
+const STEP_OF_STATUS = {
+  pending_payment: -1,
+  paid: 0,
+  processing: 1,
+  shipped: 2,
+  delivered: 3,
+  cancelled: -1,
+  refunded: -1,
+} as const;
+
+// The rider is simulated: where the bag "is" comes from the hand-over time and the end of the window
+// (`riderProgress`, shared and tested), re-read every 30 seconds with the page itself.
+function RiderCard({ order }: { order: TrackedOrder }) {
+  const { t, tn } = useT();
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+  const f = order.fulfilment;
+  if (order.status !== 'shipped' || !f?.dispatchedAt || !f.riderName) return null;
+  const dispatched = new Date(f.dispatchedAt);
+  const end = order.delivery
+    ? new Date(order.delivery.to)
+    : new Date(dispatched.getTime() + 30 * 60_000);
+  const p = riderProgress(dispatched, end, new Date(now));
+  const percent = Math.round(p.fraction * 100);
+  return (
+    <div
+      data-testid={TEST_IDS.trackRider}
+      className="mt-4 rounded-card border-2 border-primary bg-primary-soft p-4"
+    >
+      <p className="font-display text-lg font-bold">
+        {p.arrived
+          ? t('track.rider.arrived', { rider: f.riderName })
+          : t('track.rider.heading', { rider: f.riderName })}
+      </p>
+      <div
+        role="progressbar"
+        aria-label={t('track.rider.progress')}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent}
+        className="mt-3 h-3 overflow-hidden rounded-full bg-surface"
+      >
+        <div className="h-full rounded-full bg-primary" style={{ width: `${percent}%` }} />
+      </div>
+      <p className="mt-2 font-semibold" data-testid={TEST_IDS.trackRiderEta}>
+        {p.arrived
+          ? t('track.rider.arriving')
+          : p.minutesAway <= 1
+            ? t('track.rider.arriving')
+            : tn('track.rider.minutes', p.minutesAway)}
+      </p>
+      <p className="mt-1 text-sm text-muted">{t('track.rider.demo')}</p>
+    </div>
+  );
+}
+
 export function TrackedOrderView({ order }: { order: TrackedOrder }) {
   const { t } = useT();
+  const step = STEP_OF_STATUS[order.status];
   const { locale } = useFormat();
   // Times are shown in UTC (the page says so) in the store view's language.
   const when = useMemo(
@@ -42,6 +106,29 @@ export function TrackedOrderView({ order }: { order: TrackedOrder }) {
           {deliverySentence(order.delivery, locale, t)}
         </p>
       )}
+      {step >= 0 && (
+        <ol
+          aria-label={t('track.steps.label')}
+          data-testid={TEST_IDS.trackSteps}
+          className="mt-4 grid grid-cols-4 gap-2"
+        >
+          {STEPS.map((name, i) => (
+            <li
+              key={name}
+              aria-current={i === step ? 'step' : undefined}
+              className={cn(
+                'min-w-0 break-words rounded-control border-2 px-2 py-2 text-center text-sm font-semibold',
+                i < step && 'border-primary bg-primary text-surface',
+                i === step && 'border-primary bg-primary-soft text-primary-strong',
+                i > step && 'border-line text-muted',
+              )}
+            >
+              {t(`track.step.${name}`)}
+            </li>
+          ))}
+        </ol>
+      )}
+      <RiderCard order={order} />
       {order.tracking && (
         <p className="mt-1 text-muted">
           {t('account.tracking.carrier', { carrier: order.tracking.carrier })}{' '}

@@ -5,9 +5,9 @@ import type { OrderStatus } from '@store/shared';
 // the merge, replace the body of `statusLabel` with `ORDER_STATUS_LABELS[status]` and delete the map.
 const LABELS: Record<OrderStatus, string> = {
   pending_payment: 'Awaiting payment',
-  paid: 'Payment confirmed',
+  paid: 'Order received',
   processing: 'Being packed',
-  shipped: 'On its way',
+  shipped: 'On the way',
   delivered: 'Delivered',
   cancelled: 'Cancelled',
   refunded: 'Refunded',

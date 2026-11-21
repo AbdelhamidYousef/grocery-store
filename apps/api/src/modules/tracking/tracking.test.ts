@@ -1,10 +1,13 @@
+import { eq } from 'drizzle-orm';
 import request from 'supertest';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { db } from '../../db/client.ts';
+import { orders } from '../../db/schema/index.ts';
 import { makeTestApp, TEST_ORIGIN } from '../../test/app.ts';
 import { createShippingMethods } from '../../test/factories.ts';
 import { bodyOf } from '../../test/http.ts';
-import { placeOrder, simulate, TEST_ADDRESS } from '../../test/orders.ts';
+import { orderByNumber, placeOrder, simulate, TEST_ADDRESS } from '../../test/orders.ts';
 
 const app = makeTestApp();
 const track = (body: object, a = app) =>
@@ -26,6 +29,35 @@ interface Tracked {
 }
 
 describe('POST /orders/track', () => {
+  it('shows the simulated rider once the bag is handed over, and no times before', async () => {
+    const { number } = await placeOrder(app, { email: 'ada@grocery.test' });
+    await simulate(app, number);
+    const before = bodyOf<{ data: { fulfilment: unknown } }>(
+      await track({ orderNumber: number, email: 'ada@grocery.test' }),
+    );
+    expect(before.data.fulfilment).toBeNull();
+    const row = await orderByNumber(number);
+    await db
+      .update(orders)
+      .set({
+        status: 'shipped',
+        packedAt: new Date('2026-11-21T12:00:00Z'),
+        dispatchedAt: new Date('2026-11-21T12:10:00Z'),
+        riderName: 'Mara',
+      })
+      .where(eq(orders.id, row.id));
+    const after = bodyOf<{ data: { statusLabel: string; fulfilment: Record<string, unknown> } }>(
+      await track({ orderNumber: number, email: 'ada@grocery.test' }),
+    );
+    expect(after.data.statusLabel).toBe('On the way');
+    expect(after.data.fulfilment).toEqual({
+      riderName: 'Mara',
+      packedAt: '2026-11-21T12:00:00.000Z',
+      dispatchedAt: '2026-11-21T12:10:00.000Z',
+      deliveredAt: null,
+    });
+  });
+
   it('shows status, items and the timeline to someone who knows number and email', async () => {
     const { number } = await placeOrder(app, { email: 'ada@grocery.test', quantity: 2 });
     await simulate(app, number);
@@ -33,7 +65,7 @@ describe('POST /orders/track', () => {
     expect(res.status).toBe(200);
     const { data } = bodyOf<Tracked>(res);
     expect(data).toMatchObject({ orderNumber: number, status: 'paid', tracking: null });
-    expect(data.statusLabel).toBe('Payment confirmed');
+    expect(data.statusLabel).toBe('Order received');
     expect(data.items).toHaveLength(1);
     expect(data.items[0]?.quantity).toBe(2);
     expect(data.timeline.map((t) => t.status)).toEqual(['pending_payment', 'paid']);
