@@ -27,7 +27,9 @@ export function createPickingAdminRouter(): Router {
   const picking = { params: PickingStoreParamsSchema, query: PickingQuerySchema };
   router.get('/stores/:slug/picking', validate(picking), async (req, res) => {
     const { params, query } = valid(req, picking);
-    respond(res, PickingResponseSchema, { data: await getPicking(params.slug, query.window) });
+    respond(res, PickingResponseSchema, {
+      data: await getPicking(params.slug, query.window, new Date(), undefined, query.order),
+    });
   });
 
   const mark = { params: PickLineParamsSchema, body: PickLineActionSchema };

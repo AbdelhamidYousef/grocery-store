@@ -27,10 +27,12 @@ export async function fetchPickStores(signal?: AbortSignal) {
 export async function fetchPicking(
   slug: string,
   window: 'next' | 'all',
+  order?: string,
   signal?: AbortSignal,
 ): Promise<PickingResult> {
+  const find = order ? `&order=${encodeURIComponent(order)}` : '';
   return (
-    await apiFetch(`/admin/stores/${encodeURIComponent(slug)}/picking?window=${window}`, {
+    await apiFetch(`/admin/stores/${encodeURIComponent(slug)}/picking?window=${window}${find}`, {
       schema: PickingResponseSchema,
       ...(signal && { signal }),
     })

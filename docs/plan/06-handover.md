@@ -93,6 +93,17 @@ Written by the build sessions for the owner and the next session. Newest state f
 - **G8.3 done** (2026-11-21): the tracking page. `fulfilment` on the tracking answer, the four grocery steps, the rider
   card (name, progress bar, "about N minutes away", "the rider is simulated"), polling every 30 seconds while on the way,
   EN + DE; `paid` shows as "Order received" and `shipped` as "On the way".
+- **G8 done** (2026-11-21): picking and dispatch. Per dark store a packer view (`/admin/picking`: the orders due in 2 hours
+  or all, the pick list in walking order ambient, chilled, frozen by aisle with the packs to take and the bag each unit goes to,
+  one panel per bag, "Find an order"), aisles per store (seeded layouts), grams kept until dispatch, shortfalls with a safe
+  replacement, "Bag packed" (every line resolved, the units not found recorded as `not_found_at_pick`), "Hand to rider"
+  (captures once with the packed grams, rider, `shipped`, email), the `deliver-simulated` job, shared `riderProgress`, the
+  tracking page with four grocery steps and a simulated rider (polls every 30 s), `order_delivered` mail. Migration 0058. Also
+  closed: analytics net revenue reads captured, door refusals claw back loyalty points. New e2e spec
+  `picking-dispatch.spec.ts`. Gates green: shared 315, web 1,023, API 1,620 + 3 skipped, e2e 80 + 1 skipped. A database migrated
+  from G7 needs `pnpm db:migrate && pnpm db:seed` (aisles). Not pushed (the lead pushes at the phase end). Open: the admin's
+  "mark shipped" button still bypasses pack and capture; the e2e and a packer need `Find an order` because the list is cut at
+  30 bags; admin product forms still cannot create weighed variants.
 
   Paid orders are only AUTHORISED until captured: tests that refund or return a paid order capture it first
   (`captureOrder` / `deliveredOrder` in `test/orders.ts`); `simulate` turns "the shopper paid" into the

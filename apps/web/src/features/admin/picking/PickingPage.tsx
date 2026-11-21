@@ -1,6 +1,8 @@
 import { type PickingOrder, type PickListEntry, type PickZone } from '@store/shared';
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
+import { Input } from '../../../components/ui/Input';
 import { Select } from '../../../components/ui/Select';
 import { Spinner } from '../../../components/ui/Spinner';
 import { cn } from '../../../lib/cn';
@@ -46,7 +48,11 @@ export function PickingPage() {
       /* a private window: the choice just is not remembered */
     }
   }, [slug]);
-  const picking = usePicking(slug, window);
+  // "Find a bag": one order by its number, whatever its window (also the target of a link).
+  const [params, setParams] = useSearchParams();
+  const find = (params.get('order') ?? '').trim().toUpperCase();
+  const validFind = /^(GR|PW)-\d{4}-\d{6,}$/.test(find) ? find : '';
+  const picking = usePicking(slug, window, validFind);
   const data = picking.data;
   const openUnits = data?.pickList.reduce((n, e) => n + e.remainingQty, 0) ?? 0;
 
@@ -62,6 +68,19 @@ export function PickingPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-end gap-3">
+          <Input
+            label="Find an order"
+            placeholder="GR-2026-000123"
+            autoComplete="off"
+            value={params.get('order') ?? ''}
+            onChange={(e) => {
+              const next = new URLSearchParams(params);
+              if (e.target.value) next.set('order', e.target.value);
+              else next.delete('order');
+              setParams(next, { replace: true });
+            }}
+            className="w-44"
+          />
           <Select
             label="Store"
             value={slug ?? ''}

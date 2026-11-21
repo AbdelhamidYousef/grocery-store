@@ -305,3 +305,32 @@ describe('closing and handing over a bag', () => {
     expect(within(bag).getByText('Finish every line to close the bag.')).toBeInTheDocument();
   });
 });
+
+describe('find an order', () => {
+  it('asks for one order by number and keeps it in the address', async () => {
+    const asked: string[] = [];
+    server.use(
+      http.get(`${API}/admin/stores/mitte/picking`, ({ request }) => {
+        asked.push(new URL(request.url).search);
+        return HttpResponse.json({ data: result([line()]) });
+      }),
+    );
+    renderApp('/admin/picking?order=gr-2026-000001');
+    await screen.findByTestId('picking-bag');
+    expect(asked.some((s) => s.includes('order=GR-2026-000001'))).toBe(true);
+    expect(screen.getByLabelText('Find an order')).toHaveValue('gr-2026-000001');
+  });
+
+  it('does not send half a number', async () => {
+    const asked: string[] = [];
+    server.use(
+      http.get(`${API}/admin/stores/mitte/picking`, ({ request }) => {
+        asked.push(new URL(request.url).search);
+        return HttpResponse.json({ data: result([line()]) });
+      }),
+    );
+    renderApp('/admin/picking?order=GR-20');
+    await screen.findByTestId('picking-bag');
+    expect(asked.every((s) => !s.includes('order='))).toBe(true);
+  });
+});

@@ -51,6 +51,7 @@ export async function getPicking(
   window: 'next' | 'all',
   now: Date = new Date(),
   limit: number = PICK_ORDER_LIMIT,
+  orderNumber?: string,
 ): Promise<PickingResult> {
   const [store] = await db
     .select({ id: darkStores.id, slug: darkStores.slug, name: darkStores.name })
@@ -63,7 +64,8 @@ export async function getPicking(
     inArray(orders.status, ['paid', 'processing']),
     isNull(orders.dispatchedAt),
   ];
-  if (window === 'next') {
+  if (orderNumber) due.push(eq(orders.number, orderNumber));
+  else if (window === 'next') {
     const horizon = new Date(now.getTime() + PICK_HORIZON_MS);
     const soon = or(eq(orders.deliveryKind, 'express'), lte(orders.deliveryFrom, horizon));
     if (soon) due.push(soon);

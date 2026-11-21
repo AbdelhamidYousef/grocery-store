@@ -718,3 +718,30 @@ page. English and German ("du"), checked by the dictionary parity test and a Ger
 Surprise: nothing in the API needed a new route; the page only needed three timestamps it already had on the order.
 Learn: a simulation is easiest to trust when the page computes it from facts the server stored (hand-over time, window end)
 with the same pure function the job uses, so "0 minutes away" and "Delivered" cannot disagree for long.
+
+### G8.4: phase end (e2e)
+New spec `e2e/picking-dispatch.spec.ts`: a shopper buys two plain packs and loose bananas and pays on the simulated
+gateway; the admin opens `/admin/picking?order=<number>` in the packer view, sees "Bag packed" off until every line is
+done, marks the packs found, weighs the bananas (940 g), closes the bag and hands it to the rider (the bag leaves the
+list); the API says the order is shipped with the weighed grams frozen and a capture no higher than the hold, a second
+dispatch changes nothing; the shopper's tracking page shows "On the way" with the simulated rider and the account order
+shows the final bill with the captured total. The packer view gained "Find an order" (`?order=`), because the shared
+dev database holds about 150 seeded paid orders and the 30-bag list is oldest window first: a spec (and a packer with a
+customer on the phone) needs one bag by its number whatever its window.
+Surprise: the e2e needed no retry; the weight of the phase was in the API tests (lock, idempotence, write-off).
+Learn: a screen that lists "the next jobs" needs a way to open one job by its id, or every test and every phone call
+depends on the order of the queue.
+
+### Quiz: Phase G8
+1. A packer can mark a bag packed only when every line is "resolved". List the ways a line counts as resolved, say why a
+   weighed line that is short still needs grams but a missing one does not, and what happens to the replacement the
+   shopper has not answered yet when the bag is packed and when it is handed to the rider.
+2. "Hand to rider" is clicked twice at the same moment, and once more an hour later after the first request crashed
+   between the capture and the status change. Walk through what each call does, which value makes the repeat a no-op,
+   how many times Stripe is asked to capture, and why the capture call is made outside the transaction that moves the
+   order to shipped (what test proves no lock is held).
+3. The packer found 1 of 3 yoghurts. Why does the pack step write an `inventory_adjustments` row with a delta of 0 and not
+   minus 2, what would go wrong with minus 2, and which invariant does the test check after it?
+4. A bag is handed over at 14:20 and the window ends at 15:00. When does the simulated rider arrive, what does
+   `riderProgress` return at 14:35, and what stops the page's "about 15 minutes away" and the `deliver-simulated` job from
+   disagreeing about the moment of arrival?

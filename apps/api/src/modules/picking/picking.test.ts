@@ -346,3 +346,25 @@ describe('a long queue', () => {
     expect(data.orders.map((o) => o.number)).toEqual([made[3]?.number, made[2]?.number]);
   });
 });
+
+describe('finding one bag', () => {
+  it('returns that order whatever its window, and nothing for another store or a dispatched order', async () => {
+    const x = await product('Rice');
+    const far = await paid(x.id, 1);
+    const other = await paid(x.id, 1);
+    await db
+      .update(orders)
+      .set({ deliveryFrom: new Date(Date.now() + 5 * 86_400_000) })
+      .where(eq(orders.id, far.order.id));
+    const admin = await adminCall();
+    expect((await picking(admin, '?window=next')).orders.map((o) => o.number)).toEqual([
+      other.number,
+    ]);
+    const found = await picking(admin, `?window=next&order=${far.number.toLowerCase()}`);
+    expect(found.orders.map((o) => o.number)).toEqual([far.number]);
+    expect(found.totalOrders).toBe(1);
+    await db.update(orders).set({ dispatchedAt: new Date() }).where(eq(orders.id, far.order.id));
+    expect((await picking(admin, `?order=${far.number}`)).orders).toEqual([]);
+    expect((await admin.call('get', '/admin/stores/mitte/picking?order=nope')).status).toBe(400);
+  });
+});

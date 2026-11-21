@@ -24,10 +24,10 @@ export function usePickStores() {
   });
 }
 
-export function usePicking(slug: string | undefined, window: 'next' | 'all') {
+export function usePicking(slug: string | undefined, window: 'next' | 'all', order = '') {
   return useQuery({
-    queryKey: keys.admin.picking(slug ?? '', window),
-    queryFn: ({ signal }) => fetchPicking(slug ?? '', window, signal),
+    queryKey: keys.admin.picking(slug ?? '', window, order),
+    queryFn: ({ signal }) => fetchPicking(slug ?? '', window, order || undefined, signal),
     enabled: !!slug,
     staleTime: 0,
     refetchInterval: REFRESH_MS,

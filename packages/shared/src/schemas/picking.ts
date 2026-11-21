@@ -23,6 +23,13 @@ export const PickingStoreParamsSchema = z.object({
 // still to be packed or handed over.
 export const PickingQuerySchema = z.object({
   window: z.enum(['next', 'all']).default('next'),
+  // Find one bag by its number, whatever its window.
+  order: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^(GR|PW)-\d{4}-\d{6,}$/, 'Not an order number')
+    .optional(),
 });
 export type PickingQuery = z.input<typeof PickingQuerySchema>;
 
