@@ -13,6 +13,7 @@ import { parseReviewUpload, type UploadConfig } from '../../lib/uploads.ts';
 import { respond, valid, validate } from '../../lib/validate.ts';
 import { requireUser } from '../../middleware/auth.ts';
 import { createUserRateLimiter, type RateLimitOptions } from '../../middleware/rate-limit.ts';
+import { resolveSlug } from '../i18n/translations.ts';
 
 import * as service from './service.ts';
 
@@ -41,7 +42,12 @@ export function createReviewsRouter(opts: {
     respond(
       res,
       ReviewListResponseSchema,
-      await service.listReviews(params.slug, query, req.user?.id ?? null, opts.uploads.enabled),
+      await service.listReviews(
+        await resolveSlug('product', params.slug),
+        query,
+        req.user?.id ?? null,
+        opts.uploads.enabled,
+      ),
     );
   });
 
@@ -57,10 +63,15 @@ export function createReviewsRouter(opts: {
       const { params, body } = valid(req, create);
       res.status(201);
       respond(res, ReviewCreatedResponseSchema, {
-        data: await service.createReview(userId(req), params.slug, body, {
-          files: ((req.files as Express.Multer.File[] | undefined) ?? []).map((f) => f.buffer),
-          config: opts.uploads,
-        }),
+        data: await service.createReview(
+          userId(req),
+          await resolveSlug('product', params.slug),
+          body,
+          {
+            files: ((req.files as Express.Multer.File[] | undefined) ?? []).map((f) => f.buffer),
+            config: opts.uploads,
+          },
+        ),
       });
     },
   );

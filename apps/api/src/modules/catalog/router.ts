@@ -16,6 +16,7 @@ import { Router as ExpressRouter, type Router } from 'express';
 import { respond, valid, validate } from '../../lib/validate.ts';
 import { attachUser } from '../../middleware/auth.ts';
 import { catalogCache } from '../../middleware/cache.ts';
+import { resolveSlug } from '../i18n/translations.ts';
 import * as substitutions from '../substitutions/service.ts';
 
 import * as recommendations from './recommendations.ts';
@@ -66,7 +67,9 @@ catalogRouter.get('/products/short-dated', async (req, res) => {
 catalogRouter.get('/products/:slug/recommendations', validate(bySlug), async (req, res) => {
   const { params } = valid(req, bySlug);
   respond(res, RecommendationsResponseSchema, {
-    data: await recommendations.getRecommendations(params.slug, { isMember: req.user !== null }),
+    data: await recommendations.getRecommendations(await resolveSlug('product', params.slug), {
+      isMember: req.user !== null,
+    }),
   });
 });
 
@@ -74,7 +77,10 @@ const substitutes = { params: SlugParamsSchema, query: SubstitutesQuerySchema };
 catalogRouter.get('/products/:slug/substitutes', validate(substitutes), async (req, res) => {
   const { params, query } = valid(req, substitutes);
   respond(res, SubstitutesResponseSchema, {
-    data: await substitutions.listSubstitutes(params.slug, query.variantId),
+    data: await substitutions.listSubstitutes(
+      await resolveSlug('product', params.slug),
+      query.variantId,
+    ),
   });
 });
 

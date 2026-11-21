@@ -88,6 +88,21 @@ describe('catalogue translations', () => {
     expect((await get('/api/v1/products/unknown', 'de-de')).status).toBe(404);
   });
 
+  it('serves reviews, recommendations and substitutes under the translated product slug', async () => {
+    const { product } = await seed();
+    await db.insert(productTranslations).values({
+      productId: product.id,
+      locale: 'de',
+      name: 'Quietschknochen',
+      slug: 'quietschknochen',
+    });
+    // The German product page asks for these with the slug in its URL; they used to answer 404.
+    for (const path of ['reviews', 'recommendations', 'substitutes']) {
+      const res = await get(`/api/v1/products/quietschknochen/${path}`, 'de-de');
+      expect(res.status, path).toBe(200);
+    }
+  });
+
   it('translates list cards, the category tree and filters by a translated slug', async () => {
     const { product, category } = await seed();
     await db.insert(productTranslations).values({
