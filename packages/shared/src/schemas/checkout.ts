@@ -155,6 +155,15 @@ export const OrderSchema = z.object({
   items: z.array(OrderItemSchema),
   // The promised delivery window; null for orders placed before slots existed.
   delivery: OrderDeliverySchema.nullable(),
+  // The back of the shop (G8): when the bag was closed, handed to the (simulated) rider and arrived.
+  packedAt: z.string().nullable(),
+  dispatch: z
+    .object({
+      riderName: z.string(),
+      dispatchedAt: z.string(),
+      deliveredAt: z.string().nullable(),
+    })
+    .nullable(),
   placedAt: z.string().nullable(),
   createdAt: z.string(),
 });

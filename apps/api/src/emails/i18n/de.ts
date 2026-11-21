@@ -68,11 +68,19 @@ export const de: Record<EmailKey, TextEntry> = {
   'confirm.trackNote': '(Du brauchst dafür die E-Mail-Adresse, mit der du bestellt hast).',
 
   'shipped.subject': 'Deine Grocery-Bestellung {number} ist unterwegs',
-  'shipped.good': 'Gute Nachrichten, {name}: Die Bestellung {number} wurde versendet!',
-  'shipped.method': 'Versandart: {method}',
-  'shipped.preheader': 'Bestellung {number} wurde versendet.',
-  'shipped.heading': 'Deine Bestellung ist unterwegs.',
-  'shipped.intro': 'Hallo {name}, die Bestellung {number} wurde mit {method} versendet.',
+  'shipped.good': 'Hallo {name}, die Bestellung {number} ist unterwegs.',
+  'shipped.goodSlot': 'Hallo {name}, die Bestellung {number} ist unterwegs und kommt {when}.',
+  'shipped.goodExpress':
+    'Hallo {name}, die Bestellung {number} ist unterwegs und kommt bis {time}.',
+  'shipped.preheader': 'Bestellung {number} ist unterwegs.',
+  'shipped.heading': 'Deine Bestellung ist unterwegs',
+  'shipped.rider': 'Dein Fahrer ist {rider}. Grocery ist ein Demo-Shop, der Fahrer ist simuliert.',
+
+  'delivered.subject': 'Deine Grocery-Bestellung {number} wurde geliefert',
+  'delivered.good': 'Hallo {name}, die Bestellung {number} wurde geliefert.',
+  'delivered.preheader': 'Bestellung {number} wurde geliefert.',
+  'delivered.heading': 'Deine Bestellung wurde geliefert',
+  'delivered.help': 'Stimmt etwas nicht? Schreib uns, wir machen es richtig.',
 
   'withdrawal.subject': 'Wir haben deinen Widerruf zur Bestellung {number} erhalten',
   'withdrawal.body':

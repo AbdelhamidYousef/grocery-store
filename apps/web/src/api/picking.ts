@@ -1,4 +1,5 @@
 import {
+  AdminOrderDetailResponseSchema,
   AdminShortfallResponseSchema,
   PickingResponseSchema,
   PickLineResponseSchema,
@@ -72,6 +73,25 @@ export async function fetchLineSubstitutes(
     await apiFetch(`${linePath(number, itemId)}/substitutes`, {
       schema: SubstitutesResponseSchema,
       ...(signal && { signal }),
+    })
+  ).data;
+}
+
+// "Bag packed" and "Hand to rider": both answer with the fresh order detail.
+export async function packOrder(number: string) {
+  return (
+    await apiFetch(`/admin/orders/${encodeURIComponent(number)}/pack`, {
+      method: 'POST',
+      schema: AdminOrderDetailResponseSchema,
+    })
+  ).data;
+}
+
+export async function dispatchOrder(number: string) {
+  return (
+    await apiFetch(`/admin/orders/${encodeURIComponent(number)}/dispatch`, {
+      method: 'POST',
+      schema: AdminOrderDetailResponseSchema,
     })
   ).data;
 }

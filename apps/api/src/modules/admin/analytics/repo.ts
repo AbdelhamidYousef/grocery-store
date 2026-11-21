@@ -31,9 +31,11 @@ export async function todayInStore(): Promise<string> {
 }
 
 // Net revenue of one order: what was charged, minus the round-up donation (it belongs to the
-// shelter, never the shop), minus what was handed back. Returns never refund the round-up and a
-// whole-order refund refunds everything (refunded = total), so clamping at zero is exact.
-const NET_REVENUE = sql`greatest(o.total_cents - o.donation_cents - o.refunded_cents, 0)`;
+// shelter, never the shop), minus what was handed back. What was charged is `captured_cents` where the
+// order was captured (G6: a weighed or short bag costs less than the total), else the total (an order
+// charged in full at checkout). Returns never refund the round-up and a whole-order refund refunds
+// everything (refunded = total), so clamping at zero is exact.
+const NET_REVENUE = sql`greatest(coalesce(o.captured_cents, o.total_cents) - o.donation_cents - o.refunded_cents, 0)`;
 
 // One row per bucket, empty buckets included (a chart needs the zero days). Revenue is NET (above).
 export async function revenueSeries(range: Range, interval: 'day' | 'week' | 'month') {

@@ -13,6 +13,7 @@ export * from './stores.ts';
 export * from './plural.ts';
 export * from './food.ts';
 export * from './areas.ts';
+export * from './rider.ts';
 export * from './slots.ts';
 export * from './expiry.ts';
 export * from './weight.ts';

@@ -5,7 +5,9 @@ import {
   fetchLineSubstitutes,
   fetchPickStores,
   fetchPicking,
+  dispatchOrder,
   markPickLine,
+  packOrder,
   recordLineShortfall,
 } from '../../../api/picking';
 import { keys } from '../../../lib/query-client';
@@ -63,4 +65,23 @@ export function useLineSubstitutes(number: string, itemId: string, enabled: bool
     enabled,
     staleTime: 0,
   });
+}
+
+function useRefreshOrders() {
+  const queryClient = useQueryClient();
+  return () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: keys.admin.pickingAll }),
+      queryClient.invalidateQueries({ queryKey: keys.admin.orders }),
+    ]);
+}
+
+export function usePackOrder() {
+  const refresh = useRefreshOrders();
+  return useMutation({ mutationFn: (number: string) => packOrder(number), onSettled: refresh });
+}
+
+export function useDispatchOrder() {
+  const refresh = useRefreshOrders();
+  return useMutation({ mutationFn: (number: string) => dispatchOrder(number), onSettled: refresh });
 }

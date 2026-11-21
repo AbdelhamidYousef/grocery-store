@@ -120,10 +120,17 @@ export async function applyTransition(
   });
 
   // Customer emails are queued in THIS transaction (the outbox pattern, see mail/outbox.ts): the
-  // email is owed exactly when the status change commits. Only the two moments a customer cares
-  // about have one; the others (processing, delivered, cancelled, refunded) are visible in the
+  // email is owed exactly when the status change commits. Only the moments a customer cares
+  // about have one (paid, on the way, delivered); the others (processing, cancelled, refunded) are visible in the
   // account page and Stripe already emails refund receipts.
-  const kind = to === 'paid' ? 'order_confirmation' : to === 'shipped' ? 'order_shipped' : null;
+  const kind =
+    to === 'paid'
+      ? 'order_confirmation'
+      : to === 'shipped'
+        ? 'order_shipped'
+        : to === 'delivered'
+          ? 'order_delivered'
+          : null;
   if (kind) await enqueueEmail(tx, { kind, orderId: order.id, to: order.email });
 
   // Tell the subscribers (trial samples now; points, referrals and store stock in later phases).

@@ -74,11 +74,19 @@ export const en = {
 
   // ----- order shipped -----
   'shipped.subject': 'Your Grocery order {number} is on its way',
-  'shipped.good': 'Good news, {name}: order {number} has shipped!',
-  'shipped.method': 'Shipping method: {method}',
-  'shipped.preheader': 'Order {number} has shipped.',
-  'shipped.heading': 'Your order is on its way!',
-  'shipped.intro': 'Hi {name}, order {number} has shipped with {method} shipping.',
+  'shipped.good': 'Hi {name}, order {number} is on the way.',
+  'shipped.goodSlot': 'Hi {name}, order {number} is on the way, arriving {when}.',
+  'shipped.goodExpress': 'Hi {name}, order {number} is on the way, arriving by {time}.',
+  'shipped.preheader': 'Order {number} is on the way.',
+  'shipped.heading': 'Your order is on the way',
+  'shipped.rider': 'Your rider is {rider}. Grocery is a demo shop, so the rider is simulated.',
+
+  // ----- order delivered -----
+  'delivered.subject': 'Your Grocery order {number} was delivered',
+  'delivered.good': 'Hi {name}, order {number} was delivered.',
+  'delivered.preheader': 'Order {number} was delivered.',
+  'delivered.heading': 'Your order was delivered',
+  'delivered.help': 'Something not right? Write to us and we make it right.',
 
   // ----- withdrawal -----
   'withdrawal.subject': 'We received your withdrawal for order {number}',

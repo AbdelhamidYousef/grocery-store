@@ -17,6 +17,7 @@ import { Router as ExpressRouter, type Router } from 'express';
 import type { PaymentGateway } from '../../../lib/stripe.ts';
 import { respond, valid, validate } from '../../../lib/validate.ts';
 import type { Outbox } from '../../mail/outbox.ts';
+import { dispatchOrder, packOrder } from '../../picking/dispatch.ts';
 import type { ReturnsConfig } from '../../returns/config.ts';
 import { rejectAtDoor } from '../../substitutions/door.ts';
 import { recordShortfall } from '../../substitutions/swaps.ts';
@@ -76,6 +77,27 @@ export function createAdminOrdersRouter(deps: {
     );
     deps.outbox.kick();
     respond(res, AdminOrderDetailResponseSchema, { data: detail });
+  });
+
+  // "Bag packed": every line resolved; writes off what was not found and moves the order to processing.
+  router.post('/orders/:number/pack', validate(byNumber), async (req, res) => {
+    const { params } = valid(req, byNumber);
+    setAudit(res, 'order.pack', params.number);
+    await packOrder(params.number, adminActor(req));
+    respond(res, AdminOrderDetailResponseSchema, {
+      data: await service.getOrderDetail(params.number),
+    });
+  });
+
+  // "Hand to rider": settles the swaps, captures the money once, ships. Repeating it is a no-op.
+  router.post('/orders/:number/dispatch', validate(byNumber), async (req, res) => {
+    const { params } = valid(req, byNumber);
+    setAudit(res, 'order.dispatch', params.number);
+    await dispatchOrder({ gateway: deps.payments, log: req.log }, params.number, adminActor(req));
+    deps.outbox.kick();
+    respond(res, AdminOrderDetailResponseSchema, {
+      data: await service.getOrderDetail(params.number),
+    });
   });
 
   // The packer found fewer than ordered (the G8 packer view calls the same service). Records it, adds

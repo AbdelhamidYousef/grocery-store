@@ -19,8 +19,9 @@ import * as repo from './repo.ts';
 //                    Stripe is called (422), captured with the idempotency key `capture:<order id>`
 //                    (a retry takes nothing twice), recorded once on the order.
 //   finalizeOrder    works out the amount from the order (weighed lines at their real price, all
-//                    other lines as priced) and calls capturePayment. Picking (G8) will call it; until
-//                    then the admin's "Capture now" does, and the `capture-overdue` job at the estimate.
+//                    other lines as priced) and calls capturePayment. Dispatch (G8, picking/dispatch.ts) calls it
+//                    with the packed grams; the admin's "Capture now" and the `capture-overdue` job
+//                    stay as the safety net.
 
 export interface CaptureDeps {
   gateway: PaymentGateway;

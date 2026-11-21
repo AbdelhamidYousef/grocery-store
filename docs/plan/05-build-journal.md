@@ -675,3 +675,31 @@ Surprise: the seeded dev database already holds about 150 paid orders, so "all" 
 the list is now cut at 30 with a line saying how many are not shown.
 Learn: a work queue needs a limit and a "how many more" line from the first day; the seed shows where the real one would
 break.
+
+### G8.2: pack, capture and dispatch (API, risky)
+`modules/picking/dispatch.ts` has the three moments. `packOrder` ("Bag packed"): under the order lock every line must be
+resolved (`isLineResolved`: picked, short/missing settled, grams for a weighed line, a refused replacement ignored), else 422
+naming the open lines; it writes one `inventory_adjustments` row per original line with units not found (reason
+`not_found_at_pick`, the ORDER's store), sets `packed_at` and moves paid to processing through `applyTransition`; packing
+twice answers the same. `dispatchOrder` ("Hand to rider"): refuses until packed; for a manual-capture order it collects the
+typed grams (`packed_grams`) and calls `finalizeOrder` once, which accepts unanswered swaps and freezes the grams in its own
+transaction, makes the capture call with no row lock held (tested: a second connection takes the order row with `NOWAIT`
+during the call) and records the capture under the key `capture:<order>`; then ONE transaction picks the rider (made-up first
+name, a hash of the order id), sets `dispatched_at`, moves processing to shipped and queues "on the way" (the final bill was
+queued by the capture). An order charged in full at checkout skips the capture. A repeat, or two at once, finds
+`dispatched_at` and changes nothing (one capture, one email). `deliverSimulated` (job `deliver-simulated`, every 5 minutes):
+shipped orders whose `riderProgress(dispatchedAt, windowEnd, now)` says arrived become delivered (re-checked under the lock,
+`delivered_at` set, email `order_delivered`). Shared `rider.ts`: a ride lasts the time to the end of the window, never under
+10 or over 30 minutes; fraction, minutes away (rounded up) and arrived are pure and tested. Emails: the shipped mail now says
+"on the way, arriving 14:00-15:00" (or "by 15:00" for express), names the rider and says the rider is simulated, no
+exclamation marks, no shipping method; new delivered mail; both EN and DE. The order DTO gained `packedAt` and `dispatch`
+(rider, times). G7 open items closed here: analytics net revenue is `coalesce(captured, total) - donation - refunded`, and a
+door refusal emits the refund event (`refundId` = the line) so loyalty takes back that line's share of the points; refusing
+at the door is refused once the order is delivered. Admin routes: `POST /admin/orders/:number/pack` and `/dispatch`
+(answer: the fresh order detail). Web: "Bag packed" (off while a line is open) and "Hand to rider" on each bag.
+Surprise: the "units not found are written off" rule needed a decision: they left the books at payment (G7 trims the batch
+records and restocks nothing), so a negative adjustment would count them twice. The row is written with a zero change and a
+note, which keeps the loss visible in the audit trail and the batch invariant exact.
+Learn: when a rule says "write it off", first ask whether the books already did; an audit row with a zero delta is honest,
+a second deduction is not. And a network call under a row lock is cheap to test: try to take the same row from another
+connection with NOWAIT while the call runs.

@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { emailText } from './i18n/index.ts';
 import { escapeHtml } from './layout.ts';
 import { orderConfirmation } from './order-confirmation.ts';
+import { orderDelivered } from './order-delivered.ts';
 import { orderShipped } from './order-shipped.ts';
 import { orderSwaps } from './order-swaps.ts';
 
@@ -59,6 +60,8 @@ const order: Order = {
   ],
   placedAt: null,
   delivery: null,
+  packedAt: null,
+  dispatch: null,
   createdAt: '2026-10-31T10:00:00.000Z',
 };
 
@@ -199,5 +202,51 @@ describe('the "we changed something" email', () => {
     const mail = orderSwaps(missing, null, emailText('de-en'));
     expect(mail.text).toContain('Rope toy is not in stock.');
     expect(mail.text).toContain('You will not be charged for what is missing.');
+  });
+});
+
+describe('shipped and delivered mails (G8)', () => {
+  const slot: Order = {
+    ...order,
+    status: 'shipped',
+    delivery: {
+      kind: 'slot',
+      from: '2026-11-23T13:00:00.000Z',
+      to: '2026-11-23T14:00:00.000Z',
+    },
+    packedAt: '2026-11-23T12:00:00.000Z',
+    dispatch: { riderName: 'Mara', dispatchedAt: '2026-11-23T12:30:00.000Z', deliveredAt: null },
+  };
+
+  it('says on the way with the window, names the simulated rider and has no exclamation mark', () => {
+    const en = orderShipped(slot, emailText('de-en'));
+    expect(en.text).toMatch(/is on the way, arriving Mon.*23.*Nov 14:00–15:00/);
+    expect(en.text).toContain('Your rider is Mara.');
+    expect(en.text).toContain('simulated');
+    expect(en.text).not.toContain('!');
+    const de = orderShipped(slot, emailText('de-de'));
+    expect(de.text).toMatch(/ist unterwegs und kommt Mo.*23.*Nov.* 14:00–15:00/);
+    expect(de.text).toContain('Dein Fahrer ist Mara.');
+    expect(de.text).not.toContain('Sie ');
+  });
+
+  it('says by when for an express order and still works for an order without a window', () => {
+    const express = orderShipped(
+      { ...slot, delivery: { kind: 'express', from: slot.delivery!.from, to: slot.delivery!.to } },
+      emailText('de-en'),
+    );
+    expect(express.text).toContain('arriving by 15:00');
+    const none = orderShipped({ ...slot, delivery: null, dispatch: null }, emailText('de-en'));
+    expect(none.text).toContain('is on the way.');
+    expect(none.text).not.toContain('rider');
+  });
+
+  it('delivered: a short note in both languages', () => {
+    const en = orderDelivered(slot, emailText('de-en'));
+    expect(en.subject).toBe('Your Grocery order PW-2026-000007 was delivered');
+    expect(en.text).not.toContain('!');
+    const de = orderDelivered(slot, emailText('de-de'));
+    expect(de.subject).toBe('Deine Grocery-Bestellung PW-2026-000007 wurde geliefert');
+    expect(de.html).toContain('<html lang="de">');
   });
 });

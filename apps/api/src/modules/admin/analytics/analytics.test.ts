@@ -127,6 +127,23 @@ describe('GET /admin/analytics', () => {
     expect(a.aovCents).toBe(Math.floor((2 * (partly.totalCents - 300) + 2) / 4));
   });
 
+  it('reads what was captured, not the total, once an order was captured, minus refunds', async () => {
+    const lighter = await sale('2026-11-03T10:00:00Z');
+    const older = await sale('2026-11-03T11:00:00Z');
+    // A bag that came out 3.00 lighter than its total (weighed or short), then 1.00 refunded at the door.
+    await db
+      .update(orders)
+      .set({
+        authorizedCents: lighter.totalCents,
+        capturedCents: lighter.totalCents - 300,
+        refundedCents: 100,
+      })
+      .where(eq(orders.id, lighter.id));
+    // An order charged in full at checkout has no capture: the total counts, as before.
+    const a = await get('from=2026-11-03&to=2026-11-03');
+    expect(a.revenue.totalCents).toBe(lighter.totalCents - 300 - 100 + older.totalCents);
+  });
+
   it('leaves the round-up donation out of revenue, and never goes below zero on a full refund', async () => {
     const roundUp = async (o: { id: string; totalCents: number }, cents: number) => {
       // the stored total includes the donation (orders_total_check)

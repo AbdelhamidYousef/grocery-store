@@ -1,14 +1,22 @@
 import type { PickingOrder } from '@store/shared';
 
+import { Button } from '../../../components/ui/Button';
+import { useToast } from '../../../components/ui/Toast';
 import { cn } from '../../../lib/cn';
 import { TEST_IDS } from '../../../lib/test-ids';
+import { adminErrorMessage } from '../errors';
 
 import { LineActions } from './LineActions';
+import { useDispatchOrder, usePackOrder } from './queries';
 import { windowLabel } from './window-label';
 
 // One bag: the order, its window and every line with what is left to do.
 export function BagPanel({ order }: { order: PickingOrder }) {
   const locked = order.packedAt !== null;
+  const toast = useToast();
+  const pack = usePackOrder();
+  const dispatch = useDispatchOrder();
+  const fail = (e: unknown) => toast.show(adminErrorMessage(e), 'error');
   return (
     <article
       data-testid={TEST_IDS.pickingBag}
@@ -58,6 +66,41 @@ export function BagPanel({ order }: { order: PickingOrder }) {
           </li>
         ))}
       </ul>
+      <footer className="mt-4 flex flex-col gap-2 border-t border-line pt-3">
+        {!locked ? (
+          <>
+            <Button
+              disabled={order.openLines > 0}
+              loading={pack.isPending}
+              onClick={() => pack.mutate(order.number, { onError: fail })}
+            >
+              Bag packed
+            </Button>
+            {order.openLines > 0 && (
+              <p className="text-sm text-muted">Finish every line to close the bag.</p>
+            )}
+          </>
+        ) : (
+          <>
+            <Button
+              loading={dispatch.isPending}
+              onClick={() =>
+                dispatch.mutate(order.number, {
+                  onSuccess: () => toast.show(`${order.number} is on the way`, 'success'),
+                  onError: fail,
+                })
+              }
+            >
+              Hand to rider
+            </Button>
+            <p className="text-sm text-muted">
+              The card is charged for what is in the bag.
+              {order.openSwaps > 0 &&
+                ' A replacement the shopper has not answered counts as accepted.'}
+            </p>
+          </>
+        )}
+      </footer>
     </article>
   );
 }

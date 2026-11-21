@@ -4,6 +4,7 @@ import { contactAck, contactNotify } from './contact.ts';
 import { emailText } from './i18n/index.ts';
 import { newsletterConfirm, newsletterWelcome } from './newsletter.ts';
 import { orderConfirmation } from './order-confirmation.ts';
+import { orderDelivered } from './order-delivered.ts';
 import { orderFinalBill } from './order-final-bill.ts';
 import { orderShipped } from './order-shipped.ts';
 import { orderSwaps } from './order-swaps.ts';
@@ -23,6 +24,7 @@ export const ORDER_EMAIL_KINDS = [
   'order_final_bill',
   'order_swaps',
   'order_shipped',
+  'order_delivered',
   'withdrawal_ack',
 ] as const;
 export type OrderEmailKind = (typeof ORDER_EMAIL_KINDS)[number];
@@ -60,6 +62,8 @@ export function renderEmail(
       return orderSwaps(order, payload, x);
     case 'order_shipped':
       return orderShipped(order, x);
+    case 'order_delivered':
+      return orderDelivered(order, x);
     case 'withdrawal_ack':
       return withdrawalAck(order, payload, x);
   }

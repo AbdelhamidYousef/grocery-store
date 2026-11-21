@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { makeAdminOrderDetail } from '../../../test/fixtures';
 import { renderApp } from '../../../test/render';
 import { API, server, signedInAs } from '../../../test/server';
 
@@ -261,5 +262,46 @@ describe('a long queue', () => {
     );
     renderApp('/admin/picking');
     expect(await screen.findByText(/Showing the first 1 of 57 orders/)).toBeInTheDocument();
+  });
+});
+
+describe('closing and handing over a bag', () => {
+  it('keeps "Bag packed" off until every line is done, then packs and hands over', async () => {
+    const calls: string[] = [];
+    let packedAt: string | null = null;
+    server.use(
+      http.get(`${API}/admin/stores/mitte/picking`, () =>
+        HttpResponse.json({
+          data: result([line({ pickStatus: 'picked', resolved: true })], { packedAt }),
+        }),
+      ),
+      http.post(`${API}/admin/orders/:number/pack`, () => {
+        calls.push('pack');
+        packedAt = '2026-11-21T10:30:00.000Z';
+        return HttpResponse.json({ data: makeAdminOrderDetail() });
+      }),
+      http.post(`${API}/admin/orders/:number/dispatch`, () => {
+        calls.push('dispatch');
+        return HttpResponse.json({ data: makeAdminOrderDetail() });
+      }),
+    );
+    renderApp('/admin/picking');
+    const bag = await screen.findByTestId('picking-bag');
+    await userEvent.click(within(bag).getByRole('button', { name: 'Bag packed' }));
+    await waitFor(() => expect(calls).toEqual(['pack']));
+    await userEvent.click(await within(bag).findByRole('button', { name: 'Hand to rider' }));
+    await waitFor(() => expect(calls).toEqual(['pack', 'dispatch']));
+  });
+
+  it('disables "Bag packed" while a line is open', async () => {
+    server.use(
+      http.get(`${API}/admin/stores/mitte/picking`, () =>
+        HttpResponse.json({ data: result([line()]) }),
+      ),
+    );
+    renderApp('/admin/picking');
+    const bag = await screen.findByTestId('picking-bag');
+    expect(within(bag).getByRole('button', { name: 'Bag packed' })).toBeDisabled();
+    expect(within(bag).getByText('Finish every line to close the bag.')).toBeInTheDocument();
   });
 });

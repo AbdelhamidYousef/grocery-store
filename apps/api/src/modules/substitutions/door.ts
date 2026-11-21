@@ -7,6 +7,7 @@ import { orderItems } from '../../db/schema/index.ts';
 import { conflict, notFound, unprocessable } from '../../lib/errors.ts';
 import type { PaymentGateway } from '../../lib/stripe.ts';
 import * as checkoutRepo from '../checkout/repo.ts';
+import { emitOrderRefunded } from '../orders/events.ts';
 
 // A replacement refused at the door, AFTER the money was taken: exactly that line is refunded
 // through the same gateway call returns use. Three steps, because a network call must not run
@@ -62,6 +63,12 @@ export async function rejectAtDoor(
     }
     if (sub.swapStatus === 'rejected') {
       return { done: true as const, order, sub };
+    }
+    if (order.status === 'delivered') {
+      throw conflict(
+        ErrorCode.CONFLICT,
+        'The order was delivered: the rider is gone, use a return instead',
+      );
     }
     if (order.capturedCents === null) {
       throw conflict(
@@ -147,6 +154,17 @@ export async function rejectAtDoor(
       toStatus: locked.status,
       actor,
       note: `Replacement ${line.productName} refused at the door: ${cents} refunded`,
+    });
+    // The money back is a refund like a return's: loyalty takes back the points that line earned, in
+    // its share of the merchandise (`refundId` is the line, so a replayed mark writes nothing twice).
+    await emitOrderRefunded(tx, {
+      orderId: locked.id,
+      refundId: line.id,
+      amountCents: cents,
+      full: false,
+      lines: [{ orderItemId: line.id, quantity: line.quantity, refundCents: cents }],
+      shippingCents: 0,
+      donationCents: 0,
     });
     deps.log.info(
       { orderNumber, itemId, cents, simulated: deps.simulated },

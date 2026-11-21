@@ -61,6 +61,15 @@ export function toOrderDto(
             to: order.deliveryTo.toISOString(),
           }
         : null,
+    packedAt: order.packedAt?.toISOString() ?? null,
+    dispatch:
+      order.dispatchedAt && order.riderName
+        ? {
+            riderName: order.riderName,
+            dispatchedAt: order.dispatchedAt.toISOString(),
+            deliveredAt: order.deliveredAt?.toISOString() ?? null,
+          }
+        : null,
     placedAt: order.placedAt?.toISOString() ?? null,
     createdAt: order.createdAt.toISOString(),
   };

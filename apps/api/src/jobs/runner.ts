@@ -13,6 +13,7 @@ import { captureOverdue } from '../modules/checkout/capture.ts';
 import { releaseOldHolds } from '../modules/delivery/holds.ts';
 import { generateSlots } from '../modules/delivery/slot-generation.ts';
 import type { Outbox } from '../modules/mail/outbox.ts';
+import { deliverSimulated } from '../modules/picking/dispatch.ts';
 import { syncFlashSales } from '../modules/promotions/service.ts';
 import { writeOffExpired } from '../modules/stock/batches.ts';
 import { sendDueAlerts } from '../modules/stock-alerts/service.ts';
@@ -212,6 +213,18 @@ registerJob({
   name: 'capture-overdue',
   every: 'hourly',
   run: (ctx) => captureOverdue({ gateway: ctx.gateway, log: ctx.log }, ctx.now),
+});
+
+// There are no real riders (G8): a bag handed over is "delivered" once its simulated ride is over
+// (`riderProgress`, shared). Every five minutes, so a shopper never waits long after "0 minutes away".
+registerJob({
+  name: 'deliver-simulated',
+  every: 'five-minutes',
+  run: async (ctx) => {
+    const result = await deliverSimulated(ctx.now, ctx.log);
+    if (result.delivered > 0) ctx.outbox?.kick();
+    return result;
+  },
 });
 
 // Housekeeping only: a hold stops counting at its own `expires_at`, so a late or missed run never
