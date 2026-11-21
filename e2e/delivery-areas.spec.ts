@@ -30,7 +30,11 @@ test('a Neukölln postcode shows the area, unlocks the prawns, and checkout rese
       `/admin/inventory/${variantId}`,
       { storeId, quantity, reason: 'correction' },
     );
-  expect((await setStock(NEUKOELLN_STORE_ID, 50)).status).toBe(200);
+  // Earlier runs leave unpaid orders holding prawns at Neukölln (nothing releases them in a local
+  // run), so a fixed quantity can end up fully reserved. Free 50 on top of whatever is held:
+  // read the reservations with a quantity surely above them, then set held + 50.
+  const held = (await setStock(NEUKOELLN_STORE_ID, 10_000)).body.data.reserved;
+  expect((await setStock(NEUKOELLN_STORE_ID, held + 50)).status).toBe(200);
   const mitteBefore = (await setStock(MITTE_STORE_ID, 0)).body.data;
 
   // No postcode yet: the default store (Mitte) has none.
@@ -72,8 +76,8 @@ test('a Neukölln postcode shows the area, unlocks the prawns, and checkout rese
   expect(order.status, JSON.stringify(order.body)).toBe(200);
   expect(order.body.data.orderNumber).toMatch(/^GR-/);
 
-  const neukoelln = (await setStock(NEUKOELLN_STORE_ID, 50)).body.data;
-  expect(neukoelln.reserved).toBeGreaterThanOrEqual(1);
+  const neukoelln = (await setStock(NEUKOELLN_STORE_ID, 10_000)).body.data;
+  expect(neukoelln.reserved).toBeGreaterThan(held);
   const mitteAfter = (await setStock(MITTE_STORE_ID, 0)).body.data;
   expect(mitteAfter.reserved).toBe(mitteBefore.reserved);
 

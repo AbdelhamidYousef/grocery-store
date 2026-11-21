@@ -1013,6 +1013,10 @@ Found and fixed, one commit per group:
 Left open: the order lines are snapshots, so in German an order shows "Strawberries" (the cart and product pages are translated);
 the admin area is English only under `/de-de` by design; help and legal pages are English only.
 - `fix(admin)`: the packer view rendered up to 30 open bags (11,121 px at 1280, 16,270 at 768, 19,371 at 375). Bags are now summary rows (order, window, items, status) that expand one at a time; `?order=` opens and scrolls to its bag; the walking pick list is unchanged (the page is 5,101 / 8,681 / 11,439 px, almost all of it the pick list).
+- `test(e2e)`: `delivery-areas` failed even alone: every local run leaves an unpaid order holding prawns
+  at Neukölln, and the spec set the stock to a fixed 50, so after enough runs all 50 were reserved and the
+  page said "Sold out at Neukölln". The spec now frees 50 on top of what is held and checks that its own
+  order added to the reservations. Not an app bug: on the live site the job releases unpaid orders.
 Learn: a status that is stored once but means two things to the shopper (money held, money taken) needs the second fact (the
 captured amount) in its label, and a free-text catalogue field is a translation gap that no dictionary check can see: look for
 fields the seed writes as plain strings.
