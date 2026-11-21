@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { db } from '../../db/client.ts';
 import { inventory, orders } from '../../db/schema/index.ts';
 import { makeTestApp } from '../../test/app.ts';
-import { createProduct, createShippingMethods } from '../../test/factories.ts';
+import { createProduct, createShippingMethods, stockAt } from '../../test/factories.ts';
 import { bodyOf } from '../../test/http.ts';
 import { signedIn, simulate, TEST_ADDRESS } from '../../test/orders.ts';
 import { makeShopper } from '../../test/shopper.ts';
@@ -139,5 +139,111 @@ describe('POST /me/orders/:id/reorder', () => {
     expect((await makeShopper(app).call('post', `/me/orders/${theirs.id}/reorder`)).status).toBe(
       401,
     );
+  });
+});
+
+type Usuals = {
+  items: { variantId: string; name: string; timesBought: number; available: boolean }[];
+  lastOrder: { number: string } | null;
+};
+const usualsOf = async (c: Customer) =>
+  bodyOf<{ data: Usuals }>(await c.shopper.call('get', '/me/usuals')).data;
+
+describe('GET /me/usuals', () => {
+  it('answers 401 to a guest and empty lists to a customer without orders', async () => {
+    expect((await makeShopper(app).call('get', '/me/usuals')).status).toBe(401);
+    const c = await signedIn(app);
+    expect(await usualsOf(c)).toEqual({ items: [], lastOrder: null });
+  });
+
+  it('lists what was bought in at least 2 of the last 10 orders, most often first', async () => {
+    const c = await signedIn(app);
+    const milk = await variantOf(50, 1500, 'Milk');
+    const bread = await variantOf(50, 1500, 'Bread');
+    const jam = await variantOf(50, 1500, 'Jam once');
+    await order(c, [{ id: milk.id, qty: 1 }]);
+    await order(c, [
+      { id: bread.id, qty: 1 },
+      { id: jam.id, qty: 1 },
+    ]);
+    await order(c, [{ id: milk.id, qty: 1 }]);
+    const third = await order(c, [
+      { id: milk.id, qty: 2 },
+      { id: bread.id, qty: 1 },
+    ]);
+    const list = await usualsOf(c);
+    // Milk in 3 orders (quantity does not count twice), bread in 2, jam in 1: left out.
+    expect(list.items.map((i) => [i.name, i.timesBought])).toEqual([
+      ['Milk', 3],
+      ['Bread', 2],
+    ]);
+    expect(list.lastOrder?.number).toBe(third.number);
+  });
+
+  it('counts only the last 10 orders: an old purchase falls out of the window', async () => {
+    const c = await signedIn(app);
+    const old = await variantOf(50, 1500, 'Only early and now');
+    const filler = await variantOf(50, 1500, 'Filler');
+    await order(c, [{ id: old.id, qty: 1 }]); // order 1
+    for (let i = 0; i < 9; i++) await order(c, [{ id: filler.id, qty: 1 }]); // orders 2 to 10
+    await order(c, [{ id: old.id, qty: 1 }]); // order 11: the window is orders 2 to 11
+    const names = (await usualsOf(c)).items.map((i) => i.name);
+    expect(names).toEqual(['Filler']); // 'old' is in one of the last 10 orders, not two
+  });
+
+  it('leaves out what is sold out at the shopper store, and unpaid orders and other customers', async () => {
+    const c = await signedIn(app);
+    const other = await signedIn(app);
+    const a = await variantOf(50, 1500, 'Sold out now');
+    const b = await variantOf(50, 1500, 'Still there');
+    for (let i = 0; i < 2; i++) {
+      await order(c, [
+        { id: a.id, qty: 1 },
+        { id: b.id, qty: 1 },
+      ]);
+    }
+    // Two orders that were never paid, and another customer's two paid ones: none of them counts.
+    const x = await variantOf(50, 1500, 'Unpaid twice');
+    await order(c, [{ id: x.id, qty: 1 }], false);
+    const y = await variantOf(50, 1500, 'Theirs');
+    await order(other, [{ id: y.id, qty: 1 }]);
+    await order(other, [{ id: y.id, qty: 1 }]);
+    await db.update(inventory).set({ quantity: 0 }).where(eq(inventory.variantId, a.id));
+    expect((await usualsOf(c)).items.map((i) => i.name)).toEqual(['Still there']);
+  });
+
+  it('follows the postcode: a usual that only the other store has is not offered', async () => {
+    const c = await signedIn(app);
+    const a = await variantOf(50, 1500, 'Mitte only');
+    for (let i = 0; i < 2; i++) await order(c, [{ id: a.id, qty: 1 }]);
+    const { createSession } = await import('../auth/sessions.ts');
+    const { token } = await createSession(c.user.id);
+    const inNeukoelln = makeShopper(app, token, undefined, '12045');
+    const res = await inNeukoelln.call('get', '/me/usuals');
+    expect(bodyOf<{ data: Usuals }>(res).data.items).toEqual([]);
+    expect((await usualsOf(c)).items.map((i) => i.name)).toEqual(['Mitte only']);
+  });
+});
+
+describe('reorder at the current store', () => {
+  it('adds what the shopper store has and lists what it has not', async () => {
+    const c = await signedIn(app);
+    const both = await variantOf(20, 1500, 'Everywhere');
+    const mitteOnly = await variantOf(20, 1500, 'Mitte only');
+    await stockAt(both.id, 'neukoelln', 5);
+    const past = await order(c, [
+      { id: both.id, qty: 1 },
+      { id: mitteOnly.id, qty: 1 },
+    ]);
+    const { createSession } = await import('../auth/sessions.ts');
+    const { token } = await createSession(c.user.id);
+    const inNeukoelln = makeShopper(app, token, undefined, '12045');
+    const res = await inNeukoelln.call('post', `/me/orders/${past.number}/reorder`);
+    expect(res.status).toBe(200);
+    const data = bodyOf<{
+      data: { added: { name: string }[]; skipped: { name: string; reason: string }[] };
+    }>(res).data;
+    expect(data.added.map((a) => a.name)).toEqual(['Everywhere']);
+    expect(data.skipped).toMatchObject([{ name: 'Mitte only', reason: 'sold_out' }]);
   });
 });

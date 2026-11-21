@@ -16,7 +16,14 @@ const REASON: Record<ReorderResult['skipped'][number]['reason'], StringKey> = {
 
 // "Buy these again" on an order: every line that can go in the cart does, and the ones that cannot
 // are listed with the reason, so nothing disappears quietly.
-export function ReorderButton({ orderNumber }: { orderNumber: string }) {
+export function ReorderButton({
+  orderNumber,
+  label,
+}: {
+  orderNumber: string;
+  /** The button text; defaults to "Buy these again" (an order page). */
+  label?: string;
+}) {
   const reorder = useReorder();
   const { t, tn } = useT();
   const result = reorder.data;
@@ -32,7 +39,7 @@ export function ReorderButton({ orderNumber }: { orderNumber: string }) {
           })
         }
       >
-        {t('account.reorder.button')}
+        {label ?? t('account.reorder.button')}
       </Button>
       {reorder.isError && (
         <p role="alert" className="mt-2 font-semibold text-danger">

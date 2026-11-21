@@ -112,6 +112,10 @@ Written by the build sessions for the owner and the next session. Newest state f
   states the rules; admin variant form has "Bottle deposit". Shipping methods are only a delivery kind now (their price columns are
   unused). The test shopper tops a short basket up with a filler line (see the journal). A database migrated from G8 needs
   `pnpm db:migrate && pnpm db:seed` (deposit on the seven drinks). Not pushed.
+- **G9.2 done** (2026-11-21, G9 in progress): your usuals and reorder. `GET /me/usuals` (`modules/reorder`, rule: in at least
+  2 of the last 10 paid-or-later orders, most often first, in stock at the request's store, max 12; carries `lastOrder`), shared
+  constants `USUALS_*`, web `features/reorder/UsualsBlock` on the home page (the G3 placeholder slot is replaced and enabled) and on
+  the account's Buy again page, "Reorder last basket" through the existing reorder service (store-aware, skipped lines listed).
 
   Paid orders are only AUTHORISED until captured: tests that refund or return a paid order capture it first
   (`captureOrder` / `deliveredOrder` in `test/orders.ts`); `simulate` turns "the shopper paid" into the

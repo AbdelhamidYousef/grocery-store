@@ -243,16 +243,3 @@ export function FoodBankTeaser() {
     </section>
   );
 }
-
-// A place for "Your usuals" (the products this shopper reorders). The list needs order history and
-// arrives with the reorder phase, so the slot is registered but switched off (see builtin-slots).
-export function UsualsPlaceholder() {
-  const { t } = useT();
-  return (
-    <section aria-labelledby="home-usuals-heading" data-testid="usuals">
-      <h2 id="home-usuals-heading" className="mb-5 text-2xl font-bold sm:text-3xl">
-        {t('shell.home.usuals.title')}
-      </h2>
-    </section>
-  );
-}

@@ -156,6 +156,14 @@ export const account: Record<keyof typeof enNs, Entry> = {
   'track.rider.demo': 'Das ist eine Demo: Der Fahrer ist simuliert, niemand ist unterwegs.',
   'track.refresh': 'Diese Seite aktualisiert sich alle 30 Sekunden.',
 
+  'usuals.intro': 'In mindestens 2 deiner letzten 10 Bestellungen, zu heutigen Preisen.',
+  'usuals.none':
+    'Noch nichts: Was du in mindestens 2 deiner letzten 10 Bestellungen kaufst, erscheint hier.',
+  'usuals.reorderLast': 'Letzten Warenkorb erneut bestellen',
+  'usuals.inOrders': {
+    one: 'in {count} letzten Bestellung',
+    other: 'in {count} letzten Bestellungen',
+  },
   'account.reorder.button': 'Erneut kaufen',
   'account.reorder.error':
     'Wir konnten diese Artikel nicht in deinen Warenkorb legen. Bitte versuche es erneut.',

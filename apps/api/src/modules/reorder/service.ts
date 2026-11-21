@@ -1,5 +1,14 @@
-import { BUY_AGAIN_LIMIT, ErrorCode, type BuyAgainItem, type ReorderResult } from '@store/shared';
-import { and, asc, desc, eq, inArray, isNotNull, ne, sql } from 'drizzle-orm';
+import {
+  BUY_AGAIN_LIMIT,
+  ErrorCode,
+  USUALS_LIMIT,
+  USUALS_MIN_ORDERS,
+  USUALS_ORDER_WINDOW,
+  type BuyAgainItem,
+  type ReorderResult,
+  type Usuals,
+} from '@store/shared';
+import { and, asc, desc, eq, inArray, isNotNull, isNull, ne, sql } from 'drizzle-orm';
 
 import { inventoryAt, stockQuantity, stockReserved } from '../../db/available.ts';
 import { db } from '../../db/client.ts';
@@ -65,8 +74,25 @@ export async function buyAgain(userId: string): Promise<BuyAgainItem[]> {
     )
     .orderBy(desc(sql`max(${orders.createdAt})`), asc(productVariants.id))
     .limit(BUY_AGAIN_LIMIT);
-  if (rows.length === 0) return [];
+  return withImages(rows);
+}
 
+type ItemRow = {
+  variantId: string;
+  productId: string;
+  slug: string;
+  name: string;
+  variantName: string;
+  priceCents: number;
+  currency: string;
+  available: number;
+  lastBoughtAt: Date;
+  timesBought: number;
+};
+
+// Adds each row's picture (the variant's own, else the product's) and turns it into the wire item.
+async function withImages(rows: ItemRow[]): Promise<BuyAgainItem[]> {
+  if (rows.length === 0) return [];
   const images = await db
     .select()
     .from(productImages)
@@ -96,6 +122,73 @@ export async function buyAgain(userId: string): Promise<BuyAgainItem[]> {
       timesBought: r.timesBought,
     };
   });
+}
+
+// "Your usuals": the variants this customer bought in at least USUALS_MIN_ORDERS of their last
+// USUALS_ORDER_WINDOW paid orders, most often first (ties: the most recent purchase, then the id so
+// the order never flickers), and only those in stock at the shopper's store right now. Nothing is
+// guessed: the same orders always give the same list. `lastOrder` is the basket "Reorder last
+// basket" repeats.
+export async function usuals(userId: string): Promise<Usuals> {
+  const recent = await db
+    .select({ id: orders.id, number: orders.number, createdAt: orders.createdAt })
+    .from(orders)
+    .where(and(eq(orders.userId, userId), inArray(orders.status, PAID)))
+    .orderBy(desc(orders.createdAt), desc(orders.id))
+    .limit(USUALS_ORDER_WINDOW);
+  const last = recent[0];
+  const lastOrder = last
+    ? { number: last.number, placedAt: new Date(last.createdAt).toISOString() }
+    : null;
+  if (recent.length < USUALS_MIN_ORDERS) return { items: [], lastOrder };
+
+  const rows = await db
+    .select({
+      variantId: productVariants.id,
+      productId: products.id,
+      slug: products.slug,
+      name: products.name,
+      variantName: productVariants.name,
+      priceCents: priceIn(),
+      currency: sql<string>`${currentStore().currency}::char(3)`,
+      available: availableOf(),
+      lastBoughtAt: sql<Date>`max(${orders.createdAt})`,
+      timesBought: sql<number>`count(distinct ${orders.id})::int`,
+    })
+    .from(orderItems)
+    .innerJoin(orders, eq(orders.id, orderItems.orderId))
+    .innerJoin(productVariants, eq(productVariants.id, orderItems.variantId))
+    .innerJoin(products, eq(products.id, productVariants.productId))
+    .leftJoin(inventory, inventoryAt(productVariants.id))
+    .where(
+      and(
+        inArray(
+          orders.id,
+          recent.map((o) => o.id),
+        ),
+        // A replacement the packer added is not something the shopper chose: only their own lines.
+        isNull(orderItems.substitutesItemId),
+        isNotNull(orderItems.variantId),
+        eq(productVariants.status, 'active'),
+        eq(products.status, 'active'),
+        hasPriceIn(),
+      ),
+    )
+    .groupBy(
+      productVariants.id,
+      products.id,
+      inventory.variantId,
+      inventory.quantity,
+      inventory.reserved,
+    )
+    .having(sql`count(distinct ${orders.id}) >= ${USUALS_MIN_ORDERS} and ${availableOf()} > 0`)
+    .orderBy(
+      desc(sql`count(distinct ${orders.id})`),
+      desc(sql`max(${orders.createdAt})`),
+      asc(productVariants.id),
+    )
+    .limit(USUALS_LIMIT);
+  return { items: await withImages(rows), lastOrder };
 }
 
 // Puts a past order's lines back in the cart through the ordinary cart service, so stock, trial and

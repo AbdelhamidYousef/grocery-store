@@ -100,3 +100,63 @@ describe('reorder from an order', () => {
     expect(screen.queryByRole('button', { name: 'Buy these again' })).toBeNull();
   });
 });
+
+describe('your usuals (G9.2)', () => {
+  const usuals = (
+    items: object[],
+    lastOrder: object | null = { number: 'GR-2026-000042', placedAt: '2026-11-20T10:00:00.000Z' },
+  ) => http.get(`${API}/me/usuals`, () => HttpResponse.json({ data: { items, lastOrder } }));
+
+  it('shows the strip on the home page for a signed-in shopper, most often first', async () => {
+    server.use(
+      signedInAs(),
+      usuals([
+        item({ name: 'Milk', timesBought: 5 }),
+        item({ variantId: 'v-2', name: 'Bread', timesBought: 2 }),
+      ]),
+    );
+    renderApp('/');
+    const strip = within(await screen.findByTestId('usuals'));
+    expect(strip.getByRole('heading', { name: 'Your usuals' })).toBeVisible();
+    const rows = strip.getAllByTestId('usuals-row');
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toHaveTextContent('Milk');
+    expect(rows[0]).toHaveTextContent('in 5 recent orders');
+    expect(rows[1]).toHaveTextContent('in 2 recent orders');
+  });
+
+  it('shows nothing for a visitor and nothing before the first order', async () => {
+    renderApp('/');
+    await screen.findByTestId('guides-teaser');
+    expect(screen.queryByTestId('usuals')).not.toBeInTheDocument();
+  });
+
+  it('shows nothing when the shopper has no order yet', async () => {
+    server.use(signedInAs(), usuals([], null));
+    renderApp('/');
+    await screen.findByTestId('guides-teaser');
+    expect(screen.queryByTestId('usuals')).not.toBeInTheDocument();
+  });
+
+  it('reorders the last basket and lists what is not in stock at the store', async () => {
+    let called: string | null = null;
+    server.use(
+      signedInAs(),
+      usuals([item()]),
+      http.post(`${API}/me/orders/:id/reorder`, ({ params }) => {
+        called = String(params.id);
+        return HttpResponse.json({
+          data: {
+            cart: makeCart([]),
+            added: [{ name: 'Squeaky bone', variantName: 'Large', quantity: 1 }],
+            skipped: [{ name: 'Cat tower', variantName: 'Tall', reason: 'sold_out' }],
+          },
+        });
+      }),
+    );
+    renderApp('/account/buy-again');
+    await userEvent.click(await screen.findByRole('button', { name: 'Reorder last basket' }));
+    expect(await screen.findByText(/Cat tower \(Tall\): sold out right now/)).toBeVisible();
+    expect(called).toBe('GR-2026-000042');
+  });
+});

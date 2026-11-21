@@ -9,6 +9,7 @@ import { TEST_IDS } from '../../lib/test-ids';
 import { useAddToCartAction } from '../cart/queries';
 
 import { useBuyAgain } from './queries';
+import { UsualsBlock } from './UsualsBlock';
 
 function BuyAgainRow({ item }: { item: import('@store/shared').BuyAgainItem }) {
   const { t, tn } = useT();
@@ -72,6 +73,9 @@ export function BuyAgainSection() {
   return (
     <section aria-labelledby="buy-again-heading" data-testid={TEST_IDS.pageBuyAgain}>
       <Seo title={t('account.reorder.heading')} noindex />
+      <div className="mb-8">
+        <UsualsBlock headingLevel="h2" />
+      </div>
       <h2 id="buy-again-heading" className="font-display text-2xl font-bold">
         {t('account.reorder.heading')}
       </h2>

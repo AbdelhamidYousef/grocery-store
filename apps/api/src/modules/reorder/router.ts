@@ -1,4 +1,9 @@
-import { BuyAgainResponseSchema, ReorderParamsSchema, ReorderResponseSchema } from '@store/shared';
+import {
+  BuyAgainResponseSchema,
+  ReorderParamsSchema,
+  ReorderResponseSchema,
+  UsualsResponseSchema,
+} from '@store/shared';
 import { Router as ExpressRouter, type Router } from 'express';
 
 import { respond, valid, validate } from '../../lib/validate.ts';
@@ -16,6 +21,11 @@ export function createReorderRouter(): Router {
 
   router.get('/me/buy-again', requireUser, async (req, res) => {
     respond(res, BuyAgainResponseSchema, { data: await service.buyAgain(userId(req)) });
+  });
+
+  // "Your usuals" and the last basket, at the shopper's store (the X-Postcode header).
+  router.get('/me/usuals', requireUser, async (req, res) => {
+    respond(res, UsualsResponseSchema, { data: await service.usuals(userId(req)) });
   });
 
   const reorder = { params: ReorderParamsSchema };

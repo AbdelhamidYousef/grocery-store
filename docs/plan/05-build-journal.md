@@ -799,4 +799,24 @@ Learn: when one number rule (a minimum, a fee) touches every order, change the s
 then count what breaks: the failures are the list of every place that assumed the old rule. And a "convenience read" in a test
 helper must never be a request that changes state.
 
+### G9.2: your usuals and reorder
+`GET /me/usuals` (`modules/reorder`): take the customer's last 10 orders with a paid-or-later status (newest first), count in
+how many of THEM each variant appears (`count(distinct order)`, so quantity never counts twice), keep those in at least 2, drop
+what is not in stock at the shopper's store right now (the same `inventoryAt` store of the request, so the postcode decides),
+order by number of orders, then latest purchase, then variant id (stable), at most 12. A replacement the packer added
+(`substitutes_item_id`) is not the shopper's choice and is ignored. The answer also carries `lastOrder` (number and time), the
+basket "Reorder last basket" repeats. Constants live in shared (`USUALS_ORDER_WINDOW` 10, `USUALS_MIN_ORDERS` 2, `USUALS_LIMIT`
+12). Reorder was already store-aware through the cart service (it adds every line with `cart.addItem`, whose stock check reads the
+request's store); G9.2 makes that a tested contract: at a Neukölln postcode a Mitte-only line is skipped as `sold_out` and listed.
+The image mapping of buy-again is now one function (`withImages`) used by both lists. Web: `UsualsBlock` replaces the G3
+placeholder on the home page (registered slot, no longer switched off) and sits on top of the account's "Buy again" page; it
+renders nothing for a visitor, while loading, or before the first order; each usual has "Add to cart" and shows "in N recent
+orders"; "Reorder last basket" is the existing `ReorderButton` with its own label, so the added lines and the skipped ones with
+their reasons show the same way as on an order page. English and German ("du").
+Surprise: the window test needed 11 real orders (each one a real checkout with a slot); it still runs in about a second because
+the test shopper picks the first open off-peak slot and the fake gateway answers at once.
+Learn: write the rule in the constants and in one sentence next to the query ("at least 2 of the last 10, most often first"),
+then test each word: the window (an old order falls out), the minimum (once is not a usual), the order (count, then recency), and
+the "in stock at your store" (the same list is empty at another postcode).
+
 ### Quiz: Phase G9 (placeholder, completed at G9.4)

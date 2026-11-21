@@ -152,6 +152,10 @@ export const account = {
   'track.rider.demo': 'This is a demo: the rider is simulated and nobody is on the road.',
   'track.refresh': 'This page updates every 30 seconds.',
 
+  'usuals.intro': 'Bought in at least 2 of your last 10 orders, at today’s prices.',
+  'usuals.none': 'Nothing yet: what you buy in at least 2 of your last 10 orders shows up here.',
+  'usuals.reorderLast': 'Reorder last basket',
+  'usuals.inOrders': { one: 'in {count} recent order', other: 'in {count} recent orders' },
   'account.reorder.button': 'Buy these again',
   'account.reorder.error': 'We could not add these to your cart. Please try again.',
   'account.reorder.added': {

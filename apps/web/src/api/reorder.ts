@@ -1,8 +1,10 @@
 import {
   BuyAgainResponseSchema,
   ReorderResponseSchema,
+  UsualsResponseSchema,
   type BuyAgainItem,
   type ReorderResult,
+  type Usuals,
 } from '@store/shared';
 
 import { apiFetch } from './client';
@@ -23,4 +25,9 @@ export async function reorderOrder(orderRef: string): Promise<ReorderResult> {
       schema: ReorderResponseSchema,
     })
   ).data;
+}
+
+export async function fetchUsuals(signal?: AbortSignal): Promise<Usuals> {
+  return (await apiFetch('/me/usuals', { schema: UsualsResponseSchema, ...(signal && { signal }) }))
+    .data;
 }

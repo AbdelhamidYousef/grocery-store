@@ -5,8 +5,8 @@ import { RecentlyViewed } from '../catalog/pdp/RecentlyViewed';
 import { ShortDatedShelf } from '../expiry/ShortDatedShelf';
 import { SeasonalCollectionSlot } from '../merchandising/SeasonalCollectionSlot';
 import { NewsletterSlot } from '../newsletter/NewsletterSlot';
+import { UsualsBlock } from '../reorder/UsualsBlock';
 
-import { UsualsPlaceholder } from './HomeSections';
 import { registerHomeSlot } from './slots';
 
 // Slots whose component already exists. The phases that add the others (recently viewed,
@@ -27,10 +27,6 @@ registerHomeSlot({
 // Phase 19: the newsletter sign-up (double opt-in, welcome code after the confirming click).
 registerHomeSlot({ id: 'newsletter', render: () => createElement(NewsletterSlot) });
 
-// G3: the "Your usuals" placeholder. Registered but switched off (`enabled` is false) so the page
-// shows nothing until the reorder phase (G9) has an order history to build it from.
-registerHomeSlot({
-  id: 'usuals',
-  enabled: () => false,
-  render: () => createElement(UsualsPlaceholder),
-});
+// G9: "Your usuals" for a signed-in shopper (the block renders nothing for a visitor or before the
+// first order). It replaces the G3 placeholder.
+registerHomeSlot({ id: 'usuals', render: () => createElement(UsualsBlock) });

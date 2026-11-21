@@ -357,6 +357,12 @@ describe('finding one bag', () => {
       .update(orders)
       .set({ deliveryFrom: new Date(Date.now() + 5 * 86_400_000) })
       .where(eq(orders.id, far.order.id));
+    // The other bag starts within the next two hours whatever time of day the test runs (the
+    // test shopper picks the first off-peak slot, which can be tomorrow morning).
+    await db
+      .update(orders)
+      .set({ deliveryFrom: new Date(Date.now() + 3_600_000) })
+      .where(eq(orders.id, other.order.id));
     const admin = await adminCall();
     expect((await picking(admin, '?window=next')).orders.map((o) => o.number)).toEqual([
       other.number,

@@ -89,7 +89,7 @@ describe('home page', () => {
     expect(screen.queryByTestId('deals')).not.toBeInTheDocument();
   });
 
-  it('keeps the "Your usuals" placeholder hidden until it is switched on', async () => {
+  it('shows no "Your usuals" strip to a visitor (the strip is for a signed-in shopper, see reorder.test)', async () => {
     renderApp('/');
     await screen.findByTestId('guides-teaser');
     expect(screen.queryByTestId('usuals')).not.toBeInTheDocument();

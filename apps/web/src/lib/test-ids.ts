@@ -16,6 +16,8 @@ export const TEST_IDS = {
   reorderSkipped: 'reorder-skipped',
   pageBuyAgain: 'page-buy-again',
   buyAgainRow: 'buy-again-row',
+  usuals: 'usuals',
+  usualsRow: 'usuals-row',
   wishlistHeart: 'wishlist-heart',
   wishlistRow: 'wishlist-row',
   wishlistShare: 'wishlist-share',
