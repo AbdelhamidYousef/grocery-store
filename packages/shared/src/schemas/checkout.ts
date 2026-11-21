@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { PickStatusSchema, SwapStatusSchema } from '../substitutions.ts';
+
 import { DataSchema, optionalText, requiredText } from './common.ts';
 import { CountrySchema } from './shipping.ts';
 import { OrderDeliverySchema } from './slots.ts';
@@ -121,6 +123,13 @@ export const OrderItemSchema = z.object({
   weighedGrams: z.number().int().nullable(),
   finalCents: z.number().int().nullable(),
   shortDated: z.boolean(),
+  // Packing (G7): what was found, and for a replacement line which line it replaces and whether the
+  // shopper took it. `refundedCents` is what a refused replacement gave back after capture.
+  pickStatus: PickStatusSchema,
+  pickedQty: z.number().int().min(0).nullable(),
+  substitutesItemId: z.string().nullable(),
+  swapStatus: SwapStatusSchema.nullable(),
+  refundedCents: z.number().int().min(0),
 });
 export type OrderItem = z.infer<typeof OrderItemSchema>;
 
@@ -139,6 +148,8 @@ export const OrderSchema = z.object({
   // Both null for orders paid before manual capture existed.
   authorizedCents: z.number().int().nullable(),
   capturedCents: z.number().int().nullable(),
+  // Money handed back so far (a refused replacement, a refunded return).
+  refundedCents: z.number().int().min(0),
   items: z.array(OrderItemSchema),
   // The promised delivery window; null for orders placed before slots existed.
   delivery: OrderDeliverySchema.nullable(),

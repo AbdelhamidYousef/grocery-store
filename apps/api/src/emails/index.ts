@@ -6,6 +6,7 @@ import { newsletterConfirm, newsletterWelcome } from './newsletter.ts';
 import { orderConfirmation } from './order-confirmation.ts';
 import { orderFinalBill } from './order-final-bill.ts';
 import { orderShipped } from './order-shipped.ts';
+import { orderSwaps } from './order-swaps.ts';
 import { RETURN_EMAIL_KINDS, returnUpdate } from './return-update.ts';
 import { reviewApproved } from './review-approved.ts';
 import { safetyNotice } from './safety-notice.ts';
@@ -20,6 +21,7 @@ export type { Email } from './layout.ts';
 export const ORDER_EMAIL_KINDS = [
   'order_confirmation',
   'order_final_bill',
+  'order_swaps',
   'order_shipped',
   'withdrawal_ack',
 ] as const;
@@ -54,6 +56,8 @@ export function renderEmail(
       return orderConfirmation(order, x);
     case 'order_final_bill':
       return orderFinalBill(order, x);
+    case 'order_swaps':
+      return orderSwaps(order, payload, x);
     case 'order_shipped':
       return orderShipped(order, x);
     case 'withdrawal_ack':

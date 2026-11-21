@@ -1,5 +1,5 @@
 import { batchClass, compareBestBefore, dateKeyIn, type BatchClass } from '@store/shared';
-import { and, asc, eq, gt, inArray, isNull, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, inArray, isNull, sql } from 'drizzle-orm';
 
 import type { Tx } from '../../db/client.ts';
 import {
@@ -136,16 +136,29 @@ export async function addToBatch(
 
 type ItemRow = Pick<repo.OrderItemRow, 'id' | 'variantId' | 'quantity' | 'bundleComponents'> & {
   shortDated?: boolean;
+  // Substitutions (G7): units the packer found, and whether a replacement was refused. A line short
+  // by some units holds only those; a replacement that was rejected holds nothing (see `heldUnits`).
+  pickedQty?: number | null;
+  swapStatus?: repo.OrderItemRow['swapStatus'];
 };
+
+// Units of a line that are still out of the shelf: the packed ones for a short line, none for a
+// replacement the shopper rejected (its packs went back when it was rejected).
+export function heldUnits(item: Pick<ItemRow, 'quantity' | 'pickedQty' | 'swapStatus'>): number {
+  if (item.swapStatus === 'rejected') return 0;
+  return item.pickedQty ?? item.quantity;
+}
 
 // What one order line holds, per stock variant: the line itself, or the kit's components from the
 // checkout snapshot. Not merged across lines: each line records its own packs.
 function partsOf(item: ItemRow): { variantId: string; quantity: number }[] {
   if (item.variantId === null) return [];
-  if (!item.bundleComponents) return [{ variantId: item.variantId, quantity: item.quantity }];
+  const units = heldUnits(item);
+  if (units === 0) return [];
+  if (!item.bundleComponents) return [{ variantId: item.variantId, quantity: units }];
   return item.bundleComponents.map((c) => ({
     variantId: c.variantId,
-    quantity: c.qty * item.quantity,
+    quantity: c.qty * units,
   }));
 }
 
@@ -190,7 +203,10 @@ export async function commitOrderStock(
  * SAME batches (from `order_item_batches`). A line with no record (an order paid before batches
  * existed) goes back as a new undated batch, so the invariant holds either way.
  */
-export async function restoreOrderStock(tx: Tx, storeId: string, items: ItemRow[]): Promise<void> {
+export async function restoreOrderStock(tx: Tx, storeId: string, all: ItemRow[]): Promise<void> {
+  // A line that holds nothing (a replacement that was rejected) has nothing to give back; its
+  // records, if any, stay (a door rejection writes the goods off, like a food return).
+  const items = all.filter((i) => heldUnits(i) > 0);
   const ids = items.map((i) => i.id);
   const rows = ids.length
     ? await tx
@@ -223,6 +239,69 @@ export async function restoreOrderStock(tx: Tx, storeId: string, items: ItemRow[
     const missing = qty - (restored.get(variantId) ?? 0);
     if (missing > 0) await addToBatch(tx, storeId, variantId, missing, null);
     await repo.restockUnits(tx, storeId, variantId, qty);
+  }
+}
+
+/**
+ * A line added AFTER payment (a replacement the packer swapped in): its packs leave the shelf now,
+ * oldest first, recorded for the line like any other. Returns false, changing nothing, when the
+ * store does not have the units free. Caller holds the order lock and the inventory lock.
+ */
+export async function allocateLineStock(
+  tx: Tx,
+  storeId: string,
+  item: ItemRow,
+  today: string = todayKey(),
+): Promise<boolean> {
+  const parts = partsOf(item);
+  if (parts.length !== 1) return false;
+  const [part] = parts;
+  if (!part) return false;
+  const [stock] = await tx
+    .select({ quantity: inventory.quantity, reserved: inventory.reserved })
+    .from(inventory)
+    .where(and(eq(inventory.storeId, storeId), eq(inventory.variantId, part.variantId)));
+  if (!stock || stock.quantity - stock.reserved < part.quantity) return false;
+  const taken = await takeFromBatches(tx, storeId, part.variantId, part.quantity, 'normal', today);
+  await tx.insert(orderItemBatches).values(
+    taken.map((t) => ({
+      orderItemId: item.id,
+      batchId: t.batchId,
+      quantity: t.quantity,
+      shortDated: false,
+    })),
+  );
+  await tx
+    .update(inventory)
+    .set({ quantity: sql`${inventory.quantity} - ${part.quantity}`, updatedAt: sql`now()` })
+    .where(and(eq(inventory.storeId, storeId), eq(inventory.variantId, part.variantId)));
+  return true;
+}
+
+/**
+ * Units a packer did not find were taken from the books at payment and are simply gone: the line's
+ * record of which batches they came from shrinks by that many (latest records first), so cancelling
+ * the order later puts back only what was packed. Batches and stock are not touched.
+ */
+export async function trimLineRecords(tx: Tx, orderItemId: string, units: number): Promise<void> {
+  const rows = await tx
+    .select()
+    .from(orderItemBatches)
+    .where(eq(orderItemBatches.orderItemId, orderItemId))
+    .orderBy(desc(orderItemBatches.id));
+  let left = units;
+  for (const row of rows) {
+    if (left === 0) break;
+    const n = Math.min(left, row.quantity);
+    if (n === row.quantity) {
+      await tx.delete(orderItemBatches).where(eq(orderItemBatches.id, row.id));
+    } else {
+      await tx
+        .update(orderItemBatches)
+        .set({ quantity: row.quantity - n })
+        .where(eq(orderItemBatches.id, row.id));
+    }
+    left -= n;
   }
 }
 

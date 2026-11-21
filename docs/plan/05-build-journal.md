@@ -566,3 +566,37 @@ profile page; EN + DE ("du").
 Surprise: nothing in the existing suite changed except the cart fixture; the new columns have defaults.
 Learn: when a rule must hold in three places (the list, the save, the packer), write it once as a pure function over
 plain facts and let each place only load the facts; the SQL then needs no copy of the rule.
+
+### G7.2: swaps, approval and money (API, risky)
+Migration 0056 (all on `order_items`): `pick_status` (default `pending`), `picked_qty`, `substitutes_item_id` (self FK,
+CASCADE), `swap_status` (CHECK: set exactly on replacement lines), `refund_intent_at`, `refunded_cents` (CHECK: at most
+the larger of the line total and its weighed price). A replacement is its own line: quantity = the units not found,
+unit price `min(its price, the original's unit price)`, `swap_status proposed | accepted | rejected`.
+`modules/substitutions/swaps.ts`: `recordShortfall(orderItemId, {pickedQty, substituteVariantId?})` under the order lock
+(then inventory, the app-wide lock order): refuses a captured or unpaid order and a kit, is idempotent for the same
+answer, picks the replacement by the line's preference (`none`: never, a packer asking for one is a 422; `specific`:
+only that product, re-checked for safety and stock, the price band is not re-checked; `best_match`: the packer's pick
+or the closest SAFE match with enough in stock; the candidates are locked in one `lockInventory` call, key order, so two
+orders cannot deadlock), inserts the line and allocates its packs FEFO at the ORDER's store (`allocateLineStock`:
+availability re-checked under the lock, batches and `inventory.quantity` move together, `order_item_batches` written).
+The units not found were taken from the books at payment and are gone: `trimLineRecords` shrinks the original line's
+batch records by that many, so a later cancel restores only what was packed. `decideSwap` (signed-in owner, or the
+HMAC token of the email link, `lib/signed-token.ts`; a stranger gets 404) accepts, or rejects and puts the packs back
+into the same batches through `restoreOrderStock`; only before capture, 409 after; the same answer twice is a no-op.
+`acceptUnanswered` runs inside `finalizeOrder` and on the `shipped` transition: unanswered counts as accepted.
+`finalAmountCents` now works line by line (picked units scale price and discount share, round half up; a replacement is
+added unless rejected; weighed lines as before; capped at the hold, never below zero); a weighed replacement's weight is
+capped at `original unit x quantity` (`cappedSwapCents`). `door.ts` `rejectAtDoor` (admin, after capture): intent,
+gateway, mark, like returns: key `swap-refund:<line id>`, a refund already on the intent with that line's id in its
+metadata is found first (keys expire after 24 h), the line becomes `rejected` with `refunded_cents`, the order's own
+`refunded_cents` grows. Stock helpers treat a rejected or short line as holding only what it holds (`heldUnits`), so a
+cancel can never restore a replacement twice; returns cannot return a refused line or units never packed. Email
+`order_swaps` ("We changed something in your order", EN + DE) lists gaps and replacements with accept/reject links; the
+final bill lists what was missing, short or rejected. Order DTO gained the pick/swap fields and `refundedCents`. Admin:
+`POST /admin/orders/:number/items/:itemId/shortfall` and `.../swaps/:itemId/reject-at-door`; shopper
+`POST /orders/:number/swaps/:itemId`.
+Surprise: the stock invariant needed no change to its checker, but every function that derives "what a line holds" from
+`quantity` was a bug waiting for a short line: one helper (`heldUnits`) now answers it for restore, expand and partsOf.
+Learn: when a line can hold fewer units than it says, "quantity" stops being the truth: name the derived number once
+and make every stock path read it.
+

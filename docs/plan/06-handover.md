@@ -63,6 +63,11 @@ Written by the build sessions for the owner and the next session. Newest state f
   enums for G7.2). Shared `substitutions.ts` has the pure `bestMatches` (safe before similar), API
   `GET /products/:slug/substitutes`, cart `PUT /cart/items/:id/substitution` and `PUT /cart/substitution`, account
   `GET/PUT /account/substitution`; web: select on each cart line, pick dialog, "same for every item", account default.
+- **G7.2 done** (2026-11-21): swaps, approval and money, API only. Migration 0056 (pick/swap columns, refund fields on
+  `order_items`). `modules/substitutions/swaps.ts` (`recordShortfall`, `decideSwap`, `acceptUnanswered`), `door.ts`
+  (`rejectAtDoor`), `lib/signed-token.ts`, `stock/batches.ts` (`allocateLineStock`, `trimLineRecords`, `heldUnits`),
+  `finalAmountCents` per line, email `order_swaps`, admin `POST /admin/orders/:number/items/:itemId/shortfall` and
+  `.../swaps/:itemId/reject-at-door`, shopper `POST /orders/:number/swaps/:itemId`. The web does not show swaps yet (G7.3).
   Paid orders are only AUTHORISED until captured: tests that refund or return a paid order capture it first
   (`captureOrder` / `deliveredOrder` in `test/orders.ts`); `simulate` turns "the shopper paid" into the
   authorisation event for a manual-capture order.

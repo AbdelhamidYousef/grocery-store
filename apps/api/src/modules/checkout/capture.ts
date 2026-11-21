@@ -1,4 +1,4 @@
-import { ErrorCode, weighedCents } from '@store/shared';
+import { cappedSwapCents, ErrorCode, lineShareCents, weighedCents } from '@store/shared';
 import { and, asc, eq, inArray, isNull, lt } from 'drizzle-orm';
 import type { Logger } from 'pino';
 
@@ -7,6 +7,7 @@ import { orders, payments } from '../../db/schema/index.ts';
 import { conflict, notFound, paymentProvider, unprocessable } from '../../lib/errors.ts';
 import type { PaymentGateway } from '../../lib/stripe.ts';
 import { enqueueEmail } from '../mail/outbox.ts';
+import { acceptUnanswered } from '../substitutions/swaps.ts';
 
 import * as repo from './repo.ts';
 
@@ -130,22 +131,51 @@ export interface Weighing {
   grams: number;
 }
 
+type FinalLine = Pick<repo.OrderItemRow, 'lineTotalCents' | 'finalCents'> &
+  Partial<
+    Pick<
+      repo.OrderItemRow,
+      'quantity' | 'discountCents' | 'pickedQty' | 'substitutesItemId' | 'swapStatus'
+    >
+  >;
+
 /**
- * The final amount of an order, from its lines: the order total (every line as priced, discounts
- * included) corrected by what each WEIGHED line really costs (`final_cents`, from the packed grams)
- * instead of its estimate. A weighed line not weighed yet stays at its estimate. The result is
- * capped at the authorised amount: a bag that weighs more than the 15 % buffer is charged the
- * hold (we absorb the rest), never more.
+ * The final amount of an order, from its lines. The order total (every line as priced, discounts
+ * and shipping included) is corrected line by line by what was really packed and charged:
+ *
+ *   - a weighed line costs its real weight (`final_cents`) instead of its estimate;
+ *   - a line the packer found only some units of (`picked_qty`) costs those units: its price and its
+ *     share of the order discount scale with them, round half up; none found costs nothing;
+ *   - a replacement line (it replaces another, was never in the total) is added at its price while
+ *     the shopper has not rejected it: accepted, or unanswered, which dispatch settles as accepted.
+ *     Its price is already min(its unit, the original's unit); a rejected one is not charged.
+ *
+ * The result is capped at the authorised amount (a bag that weighs more than the 15 % buffer is
+ * charged the hold, we absorb the rest) and never below zero.
  */
 export function finalAmountCents(
   order: Pick<repo.OrderRow, 'totalCents' | 'authorizedCents'>,
-  items: Pick<repo.OrderItemRow, 'lineTotalCents' | 'finalCents'>[],
+  items: FinalLine[],
 ): { amountCents: number; capped: boolean } {
-  const delta = items.reduce(
-    (sum, i) => sum + (i.finalCents === null ? 0 : i.finalCents - i.lineTotalCents),
-    0,
-  );
-  const raw = order.totalCents + delta;
+  let delta = 0;
+  for (const i of items) {
+    if (i.substitutesItemId) {
+      if (i.swapStatus !== 'rejected') delta += i.finalCents ?? i.lineTotalCents;
+      continue;
+    }
+    const quantity = i.quantity ?? 0;
+    const discount = i.discountCents ?? 0;
+    const picked = i.pickedQty ?? null;
+    const short = picked !== null && quantity > 0 && picked < quantity;
+    const gross =
+      picked === 0
+        ? 0
+        : (i.finalCents ??
+          (short ? lineShareCents(i.lineTotalCents, picked, quantity) : i.lineTotalCents));
+    const taken = short ? lineShareCents(discount, picked, quantity) : discount;
+    delta += gross - taken - (i.lineTotalCents - discount);
+  }
+  const raw = Math.max(order.totalCents + delta, 0);
   const authorized = order.authorizedCents ?? order.totalCents;
   return { amountCents: Math.min(raw, authorized), capped: raw > authorized };
 }
@@ -162,6 +192,8 @@ export async function finalizeOrder(
     const order = await repo.lockOrder(tx, orderId);
     if (!order) throw notFound('Order not found');
     if (order.capturedCents !== null) return { order, alreadyCaptured: true as const };
+    // A swap nobody answered counts as accepted from here on: this is the moment the bag is closed.
+    await acceptUnanswered(tx, order.id);
     const items = await repo.listOrderItems(tx, order.id);
     for (const w of opts.weights ?? []) {
       const item = items.find((i) => i.id === w.orderItemId);
@@ -172,7 +204,14 @@ export async function finalizeOrder(
         throw unprocessable('A weight must be a positive number of grams');
       }
       if (item.weighedGrams !== null) continue;
-      const finalCents = weighedCents(item.pricePerKgCents, w.grams);
+      let finalCents = weighedCents(item.pricePerKgCents, w.grams);
+      if (item.substitutesItemId) {
+        // A weighed replacement is never charged above the price of the units it replaces.
+        const original = items.find((o) => o.id === item.substitutesItemId);
+        if (original) {
+          finalCents = cappedSwapCents(original.unitPriceCents, item.quantity, finalCents);
+        }
+      }
       await repo.setWeighing(tx, item.id, w.grams, finalCents);
       item.weighedGrams = w.grams;
       item.finalCents = finalCents;

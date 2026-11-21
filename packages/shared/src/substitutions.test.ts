@@ -4,6 +4,7 @@ import {
   bestMatches,
   cappedSwapCents,
   isSafeSubstitute,
+  lineShareCents,
   swapUnitCents,
   withinPriceBand,
   type SubstitutionProduct,
@@ -158,5 +159,17 @@ describe('swap prices', () => {
   it('caps a weighed substitute at the price of the original units', () => {
     expect(cappedSwapCents(250, 2, 610)).toBe(500);
     expect(cappedSwapCents(250, 2, 480)).toBe(480);
+  });
+});
+
+describe('lineShareCents', () => {
+  it('rounds half up, once', () => {
+    expect(lineShareCents(600, 1, 3)).toBe(200);
+    expect(lineShareCents(100, 1, 3)).toBe(33);
+    expect(lineShareCents(250, 1, 3)).toBe(83);
+    expect(lineShareCents(250, 2, 3)).toBe(167);
+    expect(lineShareCents(7, 1, 2)).toBe(4);
+    expect(lineShareCents(500, 0, 3)).toBe(0);
+    expect(lineShareCents(500, 3, 3)).toBe(500);
   });
 });

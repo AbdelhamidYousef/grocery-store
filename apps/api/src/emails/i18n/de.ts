@@ -35,6 +35,26 @@ export const de: Record<EmailKey, TextEntry> = {
   'bill.weighed': 'Gewogen: {product}, {grams} g, {price}',
   'bill.held': 'Reserviert waren {amount}; der Rest der Reservierung wird freigegeben.',
   'bill.total': 'Abgebucht',
+  'bill.notCharged': 'Nicht berechnet: {product} (nicht vorrätig).',
+  'bill.shortCharged': '{product}: {picked} von {quantity} berechnet.',
+  'bill.swapKept': 'Ersatz: {product} x {quantity}, {price}.',
+  'bill.swapRejected': 'Ersatz abgelehnt: {product}, nicht berechnet.',
+
+  // ----- we changed something (a shortfall at packing) -----
+  'swaps.subject': 'Wir haben etwas an deiner Grocery-Bestellung {number} geändert',
+  'swaps.preheader':
+    'Etwas war nicht im Regal. Sieh nach, was sich in Bestellung {number} geändert hat.',
+  'swaps.heading': 'Wir haben etwas an deiner Bestellung geändert',
+  'swaps.intro': 'Hallo {name}, wir haben nicht alles für die Bestellung {number} gefunden.',
+  'swaps.missing': '{product} ist nicht vorrätig.',
+  'swaps.short': '{product}: Wir haben {picked} von {quantity} gefunden.',
+  'swaps.notCharged': 'Was fehlt, berechnen wir dir nicht.',
+  'swaps.replacement':
+    'Wir würden dir stattdessen {quantity} x {product} zu je {price} bringen. Du zahlst nie mehr als die {original} je Stück des Originals.',
+  'swaps.accept': 'Ersatz annehmen',
+  'swaps.reject': 'Ersatz ablehnen',
+  'swaps.default':
+    'Antwortest du nicht, bevor wir deine Bestellung losschicken, behalten wir den Ersatz und berechnen ihn zum genannten Preis.',
   'confirm.subject': 'Deine Grocery-Bestellung {number} ist bestätigt',
   'confirm.thanks': 'Danke für deine Bestellung, {name}.',
   'confirm.paid': 'Die Bestellung {number} ist bezahlt und wir machen sie versandfertig.',

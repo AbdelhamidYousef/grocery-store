@@ -14,6 +14,7 @@ export interface Candidate extends SubstitutionProduct {
   productSlug: string;
   productName: string;
   variantName: string;
+  sku: string;
   soldByWeight: boolean;
   pricePerKgCents: number | null;
   nominalGrams: number | null;
@@ -34,6 +35,7 @@ function columns(currency: string) {
     productSlug: products.slug,
     productName: products.name,
     variantName: productVariants.name,
+    sku: productVariants.sku,
     soldByWeight: productVariants.soldByWeight,
     pricePerKgCents: productVariants.pricePerKgCents,
     nominalGrams: productVariants.nominalGrams,

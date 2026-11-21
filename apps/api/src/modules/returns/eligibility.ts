@@ -7,6 +7,9 @@ export interface EligibleLine {
   quantity: number;
   lineTotalCents: number;
   discountCents: number;
+  // Substitutions (G7): units the packer found (null: all), and a replacement the shopper refused.
+  pickedQty?: number | null;
+  swapStatus?: 'proposed' | 'accepted' | 'rejected' | null;
 }
 
 export interface EligibilityResult {
@@ -32,7 +35,10 @@ export function assessEligibility(input: {
   const returnable = new Map(
     input.lines.map((l) => {
       const paid = l.lineTotalCents - l.discountCents;
-      const left = paid > 0 ? Math.max(0, l.quantity - (input.counted.get(l.id) ?? 0)) : 0;
+      // Only what was packed and kept can come back: not the units that were missing, and nothing
+      // of a replacement refused (before dispatch it was never charged, at the door it was refunded).
+      const kept = l.swapStatus === 'rejected' ? 0 : (l.pickedQty ?? l.quantity);
+      const left = paid > 0 ? Math.max(0, kept - (input.counted.get(l.id) ?? 0)) : 0;
       return [l.id, left] as const;
     }),
   );

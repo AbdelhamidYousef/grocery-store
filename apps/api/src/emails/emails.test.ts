@@ -5,6 +5,7 @@ import { emailText } from './i18n/index.ts';
 import { escapeHtml } from './layout.ts';
 import { orderConfirmation } from './order-confirmation.ts';
 import { orderShipped } from './order-shipped.ts';
+import { orderSwaps } from './order-swaps.ts';
 
 const order: Order = {
   number: 'PW-2026-000007',
@@ -33,6 +34,7 @@ const order: Order = {
   notes: null,
   authorizedCents: null,
   capturedCents: null,
+  refundedCents: 0,
   items: [
     {
       id: 'i1',
@@ -47,6 +49,11 @@ const order: Order = {
       weighedGrams: null,
       finalCents: null,
       shortDated: false,
+      pickStatus: 'pending' as const,
+      pickedQty: null,
+      substitutesItemId: null,
+      swapStatus: null,
+      refundedCents: 0,
     },
   ],
   placedAt: null,
@@ -136,5 +143,60 @@ describe('order emails: the delivery window', () => {
     expect(orderConfirmation(express, emailText('de-en')).text).toContain('Express, by 14:30');
     expect(orderConfirmation(order, emailText('de-en')).text).not.toMatch(/Arrives|Express, by/);
     expect(orderConfirmation(order, emailText('de-en')).html).not.toContain('Delivery time');
+  });
+});
+
+describe('the "we changed something" email', () => {
+  const swapped: Order = {
+    ...order,
+    items: [
+      { ...order.items[0]!, pickStatus: 'substituted', pickedQty: 1 },
+      {
+        ...order.items[0]!,
+        id: 'i2',
+        productName: 'Rope <b>toy</b> deluxe',
+        unitPriceCents: 1099,
+        quantity: 1,
+        lineTotalCents: 1099,
+        pickStatus: 'picked',
+        pickedQty: 1,
+        substitutesItemId: 'i1',
+        swapStatus: 'proposed',
+      },
+    ],
+  };
+  const payload = {
+    links: [
+      { itemId: 'i2', acceptUrl: 'https://shop.test/a?x=1&y=2', rejectUrl: 'https://shop.test/r' },
+    ],
+  };
+
+  it('lists what changed with the price promise and the signed links, in English', () => {
+    const mail = orderSwaps(swapped, payload, emailText('de-en'));
+    expect(mail.subject).toContain('We changed something');
+    expect(mail.text).toContain('Rope toy: we found 1 of 2.');
+    expect(mail.text).toContain('You never pay more than the');
+    expect(mail.text).toContain('https://shop.test/a?x=1&y=2');
+    expect(mail.text).toContain('https://shop.test/r');
+    expect(mail.text).toContain('If you do not answer before we dispatch');
+    expect(mail.html).toContain('href="https://shop.test/a?x=1&amp;y=2"');
+    expect(mail.html).not.toContain('<b>toy</b>');
+  });
+
+  it('is German with "du" in the German store', () => {
+    const mail = orderSwaps(swapped, payload, emailText('de-de'));
+    expect(mail.subject).toContain('geändert');
+    expect(mail.text).toContain('Du zahlst nie mehr');
+    expect(mail.text).not.toMatch(/\bSie\b/);
+  });
+
+  it('says plainly when an item is missing and nothing is charged for it', () => {
+    const missing: Order = {
+      ...order,
+      items: [{ ...order.items[0]!, pickStatus: 'missing', pickedQty: 0 }],
+    };
+    const mail = orderSwaps(missing, null, emailText('de-en'));
+    expect(mail.text).toContain('Rope toy is not in stock.');
+    expect(mail.text).toContain('You will not be charged for what is missing.');
   });
 });

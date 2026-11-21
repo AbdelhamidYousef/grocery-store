@@ -37,6 +37,7 @@ import { createReviewsRouter } from './reviews/router.ts';
 import { safetyRouter } from './safety/router.ts';
 import { createSearchRouter } from './search/router.ts';
 import { createStockAlertsRouter } from './stock-alerts/router.ts';
+import { createSwapsRouter } from './substitutions/router.ts';
 import { createTrackingRouter } from './tracking/router.ts';
 import { registerTrialSubscribers } from './trials/service.ts';
 import { createWishlistRouter } from './wishlist/router.ts';
@@ -107,6 +108,7 @@ export function createModulesRouter(opts: {
   router.use(noStore);
   router.use(createAuthRouter(opts));
   router.use(createAccountRouter(opts));
+  router.use(createSwapsRouter());
   router.use(createReviewsRouter(opts));
   router.use(createLoyaltyRouter());
   router.use(createNewsletterRouter(opts));

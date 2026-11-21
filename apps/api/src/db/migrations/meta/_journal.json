@@ -393,6 +393,13 @@
       "when": 1795255773809,
       "tag": "0055_substitution_preferences",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1795256935116,
+      "tag": "0056_substitutions_swaps",
+      "breakpoints": true
     }
   ]
 }

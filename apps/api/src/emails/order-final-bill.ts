@@ -25,6 +25,33 @@ export function orderFinalBill(order: Order, x: EmailText): Email {
       price: money(i.finalCents ?? 0),
     }),
   );
+  // What changed at packing: missing or short items, and the fate of each replacement.
+  const changes = order.items.flatMap((i) => {
+    if (i.substitutesItemId !== null) {
+      return i.swapStatus === 'rejected'
+        ? [x.t('bill.swapRejected', { product: i.productName })]
+        : [
+            x.t('bill.swapKept', {
+              product: i.productName,
+              quantity: i.quantity,
+              price: money(i.finalCents ?? i.lineTotalCents),
+            }),
+          ];
+    }
+    if (i.pickStatus === 'missing') return [x.t('bill.notCharged', { product: i.productName })];
+    if (i.pickStatus === 'short' || (i.pickStatus === 'substituted' && (i.pickedQty ?? 0) > 0)) {
+      return [
+        x.t('bill.shortCharged', {
+          product: i.productName,
+          picked: i.pickedQty ?? 0,
+          quantity: i.quantity,
+        }),
+      ];
+    }
+    return i.pickStatus === 'substituted'
+      ? [x.t('bill.notCharged', { product: i.productName })]
+      : [];
+  });
   const heldLine =
     order.authorizedCents !== null && order.authorizedCents > charged
       ? x.t('bill.held', { amount: money(order.authorizedCents) })
@@ -35,6 +62,7 @@ export function orderFinalBill(order: Order, x: EmailText): Email {
     '',
     itemsText(order, x),
     ...(weighedLines.length > 0 ? ['', ...weighedLines] : []),
+    ...(changes.length > 0 ? ['', ...changes] : []),
     '',
     `${x.t('bill.total')}${x.colon}${money(charged)}`,
     ...(heldLine ? [heldLine] : []),
@@ -53,6 +81,7 @@ export function orderFinalBill(order: Order, x: EmailText): Email {
       ),
       itemsTable(order, x),
       ...weighedLines.map((l) => paragraph(escapeHtml(l))),
+      ...changes.map((l) => paragraph(escapeHtml(l))),
       paragraph(`<strong>${escapeHtml(x.t('bill.total'))}: ${escapeHtml(money(charged))}</strong>`),
       ...(heldLine ? [paragraph(escapeHtml(heldLine))] : []),
     ].join('\n'),

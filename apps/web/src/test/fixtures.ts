@@ -357,6 +357,7 @@ export function makeOrder(overrides: Partial<Order> = {}): Order {
     notes: null,
     authorizedCents: null,
     capturedCents: null,
+    refundedCents: 0,
     items: [
       {
         id: 'oi1',
@@ -371,6 +372,11 @@ export function makeOrder(overrides: Partial<Order> = {}): Order {
         weighedGrams: null,
         finalCents: null,
         shortDated: false,
+        pickStatus: 'pending' as const,
+        pickedQty: null,
+        substitutesItemId: null,
+        swapStatus: null,
+        refundedCents: 0,
       },
     ],
     delivery: null,
@@ -570,6 +576,7 @@ export function makeAdminOrderDetail(
       notes: null,
       authorizedCents: null,
       capturedCents: null,
+      refundedCents: 0,
       items: [
         {
           id: 'oi1',
@@ -584,6 +591,11 @@ export function makeAdminOrderDetail(
           weighedGrams: null,
           finalCents: null,
           shortDated: false,
+          pickStatus: 'pending' as const,
+          pickedQty: null,
+          substitutesItemId: null,
+          swapStatus: null,
+          refundedCents: 0,
         },
         {
           id: 'oi2',
@@ -598,6 +610,11 @@ export function makeAdminOrderDetail(
           weighedGrams: null,
           finalCents: null,
           shortDated: false,
+          pickStatus: 'pending' as const,
+          pickedQty: null,
+          substitutesItemId: null,
+          swapStatus: null,
+          refundedCents: 0,
         },
       ],
       delivery: null,

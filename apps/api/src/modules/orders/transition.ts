@@ -6,6 +6,7 @@ import * as repo from '../checkout/repo.ts';
 import { enqueueEmail } from '../mail/outbox.ts';
 import { refundedByReturns } from '../returns/refunded.ts';
 import { commitOrderStock, restoreOrderStock } from '../stock/batches.ts';
+import { acceptUnanswered } from '../substitutions/swaps.ts';
 
 import { emitOrderCancelled, emitOrderPaid, emitOrderRefunded } from './events.ts';
 import { assertTransition, stockEffect } from './state-machine.ts';
@@ -46,6 +47,9 @@ export async function applyTransition(
 
   const found = await repo.findPaymentByOrder(tx, order.id);
   const payment = found ? await repo.lockPayment(tx, found.id) : undefined;
+
+  // Dispatch settles what nobody answered: an unanswered replacement counts as accepted from here.
+  if (to === 'shipped') await acceptUnanswered(tx, order.id);
 
   const effect = stockEffect(from, to);
   if (effect !== 'none') {

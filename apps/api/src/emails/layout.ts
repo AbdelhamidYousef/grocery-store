@@ -73,7 +73,9 @@ export const button = (href: string, label: string): string =>
 
 export function itemsTable(order: Order, x: EmailText): string {
   const money = (cents: number) => x.money(cents, order.totals.currency);
+  // A replacement the shopper rejected is not part of what they bought.
   const rows = order.items
+    .filter((i) => i.swapStatus !== 'rejected')
     .map(
       (i) => `<tr>
       <td style="padding:8px 0;border-bottom:1px solid ${BORDER};">${escapeHtml(i.productName)}<br><span style="color:${MUTED};font-size:14px;">${escapeHtml(i.variantName)} &middot; ${escapeHtml(x.t('order.qty', { quantity: i.quantity }))}</span></td>
@@ -128,9 +130,11 @@ export function addressLines(a: Order['shippingAddress']): string[] {
 
 export function itemsText(order: Order, x: EmailText): string {
   const money = (cents: number) => x.money(cents, order.totals.currency);
-  const lines = order.items.map(
-    (i) => `- ${i.productName} (${i.variantName}) x ${i.quantity}  ${money(i.lineTotalCents)}`,
-  );
+  const lines = order.items
+    .filter((i) => i.swapStatus !== 'rejected')
+    .map(
+      (i) => `- ${i.productName} (${i.variantName}) x ${i.quantity}  ${money(i.lineTotalCents)}`,
+    );
   return [
     ...lines,
     '',

@@ -107,3 +107,12 @@ export type SwapStatus = z.infer<typeof SwapStatusSchema>;
 export const PICK_STATUSES = ['pending', 'picked', 'short', 'missing', 'substituted'] as const;
 export const PickStatusSchema = z.enum(PICK_STATUSES);
 export type PickStatus = z.infer<typeof PickStatusSchema>;
+
+/**
+ * `round(cents x part / whole)`, half up, in integers: the share of a line (its price, its part of
+ * the order discount) that belongs to the units actually packed. One rule for the capture and for
+ * what the shopper's order page shows.
+ */
+export function lineShareCents(cents: number, part: number, whole: number): number {
+  return Math.floor((cents * part * 2 + whole) / (2 * whole));
+}

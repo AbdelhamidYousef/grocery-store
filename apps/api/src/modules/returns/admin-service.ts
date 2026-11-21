@@ -348,8 +348,9 @@ export async function refund(
     const full =
       !alreadyRefunded &&
       lines
-        .filter((l) => l.lineTotalCents - l.discountCents > 0)
-        .every((l) => (back.get(l.id) ?? 0) >= l.quantity);
+        // A rejected replacement was never kept, and a short line only holds the units found (G7).
+        .filter((l) => l.lineTotalCents - l.discountCents > 0 && l.swapStatus !== 'rejected')
+        .every((l) => (back.get(l.id) ?? 0) >= (l.pickedQty ?? l.quantity));
     if (full) {
       await applyTransition(tx, order, 'refunded', {
         actor,

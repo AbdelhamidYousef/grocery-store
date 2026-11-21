@@ -32,6 +32,7 @@ export function toOrderDto(
     notes: order.notes,
     authorizedCents: order.authorizedCents,
     capturedCents: order.capturedCents,
+    refundedCents: order.refundedCents,
     items: items.map((i) => ({
       id: i.id,
       productName: i.productName,
@@ -45,6 +46,11 @@ export function toOrderDto(
       weighedGrams: i.weighedGrams,
       finalCents: i.finalCents,
       shortDated: i.shortDated,
+      pickStatus: i.pickStatus,
+      pickedQty: i.pickedQty,
+      substitutesItemId: i.substitutesItemId,
+      swapStatus: i.swapStatus,
+      refundedCents: i.refundedCents,
     })),
     delivery:
       order.deliveryKind && order.deliveryFrom && order.deliveryTo

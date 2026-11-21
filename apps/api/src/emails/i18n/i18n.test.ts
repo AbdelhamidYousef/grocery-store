@@ -39,6 +39,7 @@ const order = {
   notes: null,
   authorizedCents: null,
   capturedCents: null,
+  refundedCents: 0,
   items: [
     {
       id: 'i1',
@@ -53,6 +54,11 @@ const order = {
       weighedGrams: null,
       finalCents: null,
       shortDated: false,
+      pickStatus: 'pending' as const,
+      pickedQty: null,
+      substitutesItemId: null,
+      swapStatus: null,
+      refundedCents: 0,
     },
   ],
   placedAt: null,

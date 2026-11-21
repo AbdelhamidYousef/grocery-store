@@ -277,6 +277,11 @@ describe('admin order detail: capture now', () => {
     weighedGrams: null,
     finalCents: null,
     shortDated: false,
+    pickStatus: 'pending' as const,
+    pickedQty: null,
+    substitutesItemId: null,
+    swapStatus: null,
+    refundedCents: 0,
   };
   function authorised(over: { capturedCents?: number | null } = {}) {
     const base = makeAdminOrderDetail();

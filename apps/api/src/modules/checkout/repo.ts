@@ -117,14 +117,17 @@ export async function expandBundles(run: Db, lines: StockLine[]): Promise<StockL
 
 // Stock lines an existing order holds, from its snapshot. A deleted variant has no inventory row.
 export function expandOrderItems(
-  items: Pick<OrderItemRow, 'variantId' | 'quantity' | 'bundleComponents'>[],
+  items: (Pick<OrderItemRow, 'variantId' | 'quantity' | 'bundleComponents'> &
+    Partial<Pick<OrderItemRow, 'pickedQty' | 'swapStatus'>>)[],
 ): StockLine[] {
   return expandLines(
-    items.flatMap((i) =>
-      i.variantId === null
+    items.flatMap((i) => {
+      // Units the packer did not find, and replacements the shopper rejected, hold no stock (G7).
+      const units = i.swapStatus === 'rejected' ? 0 : (i.pickedQty ?? i.quantity);
+      return i.variantId === null || units === 0
         ? []
-        : [{ variantId: i.variantId, quantity: i.quantity, components: i.bundleComponents }],
-    ),
+        : [{ variantId: i.variantId, quantity: units, components: i.bundleComponents }];
+    }),
   );
 }
 

@@ -52,6 +52,25 @@ export const en = {
   'bill.weighed': 'Weighed: {product}, {grams} g, {price}',
   'bill.held': 'We had held {amount}; the rest of the hold is released.',
   'bill.total': 'Charged',
+  'bill.notCharged': 'Not charged: {product} (not in stock).',
+  'bill.shortCharged': '{product}: {picked} of {quantity} charged.',
+  'bill.swapKept': 'Replacement: {product} x {quantity}, {price}.',
+  'bill.swapRejected': 'Replacement rejected: {product}, not charged.',
+
+  // ----- we changed something (a shortfall at packing) -----
+  'swaps.subject': 'We changed something in your Grocery order {number}',
+  'swaps.preheader': 'Something was not on the shelf. See what changed in order {number}.',
+  'swaps.heading': 'We changed something in your order',
+  'swaps.intro': 'Hi {name}, we could not find everything for order {number}.',
+  'swaps.missing': '{product} is not in stock.',
+  'swaps.short': '{product}: we found {picked} of {quantity}.',
+  'swaps.notCharged': 'You will not be charged for what is missing.',
+  'swaps.replacement':
+    'We would like to bring {quantity} x {product} instead, at {price} each. You never pay more than the {original} each of the original.',
+  'swaps.accept': 'Accept the replacement',
+  'swaps.reject': 'Reject the replacement',
+  'swaps.default':
+    'If you do not answer before we dispatch your order, we keep the replacement and charge it at the price above.',
 
   // ----- order shipped -----
   'shipped.subject': 'Your Grocery order {number} is on its way',

@@ -1,10 +1,21 @@
 import { sql } from 'drizzle-orm';
-import { boolean, check, index, integer, jsonb, pgTable, text, uuid } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  check,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  type AnyPgColumn,
+} from 'drizzle-orm/pg-core';
 
 import { createdAt, id, updatedAt } from './columns.ts';
 import { orders } from './orders.ts';
 import { productVariants } from './product-variants.ts';
-import { substitutionPreference } from './substitution.ts';
+import { pickStatus, substitutionPreference, swapStatus } from './substitution.ts';
 
 // A snapshot of what was bought, not a reference to the live catalog: renaming, re-pricing or
 // deleting a product later must not rewrite history or change an old invoice.
@@ -45,10 +56,37 @@ export const orderItems = pgTable(
     substituteVariantId: uuid('substitute_variant_id').references(() => productVariants.id, {
       onDelete: 'set null',
     }),
+    // Packing (G7): what the packer found. `picked_qty` is null until a shortfall is recorded (then every
+    // unit counts as picked); `short` / `missing` lines are charged for the units found only.
+    pickStatus: pickStatus('pick_status').notNull().default('pending'),
+    pickedQty: integer('picked_qty'),
+    // A substitute line points at the line it replaces; its price is min(its unit price, the
+    // original's) and `swap_status` says whether the shopper took it. Null on every other line.
+    substitutesItemId: uuid('substitutes_item_id').references((): AnyPgColumn => orderItems.id, {
+      onDelete: 'cascade',
+    }),
+    swapStatus: swapStatus('swap_status'),
+    // A replacement refused at the door after capture: written in two steps (intent, then the amount
+    // once the gateway has answered) so a crash in between can be continued, never repeated.
+    refundIntentAt: timestamp('refund_intent_at', { withTimezone: true }),
+    refundedCents: integer('refunded_cents').notNull().default(0),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
   (t) => [
+    index('order_items_substitutes_item_idx').on(t.substitutesItemId),
+    check(
+      'order_items_swap_check',
+      sql`(${t.substitutesItemId} is null) = (${t.swapStatus} is null)`,
+    ),
+    check(
+      'order_items_picked_check',
+      sql`${t.pickedQty} is null or (${t.pickedQty} >= 0 and ${t.pickedQty} <= ${t.quantity})`,
+    ),
+    check(
+      'order_items_refunded_check',
+      sql`${t.refundedCents} >= 0 and ${t.refundedCents} <= greatest(${t.lineTotalCents}, coalesce(${t.finalCents}, 0))`,
+    ),
     index('order_items_order_id_idx').on(t.orderId),
     index('order_items_variant_id_idx').on(t.variantId),
     check('order_items_quantity_check', sql`${t.quantity} > 0`),
