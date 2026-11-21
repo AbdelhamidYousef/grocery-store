@@ -38,13 +38,14 @@ export async function getNavigation(): Promise<Navigation> {
   ]);
   const departments: NavDepartment[] = [];
   for (const { slug } of DEPARTMENTS) {
-    const root = tree.find((c) => c.slug === slug);
+    // Match on the department, not the slug: store views translate category slugs (obst-gemuese).
+    const root = tree.find((c) => c.departmentSlug === slug);
     if (!root) continue;
     // The department's own promo first, else the first "any department" promo, in the editor's order.
     const promo =
       promos.find((p) => p.categoryId === root.id) ?? promos.find((p) => p.categoryId === null);
     departments.push({
-      slug: root.slug,
+      slug,
       name: root.name,
       categories: root.children.map((c) => ({
         slug: c.slug,

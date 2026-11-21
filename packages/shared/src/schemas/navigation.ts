@@ -14,7 +14,8 @@ export const NavPromoSchema = z.object({
 export type NavPromo = z.infer<typeof NavPromoSchema>;
 
 export const NavDepartmentSchema = z.object({
-  // The department's top-level category slug (`/c/<slug>`): what "See all" links to.
+  // The department slug (the same in every store view; `/c/<slug>` resolves in each): what "See all"
+  // links to, and what the per-department colours and icons key on.
   slug: z.string(),
   name: z.string(),
   categories: z.array(

@@ -3,7 +3,7 @@ import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 
 import { db } from '../../db/client.ts';
-import { menuPromos } from '../../db/schema/index.ts';
+import { categoryTranslations, menuPromos } from '../../db/schema/index.ts';
 import { makeTestApp, TEST_ORIGIN } from '../../test/app.ts';
 import { createBrand, createCategory, createProduct, createUser } from '../../test/factories.ts';
 import { bodyOf, errorOf } from '../../test/http.ts';
@@ -36,6 +36,17 @@ const promo = {
 };
 
 describe('GET /navigation', () => {
+  it('finds departments in a store view that translates category slugs', async () => {
+    const fruit = await createCategory({ slug: 'fruit-veg', name: 'Fruit & veg' });
+    await db
+      .insert(categoryTranslations)
+      .values({ categoryId: fruit.id, locale: 'de', name: 'Obst & Gemüse', slug: 'obst-gemuese' });
+    const res = await request(app).get('/api/v1/navigation').set('X-Store-View', 'de-de');
+    const { data } = bodyOf<{ data: Navigation }>(res);
+    // The slug stays the department's own (colours and icons key on it); the name is German.
+    expect(data.departments.map((d) => [d.slug, d.name])).toEqual([['fruit-veg', 'Obst & Gemüse']]);
+  });
+
   it('builds a panel per department from the category tree, brands and promos, publicly cacheable', async () => {
     const dairy = await createCategory({ slug: 'dairy-eggs', name: 'Dairy & eggs' });
     const cheese = await createCategory({ slug: 'cheese-x', name: 'Cheese', parentId: dairy.id });

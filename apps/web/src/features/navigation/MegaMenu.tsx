@@ -1,8 +1,8 @@
-import { DEPARTMENTS, departmentBySlug } from '@store/shared';
+import { DEPARTMENTS } from '@store/shared';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 
-import { ChevronDownIcon, DepartmentGlyph } from '../../components/icons';
+import { ChevronDownIcon } from '../../components/icons';
 import { useT } from '../../i18n';
 
 import { departmentName } from './department-names';
@@ -19,12 +19,11 @@ const INTENT_MS = 150;
 const linkClass =
   'flex min-h-11 items-center rounded-control px-3 hover:bg-dept-soft aria-[current=page]:bg-dept-soft';
 
-// Ten departments and "Brands" share one row, so the pills are compact: the round icon appears only
-// on wide screens, where there is room for it.
+// Ten departments and "Brands" share one row inside the 1280 px container, so the pills are compact
+// text with no icon (the icons live on the home page tiles), and the bar only shows from `xl` up;
+// narrower screens use the menu button.
 const pillClass =
-  'flex min-h-11 items-center gap-2 whitespace-nowrap rounded-full px-3 font-display text-[0.95rem] font-semibold hover:bg-dept-soft aria-[current=page]:bg-dept-soft';
-const iconClass =
-  'hidden h-7 w-7 items-center justify-center rounded-full bg-dept-accent text-ink 2xl:flex';
+  'flex min-h-11 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 font-display text-sm font-semibold hover:bg-dept-soft aria-[current=page]:bg-dept-soft';
 
 // The desktop "shop by department" bar. Disclosure navigation (WAI-ARIA APG), not a `menu` role: each
 // department is a button with `aria-expanded` that shows a panel of ordinary links, so
@@ -68,20 +67,16 @@ export function MegaMenu() {
   const departments = data?.departments ?? [];
 
   return (
-    <ul ref={bar} className="flex items-center gap-2 py-2" data-testid="main-nav">
+    <ul ref={bar} className="flex items-center gap-1 py-2" data-testid="main-nav">
       {departments.length === 0
         ? DEPARTMENTS.map((dept) => (
             <li key={dept.slug} data-dept={dept.slug}>
               <NavLink to={`/c/${dept.slug}`} className={pillClass}>
-                <span className={iconClass}>
-                  <DepartmentGlyph icon={dept.icon} width={18} height={18} />
-                </span>
                 {departmentName(t, dept)}
               </NavLink>
             </li>
           ))
         : departments.map((entry) => {
-            const meta = departmentBySlug(entry.slug);
             const open = openDept === entry.slug;
             const panelId = `${baseId}-${entry.slug}`;
             const shown = entry.categories.slice(0, MAX_MENU_CATEGORIES);
@@ -117,11 +112,6 @@ export function MegaMenu() {
                   }}
                   className={pillClass}
                 >
-                  {meta && (
-                    <span className={iconClass}>
-                      <DepartmentGlyph icon={meta.icon} width={18} height={18} />
-                    </span>
-                  )}
                   {entry.name}
                   <ChevronDownIcon width={16} height={16} />
                 </button>

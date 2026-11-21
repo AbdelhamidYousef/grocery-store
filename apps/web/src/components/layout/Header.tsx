@@ -50,7 +50,7 @@ export function Header({
           aria-expanded={menuOpen}
           data-testid="mobile-nav-button"
           onClick={() => setMenuOpen(true)}
-          className="flex min-h-11 min-w-11 items-center justify-center rounded-control hover:bg-dept-soft lg:hidden"
+          className="flex min-h-11 min-w-11 items-center justify-center rounded-control hover:bg-dept-soft xl:hidden"
         >
           <MenuIcon />
         </button>
@@ -109,7 +109,7 @@ export function Header({
 
       <nav
         aria-label={t('shell.shopByDepartment')}
-        className="relative hidden border-t border-line lg:block"
+        className="relative hidden border-t border-line xl:block"
       >
         <Container>
           <MegaMenu />
